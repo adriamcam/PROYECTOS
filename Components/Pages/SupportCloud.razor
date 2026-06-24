@@ -2,65 +2,89 @@
 
 <PageTitle>Support Cloud - ITQS SOC</PageTitle>
 
-<section class="module-shell">
+<section class="cloud-layout">
 
-    <div class="module-actions">
-        <a class="back-button" href="/portal">
-            ← Volver al Portal
-        </a>
-    </div>
+    <aside class="cloud-sidebar">
+        <div class="cloud-brand">
+            <span>☁</span>
+            <strong>Support Cloud</strong>
+        </div>
 
-    <div class="module-header">
-        <div class="module-logo">☁</div>
-        <h1>Support Cloud</h1>
-        <p>
-            Operación Cloud, monitoreo, clientes,
-            inventario y administración.
-        </p>
-    </div>
+        <nav class="cloud-menu">
+            <div class="menu-group active">
+                <div class="menu-title">🔔 Monitoreo de Alertas</div>
+                <a href="/cloud/dashboard">Dashboard</a>
+                <a href="/cloud/asignadas">Asignadas a mí</a>
+                <a href="/cloud/sin-asignar">Sin asignar</a>
+                <a href="/cloud/todas-alertas">Todas las alertas</a>
+                <a href="/cloud/alertas-criticas">Alertas críticas</a>
+            </div>
 
-    <div class="module-grid">
+            <a class="menu-item" href="/cloud/info-clientes">👥 Info Clientes</a>
+            <a class="menu-item" href="/cloud/inventory">▦ Inventory</a>
+            <a class="menu-item" href="/cloud/admin-manager">⚙ Admin / Manager</a>
+        </nav>
 
-        <a class="module-card" href="/dashboard-alertas">
-            <div class="module-icon blue">◈</div>
-            <h2>Dashboard</h2>
-            <p>
-                Vista general de alertas,
-                métricas y estado operativo.
-            </p>
-            <span>Ingresar →</span>
-        </a>
+        <a class="cloud-logout" href="/portal">← Volver al Portal</a>
+    </aside>
 
-        <a class="module-card" href="/alertas-asignadas">
-            <div class="module-icon green">👤</div>
-            <h2>Asignadas a mí</h2>
-            <p>
-                Alertas asignadas al usuario
-                actual para seguimiento.
-            </p>
-            <span>Ingresar →</span>
-        </a>
+    <main class="cloud-main">
+        <header class="cloud-topbar">
+            <div class="hamburger">☰</div>
+            <strong>Support Cloud</strong>
 
-        <a class="module-card" href="/alertas-sin-asignar">
-            <div class="module-icon purple">☰</div>
-            <h2>Sin asignar</h2>
-            <p>
-                Alertas pendientes de
-                asignación operativa.
-            </p>
-            <span>Ingresar →</span>
-        </a>
+            <div class="cloud-user">
+                <div class="avatar">A</div>
+                <div>
+                    <strong>Administrador</strong>
+                    <span>ITQS SOC</span>
+                </div>
+            </div>
+        </header>
 
-        <a class="module-card" href="/alertas-manager">
-            <div class="module-icon orange">⚙</div>
-            <h2>Manager</h2>
-            <p>
-                Gestión general de alertas,
-                configuración y administración.
-            </p>
-            <span>Ingresar →</span>
-        </a>
+        <section class="cloud-content">
+            <h1>Monitoreo de Alertas</h1>
+            <p>Monitoreo centralizado de alertas, asignaciones y operación.</p>
 
-    </div>
+            <div class="cloud-divider"></div>
+
+            <div class="kpi-row">
+                <article class="kpi-box">
+                    <h3>Alertas Totales</h3>
+                    <div class="kpi-icon blue">🔔</div>
+                    <strong>146</strong>
+                    <span>+12 hoy</span>
+                </article>
+
+                <article class="kpi-box">
+                    <h3>Asignadas a mí</h3>
+                    <div class="kpi-icon green">👤</div>
+                    <strong>28</strong>
+                    <span>+5 hoy</span>
+                </article>
+
+                <article class="kpi-box">
+                    <h3>Sin asignar</h3>
+                    <div class="kpi-icon orange">👤</div>
+                    <strong>34</strong>
+                    <span>+8 hoy</span>
+                </article>
+
+                <article class="kpi-box">
+                    <h3>Críticas</h3>
+                    <div class="kpi-icon red">⚠</div>
+                    <strong>7</strong>
+                    <span>+2 hoy</span>
+                </article>
+
+                <article class="kpi-box">
+                    <h3>Resueltas hoy</h3>
+                    <div class="kpi-icon purple">✓</div>
+                    <strong>16</strong>
+                    <span>+3 hoy</span>
+                </article>
+            </div>
+        </section>
+    </main>
 
 </section>
