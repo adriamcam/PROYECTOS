@@ -1,6 +1,8 @@
 @page "/support-cloud"
 @rendermode @(new InteractiveServerRenderMode())
 
+@using ITQS.SupportOperationsCenter.Components.Dashboard
+
 <PageTitle>Support Cloud - ITQS SOC</PageTitle>
 
 <section class="cloud-layout">
@@ -21,13 +23,13 @@
                 </button>
 
                 <div class="menu-links @(ShowAlertMenu ? "show" : "")">
-                    <button type="button" class="menu-link" @onclick='() => CurrentModule = "Alertas"'>Dashboard</button>
-                    <button type="button" class="menu-link" @onclick='() => CurrentModule = "Alertas"'>Asignadas a mí</button>
-                    <button type="button" class="menu-link" @onclick='() => CurrentModule = "Alertas"'>Sin asignar</button>
-                    <button type="button" class="menu-link" @onclick='() => CurrentModule = "Alertas"'>Todas las alertas</button>
-                    <button type="button" class="menu-link" @onclick='() => CurrentModule = "Alertas"'>Alertas críticas</button>
-                    <button type="button" class="menu-link" @onclick='() => CurrentModule = "Clientes"'>Info Clientes</button>
-                    <button type="button" class="menu-link" @onclick='() => CurrentModule = "Admin"'>Admin / Manager View</button>
+                    <button type="button" class="menu-link" @onclick='() => SelectModule("Alertas")'>Dashboard</button>
+                    <button type="button" class="menu-link" @onclick='() => SelectModule("Alertas")'>Asignadas a mí</button>
+                    <button type="button" class="menu-link" @onclick='() => SelectModule("Alertas")'>Sin asignar</button>
+                    <button type="button" class="menu-link" @onclick='() => SelectModule("Alertas")'>Todas las alertas</button>
+                    <button type="button" class="menu-link" @onclick='() => SelectModule("Alertas")'>Alertas críticas</button>
+                    <button type="button" class="menu-link" @onclick='() => SelectModule("Clientes")'>Info Clientes</button>
+                    <button type="button" class="menu-link" @onclick='() => SelectModule("Admin")'>Admin / Manager View</button>
                 </div>
             </div>
 
@@ -54,68 +56,15 @@
 
             @if (CurrentModule == "Alertas")
             {
-                <h1>Monitoreo de Alertas</h1>
-                <p>Monitoreo centralizado de alertas, asignaciones y operación.</p>
-
-                <div class="cloud-divider"></div>
-
-                <div class="kpi-row">
-
-                    <article class="kpi-box">
-                        <h3>Alertas Totales</h3>
-                        <div class="kpi-icon blue">🔔</div>
-                        <strong>146</strong>
-                        <span>Activas</span>
-                    </article>
-
-                    <article class="kpi-box">
-                        <h3>Backup Alerts</h3>
-                        <div class="kpi-icon purple">💾</div>
-                        <strong>42</strong>
-                        <span>Activas</span>
-                    </article>
-
-                    <article class="kpi-box">
-                        <h3>Management Alerts</h3>
-                        <div class="kpi-icon orange">⚙</div>
-                        <strong>71</strong>
-                        <span>Activas</span>
-                    </article>
-
-                    <article class="kpi-box">
-                        <h3>Asignadas a mí</h3>
-                        <div class="kpi-icon green">👤</div>
-                        <strong>28</strong>
-                        <span>Pendientes</span>
-                    </article>
-
-                    <article class="kpi-box">
-                        <h3>Sin asignar</h3>
-                        <div class="kpi-icon red">⚠</div>
-                        <strong>34</strong>
-                        <span>Pendientes</span>
-                    </article>
-
-                    <article class="kpi-box">
-                        <h3>Resueltas hoy</h3>
-                        <div class="kpi-icon purple">✓</div>
-                        <strong>16</strong>
-                        <span>Cerradas</span>
-                    </article>
-
-                </div>
+                <AlertDashboard UserEmail="wcambronero@itqscr.com" />
             }
             else if (CurrentModule == "Clientes")
             {
-                <h1>Info Clientes</h1>
-                <p>Información de clientes, tenants, suscripciones y contactos operativos.</p>
-                <div class="cloud-divider"></div>
+                <CustomerDashboard />
             }
             else if (CurrentModule == "Admin")
             {
-                <h1>Admin / Manager View</h1>
-                <p>Administración, configuración, usuarios, reglas y gestión operativa.</p>
-                <div class="cloud-divider"></div>
+                <AdminDashboard />
             }
             else
             {
@@ -137,5 +86,11 @@
     {
         CurrentModule = "Alertas";
         ShowAlertMenu = !ShowAlertMenu;
+    }
+
+    private void SelectModule(string module)
+    {
+        CurrentModule = module;
+        ShowAlertMenu = true;
     }
 }

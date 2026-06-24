@@ -1,0 +1,84 @@
+@using ITQS.SupportOperationsCenter.Models.Dashboard
+@using ITQS.SupportOperationsCenter.Services.Interfaces
+@using ITQS.SupportOperationsCenter.Components.Shared
+@inject IAlertService AlertService
+
+<h1>Monitoreo de Alertas</h1>
+<p>Monitoreo centralizado de alertas, asignaciones y operación.</p>
+
+<div class="cloud-divider"></div>
+
+@if (IsLoading)
+{
+    <p>Cargando KPI de alertas...</p>
+}
+else if (!string.IsNullOrWhiteSpace(ErrorMessage))
+{
+    <div class="soc-alert-error">
+        @ErrorMessage
+    </div>
+}
+else
+{
+    <div class="kpi-row">
+        <KpiCard Title="Alertas Totales"
+                 Icon="🔔"
+                 CssClass="blue"
+                 Value="@Dashboard.TotalAlerts"
+                 Label="Activas" />
+
+        <KpiCard Title="Backup Alerts"
+                 Icon="💾"
+                 CssClass="purple"
+                 Value="@Dashboard.BackupAlerts"
+                 Label="Activas" />
+
+        <KpiCard Title="Management Alerts"
+                 Icon="⚙"
+                 CssClass="orange"
+                 Value="@Dashboard.ManagementAlerts"
+                 Label="Activas" />
+
+        <KpiCard Title="Asignadas a mí"
+                 Icon="👤"
+                 CssClass="green"
+                 Value="@Dashboard.AssignedToMe"
+                 Label="Pendientes" />
+
+        <KpiCard Title="Sin asignar"
+                 Icon="⚠"
+                 CssClass="red"
+                 Value="@Dashboard.Unassigned"
+                 Label="Pendientes" />
+
+        <KpiCard Title="Resueltas hoy"
+                 Icon="✓"
+                 CssClass="purple"
+                 Value="@Dashboard.ResolvedToday"
+                 Label="Cerradas" />
+    </div>
+}
+
+@code {
+    [Parameter] public string UserEmail { get; set; } = "wcambronero@itqscr.com";
+
+    private AlertDashboardModel Dashboard { get; set; } = new();
+    private bool IsLoading { get; set; } = true;
+    private string? ErrorMessage { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await AlertService.GetDashboardAsync(UserEmail);
+
+        if (result.Success && result.Data is not null)
+        {
+            Dashboard = result.Data;
+        }
+        else
+        {
+            ErrorMessage = result.ErrorMessage ?? "No fue posible cargar la información.";
+        }
+
+        IsLoading = false;
+    }
+}

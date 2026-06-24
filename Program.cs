@@ -1,4 +1,5 @@
 using ITQS.SupportOperationsCenter.Components;
+using ITQS.SupportOperationsCenter.Extensions;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Authorization;
@@ -22,12 +23,15 @@ builder.Services
         var policy = new AuthorizationPolicyBuilder()
             .RequireAuthenticatedUser()
             .Build();
+
         options.Filters.Add(new AuthorizeFilter(policy));
     })
     .AddMicrosoftIdentityUI();
 
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
+builder.Services.AddItqsSocServices();
 
 var app = builder.Build();
 
@@ -43,6 +47,7 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseAntiforgery();
+
 app.MapControllers();
 
 app.MapRazorComponents<App>()

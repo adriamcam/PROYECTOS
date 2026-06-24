@@ -1,0 +1,14 @@
+<article class="kpi-box">
+    <h3>@Title</h3>
+    <div class="kpi-icon @CssClass">@Icon</div>
+    <strong>@Value</strong>
+    <span>@Label</span>
+</article>
+
+@code {
+    [Parameter] public string Title { get; set; } = string.Empty;
+    [Parameter] public string Icon { get; set; } = string.Empty;
+    [Parameter] public string CssClass { get; set; } = "blue";
+    [Parameter] public int Value { get; set; }
+    [Parameter] public string Label { get; set; } = string.Empty;
+}
