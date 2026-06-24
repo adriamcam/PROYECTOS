@@ -1,17 +1,12 @@
-<Router AppAssembly="typeof(Program).Assembly">
+<Router AppAssembly="@typeof(Program).Assembly">
     <Found Context="routeData">
-        <RouteView RouteData="routeData" DefaultLayout="typeof(Layout.EmptyLayout)" />
-        <FocusOnNavigate RouteData="routeData" Selector="h1" />
+        <RouteView RouteData="@routeData" DefaultLayout="@typeof(Layout.EmptyLayout)" />
+        <FocusOnNavigate RouteData="@routeData" Selector="h1" />
     </Found>
+
     <NotFound>
-        <LayoutView Layout="typeof(Layout.EmptyLayout)">
-            <section class="login-shell">
-                <div class="login-panel">
-                    <div class="login-logo">ITQS</div>
-                    <h1>Página no encontrada</h1>
-                    <a class="login-button" href="/">Volver</a>
-                </div>
-            </section>
+        <LayoutView Layout="@typeof(Layout.EmptyLayout)">
+            <p>Ruta no encontrada.</p>
         </LayoutView>
     </NotFound>
 </Router>
