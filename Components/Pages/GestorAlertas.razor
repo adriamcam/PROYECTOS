@@ -1,0 +1,30 @@
+@page "/soporte-cloud/gestor-alertas"
+@inject NavigationManager Navigation
+
+<PageTitle>Gestor de Alertas - ITQS SOC</PageTitle>
+
+<div class="page-title">
+    <h1>Gestor de Alertas</h1>
+    <p>Administración central de alertas Cloud: dashboard, asignadas e historial.</p>
+</div>
+
+<section class="module-grid compact">
+    <article class="module-card enabled" @onclick='() => Navigation.NavigateTo("/soporte-cloud/gestor-alertas/dashboard")'>
+        <div class="module-icon">◷</div>
+        <h2>Dashboard</h2>
+        <p>Todas las alertas operativas disponibles para asignar.</p>
+        <span>Entrar →</span>
+    </article>
+    <article class="module-card enabled" @onclick='() => Navigation.NavigateTo("/soporte-cloud/gestor-alertas/asignadas")'>
+        <div class="module-icon">♙</div>
+        <h2>Asignadas</h2>
+        <p>Alertas asignadas al usuario actual.</p>
+        <span>Entrar →</span>
+    </article>
+    <article class="module-card enabled" @onclick='() => Navigation.NavigateTo("/soporte-cloud/gestor-alertas/historial")'>
+        <div class="module-icon">☷</div>
+        <h2>Historial</h2>
+        <p>Auditoría de acciones y cambios sobre alertas.</p>
+        <span>Entrar →</span>
+    </article>
+</section>

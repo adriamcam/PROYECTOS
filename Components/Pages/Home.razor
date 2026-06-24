@@ -1,5 +1,4 @@
 @page "/home"
-@attribute [Authorize]
 @inject NavigationManager Navigation
 
 <PageTitle>Home - ITQS SOC</PageTitle>
@@ -10,39 +9,18 @@
 
     <main class="login-panel">
         <div class="login-logo">ITQS</div>
-        <h1>Autenticado correctamente</h1>
-        <p>@DisplayName</p>
 
-        <button class="login-button" @onclick="SignOut">
-            Cerrar sesión
+        <h1>Bienvenido</h1>
+
+        <p>
+            ITQS Support Operations Center
+        </p>
+
+        <button class="login-button"
+                @onclick='() => Navigation.NavigateTo("/")'>
+            Volver
         </button>
     </main>
 
     <div class="login-wave"></div>
 </section>
-
-@code {
-    [CascadingParameter] private Task<AuthenticationState>? AuthenticationStateTask { get; set; }
-    private string DisplayName = "Usuario autenticado";
-
-    protected override async Task OnInitializedAsync()
-    {
-        if (AuthenticationStateTask is null)
-        {
-            return;
-        }
-
-        var authState = await AuthenticationStateTask;
-        var user = authState.User;
-
-        DisplayName = user.FindFirst("name")?.Value
-            ?? user.Identity?.Name
-            ?? user.FindFirst(ClaimTypes.Email)?.Value
-            ?? "Usuario autenticado";
-    }
-
-    private void SignOut()
-    {
-        Navigation.NavigateTo("MicrosoftIdentity/Account/SignOut", forceLoad: true);
-    }
-}
