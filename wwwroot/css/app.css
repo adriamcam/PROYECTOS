@@ -563,7 +563,9 @@ html, body {
         grid-template-columns: repeat(2, 1fr);
     }
 }
-/* MENU COLAPSABLE */
+/* =========================================
+   MENU COLAPSABLE - SUPPORT CLOUD
+========================================= */
 
 .menu-group {
     background: rgba(255,255,255,.04);
@@ -573,11 +575,13 @@ html, body {
 }
 
 .menu-title {
+    display: block;
     background: #0f62fe;
     border-radius: 8px;
     padding: 14px;
     font-weight: 800;
     cursor: pointer;
+    color: white;
     list-style: none;
 }
 
@@ -585,8 +589,15 @@ html, body {
     display: none;
 }
 
-.menu-group a {
+.menu-group:not([open]) a {
+    display: none;
+}
+
+.menu-group[open] a {
     display: block;
+}
+
+.menu-group a {
     color: #dbeafe;
     text-decoration: none;
     padding: 12px 20px;
@@ -601,50 +612,4 @@ html, body {
 .menu-group a::before {
     content: "• ";
     color: #3b82f6;
-}
-.menu-group:not([open]) a {
-    display: none;
-}
-
-.menu-group[open] a {
-    display: block;
-}
-.menu-toggle {
-    display: none;
-}
-
-.menu-links {
-    display: none;
-}
-
-.menu-toggle:checked ~ .menu-links {
-    display: block;
-}
-
-.menu-title {
-    display: block;
-    background: #0f62fe;
-    border-radius: 8px;
-    padding: 14px;
-    font-weight: 800;
-    cursor: pointer;
-    color: white;
-}
-
-.menu-links a {
-    display: block;
-    color: #dbeafe;
-    text-decoration: none;
-    padding: 12px 20px;
-    font-weight: 600;
-    border-top: 1px solid rgba(255,255,255,.05);
-}
-
-.menu-links a::before {
-    content: "• ";
-    color: #3b82f6;
-}
-
-.menu-links a:hover {
-    background: rgba(255,255,255,.08);
 }
