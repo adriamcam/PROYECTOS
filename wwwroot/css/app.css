@@ -396,11 +396,14 @@ html, body {
 }
 
 .menu-title {
+    display: block;
     background: #0f62fe;
     border-radius: 8px;
     padding: 14px;
     font-weight: 800;
-    margin-bottom: 12px;
+    cursor: pointer;
+    list-style: none;
+    color: white;
 }
 
 .menu-group a {
