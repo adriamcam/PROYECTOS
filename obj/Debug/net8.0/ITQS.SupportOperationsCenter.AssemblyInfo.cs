@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("ITQS.SupportOperationsCenter")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f3795fc0df2d3b0f450541e3a104524e60263fb2")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+6167a04301e0dc9263ba7e4c1c9d301819f013cc")]
 [assembly: System.Reflection.AssemblyProductAttribute("ITQS.SupportOperationsCenter")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ITQS.SupportOperationsCenter")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
