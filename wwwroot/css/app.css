@@ -183,41 +183,23 @@ html, body {
     min-height: 72px;
 }
 
-.portal-card button {
-    border: 0;
+.portal-button {
+    display: inline-block;
     border-radius: 10px;
     padding: 11px 22px;
-    background: #0f62fe;
     color: white;
     font-weight: 800;
-    cursor: pointer;
+    text-decoration: none;
 }
 
-.portal-card.modern button {
+.cloud-button {
+    background: #0f62fe;
+}
+
+.modern-button {
     background: #7c3aed;
 }
 
-@media (max-width: 800px) {
-    .portal-modules {
-        grid-template-columns: 1fr;
-    }
-
-    .portal-shell {
-        padding: 30px 20px;
-    }
-
-    .login-logo {
-        font-size: 80px;
-    }
-
-    .login-panel h1 {
-        font-size: 40px;
-    }
-
-    .login-panel p {
-        font-size: 22px;
-    }
-}
 /* =========================================
    MODULE PAGES
 ========================================= */
@@ -331,9 +313,35 @@ html, body {
     font-weight: 800;
 }
 
+/* =========================================
+   RESPONSIVE
+========================================= */
+
 @media (max-width: 1100px) {
     .module-grid {
         grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 800px) {
+    .portal-modules {
+        grid-template-columns: 1fr;
+    }
+
+    .portal-shell {
+        padding: 30px 20px;
+    }
+
+    .login-logo {
+        font-size: 80px;
+    }
+
+    .login-panel h1 {
+        font-size: 40px;
+    }
+
+    .login-panel p {
+        font-size: 22px;
     }
 }
 

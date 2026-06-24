@@ -1,5 +1,4 @@
 @page "/portal"
-@inject NavigationManager Navigation
 
 <PageTitle>Portal - ITQS SOC</PageTitle>
 
@@ -21,28 +20,32 @@
 
         <article class="portal-card cloud">
             <div class="portal-icon">☁</div>
+
             <h2>Support Cloud</h2>
+
             <p>
                 Alertas, clientes, inventario, Azure,
                 monitoreo y operación Cloud.
             </p>
 
-            <button @onclick='() => Navigation.NavigateTo("/support-cloud")'>
+            <a class="portal-button cloud-button" href="/support-cloud">
                 Ingresar →
-            </button>
+            </a>
         </article>
 
         <article class="portal-card modern">
             <div class="portal-icon">▣</div>
+
             <h2>Support Modern Work</h2>
+
             <p>
                 Microsoft 365, Exchange, Teams,
                 SharePoint, OneDrive y licenciamiento.
             </p>
 
-            <button @onclick='() => Navigation.NavigateTo("/support-modern-work")'>
+            <a class="portal-button modern-button" href="/support-modern-work">
                 Ingresar →
-            </button>
+            </a>
         </article>
 
     </div>
