@@ -1,3 +1,0 @@
-﻿<Project>
-  <Import Project="..\buildMultiTargeting\ITQS.SupportOperationsCenter.props" />
-</Project>
