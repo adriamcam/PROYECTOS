@@ -1,66 +1,63 @@
 @page "/"
+@page "/home"
+@rendermode @(new InteractiveServerRenderMode())
+@inject NavigationManager Navigation
 
 <PageTitle>Home - ITQS SOC</PageTitle>
 
-<div class="page-title compact">
-    <h1>Home</h1>
-    <p>Bienvenido al ITQS Support Operations Center.</p>
-</div>
+<section class="home-hero">
+    <div class="hero-logo">ITQS</div>
 
-<section class="welcome-card">
-    <div class="welcome-icon">
-        <span class="cloud">☁</span>
-        <span class="shield">🛡</span>
-    </div>
-    <div>
-        <h2>Bienvenido al ITQS Support Operations Center</h2>
-        <p>Centro de operaciones para soporte, alertas y gestión de servicios en la nube.</p>
-        <a class="btn primary" href="soporte/gestor-alertas">Ir a Gestor de Alertas →</a>
-    </div>
+    <h1>Bienvenido</h1>
+
+    <p>ITQS Support Operations Center</p>
+
+    <span class="hero-subtitle">
+        Selecciona el área en la que deseas trabajar.
+    </span>
 </section>
 
-<section class="support-selector">
-    <h2>Selecciona el área de soporte</h2>
-    <p>Elige el área en la que deseas trabajar.</p>
+<section class="area-selector">
+    <div class="area-grid">
 
-    <div class="support-grid">
-        <a class="support-card active" href="soporte/gestor-alertas">
-            <div class="support-icon cloud-card">☁</div>
-            <div>
-                <h3>Soporte Cloud</h3>
-                <p>Gestión de alertas, incidentes y servicios en la nube.</p>
-            </div>
-            <span class="card-arrow">›</span>
-        </a>
+        <article class="area-card cloud">
+            <div class="area-icon">☁</div>
+            <h2>Soporte Cloud</h2>
+            <p>
+                Gestión de alertas, inventario, clientes, recursos Azure,
+                monitoreo y administración Cloud.
+            </p>
+            <button class="btn primary wide"
+                    @onclick='() => Navigation.NavigateTo("/soporte/cloud")'>
+                Ingresar →
+            </button>
+        </article>
 
-        <div class="support-card locked">
-            <div class="support-icon office-card">▣</div>
-            <div>
-                <h3>Soporte 365</h3>
-                <p>Gestión de alertas, incidentes y servicios de Microsoft 365.</p>
-            </div>
-            <span class="card-arrow">›</span>
-        </div>
-    </div>
-</section>
+        <article class="area-card m365">
+            <div class="area-icon">▣</div>
+            <h2>Soporte 365</h2>
+            <p>
+                Gestión operativa de Microsoft 365, Exchange Online,
+                Teams, SharePoint, OneDrive y licenciamiento.
+            </p>
+            <button class="btn purple wide"
+                    @onclick='() => Navigation.NavigateTo("/soporte365")'>
+                Ingresar →
+            </button>
+        </article>
 
-<section class="module-overview">
-    <div class="module-head">
-        <div class="module-icon-soft">♢</div>
-        <div>
-            <h2>Gestor de Alertas</h2>
-            <p>Administre todas las alertas activas, asígnelas a usuarios y dé seguimiento hasta su cierre.</p>
-        </div>
-    </div>
+        <article class="area-card security">
+            <div class="area-icon">🛡</div>
+            <h2>Seguridad</h2>
+            <p>
+                Microsoft Sentinel, Defender, incidentes,
+                cumplimiento y gestión de riesgos.
+            </p>
+            <button class="btn green wide"
+                    @onclick='() => Navigation.NavigateTo("/seguridad")'>
+                Ingresar →
+            </button>
+        </article>
 
-    <div class="quick-actions">
-        <a class="quick-card" href="soporte/gestor-alertas">
-            <strong>Dashboard</strong>
-            <span>Todas las alertas operativas para asignar.</span>
-        </a>
-        <a class="quick-card" href="soporte/gestor-alertas?tab=assigned">
-            <strong>Asignadas</strong>
-            <span>Alertas tomadas por el usuario actual.</span>
-        </a>
     </div>
 </section>
