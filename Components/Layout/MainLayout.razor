@@ -1,0 +1,22 @@
+@inherits LayoutComponentBase
+
+<div class="app-shell">
+    <NavMenu />
+    <main class="main-content">
+        <header class="top-header">
+            <div>
+                <div class="tenant-label">ITQS</div>
+                <h2>Support Operations Center</h2>
+            </div>
+            <div class="header-right">
+                <div class="search-box">
+                    <span>⌕</span>
+                    <input placeholder="Buscar cliente, alerta, recurso..." />
+                </div>
+            </div>
+        </header>
+        <section class="content-wrapper">
+            @Body
+        </section>
+    </main>
+</div>

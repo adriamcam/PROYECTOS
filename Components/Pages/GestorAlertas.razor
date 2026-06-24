@@ -1,0 +1,206 @@
+@page "/soporte/gestor-alertas"
+@rendermode @(new InteractiveServerRenderMode())
+@inject IAlertService AlertService
+@inject IConfiguration Configuration
+@inject NavigationManager NavigationManager
+
+<PageTitle>Gestor de Alertas - ITQS SOC</PageTitle>
+
+<div class="module-head page-module-head">
+    <div class="module-icon-soft">♢</div>
+    <div>
+        <h1>Soporte Cloud</h1>
+        <h2>Gestor de Alertas</h2>
+        <p>Administre alertas activas, asígnelas a usuarios y dé seguimiento hasta su cierre.</p>
+    </div>
+</div>
+
+@if (!string.IsNullOrWhiteSpace(errorMessage))
+{
+    <div class="alert-message danger">@errorMessage</div>
+}
+@if (!string.IsNullOrWhiteSpace(successMessage))
+{
+    <div class="alert-message success">@successMessage</div>
+}
+
+<section class="alert-workspace">
+    <div class="workspace-header">
+        <div class="tabs flat">
+            <button class="tab @(activeTab == "dashboard" ? "active" : "")" @onclick='() => SetTab("dashboard")'>Dashboard</button>
+            <button class="tab @(activeTab == "assigned" ? "active" : "")" @onclick='() => SetTab("assigned")'>Asignadas <span class="badge-soft">@dashboard.AssignedToMe</span></button>
+        </div>
+        <div class="workspace-actions">
+            <div class="toolbar-search">
+                <span>⌕</span>
+                <input @bind="search" @bind:event="oninput" placeholder="Buscar alerta, cliente, recurso..." />
+            </div>
+            <button class="btn" @onclick="ReloadAllAsync" disabled="@loading">Actualizar</button>
+        </div>
+    </div>
+
+    <section class="kpi-grid clean">
+        <div class="kpi-card blue"><span>Total Alertas</span><strong>@dashboard.TotalActive</strong><small>activas</small></div>
+        <div class="kpi-card amber"><span>Asignadas a mí</span><strong>@dashboard.AssignedToMe</strong><small>alertas</small></div>
+        <div class="kpi-card rose"><span>Sin Asignar</span><strong>@dashboard.Unassigned</strong><small>alertas</small></div>
+        <div class="kpi-card green"><span>Críticas</span><strong>@dashboard.Critical</strong><small>alertas</small></div>
+        <div class="kpi-card purple"><span>Altas</span><strong>@dashboard.High</strong><small>alertas</small></div>
+        <div class="kpi-card cyan"><span>Medias / Bajas</span><strong>@dashboard.MediumLow</strong><small>alertas</small></div>
+    </section>
+
+    @if (activeTab == "dashboard")
+    {
+        <AlertTable Title="Dashboard" Subtitle="Alertas operativas sin asignar listas para tomar." Items="unassignedAlerts" PageNumber="dashboardPage" OnPageChanged="LoadDashboardPageAsync" OnViewDetail="ViewDetailAsync" OnAssign="AssignAsync" OnClose="CloseAsync" ShowAssign="true" />
+    }
+    else
+    {
+        <AlertTable Title="Asignadas a mí" Subtitle="Alertas asignadas al usuario actual." Items="assignedAlerts" PageNumber="assignedPage" OnPageChanged="LoadAssignedPageAsync" OnViewDetail="ViewDetailAsync" OnAssign="InProgressAsync" OnClose="CloseAsync" ShowAssign="false" />
+    }
+</section>
+
+@if (selectedDetail?.Alert is not null)
+{
+    <div class="drawer-backdrop" @onclick="CloseDetail"></div>
+    <aside class="detail-drawer">
+        <div class="drawer-header">
+            <div>
+                <span class="eyebrow">Detalle alerta</span>
+                <h2>@selectedDetail.Alert.AlertName</h2>
+            </div>
+            <button class="icon-button" @onclick="CloseDetail">×</button>
+        </div>
+        <dl class="detail-list">
+            <dt>Cliente</dt><dd>@selectedDetail.Alert.CustomerName</dd>
+            <dt>Suscripción</dt><dd>@selectedDetail.Alert.SubscriptionName</dd>
+            <dt>Recurso</dt><dd>@selectedDetail.Alert.ResourceName</dd>
+            <dt>Severidad</dt><dd>@selectedDetail.Alert.Severity</dd>
+            <dt>KPI</dt><dd>@selectedDetail.Alert.KPIType</dd>
+            <dt>Eventos</dt><dd>@selectedDetail.Alert.Events</dd>
+            <dt>AlertId</dt><dd>@selectedDetail.Alert.AlertId</dd>
+            <dt>TenantId</dt><dd>@selectedDetail.Alert.TenantId</dd>
+            <dt>SubscriptionId</dt><dd>@selectedDetail.Alert.SubscriptionId</dd>
+            <dt>Región</dt><dd>@selectedDetail.Alert.Region</dd>
+            <dt>Asignado</dt><dd>@selectedDetail.Alert.AssignedTo (@selectedDetail.Alert.AssignedEmail)</dd>
+            <dt>Última inserción</dt><dd>@selectedDetail.Alert.LastInsertedAt</dd>
+            <dt>Notas</dt><dd>@selectedDetail.Alert.ResolutionNotes</dd>
+        </dl>
+        <h3>Historial</h3>
+        <div class="history-list">
+            @if (selectedDetail.History.Count == 0)
+            {
+                <p>No hay historial registrado.</p>
+            }
+            else
+            {
+                @foreach (var item in selectedDetail.History)
+                {
+                    <div class="history-item">
+                        <strong>@item.Action</strong>
+                        <span>@item.CreatedAt.ToString("yyyy-MM-dd HH:mm") · @item.UserEmail</span>
+                        <p>@item.Comment</p>
+                    </div>
+                }
+            }
+        </div>
+    </aside>
+}
+
+@code {
+    private AlertDashboardDto dashboard = new();
+    private IReadOnlyList<AlertListItemDto> assignedAlerts = [];
+    private IReadOnlyList<AlertListItemDto> unassignedAlerts = [];
+    private AlertDetailResultDto? selectedDetail;
+    private string activeTab = "dashboard";
+    private string? search;
+    private string? errorMessage;
+    private string? successMessage;
+    private bool loading;
+    private int dashboardPage = 1;
+    private int assignedPage = 1;
+    private const int PageSize = 50;
+    private string userName = "William Adrian Cambronero Acosta";
+    private string userEmail = "wcambronero@itqscr.com";
+
+    protected override async Task OnInitializedAsync()
+    {
+        userName = Configuration["AppSettings:SupportUserName"] ?? userName;
+        userEmail = Configuration["AppSettings:SupportUserEmail"] ?? userEmail;
+        var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
+        var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
+        if (query.TryGetValue("tab", out var tab) && tab.ToString().Equals("assigned", StringComparison.OrdinalIgnoreCase))
+        {
+            activeTab = "assigned";
+        }
+        await ReloadAllAsync();
+    }
+
+    private void SetTab(string tab)
+    {
+        activeTab = tab;
+        successMessage = null;
+        errorMessage = null;
+    }
+
+    private async Task ReloadAllAsync()
+    {
+        loading = true;
+        errorMessage = null;
+        successMessage = null;
+        try
+        {
+            dashboard = await AlertService.GetDashboardAsync(userEmail);
+            assignedAlerts = await AlertService.GetAssignedAlertsAsync(userEmail, assignedPage, PageSize, search);
+            unassignedAlerts = await AlertService.GetUnassignedAlertsAsync(dashboardPage, PageSize, search);
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private async Task LoadAssignedPageAsync(int page)
+    {
+        assignedPage = Math.Max(1, page);
+        assignedAlerts = await AlertService.GetAssignedAlertsAsync(userEmail, assignedPage, PageSize, search);
+    }
+
+    private async Task LoadDashboardPageAsync(int page)
+    {
+        dashboardPage = Math.Max(1, page);
+        unassignedAlerts = await AlertService.GetUnassignedAlertsAsync(dashboardPage, PageSize, search);
+    }
+
+    private async Task ViewDetailAsync(long id)
+    {
+        selectedDetail = await AlertService.GetAlertDetailAsync(id);
+    }
+
+    private async Task AssignAsync(long id)
+    {
+        await AlertService.AssignAlertAsync(id, userName, userEmail, "Asignada desde ITQS Support Operations Center");
+        successMessage = "Alerta asignada correctamente.";
+        activeTab = "assigned";
+        await ReloadAllAsync();
+    }
+
+    private async Task InProgressAsync(long id)
+    {
+        await AlertService.AssignAlertAsync(id, userName, userEmail, "Marcada In Progress desde ITQS Support Operations Center");
+        successMessage = "Alerta marcada en progreso.";
+        await ReloadAllAsync();
+    }
+
+    private async Task CloseAsync(long id)
+    {
+        await AlertService.CloseAlertAsync(id, userName, userEmail, "Cliente Notificado-Monitoreo | Cierre desde ITQS Support Operations Center");
+        successMessage = "Alerta enviada a cierre correctamente.";
+        selectedDetail = null;
+        await ReloadAllAsync();
+    }
+
+    private void CloseDetail() => selectedDetail = null;
+}
