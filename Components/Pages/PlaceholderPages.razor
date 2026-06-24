@@ -1,0 +1,28 @@
+@page "/soporte-cloud/clientes"
+@page "/soporte-cloud/inventory"
+@page "/soporte-cloud/admin"
+@page "/soporte-365/incidentes"
+@page "/soporte-365/licencias"
+@page "/soporte-365/exchange"
+@page "/soporte-365/teams"
+@page "/soporte-365/sharepoint"
+@page "/seguridad/defender"
+@page "/seguridad/sentinel"
+@page "/seguridad/incidentes"
+@inject NavigationManager Navigation
+
+<PageTitle>Próximamente - ITQS SOC</PageTitle>
+
+<div class="page-title">
+    <h1>Próximamente</h1>
+    <p>Este módulo está reservado para la siguiente fase del ITQS Support Operations Center.</p>
+</div>
+
+<div class="placeholder-content standalone">
+    <h2>@CurrentPath</h2>
+    <p>La estructura ya está creada para crecer sin rediseñar el portal.</p>
+</div>
+
+@code {
+    private string CurrentPath => Navigation.ToBaseRelativePath(Navigation.Uri);
+}

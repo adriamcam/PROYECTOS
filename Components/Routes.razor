@@ -1,11 +1,11 @@
 <Router AppAssembly="typeof(Program).Assembly">
     <Found Context="routeData">
-        <RouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)" />
+        <RouteView RouteData="routeData" DefaultLayout="typeof(MainLayout)" />
         <FocusOnNavigate RouteData="routeData" Selector="h1" />
     </Found>
     <NotFound>
-        <LayoutView Layout="typeof(Layout.MainLayout)">
-            <div class="page-card">
+        <LayoutView Layout="typeof(MainLayout)">
+            <div class="page-title">
                 <h1>Página no encontrada</h1>
                 <p>La ruta solicitada no existe.</p>
             </div>

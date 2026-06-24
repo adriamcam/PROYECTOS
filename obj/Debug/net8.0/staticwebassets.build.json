@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "PbMPGCN+p25W3/TUxmCr4HhEXNl7nBh5W7xRHqv+Ch0=",
+  "Hash": "PtwyljZmPIuulY6m5lOWjBUL0T5+htjes7ymzWH8qLY=",
   "Source": "ITQS.SupportOperationsCenter",
   "BasePath": "_content/ITQS.SupportOperationsCenter",
   "Mode": "Default",
@@ -34,6 +34,44 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\css\\app.css"
+    },
+    {
+      "Identity": "C:\\Users\\WilliamAdrianCambron\\OneDrive - IT Quest Solutions (ITQS)\\Documentos\\GitHub\\PROYECTOS\\wwwroot\\css\\soc.css",
+      "SourceId": "ITQS.SupportOperationsCenter",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\WilliamAdrianCambron\\OneDrive - IT Quest Solutions (ITQS)\\Documentos\\GitHub\\PROYECTOS\\wwwroot\\",
+      "BasePath": "_content/ITQS.SupportOperationsCenter",
+      "RelativePath": "css/soc.css",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\css\\soc.css"
+    },
+    {
+      "Identity": "C:\\Users\\WilliamAdrianCambron\\OneDrive - IT Quest Solutions (ITQS)\\Documentos\\GitHub\\PROYECTOS\\wwwroot\\soc-home.css",
+      "SourceId": "ITQS.SupportOperationsCenter",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\WilliamAdrianCambron\\OneDrive - IT Quest Solutions (ITQS)\\Documentos\\GitHub\\PROYECTOS\\wwwroot\\",
+      "BasePath": "_content/ITQS.SupportOperationsCenter",
+      "RelativePath": "soc-home.css",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\soc-home.css"
     }
   ]
 }

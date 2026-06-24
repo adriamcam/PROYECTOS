@@ -1,76 +1,97 @@
-using System.Data;
 using Dapper;
 using ITQS.SupportOperationsCenter.Models;
+using Microsoft.Data.SqlClient;
+using System.Data;
 
 namespace ITQS.SupportOperationsCenter.Services;
 
 public interface IAlertService
 {
-    Task<AlertDashboardDto> GetDashboardAsync(string userEmail, CancellationToken cancellationToken = default);
-    Task<IReadOnlyList<AlertListItemDto>> GetAssignedAlertsAsync(string userEmail, int pageNumber, int pageSize, string? search, CancellationToken cancellationToken = default);
-    Task<IReadOnlyList<AlertListItemDto>> GetUnassignedAlertsAsync(int pageNumber, int pageSize, string? search, CancellationToken cancellationToken = default);
-    Task<AlertDetailResultDto> GetAlertDetailAsync(long alertRecordId, CancellationToken cancellationToken = default);
-    Task AssignAlertAsync(long alertRecordId, string userName, string userEmail, string? comment, CancellationToken cancellationToken = default);
-    Task CloseAlertAsync(long alertRecordId, string userName, string userEmail, string? comment, CancellationToken cancellationToken = default);
+    Task<AlertDashboardDto> GetDashboardAsync(string userEmail);
+    Task<IReadOnlyList<AlertListItemDto>> GetAssignedAlertsAsync(string userEmail, int pageNumber, int pageSize, string? search);
+    Task<IReadOnlyList<AlertListItemDto>> GetUnassignedAlertsAsync(int pageNumber, int pageSize, string? search);
+    Task<AlertDetailResultDto> GetAlertDetailAsync(long id);
+    Task AssignAlertAsync(long id, string userName, string userEmail, string comment);
+    Task CloseAlertAsync(long id, string userName, string userEmail, string comment);
 }
 
-public sealed class AlertService(ISqlConnectionFactory connectionFactory) : IAlertService
+public sealed class AlertService : IAlertService
 {
-    private const int MaxPageSize = 50;
+    private readonly IConfiguration _configuration;
 
-    public async Task<AlertDashboardDto> GetDashboardAsync(string userEmail, CancellationToken cancellationToken = default)
+    public AlertService(IConfiguration configuration)
     {
-        using var connection = connectionFactory.CreateConnection();
-        var command = new CommandDefinition("dbo.sp_App_GetAlertDashboard", new { UserEmail = userEmail }, commandType: CommandType.StoredProcedure, cancellationToken: cancellationToken);
-        return await connection.QuerySingleAsync<AlertDashboardDto>(command);
+        _configuration = configuration;
     }
 
-    public async Task<IReadOnlyList<AlertListItemDto>> GetAssignedAlertsAsync(string userEmail, int pageNumber, int pageSize, string? search, CancellationToken cancellationToken = default)
+    private SqlConnection CreateConnection()
     {
-        using var connection = connectionFactory.CreateConnection();
-        var command = new CommandDefinition("dbo.sp_App_GetAssignedAlerts", new
+        var connectionString = _configuration.GetConnectionString("ReportesDb");
+        if (string.IsNullOrWhiteSpace(connectionString))
         {
-            UserEmail = userEmail,
-            PageNumber = Math.Max(pageNumber, 1),
-            PageSize = Math.Clamp(pageSize, 1, MaxPageSize),
-            Search = string.IsNullOrWhiteSpace(search) ? null : search.Trim()
-        }, commandType: CommandType.StoredProcedure, cancellationToken: cancellationToken);
-        return (await connection.QueryAsync<AlertListItemDto>(command)).AsList();
+            throw new InvalidOperationException("ConnectionStrings:ReportesDb no está configurado.");
+        }
+        return new SqlConnection(connectionString);
     }
 
-    public async Task<IReadOnlyList<AlertListItemDto>> GetUnassignedAlertsAsync(int pageNumber, int pageSize, string? search, CancellationToken cancellationToken = default)
+    public async Task<AlertDashboardDto> GetDashboardAsync(string userEmail)
     {
-        using var connection = connectionFactory.CreateConnection();
-        var command = new CommandDefinition("dbo.sp_App_GetUnassignedAlerts", new
-        {
-            PageNumber = Math.Max(pageNumber, 1),
-            PageSize = Math.Clamp(pageSize, 1, MaxPageSize),
-            Search = string.IsNullOrWhiteSpace(search) ? null : search.Trim()
-        }, commandType: CommandType.StoredProcedure, cancellationToken: cancellationToken);
-        return (await connection.QueryAsync<AlertListItemDto>(command)).AsList();
+        await using var cn = CreateConnection();
+        var result = await cn.QuerySingleOrDefaultAsync<AlertDashboardDto>(
+            "dbo.sp_App_GetAlertDashboard",
+            new { UserEmail = userEmail },
+            commandType: CommandType.StoredProcedure);
+        return result ?? new AlertDashboardDto();
     }
 
-    public async Task<AlertDetailResultDto> GetAlertDetailAsync(long alertRecordId, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<AlertListItemDto>> GetAssignedAlertsAsync(string userEmail, int pageNumber, int pageSize, string? search)
     {
-        using var connection = connectionFactory.CreateConnection();
-        var command = new CommandDefinition("dbo.sp_App_GetAlertDetail", new { AlertRecordId = alertRecordId }, commandType: CommandType.StoredProcedure, cancellationToken: cancellationToken);
-        using var multi = await connection.QueryMultipleAsync(command);
-        var alert = await multi.ReadSingleOrDefaultAsync<AlertDetailDto>();
-        var history = (await multi.ReadAsync<AlertHistoryDto>()).AsList();
+        await using var cn = CreateConnection();
+        var rows = await cn.QueryAsync<AlertListItemDto>(
+            "dbo.sp_App_GetAssignedAlerts",
+            new { UserEmail = userEmail, PageNumber = pageNumber, PageSize = Math.Min(pageSize, 50), Search = search },
+            commandType: CommandType.StoredProcedure);
+        return rows.ToList();
+    }
+
+    public async Task<IReadOnlyList<AlertListItemDto>> GetUnassignedAlertsAsync(int pageNumber, int pageSize, string? search)
+    {
+        await using var cn = CreateConnection();
+        var rows = await cn.QueryAsync<AlertListItemDto>(
+            "dbo.sp_App_GetUnassignedAlerts",
+            new { PageNumber = pageNumber, PageSize = Math.Min(pageSize, 50), Search = search },
+            commandType: CommandType.StoredProcedure);
+        return rows.ToList();
+    }
+
+    public async Task<AlertDetailResultDto> GetAlertDetailAsync(long id)
+    {
+        await using var cn = CreateConnection();
+        using var multi = await cn.QueryMultipleAsync(
+            "dbo.sp_App_GetAlertDetail",
+            new { Id = id },
+            commandType: CommandType.StoredProcedure);
+
+        var alert = await multi.ReadSingleOrDefaultAsync<AlertListItemDto>();
+        var history = (await multi.ReadAsync<AlertHistoryDto>()).ToList();
         return new AlertDetailResultDto { Alert = alert, History = history };
     }
 
-    public async Task AssignAlertAsync(long alertRecordId, string userName, string userEmail, string? comment, CancellationToken cancellationToken = default)
+    public async Task AssignAlertAsync(long id, string userName, string userEmail, string comment)
     {
-        using var connection = connectionFactory.CreateConnection();
-        var command = new CommandDefinition("dbo.sp_App_AssignAlert", new { AlertRecordId = alertRecordId, UserName = userName, UserEmail = userEmail, Comment = comment }, commandType: CommandType.StoredProcedure, cancellationToken: cancellationToken);
-        await connection.ExecuteAsync(command);
+        await using var cn = CreateConnection();
+        await cn.ExecuteAsync(
+            "dbo.sp_App_AssignAlert",
+            new { Id = id, UserName = userName, UserEmail = userEmail, Comment = comment },
+            commandType: CommandType.StoredProcedure);
     }
 
-    public async Task CloseAlertAsync(long alertRecordId, string userName, string userEmail, string? comment, CancellationToken cancellationToken = default)
+    public async Task CloseAlertAsync(long id, string userName, string userEmail, string comment)
     {
-        using var connection = connectionFactory.CreateConnection();
-        var command = new CommandDefinition("dbo.sp_App_CloseAlert", new { AlertRecordId = alertRecordId, UserName = userName, UserEmail = userEmail, Comment = comment }, commandType: CommandType.StoredProcedure, cancellationToken: cancellationToken);
-        await connection.ExecuteAsync(command);
+        await using var cn = CreateConnection();
+        await cn.ExecuteAsync(
+            "dbo.sp_App_CloseAlert",
+            new { Id = id, UserName = userName, UserEmail = userEmail, Comment = comment },
+            commandType: CommandType.StoredProcedure);
     }
 }

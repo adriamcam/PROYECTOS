@@ -1,63 +1,35 @@
 @page "/"
 @page "/home"
-@rendermode @(new InteractiveServerRenderMode())
 @inject NavigationManager Navigation
 
 <PageTitle>Home - ITQS SOC</PageTitle>
 
-<section class="home-hero">
-    <div class="hero-logo">ITQS</div>
-
-    <h1>Bienvenido</h1>
-
-    <p>ITQS Support Operations Center</p>
-
-    <span class="hero-subtitle">
-        Selecciona el área en la que deseas trabajar.
-    </span>
+<section class="soc-hero">
+    <div class="soc-logo">ITQS</div>
+    <h1>Bienvenido al ITQS Support Operations Center</h1>
+    <p>Centro de operaciones para soporte cloud, Microsoft 365, seguridad, alertas, inventario y clientes.</p>
 </section>
 
-<section class="area-selector">
+<section class="area-section">
+    <h2>Selecciona el área de trabajo</h2>
     <div class="area-grid">
-
-        <article class="area-card cloud">
+        <article class="area-card cloud" @onclick='() => Navigation.NavigateTo("/soporte-cloud")'>
             <div class="area-icon">☁</div>
-            <h2>Soporte Cloud</h2>
-            <p>
-                Gestión de alertas, inventario, clientes, recursos Azure,
-                monitoreo y administración Cloud.
-            </p>
-            <button class="btn primary wide"
-                    @onclick='() => Navigation.NavigateTo("/soporte/cloud")'>
-                Ingresar →
-            </button>
+            <h3>Soporte Cloud</h3>
+            <p>Gestión de alertas, clientes, inventario, recursos Azure y operaciones Cloud.</p>
+            <span>Ingresar →</span>
         </article>
-
-        <article class="area-card m365">
+        <article class="area-card m365" @onclick='() => Navigation.NavigateTo("/soporte-365")'>
             <div class="area-icon">▣</div>
-            <h2>Soporte 365</h2>
-            <p>
-                Gestión operativa de Microsoft 365, Exchange Online,
-                Teams, SharePoint, OneDrive y licenciamiento.
-            </p>
-            <button class="btn purple wide"
-                    @onclick='() => Navigation.NavigateTo("/soporte365")'>
-                Ingresar →
-            </button>
+            <h3>Soporte 365</h3>
+            <p>Operación de Microsoft 365, Exchange, Teams, SharePoint, OneDrive y licencias.</p>
+            <span>Ingresar →</span>
         </article>
-
-        <article class="area-card security">
+        <article class="area-card security" @onclick='() => Navigation.NavigateTo("/seguridad")'>
             <div class="area-icon">🛡</div>
-            <h2>Seguridad</h2>
-            <p>
-                Microsoft Sentinel, Defender, incidentes,
-                cumplimiento y gestión de riesgos.
-            </p>
-            <button class="btn green wide"
-                    @onclick='() => Navigation.NavigateTo("/seguridad")'>
-                Ingresar →
-            </button>
+            <h3>Seguridad</h3>
+            <p>Sentinel, Defender, incidentes, cumplimiento, amenazas y gestión de riesgos.</p>
+            <span>Ingresar →</span>
         </article>
-
     </div>
 </section>

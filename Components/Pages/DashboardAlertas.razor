@@ -1,0 +1,163 @@
+@page "/soporte-cloud/gestor-alertas/dashboard"
+@rendermode @(new InteractiveServerRenderMode())
+@inject IAlertService AlertService
+@inject IConfiguration Configuration
+
+<PageTitle>Dashboard Alertas - ITQS SOC</PageTitle>
+
+<div class="page-title compact">
+    <h1>Dashboard de Alertas</h1>
+    <p>Alertas activas sin asignar para operación Cloud.</p>
+</div>
+
+@if (!string.IsNullOrWhiteSpace(errorMessage))
+{
+    <div class="alert-message danger">@errorMessage</div>
+}
+@if (!string.IsNullOrWhiteSpace(successMessage))
+{
+    <div class="alert-message success">@successMessage</div>
+}
+
+<section class="kpi-grid clean">
+    <div class="kpi-card blue"><span>Total activas</span><strong>@dashboard.TotalActive</strong><small>alertas</small></div>
+    <div class="kpi-card rose"><span>Sin asignar</span><strong>@dashboard.Unassigned</strong><small>alertas</small></div>
+    <div class="kpi-card amber"><span>Asignadas a mí</span><strong>@dashboard.AssignedToMe</strong><small>alertas</small></div>
+    <div class="kpi-card green"><span>Críticas</span><strong>@dashboard.Critical</strong><small>alertas</small></div>
+    <div class="kpi-card purple"><span>Altas</span><strong>@dashboard.High</strong><small>alertas</small></div>
+    <div class="kpi-card cyan"><span>Cierre pendiente</span><strong>@dashboard.PendingClose</strong><small>alertas</small></div>
+</section>
+
+<section class="alert-workspace">
+    <div class="workspace-header">
+        <div class="tabs flat">
+            <button class="tab active">Dashboard</button>
+            <a class="tab" href="/soporte-cloud/gestor-alertas/asignadas">Asignadas</a>
+            <a class="tab" href="/soporte-cloud/gestor-alertas/historial">Historial</a>
+        </div>
+        <div class="workspace-actions">
+            <div class="toolbar-search"><span>⌕</span><input @bind="search" @bind:event="oninput" placeholder="Buscar alerta, cliente, recurso..." /></div>
+            <button class="btn" @onclick="LoadAsync">Actualizar</button>
+        </div>
+    </div>
+
+    <div class="table-card">
+        <div class="table-header">
+            <h2>Alertas sin asignar</h2>
+            <span>Máximo 50 registros por página</span>
+        </div>
+        <div class="table-scroll">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Alerta</th>
+                        <th>Cliente</th>
+                        <th>Severidad</th>
+                        <th>KPI</th>
+                        <th>Recurso</th>
+                        <th>Eventos</th>
+                        <th>Estado</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (unassigned.Count == 0)
+                    {
+                        <tr><td colspan="8" class="empty">No hay alertas sin asignar.</td></tr>
+                    }
+                    else
+                    {
+                        @foreach (var alert in unassigned)
+                        {
+                            <tr>
+                                <td class="truncate">@alert.AlertName</td>
+                                <td>@alert.CustomerName</td>
+                                <td><span class="severity @GetSeverityClass(alert.Severity)">@alert.Severity</span></td>
+                                <td>@alert.KPIType</td>
+                                <td class="truncate">@alert.ResourceName</td>
+                                <td>@alert.Events</td>
+                                <td><span class="status-pill unassigned">Sin asignar</span></td>
+                                <td class="actions slim">
+                                    <button class="btn small" @onclick="() => ViewDetailAsync(alert.Id)">Ver</button>
+                                    <button class="btn small primary" @onclick="() => AssignAsync(alert.Id)">Asignar</button>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+        <div class="pagination">
+            <button class="btn small" disabled="@(pageNumber <= 1)" @onclick="PreviousPage">Anterior</button>
+            <span>Página @pageNumber</span>
+            <button class="btn small" @onclick="NextPage">Siguiente</button>
+        </div>
+    </div>
+</section>
+
+@if (selectedDetail?.Alert is not null)
+{
+    <div class="drawer-backdrop" @onclick="CloseDetail"></div>
+    <aside class="detail-drawer">
+        <div class="drawer-header">
+            <div><span class="eyebrow">Detalle alerta</span><h2>@selectedDetail.Alert.AlertName</h2></div>
+            <button class="icon-button" @onclick="CloseDetail">×</button>
+        </div>
+        <dl class="detail-list">
+            <dt>Cliente</dt><dd>@selectedDetail.Alert.CustomerName</dd>
+            <dt>Suscripción</dt><dd>@selectedDetail.Alert.SubscriptionName</dd>
+            <dt>Recurso</dt><dd>@selectedDetail.Alert.ResourceName</dd>
+            <dt>Severidad</dt><dd>@selectedDetail.Alert.Severity</dd>
+            <dt>KPI</dt><dd>@selectedDetail.Alert.KPIType</dd>
+            <dt>AlertId</dt><dd>@selectedDetail.Alert.AlertId</dd>
+        </dl>
+    </aside>
+}
+
+@code {
+    private AlertDashboardDto dashboard = new();
+    private IReadOnlyList<AlertListItemDto> unassigned = [];
+    private AlertDetailResultDto? selectedDetail;
+    private string? search;
+    private string? errorMessage;
+    private string? successMessage;
+    private int pageNumber = 1;
+    private const int PageSize = 50;
+    private string userName = "William Adrian Cambronero Acosta";
+    private string userEmail = "wcambronero@itqscr.com";
+
+    protected override async Task OnInitializedAsync()
+    {
+        userName = Configuration["AppSettings:SupportUserName"] ?? userName;
+        userEmail = Configuration["AppSettings:SupportUserEmail"] ?? userEmail;
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        errorMessage = null;
+        successMessage = null;
+        try
+        {
+            dashboard = await AlertService.GetDashboardAsync(userEmail);
+            unassigned = await AlertService.GetUnassignedAlertsAsync(pageNumber, PageSize, search);
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+        }
+    }
+
+    private async Task AssignAsync(long id)
+    {
+        await AlertService.AssignAlertAsync(id, userName, userEmail, "Asignada desde ITQS SOC");
+        successMessage = "Alerta asignada correctamente.";
+        await LoadAsync();
+    }
+
+    private async Task ViewDetailAsync(long id) => selectedDetail = await AlertService.GetAlertDetailAsync(id);
+    private void CloseDetail() => selectedDetail = null;
+    private async Task PreviousPage() { pageNumber = Math.Max(1, pageNumber - 1); await LoadAsync(); }
+    private async Task NextPage() { pageNumber++; await LoadAsync(); }
+    private static string GetSeverityClass(string? severity) => (severity ?? string.Empty).ToLowerInvariant() switch { "sev0" => "sev0", "sev1" => "sev1", "sev2" => "sev2", "sev3" => "sev3", _ => "sev4" };
+}

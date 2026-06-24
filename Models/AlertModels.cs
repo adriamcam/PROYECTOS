@@ -7,48 +7,23 @@ public sealed class AlertDashboardDto
     public int Unassigned { get; set; }
     public int Critical { get; set; }
     public int High { get; set; }
-    public int MediumLow { get; set; }
     public int PendingClose { get; set; }
 }
 
 public sealed class AlertListItemDto
 {
     public long Id { get; set; }
-    public string? KPIType { get; set; }
     public string? AlertId { get; set; }
-    public string? AlertName { get; set; }
     public string? CustomerName { get; set; }
     public string? SubscriptionName { get; set; }
+    public string? AlertName { get; set; }
+    public string? KPIType { get; set; }
     public string? ResourceName { get; set; }
     public string? Severity { get; set; }
-    public int? Events { get; set; }
+    public int Events { get; set; }
     public string? AssignedTo { get; set; }
     public string? AssignedEmail { get; set; }
     public DateTime? LastInsertedAt { get; set; }
-    public int TotalRows { get; set; }
-}
-
-public sealed class AlertDetailDto
-{
-    public long Id { get; set; }
-    public string? KPIType { get; set; }
-    public string? AlertId { get; set; }
-    public string? AlertName { get; set; }
-    public string? CustomerName { get; set; }
-    public string? TenantId { get; set; }
-    public string? SubscriptionId { get; set; }
-    public string? SubscriptionName { get; set; }
-    public string? ResourceName { get; set; }
-    public string? Region { get; set; }
-    public string? Severity { get; set; }
-    public int? Events { get; set; }
-    public bool Active { get; set; }
-    public string? AssignedTo { get; set; }
-    public string? AssignedEmail { get; set; }
-    public string? ResolutionNotes { get; set; }
-    public DateTime? LastInsertedAt { get; set; }
-    public DateTime? UpdatedAt { get; set; }
-    public DateTime? ResolveTime { get; set; }
 }
 
 public sealed class AlertHistoryDto
@@ -57,13 +32,12 @@ public sealed class AlertHistoryDto
     public long AlertRecordId { get; set; }
     public string? Action { get; set; }
     public string? UserEmail { get; set; }
-    public string? UserName { get; set; }
     public string? Comment { get; set; }
     public DateTime CreatedAt { get; set; }
 }
 
 public sealed class AlertDetailResultDto
 {
-    public AlertDetailDto? Alert { get; set; }
-    public List<AlertHistoryDto> History { get; set; } = [];
+    public AlertListItemDto? Alert { get; set; }
+    public List<AlertHistoryDto> History { get; set; } = new();
 }

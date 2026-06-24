@@ -1,19 +1,24 @@
 using Microsoft.Data.SqlClient;
+using System.Data;
 
 namespace ITQS.SupportOperationsCenter.Services;
 
-public interface ISqlConnectionFactory
+public sealed class SqlConnectionFactory
 {
-    SqlConnection CreateConnection();
-}
+    private readonly IConfiguration _configuration;
 
-public sealed class SqlConnectionFactory(IConfiguration configuration) : ISqlConnectionFactory
-{
-    public SqlConnection CreateConnection()
+    public SqlConnectionFactory(IConfiguration configuration)
     {
-        var connectionString = configuration.GetConnectionString("ReportesDb");
+        _configuration = configuration;
+    }
+
+    public IDbConnection CreateConnection()
+    {
+        var connectionString = _configuration.GetConnectionString("ReportesDb");
         if (string.IsNullOrWhiteSpace(connectionString))
+        {
             throw new InvalidOperationException("ConnectionStrings:ReportesDb no está configurado.");
+        }
 
         return new SqlConnection(connectionString);
     }

@@ -1,4 +1,7 @@
-<nav class="sidebar">
+@implements IDisposable
+@inject NavigationManager Navigation
+
+<aside class="sidebar">
     <div class="brand">
         <div class="brand-icon">IT</div>
         <div>
@@ -7,51 +10,82 @@
         </div>
     </div>
 
-    <NavLink class="nav-link root" href="" Match="NavLinkMatch.All">
-        <span class="nav-ico">⌂</span>
-        <span>Home</span>
-    </NavLink>
-
-    <div class="nav-group-title">Soporte</div>
-
-    <div class="nav-section open">
-        <div class="nav-section-header">
-            <span class="nav-ico">☁</span>
-            <span>Soporte Cloud</span>
-            <span class="chevron">⌃</span>
-        </div>
-
-        <NavLink class="nav-link child" href="soporte/gestor-alertas" Match="NavLinkMatch.All">
-            <span class="nav-ico">♢</span>
-            <span>Gestor de Alertas</span>
+    <nav>
+        <NavLink class="nav-link root" href="/" Match="NavLinkMatch.All">
+            <span class="nav-ico">⌂</span> Home
         </NavLink>
 
-        <NavLink class="nav-link subchild" href="soporte/gestor-alertas?tab=dashboard">
-            <span class="nav-ico">◔</span>
-            <span>Dashboard</span>
+        <div class="nav-group-title">Soporte Cloud</div>
+        <NavLink class="nav-link" href="/soporte-cloud">
+            <span class="nav-ico">☁</span> Dashboard Cloud
+        </NavLink>
+        <NavLink class="nav-link" href="/soporte-cloud/gestor-alertas">
+            <span class="nav-ico">◇</span> Gestor Alertas
+        </NavLink>
+        <NavLink class="nav-link subchild" href="/soporte-cloud/gestor-alertas/dashboard">
+            <span class="nav-ico">◷</span> Dashboard
+        </NavLink>
+        <NavLink class="nav-link subchild" href="/soporte-cloud/gestor-alertas/asignadas">
+            <span class="nav-ico">♙</span> Asignadas
+        </NavLink>
+        <NavLink class="nav-link subchild" href="/soporte-cloud/gestor-alertas/historial">
+            <span class="nav-ico">☷</span> Historial
+        </NavLink>
+        <NavLink class="nav-link" href="/soporte-cloud/clientes">
+            <span class="nav-ico">👥</span> Clientes
+        </NavLink>
+        <NavLink class="nav-link" href="/soporte-cloud/inventory">
+            <span class="nav-ico">▦</span> Inventory
+        </NavLink>
+        <NavLink class="nav-link" href="/soporte-cloud/admin">
+            <span class="nav-ico">⚙</span> Administración
         </NavLink>
 
-        <NavLink class="nav-link subchild" href="soporte/gestor-alertas?tab=assigned">
-            <span class="nav-ico">♙</span>
-            <span>Asignadas</span>
+        <div class="nav-group-title">Soporte 365</div>
+        <NavLink class="nav-link" href="/soporte-365">
+            <span class="nav-ico">▣</span> Dashboard 365
         </NavLink>
-    </div>
+        <NavLink class="nav-link muted" href="/soporte-365/incidentes">
+            <span class="nav-ico">⚠</span> Incidentes
+        </NavLink>
+        <NavLink class="nav-link muted" href="/soporte-365/licencias">
+            <span class="nav-ico">🔑</span> Licencias
+        </NavLink>
+        <NavLink class="nav-link muted" href="/soporte-365/exchange">
+            <span class="nav-ico">✉</span> Exchange
+        </NavLink>
+        <NavLink class="nav-link muted" href="/soporte-365/teams">
+            <span class="nav-ico">💬</span> Teams
+        </NavLink>
+        <NavLink class="nav-link muted" href="/soporte-365/sharepoint">
+            <span class="nav-ico">📁</span> SharePoint
+        </NavLink>
 
-    <div class="nav-section disabled">
-        <div class="nav-section-header">
-            <span class="nav-ico">▣</span>
-            <span>Soporte 365</span>
-            <span class="chevron">⌄</span>
-        </div>
-    </div>
+        <div class="nav-group-title">Seguridad</div>
+        <NavLink class="nav-link" href="/seguridad">
+            <span class="nav-ico">🛡</span> Dashboard Seguridad
+        </NavLink>
+        <NavLink class="nav-link muted" href="/seguridad/defender">
+            <span class="nav-ico">🛡</span> Defender
+        </NavLink>
+        <NavLink class="nav-link muted" href="/seguridad/sentinel">
+            <span class="nav-ico">◎</span> Sentinel
+        </NavLink>
+        <NavLink class="nav-link muted" href="/seguridad/incidentes">
+            <span class="nav-ico">⚠</span> Incidentes
+        </NavLink>
+    </nav>
 
     <div class="nav-spacer"></div>
-
     <div class="sidebar-user">
-        <div class="avatar">W</div>
+        <span class="avatar">WC</span>
         <div>
             <strong>William Cambronero</strong>
             <small>wcambronero@itqscr.com</small>
         </div>
     </div>
-</nav>
+</aside>
+
+@code {
+    public void Dispose() { }
+}

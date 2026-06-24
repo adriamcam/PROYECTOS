@@ -30,8 +30,12 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xMYXlvdXRcTmF2TWVudS5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/WilliamAdrianCambron/OneDrive - IT Quest Solutions (ITQS)/Documentos/GitHub/PROYECTOS/Components/Pages/AlertTable.razor]
-build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xBbGVydFRhYmxlLnJhem9y
+[C:/Users/WilliamAdrianCambron/OneDrive - IT Quest Solutions (ITQS)/Documentos/GitHub/PROYECTOS/Components/Pages/AlertasAsignadas.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xBbGVydGFzQXNpZ25hZGFzLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/WilliamAdrianCambron/OneDrive - IT Quest Solutions (ITQS)/Documentos/GitHub/PROYECTOS/Components/Pages/DashboardAlertas.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xEYXNoYm9hcmRBbGVydGFzLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/WilliamAdrianCambron/OneDrive - IT Quest Solutions (ITQS)/Documentos/GitHub/PROYECTOS/Components/Pages/Error.razor]
@@ -42,8 +46,28 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xHZXN0b3JBbGVydGFzLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
+[C:/Users/WilliamAdrianCambron/OneDrive - IT Quest Solutions (ITQS)/Documentos/GitHub/PROYECTOS/Components/Pages/HistorialAlertas.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xIaXN0b3JpYWxBbGVydGFzLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/Users/WilliamAdrianCambron/OneDrive - IT Quest Solutions (ITQS)/Documentos/GitHub/PROYECTOS/Components/Pages/Home.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xIb21lLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/WilliamAdrianCambron/OneDrive - IT Quest Solutions (ITQS)/Documentos/GitHub/PROYECTOS/Components/Pages/PlaceholderPages.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xQbGFjZWhvbGRlclBhZ2VzLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/WilliamAdrianCambron/OneDrive - IT Quest Solutions (ITQS)/Documentos/GitHub/PROYECTOS/Components/Pages/Seguridad.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xTZWd1cmlkYWQucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/WilliamAdrianCambron/OneDrive - IT Quest Solutions (ITQS)/Documentos/GitHub/PROYECTOS/Components/Pages/Soporte365.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xTb3BvcnRlMzY1LnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/WilliamAdrianCambron/OneDrive - IT Quest Solutions (ITQS)/Documentos/GitHub/PROYECTOS/Components/Pages/SoporteCloud.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xTb3BvcnRlQ2xvdWQucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/WilliamAdrianCambron/OneDrive - IT Quest Solutions (ITQS)/Documentos/GitHub/PROYECTOS/Components/Routes.razor]
