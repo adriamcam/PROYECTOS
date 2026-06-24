@@ -504,7 +504,7 @@ html, body {
 
 .kpi-row {
     display: grid;
-    grid-template-columns: repeat(5, minmax(160px, 1fr));
+    grid-template-columns: repeat(6, minmax(150px, 1fr));
     gap: 18px;
 }
 
@@ -596,5 +596,26 @@ html, body {
 }
 
 .menu-links a:hover {
+    background: rgba(255,255,255,.08);
+}
+.menu-link {
+    display: block;
+    width: 100%;
+    border: 0;
+    background: transparent;
+    color: #dbeafe;
+    text-align: left;
+    text-decoration: none;
+    padding: 12px 20px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.menu-link::before {
+    content: "• ";
+    color: #3b82f6;
+}
+
+.menu-link:hover {
     background: rgba(255,255,255,.08);
 }
