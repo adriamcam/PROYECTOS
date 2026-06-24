@@ -1,35 +1,48 @@
 @page "/"
-@page "/home"
+@rendermode @(new InteractiveServerRenderMode())
 @inject NavigationManager Navigation
 
-<PageTitle>Home - ITQS SOC</PageTitle>
+<PageTitle>Ingresar - ITQS SOC</PageTitle>
 
-<section class="soc-hero">
-    <div class="soc-logo">ITQS</div>
-    <h1>Bienvenido al ITQS Support Operations Center</h1>
-    <p>Centro de operaciones para soporte cloud, Microsoft 365, seguridad, alertas, inventario y clientes.</p>
-</section>
+<section class="login-shell">
+    <div class="login-panel">
+        <div class="login-logo">ITQS</div>
 
-<section class="area-section">
-    <h2>Selecciona el área de trabajo</h2>
-    <div class="area-grid">
-        <article class="area-card cloud" @onclick='() => Navigation.NavigateTo("/soporte-cloud")'>
-            <div class="area-icon">☁</div>
-            <h3>Soporte Cloud</h3>
-            <p>Gestión de alertas, clientes, inventario, recursos Azure y operaciones Cloud.</p>
-            <span>Ingresar →</span>
-        </article>
-        <article class="area-card m365" @onclick='() => Navigation.NavigateTo("/soporte-365")'>
-            <div class="area-icon">▣</div>
-            <h3>Soporte 365</h3>
-            <p>Operación de Microsoft 365, Exchange, Teams, SharePoint, OneDrive y licencias.</p>
-            <span>Ingresar →</span>
-        </article>
-        <article class="area-card security" @onclick='() => Navigation.NavigateTo("/seguridad")'>
-            <div class="area-icon">🛡</div>
-            <h3>Seguridad</h3>
-            <p>Sentinel, Defender, incidentes, cumplimiento, amenazas y gestión de riesgos.</p>
-            <span>Ingresar →</span>
-        </article>
+        <h1>Bienvenido</h1>
+        <p>ITQS Support Operations Center</p>
+
+        <div class="login-form">
+            <label>Correo</label>
+            <input @bind="email" placeholder="usuario@itqscr.com" />
+
+            <label>Nombre</label>
+            <input @bind="name" placeholder="Nombre completo" />
+
+            <button class="login-button" @onclick="Login">
+                Ingresar
+            </button>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(error))
+        {
+            <div class="login-error">@error</div>
+        }
     </div>
 </section>
+
+@code {
+    private string email = "wcambronero@itqscr.com";
+    private string name = "William Cambronero";
+    private string? error;
+
+    private void Login()
+    {
+        if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(name))
+        {
+            error = "Debe ingresar nombre y correo.";
+            return;
+        }
+
+        Navigation.NavigateTo("/home");
+    }
+}
