@@ -1,5 +1,4 @@
 @page "/"
-@inject NavigationManager Navigation
 
 <PageTitle>Ingresar - ITQS SOC</PageTitle>
 
@@ -11,15 +10,11 @@
         <div class="login-logo">ITQS</div>
 
         <h1>Bienvenido</h1>
+        <p>ITQS Support Operations Center</p>
 
-        <p>
-            ITQS Support Operations Center
-        </p>
-
-        <button class="login-button"
-                @onclick='() => Navigation.NavigateTo("/home")'>
+        <a class="login-button" href="/portal">
             Ingresar
-        </button>
+        </a>
     </main>
 
     <div class="login-wave"></div>

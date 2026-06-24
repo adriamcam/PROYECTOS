@@ -1,43 +1,32 @@
-@page "/home"
-@rendermode @(new InteractiveServerRenderMode())
+@page "/portal"
 @inject NavigationManager Navigation
 
-<PageTitle>Home - ITQS SOC</PageTitle>
+<PageTitle>Portal - ITQS SOC</PageTitle>
 
-<section class="soc-hero">
-    <div class="soc-logo">ITQS</div>
+<section class="portal-shell">
+    <div class="portal-header">
+        <div class="portal-logo">ITQS</div>
+        <h1>Support Operations Center</h1>
+        <p>Seleccione el módulo de trabajo.</p>
+    </div>
 
-    <h1>Bienvenido al ITQS Support Operations Center</h1>
-
-    <p>
-        Centro de operaciones para soporte cloud, Microsoft 365, seguridad,
-        alertas, inventario y clientes.
-    </p>
-</section>
-
-<section class="soc-module-section">
-    <h2>Selecciona el área de trabajo</h2>
-
-    <div class="soc-module-grid">
-        <article class="soc-module-card">
-            <div class="soc-module-icon cloud">☁</div>
-            <h3>Soporte Cloud</h3>
-            <p>Gestión de alertas, clientes, inventario, recursos Azure y operaciones Cloud.</p>
-            <button @onclick='() => Navigation.NavigateTo("/soporte/cloud")'>Ingresar →</button>
+    <div class="portal-modules">
+        <article class="portal-card cloud">
+            <div class="portal-icon">☁</div>
+            <h2>Support Cloud</h2>
+            <p>Alertas, clientes, inventario, Azure, monitoreo y operación Cloud.</p>
+            <button @onclick='() => Navigation.NavigateTo("/support-cloud")'>
+                Ingresar →
+            </button>
         </article>
 
-        <article class="soc-module-card">
-            <div class="soc-module-icon m365">▣</div>
-            <h3>Soporte 365</h3>
-            <p>Operación de Microsoft 365, Exchange, Teams, SharePoint, OneDrive y licencias.</p>
-            <button @onclick='() => Navigation.NavigateTo("/soporte365")'>Ingresar →</button>
-        </article>
-
-        <article class="soc-module-card">
-            <div class="soc-module-icon security">♢</div>
-            <h3>Seguridad</h3>
-            <p>Sentinel, Defender, incidentes, cumplimiento, amenazas y gestión de riesgos.</p>
-            <button @onclick='() => Navigation.NavigateTo("/seguridad")'>Ingresar →</button>
+        <article class="portal-card modern">
+            <div class="portal-icon">▣</div>
+            <h2>Support Modern Work</h2>
+            <p>Microsoft 365, Exchange, Teams, SharePoint, OneDrive y licenciamiento.</p>
+            <button @onclick='() => Navigation.NavigateTo("/support-modern-work")'>
+                Ingresar →
+            </button>
         </article>
     </div>
 </section>
