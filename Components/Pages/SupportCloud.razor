@@ -10,21 +10,27 @@
             <strong>Support Cloud</strong>
         </div>
 
-        <nav class="cloud-menu">
-            <div class="menu-group active">
-                <div class="menu-title">🔔 Monitoreo de Alertas</div>
-                <a href="/cloud/dashboard">Dashboard</a>
-                <a href="/cloud/asignadas">Asignadas a mí</a>
-                <a href="/cloud/sin-asignar">Sin asignar</a>
-                <a href="/cloud/todas-alertas">Todas las alertas</a>
-                <a href="/cloud/alertas-criticas">Alertas críticas</a>
-				<a href="/cloud/alertas-criticas">Info Clientes</a>
-				<a href="/cloud/alertas-criticas">Inventory</a>
-				<a href="/cloud/alertas-criticas">Admin / Manager View</a>
-				
-            </div>
-            <a class="menu-item" href="/cloud/info-clientes">👥 Admin|Customers</a>
-        </nav>
+<nav class="cloud-menu">
+
+    <div class="menu-group">
+        <button type="button"
+                class="menu-title menu-button"
+                onclick="document.getElementById('alert-menu-links').classList.toggle('show')">
+            🔔 Monitoreo de Alertas
+        </button>
+
+        <div id="alert-menu-links" class="menu-links">
+            <a href="/cloud/dashboard">Dashboard</a>
+            <a href="/cloud/asignadas">Asignadas a mí</a>
+            <a href="/cloud/sin-asignar">Sin asignar</a>
+            <a href="/cloud/todas-alertas">Todas las alertas</a>
+            <a href="/cloud/alertas-criticas">Alertas críticas</a>
+            <a href="/cloud/info-clientes">Info Clientes</a>
+            <a href="/cloud/inventory">Inventory</a>
+            <a href="/cloud/admin-manager">Admin / Manager View</a>
+        </div>
+    </div>
+</nav>
 
         <a class="cloud-logout" href="/portal">← Volver al Portal</a>
     </aside>
