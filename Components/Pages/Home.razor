@@ -1,48 +1,48 @@
-@page "/"
-@rendermode @(new InteractiveServerRenderMode())
+@page "/home"
+@attribute [Authorize]
 @inject NavigationManager Navigation
 
-<PageTitle>Ingresar - ITQS SOC</PageTitle>
+<PageTitle>Home - ITQS SOC</PageTitle>
 
 <section class="login-shell">
-    <div class="login-panel">
+    <div class="login-lines lines-left"></div>
+    <div class="login-lines lines-right"></div>
+
+    <main class="login-panel">
         <div class="login-logo">ITQS</div>
+        <h1>Autenticado correctamente</h1>
+        <p>@DisplayName</p>
 
-        <h1>Bienvenido</h1>
-        <p>ITQS Support Operations Center</p>
+        <button class="login-button" @onclick="SignOut">
+            Cerrar sesión
+        </button>
+    </main>
 
-        <div class="login-form">
-            <label>Correo</label>
-            <input @bind="email" placeholder="usuario@itqscr.com" />
-
-            <label>Nombre</label>
-            <input @bind="name" placeholder="Nombre completo" />
-
-            <button class="login-button" @onclick="Login">
-                Ingresar
-            </button>
-        </div>
-
-        @if (!string.IsNullOrWhiteSpace(error))
-        {
-            <div class="login-error">@error</div>
-        }
-    </div>
+    <div class="login-wave"></div>
 </section>
 
 @code {
-    private string email = "wcambronero@itqscr.com";
-    private string name = "William Cambronero";
-    private string? error;
+    [CascadingParameter] private Task<AuthenticationState>? AuthenticationStateTask { get; set; }
+    private string DisplayName = "Usuario autenticado";
 
-    private void Login()
+    protected override async Task OnInitializedAsync()
     {
-        if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(name))
+        if (AuthenticationStateTask is null)
         {
-            error = "Debe ingresar nombre y correo.";
             return;
         }
 
-        Navigation.NavigateTo("/home");
+        var authState = await AuthenticationStateTask;
+        var user = authState.User;
+
+        DisplayName = user.FindFirst("name")?.Value
+            ?? user.Identity?.Name
+            ?? user.FindFirst(ClaimTypes.Email)?.Value
+            ?? "Usuario autenticado";
+    }
+
+    private void SignOut()
+    {
+        Navigation.NavigateTo("MicrosoftIdentity/Account/SignOut", forceLoad: true);
     }
 }

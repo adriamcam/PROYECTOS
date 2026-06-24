@@ -43,13 +43,13 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "dependencies": {
-            "Dapper": {
+            "Microsoft.Identity.Web": {
               "target": "Package",
-              "version": "[2.1.66, )"
+              "version": "[2.20.0, )"
             },
-            "Microsoft.Data.SqlClient": {
+            "Microsoft.Identity.Web.UI": {
               "target": "Package",
-              "version": "[5.2.2, )"
+              "version": "[2.20.0, )"
             }
           },
           "imports": [

@@ -69,3 +69,4 @@ C:\Users\WilliamAdrianCambron\OneDrive - IT Quest Solutions (ITQS)\Documentos\Gi
 C:\Users\WilliamAdrianCambron\OneDrive - IT Quest Solutions (ITQS)\Documentos\GitHub\PROYECTOS\obj\Debug\net8.0\ITQS.SupportOperationsCenter.pdb
 C:\Users\WilliamAdrianCambron\OneDrive - IT Quest Solutions (ITQS)\Documentos\GitHub\PROYECTOS\obj\Debug\net8.0\ITQS.SupportOperationsCenter.genruntimeconfig.cache
 C:\Users\WilliamAdrianCambron\OneDrive - IT Quest Solutions (ITQS)\Documentos\GitHub\PROYECTOS\obj\Debug\net8.0\ref\ITQS.SupportOperationsCenter.dll
+C:\Users\WilliamAdrianCambron\OneDrive - IT Quest Solutions (ITQS)\Documentos\GitHub\PROYECTOS\obj\Debug\net8.0\ITQS.SupportOperationsCenter.MvcApplicationPartsAssemblyInfo.cs

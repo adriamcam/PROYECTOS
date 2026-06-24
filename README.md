@@ -1,43 +1,32 @@
-# ITQS Support Operations Center
+# ITQS Support Operations Center - Login Entra ID
 
-Proyecto limpio Blazor Web App .NET 8 para ITQS SOC.
+Proyecto Blazor Web App .NET 8 con pantalla inicial limpia y autenticación Microsoft Entra ID.
 
-## Módulos incluidos
+## Rutas
 
-- Home
-- Soporte Cloud
-  - Gestor Alertas
-  - Dashboard
-  - Asignadas
-  - Historial
-  - Clientes
-  - Inventory
-  - Administración
-- Soporte 365
-- Seguridad
+- `/` Pantalla de bienvenida pública con botón Ingresar.
+- `/home` Página protegida, solo visible después de autenticarse.
 
-## Ejecutar local
+## Configuración requerida en Entra ID
+
+Crear App Registration:
+
+- Platform: Web
+- Redirect URI local: `https://localhost:5001/signin-oidc`
+- Redirect URI Azure: `https://TU-APP.azurewebsites.net/signin-oidc`
+- Front-channel logout URL: `https://TU-APP.azurewebsites.net/signout-oidc`
+
+Luego configurar `appsettings.json` o variables de entorno en Azure App Service:
+
+- `AzureAd:TenantId`
+- `AzureAd:ClientId`
+- `AzureAd:Domain`
+
+## Publicación
 
 ```powershell
-dotnet restore
 dotnet build
-dotnet run
-```
-
-## Publicar a Azure
-
-```powershell
 git add .
-git commit -m "Clean SOC v2 project"
+git commit -m "Login Entra ID only"
 git push origin main
-```
-
-## Configuración SQL
-
-Editar `appsettings.json` o configurar `ConnectionStrings:ReportesDb` en Azure App Service.
-
-Ejecutar en SQL Server:
-
-```sql
-Sql/01_CreateStoredProcedures.sql
 ```
