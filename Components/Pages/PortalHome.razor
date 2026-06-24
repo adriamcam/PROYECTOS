@@ -4,6 +4,13 @@
 <PageTitle>Portal - ITQS SOC</PageTitle>
 
 <section class="portal-shell">
+
+    <div class="portal-actions">
+        <a class="back-button" href="/">
+            ← Volver al Inicio
+        </a>
+    </div>
+
     <div class="portal-header">
         <div class="portal-logo">ITQS</div>
         <h1>Support Operations Center</h1>
@@ -11,10 +18,15 @@
     </div>
 
     <div class="portal-modules">
+
         <article class="portal-card cloud">
             <div class="portal-icon">☁</div>
             <h2>Support Cloud</h2>
-            <p>Alertas, clientes, inventario, Azure, monitoreo y operación Cloud.</p>
+            <p>
+                Alertas, clientes, inventario, Azure,
+                monitoreo y operación Cloud.
+            </p>
+
             <button @onclick='() => Navigation.NavigateTo("/support-cloud")'>
                 Ingresar →
             </button>
@@ -23,10 +35,16 @@
         <article class="portal-card modern">
             <div class="portal-icon">▣</div>
             <h2>Support Modern Work</h2>
-            <p>Microsoft 365, Exchange, Teams, SharePoint, OneDrive y licenciamiento.</p>
+            <p>
+                Microsoft 365, Exchange, Teams,
+                SharePoint, OneDrive y licenciamiento.
+            </p>
+
             <button @onclick='() => Navigation.NavigateTo("/support-modern-work")'>
                 Ingresar →
             </button>
         </article>
+
     </div>
+
 </section>
