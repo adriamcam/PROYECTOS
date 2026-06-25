@@ -25,11 +25,11 @@
                 </button>
 
                 <div class="menu-links @(ShowAlertMenu ? "show" : "")">
-                    <button type="button" class="menu-link" @onclick="TestDashboard">Dashboard</button>
-             <button type="button" class="menu-link" @onclick='() => SelectModule("Asignadas")'>Asignadas a mí</button>
-<button type="button" class="menu-link" @onclick='() => SelectModule("SinAsignar")'>Sin asignar</button>
-<button type="button" class="menu-link" @onclick='() => SelectModule("Todas")'>Todas las alertas</button>
-<button type="button" class="menu-link" @onclick='() => SelectModule("Criticas")'>Alertas críticas</button>
+                    <button type="button" class="menu-link" @onclick='() => SelectModule("Dashboard")'>Dashboard</button>
+                    <button type="button" class="menu-link" @onclick='() => SelectModule("Asignadas")'>Asignadas a mí</button>
+                    <button type="button" class="menu-link" @onclick='() => SelectModule("SinAsignar")'>Sin asignar</button>
+                    <button type="button" class="menu-link" @onclick='() => SelectModule("Todas")'>Todas las alertas</button>
+                    <button type="button" class="menu-link" @onclick='() => SelectModule("Criticas")'>Alertas críticas</button>
                 </div>
             </div>
 
@@ -41,7 +41,7 @@
     <main class="cloud-main">
         <header class="cloud-topbar">
             <div class="hamburger">☰</div>
-            <strong>SYNC TEST - @CurrentTitle</strong>
+            <strong>@CurrentTitle</strong>
 
             <div class="cloud-user">
                 <div class="avatar">@UserInitial</div>
@@ -53,51 +53,74 @@
             </div>
         </header>
 
-   <section class="cloud-content">
+        <section class="cloud-content">
 
-    @if (CurrentModule == "Alertas")
-    {
-        <AlertDashboard UserEmail="@UserEmail" />
-    }
-    else if (CurrentModule == "Dashboard")
-    {
-        <DashboardAlerts UserEmail="@UserEmail" />
-    }
-    else if (CurrentModule == "Asignadas")
-    {
-        <AssignedToMeAlerts />
-    }
-    else if (CurrentModule == "SinAsignar")
-    {
-        <UnassignedAlerts />
-    }
-    else if (CurrentModule == "Todas")
-    {
-        <AllAlerts />
-    }
-    else if (CurrentModule == "Criticas")
-    {
-        <CriticalAlerts />
-    }
-    else if (CurrentModule == "Clientes")
-    {
-        <CustomerDashboard />
-    }
-    else if (CurrentModule == "Admin")
-    {
-        <AdminDashboard />
-    }
-    else
-    {
-        <DashboardAlerts UserEmail="@UserEmail" />
-    }
+            @if (!HasAccess)
+            {
+                <h1>Acceso denegado</h1>
+                <p>No tienes permisos para ingresar a Support Cloud.</p>
 
-</section>
+                <div class="cloud-divider"></div>
 
+                <h4>Group Claims detectados</h4>
+
+                @if (GroupClaims.Any())
+                {
+                    @foreach (var claim in GroupClaims)
+                    {
+                        <div>@claim</div>
+                    }
+                }
+                else
+                {
+                    <p>No llegaron claims de grupo en el token.</p>
+                }
+            }
+            else if (CurrentModule == "Alertas")
+            {
+                <AlertDashboard UserEmail="@UserEmail" />
+            }
+            else if (CurrentModule == "Dashboard")
+            {
+                <DashboardAlerts UserEmail="@UserEmail" />
+            }
+            else if (CurrentModule == "Asignadas")
+            {
+                <AssignedToMeAlerts />
+            }
+            else if (CurrentModule == "SinAsignar")
+            {
+                <UnassignedAlerts />
+            }
+            else if (CurrentModule == "Todas")
+            {
+                <AllAlerts />
+            }
+            else if (CurrentModule == "Criticas")
+            {
+                <CriticalAlerts />
+            }
+            else if (CurrentModule == "Clientes")
+            {
+                <CustomerDashboard />
+            }
+            else if (CurrentModule == "Admin")
+            {
+                <AdminDashboard />
+            }
+            else
+            {
+                <DashboardAlerts UserEmail="@UserEmail" />
+            }
+
+        </section>
     </main>
 </section>
 
 @code {
+    private const string CloudGroupId = "bf276a6b-a93f-4725-9f28-75ea0b055ad4";
+
+    private bool HasAccess = false;
     private string CurrentModule = "";
     private bool ShowAlertMenu = false;
 
@@ -105,24 +128,31 @@
     private string UserEmail = "";
     private string UserInitial = "?";
 
-private string CurrentTitle =>
-    CurrentModule switch
-    {
-        "Alertas" => "Monitoreo de Alertas",
-        "Dashboard" => "Dashboard",
-        "Asignadas" => "Asignadas a mí",
-        "SinAsignar" => "Sin asignar",
-        "Todas" => "Todas las alertas",
-        "Criticas" => "Alertas críticas",
-        "Clientes" => "Info Clientes",
-        "Admin" => "Admin / Manager View",
-        _ => "Dashboard"
-    };
+    private List<string> GroupClaims = new();
+
+    private string CurrentTitle =>
+        CurrentModule switch
+        {
+            "Alertas" => "Monitoreo de Alertas",
+            "Dashboard" => "Dashboard",
+            "Asignadas" => "Asignadas a mí",
+            "SinAsignar" => "Sin asignar",
+            "Todas" => "Todas las alertas",
+            "Criticas" => "Alertas críticas",
+            "Clientes" => "Info Clientes",
+            "Admin" => "Admin / Manager View",
+            _ => "Dashboard"
+        };
 
     protected override async Task OnInitializedAsync()
     {
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
+
+        GroupClaims = user.Claims
+            .Where(c => c.Type.Contains("group", StringComparison.OrdinalIgnoreCase))
+            .Select(c => $"{c.Type}: {c.Value}")
+            .ToList();
 
         UserName =
             user.FindFirst("name")?.Value
@@ -135,6 +165,10 @@ private string CurrentTitle =>
             ?? user.Identity?.Name
             ?? "";
 
+        HasAccess =
+            user.HasClaim("groups", CloudGroupId) ||
+            user.HasClaim("http://schemas.microsoft.com/ws/2008/06/identity/claims/groups", CloudGroupId);
+
         if (!string.IsNullOrWhiteSpace(UserName))
         {
             UserInitial = UserName.Substring(0, 1).ToUpper();
@@ -145,13 +179,6 @@ private string CurrentTitle =>
     {
         CurrentModule = "Alertas";
         ShowAlertMenu = !ShowAlertMenu;
-        StateHasChanged();
-    }
-
-    private void TestDashboard()
-    {
-        CurrentModule = "Dashboard";
-        ShowAlertMenu = true;
         StateHasChanged();
     }
 
