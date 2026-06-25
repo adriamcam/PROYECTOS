@@ -25,7 +25,7 @@
                 </button>
 
                 <div class="menu-links @(ShowAlertMenu ? "show" : "")">
-					<button type="button" class="menu-link" @onclick='() => SelectModule("Dashboard")'>Dashboard</button>
+                    <button type="button" class="menu-link" @onclick='() => SelectModule("Dashboard")'>Dashboard</button>
                     <button type="button" class="menu-link" @onclick='() => SelectModule("Alertas")'>Asignadas a mí</button>
                     <button type="button" class="menu-link" @onclick='() => SelectModule("Alertas")'>Sin asignar</button>
                     <button type="button" class="menu-link" @onclick='() => SelectModule("Alertas")'>Todas las alertas</button>
@@ -43,16 +43,16 @@
     <main class="cloud-main">
         <header class="cloud-topbar">
             <div class="hamburger">☰</div>
-            <strong>Support Cloud</strong>
+            <strong>@CurrentTitle</strong>
 
-          <div class="cloud-user">
-    <div class="avatar">@UserInitial</div>
+            <div class="cloud-user">
+                <div class="avatar">@UserInitial</div>
 
-    <div>
-        <strong>@UserName</strong>
-        <span>@UserEmail</span>
-    </div>
-</div>
+                <div>
+                    <strong>@UserName</strong>
+                    <span>@UserEmail</span>
+                </div>
+            </div>
         </header>
 
         <section class="cloud-content">
@@ -60,6 +60,10 @@
             @if (CurrentModule == "Alertas")
             {
                 <AlertDashboard UserEmail="@UserEmail" />
+            }
+            else if (CurrentModule == "Dashboard")
+            {
+                <DashboardAlerts UserEmail="@UserEmail" />
             }
             else if (CurrentModule == "Clientes")
             {
@@ -71,7 +75,7 @@
             }
             else
             {
-                <h1>Support Cloud</h1>
+                <h1>@CurrentTitle</h1>
                 <p>Seleccione un módulo del menú lateral.</p>
                 <div class="cloud-divider"></div>
             }
@@ -88,6 +92,16 @@
     private string UserName = "";
     private string UserEmail = "";
     private string UserInitial = "?";
+
+    private string CurrentTitle =>
+        CurrentModule switch
+        {
+            "Alertas" => "Monitoreo de Alertas",
+            "Dashboard" => "Dashboard",
+            "Clientes" => "Info Clientes",
+            "Admin" => "Admin / Manager View",
+            _ => "Support Cloud"
+        };
 
     protected override async Task OnInitializedAsync()
     {
