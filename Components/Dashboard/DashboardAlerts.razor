@@ -1,9 +1,69 @@
+@using ITQS.SupportOperationsCenter.Components.Shared
 <h1>Dashboard</h1>
-<p>Nuevo dashboard de alertas asignadas cargado correctamente.</p>
+<p>Alertas asignadas al usuario autenticado.</p>
 
 <p>Usuario filtrado: @UserEmail</p>
 
 <div class="cloud-divider"></div>
+
+<div class="kpi-row">
+    <KpiCard Title="Total asignadas"
+             Icon="👤"
+             CssClass="blue"
+             Value="180"
+             Label="Asignadas" />
+
+    <KpiCard Title="Backup asignadas"
+             Icon="💾"
+             CssClass="purple"
+             Value="45"
+             Label="Backup" />
+
+    <KpiCard Title="Management asignadas"
+             Icon="⚙"
+             CssClass="orange"
+             Value="135"
+             Label="Management" />
+
+    <KpiCard Title="Pendientes"
+             Icon="⚠"
+             CssClass="red"
+             Value="170"
+             Label="Pendientes" />
+
+    <KpiCard Title="Resueltas"
+             Icon="✓"
+             CssClass="green"
+             Value="10"
+             Label="Resueltas" />
+</div>
+
+<div class="cloud-divider"></div>
+
+<h3>Alertas agrupadas</h3>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Cliente</th>
+            <th>Alerta</th>
+            <th>Severidad</th>
+            <th>Tipo</th>
+            <th>Recurso</th>
+            <th>Eventos</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Cliente Demo</td>
+            <td>CPU mayor al 95%</td>
+            <td>Critical</td>
+            <td>Management</td>
+            <td>Servidor01</td>
+            <td>10</td>
+        </tr>
+    </tbody>
+</table>
 
 @code {
     [Parameter]
