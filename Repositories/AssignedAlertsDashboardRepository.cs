@@ -18,13 +18,11 @@ public sealed class AssignedAlertsDashboardRepository : IAssignedAlertsDashboard
         _logger = logger;
     }
 
-    public async Task<AssignedAlertsDashboardModel> GetDashboardAsync(
+    public Task<AssignedAlertsDashboardModel> GetDashboardAsync(
         string userEmail,
         CancellationToken cancellationToken = default)
     {
-        using var connection = _connectionFactory.CreateConnection();
-
-        return new AssignedAlertsDashboardModel();
+        return Task.FromResult(new AssignedAlertsDashboardModel());
     }
 
     public async Task<List<DashboardAlertItemModel>> GetManagementAlertsAsync(
@@ -33,24 +31,30 @@ public sealed class AssignedAlertsDashboardRepository : IAssignedAlertsDashboard
         using var connection = _connectionFactory.CreateConnection();
 
         const string sql = @"
-SELECT
-    'Management'          AS SourceType,
-    Id,
-    SubscriptionName      AS ClientName,
-    AlertName,
-    Severity,
-    'Management'          AS AlertType,
-    TargetResourceName    AS ResourceName,
-    Events,
-    UpdatedAt             AS LastEventAt,
-    AssignedTo,
-    AssignedEmail
+SELECT TOP (200)
+    SourceType = 'Management',
+    Id = MIN(CAST(Id AS bigint)),
+    ClientName = ISNULL(NULLIF(SubscriptionName, ''), 'Sin cliente'),
+    AlertName = ISNULL(NULLIF(AlertName, ''), 'Sin nombre'),
+    Severity = ISNULL(NULLIF(Severity, ''), 'Unknown'),
+    AlertType = 'Management',
+    ResourceName = ISNULL(NULLIF(TargetResourceName, ''), 'Sin recurso'),
+    Events = COUNT(1),
+    LastEventAt = MAX(COALESCE(UpdatedAt, InsertedAt, AlertTime)),
+    AssignedTo = ISNULL(MAX(AssignedTo), ''),
+    AssignedEmail = ISNULL(MAX(AssignedEmail), '')
 FROM dbo.AlertsManagement
-WHERE Active = 1
-ORDER BY UpdatedAt DESC;";
+WHERE ISNULL(Active, 0) = 1
+GROUP BY
+    ISNULL(NULLIF(SubscriptionName, ''), 'Sin cliente'),
+    ISNULL(NULLIF(AlertName, ''), 'Sin nombre'),
+    ISNULL(NULLIF(Severity, ''), 'Unknown'),
+    ISNULL(NULLIF(TargetResourceName, ''), 'Sin recurso')
+ORDER BY
+    MAX(COALESCE(UpdatedAt, InsertedAt, AlertTime)) DESC,
+    COUNT(1) DESC;";
 
         var result = await connection.QueryAsync<DashboardAlertItemModel>(sql);
-
         return result.ToList();
     }
 
@@ -60,24 +64,30 @@ ORDER BY UpdatedAt DESC;";
         using var connection = _connectionFactory.CreateConnection();
 
         const string sql = @"
-SELECT
-    'Backup'          AS SourceType,
-    Id,
-    SubscriptionName  AS ClientName,
-    AlertRule         AS AlertName,
-    Severity,
-    'Backup'          AS AlertType,
-    VMName            AS ResourceName,
-    1                 AS Events,
-    UpdatedAt         AS LastEventAt,
-    AssignedTo,
-    AssignedEmail
+SELECT TOP (200)
+    SourceType = 'Backup',
+    Id = MIN(CAST(Id AS bigint)),
+    ClientName = ISNULL(NULLIF(SubscriptionName, ''), 'Sin cliente'),
+    AlertName = ISNULL(NULLIF(AlertRule, ''), 'Sin nombre'),
+    Severity = ISNULL(NULLIF(Severity, ''), 'Unknown'),
+    AlertType = 'Backup',
+    ResourceName = COALESCE(NULLIF(ResourceName, ''), NULLIF(VMName, ''), NULLIF(ProtectedItem, ''), 'Sin recurso'),
+    Events = COUNT(1),
+    LastEventAt = MAX(COALESCE(UpdatedAt, InsertedAt, AlertTime)),
+    AssignedTo = ISNULL(MAX(AssignedTo), ''),
+    AssignedEmail = ISNULL(MAX(AssignedEmail), '')
 FROM dbo.AlertasBackup
-WHERE Active = 1
-ORDER BY UpdatedAt DESC;";
+WHERE ISNULL(Active, 0) = 1
+GROUP BY
+    ISNULL(NULLIF(SubscriptionName, ''), 'Sin cliente'),
+    ISNULL(NULLIF(AlertRule, ''), 'Sin nombre'),
+    ISNULL(NULLIF(Severity, ''), 'Unknown'),
+    COALESCE(NULLIF(ResourceName, ''), NULLIF(VMName, ''), NULLIF(ProtectedItem, ''), 'Sin recurso')
+ORDER BY
+    MAX(COALESCE(UpdatedAt, InsertedAt, AlertTime)) DESC,
+    COUNT(1) DESC;";
 
         var result = await connection.QueryAsync<DashboardAlertItemModel>(sql);
-
         return result.ToList();
     }
 
@@ -90,17 +100,36 @@ ORDER BY UpdatedAt DESC;";
         using var connection = _connectionFactory.CreateConnection();
 
         const string sql = @"
+DECLARE @SubscriptionName nvarchar(255);
+DECLARE @AlertName nvarchar(500);
+DECLARE @Severity nvarchar(100);
+DECLARE @ResourceName nvarchar(500);
+
+SELECT
+    @SubscriptionName = SubscriptionName,
+    @AlertName = AlertName,
+    @Severity = Severity,
+    @ResourceName = TargetResourceName
+FROM dbo.AlertsManagement
+WHERE Id = @Id;
+
 UPDATE dbo.AlertsManagement
-SET AssignedTo = @userName,
-    AssignedEmail = @userEmail,
+SET
+    AssignedTo = @UserName,
+    AssignedEmail = @UserEmail,
     UpdatedAt = GETDATE()
-WHERE Id = @id;";
+WHERE ISNULL(Active, 0) = 1
+  AND ISNULL(AssignedEmail, '') = ''
+  AND ISNULL(SubscriptionName, '') = ISNULL(@SubscriptionName, '')
+  AND ISNULL(AlertName, '') = ISNULL(@AlertName, '')
+  AND ISNULL(Severity, '') = ISNULL(@Severity, '')
+  AND ISNULL(TargetResourceName, '') = ISNULL(@ResourceName, '');";
 
         await connection.ExecuteAsync(sql, new
         {
-            id,
-            userName,
-            userEmail
+            Id = id,
+            UserName = userName,
+            UserEmail = userEmail
         });
     }
 
@@ -113,17 +142,36 @@ WHERE Id = @id;";
         using var connection = _connectionFactory.CreateConnection();
 
         const string sql = @"
-UPDATE dbo.AlertsBackups
-SET AssignedTo = @userName,
-    AssignedEmail = @userEmail,
+DECLARE @SubscriptionName nvarchar(255);
+DECLARE @AlertRule nvarchar(500);
+DECLARE @Severity nvarchar(100);
+DECLARE @ResourceName nvarchar(500);
+
+SELECT
+    @SubscriptionName = SubscriptionName,
+    @AlertRule = AlertRule,
+    @Severity = Severity,
+    @ResourceName = COALESCE(NULLIF(ResourceName, ''), NULLIF(VMName, ''), NULLIF(ProtectedItem, ''))
+FROM dbo.AlertasBackup
+WHERE Id = @Id;
+
+UPDATE dbo.AlertasBackup
+SET
+    AssignedTo = @UserName,
+    AssignedEmail = @UserEmail,
     UpdatedAt = GETDATE()
-WHERE Id = @id;";
+WHERE ISNULL(Active, 0) = 1
+  AND ISNULL(AssignedEmail, '') = ''
+  AND ISNULL(SubscriptionName, '') = ISNULL(@SubscriptionName, '')
+  AND ISNULL(AlertRule, '') = ISNULL(@AlertRule, '')
+  AND ISNULL(Severity, '') = ISNULL(@Severity, '')
+  AND ISNULL(COALESCE(NULLIF(ResourceName, ''), NULLIF(VMName, ''), NULLIF(ProtectedItem, '')), '') = ISNULL(@ResourceName, '');";
 
         await connection.ExecuteAsync(sql, new
         {
-            id,
-            userName,
-            userEmail
+            Id = id,
+            UserName = userName,
+            UserEmail = userEmail
         });
     }
 }
