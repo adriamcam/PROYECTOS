@@ -1,0 +1,5 @@
+// Agrega estos using en Program.cs:
+using ITQS.SupportOperationsCenter.Extensions;
+
+// Agrega esta línea después de builder.Services.AddRazorComponents()...
+builder.Services.AddItqsSocServices();

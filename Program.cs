@@ -1,4 +1,5 @@
 using ITQS.SupportOperationsCenter.Components;
+using ITQS.SupportOperationsCenter.Data;
 using ITQS.SupportOperationsCenter.Extensions;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Authorization;
@@ -11,6 +12,12 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services
     .AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
     .AddMicrosoftIdentityWebApp(builder.Configuration.GetSection("AzureAd"));
+
+builder.Services.Configure<SqlSettings>(
+    builder.Configuration.GetSection("SqlSettings"));
+
+builder.Services.Configure<KeyVaultSettings>(
+    builder.Configuration.GetSection("KeyVaultSettings"));
 
 builder.Services.AddAuthorization(options =>
 {
@@ -31,7 +38,7 @@ builder.Services
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-builder.Services.AddItqsSocServices();
+builder.Services.AddItqsSocServices(builder.Configuration);
 
 var app = builder.Build();
 
