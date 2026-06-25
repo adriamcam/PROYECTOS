@@ -54,8 +54,18 @@ DECLARE @Today date = CAST(GETDATE() AS date);
 BackupAlertsCte AS
 (
     SELECT
-        COUNT(1) AS BackupAlerts
-   FROM dbo.AlertasBackup
+        COUNT(1) AS BackupAlerts,
+        SUM(CASE 
+                WHEN Active = 1 
+                 AND AssignedEmail = @UserEmail 
+                THEN 1 ELSE 0 
+            END) AS AssignedToMe,
+        SUM(CASE 
+                WHEN Active = 1 
+                 AND (AssignedEmail IS NULL OR LTRIM(RTRIM(AssignedEmail)) = '') 
+                THEN 1 ELSE 0 
+            END) AS Unassigned
+    FROM dbo.AlertasBackup
     WHERE Active = 1
 )
 SELECT
