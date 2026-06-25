@@ -1,2 +1,8 @@
 namespace ITQS.SupportOperationsCenter.Data;
-public sealed class SqlSettings{public string Server{get;set;}=string.Empty;public string Database{get;set;}=string.Empty;public string UserId{get;set;}=string.Empty;}
+
+public sealed class SqlSettings
+{
+    public string Server { get; set; } = string.Empty;
+
+    public string Database { get; set; } = string.Empty;
+}
