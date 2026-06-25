@@ -124,7 +124,7 @@
             }
             else
             {
-                <DashboardAlerts UserEmail="@UserEmail" />
+                <AlertDashboard UserEmail="@UserEmail" />
             }
 
         </section>
@@ -156,7 +156,7 @@
             "Criticas" => "Alertas críticas",
             "Clientes" => "Info Clientes",
             "Admin" => "Admin / Manager View",
-            _ => "Dashboard"
+            _ => "Monitoreo de Alertas"
         };
 
     protected override async Task OnInitializedAsync()
@@ -178,6 +178,7 @@
 
         UserEmail =
             user.FindFirst(ClaimTypes.Email)?.Value
+            ?? user.FindFirst("email")?.Value
             ?? user.FindFirst("preferred_username")?.Value
             ?? user.Identity?.Name
             ?? "";
