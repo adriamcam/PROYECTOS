@@ -55,7 +55,7 @@ BackupAlertsCte AS
 (
     SELECT
         COUNT(1) AS BackupAlerts
-    FROM dbo.AlertasBackup
+   FROM dbo.AlertasBackup
     WHERE Active = 1
 )
 SELECT
