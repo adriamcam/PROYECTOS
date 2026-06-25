@@ -25,7 +25,7 @@
                 </button>
 
                 <div class="menu-links @(ShowAlertMenu ? "show" : "")">
-                    <button type="button" class="menu-link" @onclick='() => SelectModule("Dashboard")'>Dashboard</button>
+                    <button type="button" class="menu-link" @onclick="TestDashboard">Dashboard</button>
                     <button type="button" class="menu-link" @onclick='() => SelectModule("Alertas")'>Asignadas a mí</button>
                     <button type="button" class="menu-link" @onclick='() => SelectModule("Alertas")'>Sin asignar</button>
                     <button type="button" class="menu-link" @onclick='() => SelectModule("Alertas")'>Todas las alertas</button>
@@ -129,11 +129,20 @@
     {
         CurrentModule = "Alertas";
         ShowAlertMenu = !ShowAlertMenu;
+        StateHasChanged();
+    }
+
+    private void TestDashboard()
+    {
+        CurrentModule = "Dashboard";
+        ShowAlertMenu = true;
+        StateHasChanged();
     }
 
     private void SelectModule(string module)
     {
         CurrentModule = module;
         ShowAlertMenu = true;
+        StateHasChanged();
     }
 }
