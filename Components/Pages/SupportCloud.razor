@@ -26,12 +26,10 @@
 
                 <div class="menu-links @(ShowAlertMenu ? "show" : "")">
                     <button type="button" class="menu-link" @onclick="TestDashboard">Dashboard</button>
-                    <button type="button" class="menu-link" @onclick='() => SelectModule("Alertas")'>Asignadas a mí</button>
-                    <button type="button" class="menu-link" @onclick='() => SelectModule("Alertas")'>Sin asignar</button>
-                    <button type="button" class="menu-link" @onclick='() => SelectModule("Alertas")'>Todas las alertas</button>
-                    <button type="button" class="menu-link" @onclick='() => SelectModule("Alertas")'>Alertas críticas</button>
-                    <button type="button" class="menu-link" @onclick='() => SelectModule("Clientes")'>Info Clientes</button>
-                    <button type="button" class="menu-link" @onclick='() => SelectModule("Admin")'>Admin / Manager View</button>
+             <button type="button" class="menu-link" @onclick='() => SelectModule("Asignadas")'>Asignadas a mí</button>
+<button type="button" class="menu-link" @onclick='() => SelectModule("SinAsignar")'>Sin asignar</button>
+<button type="button" class="menu-link" @onclick='() => SelectModule("Todas")'>Todas las alertas</button>
+<button type="button" class="menu-link" @onclick='() => SelectModule("Criticas")'>Alertas críticas</button>
                 </div>
             </div>
 
@@ -55,32 +53,48 @@
             </div>
         </header>
 
-        <section class="cloud-content">
+   <section class="cloud-content">
 
-            @if (CurrentModule == "Alertas")
-            {
-                <AlertDashboard UserEmail="@UserEmail" />
-            }
-            else if (CurrentModule == "Dashboard")
-            {
-                <DashboardAlerts UserEmail="@UserEmail" />
-            }
-            else if (CurrentModule == "Clientes")
-            {
-                <CustomerDashboard />
-            }
-            else if (CurrentModule == "Admin")
-            {
-                <AdminDashboard />
-            }
-            else
-            {
-                <DashboardAlerts UserEmail="@UserEmail" />
-            }
+    @if (CurrentModule == "Alertas")
+    {
+        <AlertDashboard UserEmail="@UserEmail" />
+    }
+    else if (CurrentModule == "Dashboard")
+    {
+        <DashboardAlerts UserEmail="@UserEmail" />
+    }
+    else if (CurrentModule == "Asignadas")
+    {
+        <AssignedToMeAlerts />
+    }
+    else if (CurrentModule == "SinAsignar")
+    {
+        <UnassignedAlerts />
+    }
+    else if (CurrentModule == "Todas")
+    {
+        <AllAlerts />
+    }
+    else if (CurrentModule == "Criticas")
+    {
+        <CriticalAlerts />
+    }
+    else if (CurrentModule == "Clientes")
+    {
+        <CustomerDashboard />
+    }
+    else if (CurrentModule == "Admin")
+    {
+        <AdminDashboard />
+    }
+    else
+    {
+        <DashboardAlerts UserEmail="@UserEmail" />
+    }
 
-        </section>
+</section>
+
     </main>
-
 </section>
 
 @code {
@@ -91,15 +105,19 @@
     private string UserEmail = "";
     private string UserInitial = "?";
 
-    private string CurrentTitle =>
-        CurrentModule switch
-        {
-            "Alertas" => "Monitoreo de Alertas",
-            "Dashboard" => "Dashboard",
-            "Clientes" => "Info Clientes",
-            "Admin" => "Admin / Manager View",
-            _ => "Support Cloud"
-        };
+private string CurrentTitle =>
+    CurrentModule switch
+    {
+        "Alertas" => "Monitoreo de Alertas",
+        "Dashboard" => "Dashboard",
+        "Asignadas" => "Asignadas a mí",
+        "SinAsignar" => "Sin asignar",
+        "Todas" => "Todas las alertas",
+        "Criticas" => "Alertas críticas",
+        "Clientes" => "Info Clientes",
+        "Admin" => "Admin / Manager View",
+        _ => "Dashboard"
+    };
 
     protected override async Task OnInitializedAsync()
     {
