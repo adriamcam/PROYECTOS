@@ -1,7 +1,9 @@
 @page "/support-cloud"
 @rendermode @(new InteractiveServerRenderMode())
-
 @using ITQS.SupportOperationsCenter.Components.Dashboard
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Components.Authorization
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
 <PageTitle>Support Cloud - ITQS SOC</PageTitle>
 
@@ -43,20 +45,21 @@
             <div class="hamburger">☰</div>
             <strong>Support Cloud</strong>
 
-            <div class="cloud-user">
-                <div class="avatar">A</div>
-                <div>
-                    <strong>Administrador</strong>
-                    <span>ITQS SOC</span>
-                </div>
-            </div>
+          <div class="cloud-user">
+    <div class="avatar">@UserInitial</div>
+
+    <div>
+        <strong>@UserName</strong>
+        <span>@UserEmail</span>
+    </div>
+</div>
         </header>
 
         <section class="cloud-content">
 
             @if (CurrentModule == "Alertas")
             {
-                <AlertDashboard UserEmail="wcambronero@itqscr.com" />
+                <AlertDashboard UserEmail="@UserEmail" />
             }
             else if (CurrentModule == "Clientes")
             {
@@ -81,6 +84,32 @@
 @code {
     private string CurrentModule = "";
     private bool ShowAlertMenu = false;
+
+    private string UserName = "";
+    private string UserEmail = "";
+    private string UserInitial = "?";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        UserName =
+            user.FindFirst("name")?.Value
+            ?? user.Identity?.Name
+            ?? "Usuario";
+
+        UserEmail =
+            user.FindFirst(ClaimTypes.Email)?.Value
+            ?? user.FindFirst("preferred_username")?.Value
+            ?? user.Identity?.Name
+            ?? "";
+
+        if (!string.IsNullOrWhiteSpace(UserName))
+        {
+            UserInitial = UserName.Substring(0, 1).ToUpper();
+        }
+    }
 
     private void SelectAlertMonitoring()
     {
