@@ -62,8 +62,8 @@ SELECT
     ISNULL(m.ManagementAlerts, 0) + ISNULL(b.BackupAlerts, 0) AS TotalAlerts,
     ISNULL(b.BackupAlerts, 0) AS BackupAlerts,
     ISNULL(m.ManagementAlerts, 0) AS ManagementAlerts,
-    ISNULL(m.AssignedToMe, 0) AS AssignedToMe,
-    ISNULL(m.Unassigned, 0) AS Unassigned,
+    ISNULL(m.AssignedToMe, 0) + ISNULL(b.AssignedToMe, 0) AS AssignedToMe,
+    ISNULL(m.Unassigned, 0) + ISNULL(b.Unassigned, 0) AS Unassigned,
     ISNULL(m.ResolvedToday, 0) AS ResolvedToday
 FROM Management m
 CROSS JOIN BackupAlertsCte b;
