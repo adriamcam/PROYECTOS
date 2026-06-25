@@ -33,10 +33,10 @@ public sealed class AlertService : IAlertService
 
             return OperationResult<AlertDashboardModel>.Ok(dashboard);
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting alert dashboard data.");
-            return OperationResult<AlertDashboardModel>.Fail("No fue posible cargar los KPI de alertas.");
-        }
+    catch (Exception ex)
+{
+    _logger.LogError(ex, "Error getting alert dashboard data.");
+    return OperationResult<AlertDashboardModel>.Fail(ex.ToString());
+}
     }
 }
