@@ -1,4 +1,11 @@
 <h1>Dashboard</h1>
 <p>Nuevo dashboard de alertas asignadas cargado correctamente.</p>
 
+<p>Usuario filtrado: @UserEmail</p>
+
 <div class="cloud-divider"></div>
+
+@code {
+    [Parameter]
+    public string UserEmail { get; set; } = string.Empty;
+}
