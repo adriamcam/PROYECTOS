@@ -16,7 +16,6 @@
         </div>
 
         <nav class="cloud-menu">
-
             <div class="menu-group">
                 <button type="button"
                         class="menu-title menu-button"
@@ -32,7 +31,6 @@
                     <button type="button" class="menu-link" @onclick='() => SelectModule("Criticas")'>Alertas críticas</button>
                 </div>
             </div>
-
         </nav>
 
         <a class="cloud-logout" href="/portal">← Volver al Portal</a>
@@ -74,6 +72,22 @@
                 else
                 {
                     <p>No llegaron claims de grupo en el token.</p>
+                }
+
+                <div class="cloud-divider"></div>
+
+                <h4>Todos los Claims</h4>
+
+                @if (AllClaims.Any())
+                {
+                    @foreach (var claim in AllClaims)
+                    {
+                        <div>@claim.Type = @claim.Value</div>
+                    }
+                }
+                else
+                {
+                    <p>No llegaron claims en el token.</p>
                 }
             }
             else if (CurrentModule == "Alertas")
@@ -129,6 +143,7 @@
     private string UserInitial = "?";
 
     private List<string> GroupClaims = new();
+    private List<Claim> AllClaims = new();
 
     private string CurrentTitle =>
         CurrentModule switch
@@ -148,6 +163,8 @@
     {
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
+
+        AllClaims = user.Claims.ToList();
 
         GroupClaims = user.Claims
             .Where(c => c.Type.Contains("group", StringComparison.OrdinalIgnoreCase))
