@@ -2,7 +2,6 @@ using Dapper;
 using ITQS.SupportOperationsCenter.Data;
 using ITQS.SupportOperationsCenter.Models.Dashboard;
 using ITQS.SupportOperationsCenter.Repositories.Interfaces;
-using System.Data;
 
 namespace ITQS.SupportOperationsCenter.Repositories;
 
@@ -23,88 +22,63 @@ public sealed class AssignedAlertsDashboardRepository : IAssignedAlertsDashboard
         string userEmail,
         CancellationToken cancellationToken = default)
     {
-        const string sql = @"
-SELECT
-    TotalAssigned = 0,
-    BackupAssigned = 0,
-    ManagementAssigned = 0,
-    Pending = 0,
-    Resolved = 0;
-";
-
         using var connection = _connectionFactory.CreateConnection();
 
-        var command = new CommandDefinition(
-            sql,
-            new { UserEmail = userEmail },
-            commandType: CommandType.Text,
-            cancellationToken: cancellationToken);
-
-        return await connection.QuerySingleAsync<AssignedAlertsDashboardModel>(command);
+        return new AssignedAlertsDashboardModel();
     }
 
     public async Task<List<DashboardAlertItemModel>> GetManagementAlertsAsync(
         CancellationToken cancellationToken = default)
     {
-        const string sql = @"
-SELECT TOP (100)
-    SourceType = 'Management',
-    Id = CAST(Id AS bigint),
-    ClientName = ISNULL(NULLIF(SubscriptionName, ''), 'Sin cliente'),
-    AlertName = ISNULL(NULLIF(AlertName, ''), 'Sin nombre'),
-    Severity = ISNULL(NULLIF(Severity, ''), 'Unknown'),
-    AlertType = 'Management',
-    ResourceName = ISNULL(NULLIF(TargetResourceName, ''), 'Sin recurso'),
-    Events = 1,
-    LastEventAt = COALESCE(UpdatedAt, InsertedAt, AlertTime),
-    AssignedTo = ISNULL(AssignedTo, ''),
-    AssignedEmail = ISNULL(AssignedEmail, '')
-FROM dbo.AlertsManagement
-WHERE ISNULL(Active, 0) = 1
-ORDER BY COALESCE(UpdatedAt, InsertedAt, AlertTime) DESC;
-";
-
         using var connection = _connectionFactory.CreateConnection();
 
-        var command = new CommandDefinition(
-            sql,
-            commandType: CommandType.Text,
-            cancellationToken: cancellationToken);
+        const string sql = @"
+SELECT
+    'Management'          AS SourceType,
+    Id,
+    SubscriptionName      AS ClientName,
+    AlertName,
+    Severity,
+    'Management'          AS AlertType,
+    TargetResourceName    AS ResourceName,
+    Events,
+    UpdatedAt             AS LastEventAt,
+    AssignedTo,
+    AssignedEmail
+FROM dbo.AlertsManagement
+WHERE Active = 1
+ORDER BY UpdatedAt DESC;";
 
-        var rows = await connection.QueryAsync<DashboardAlertItemModel>(command);
-        return rows.ToList();
+        var result = await connection.QueryAsync<DashboardAlertItemModel>(sql);
+
+        return result.ToList();
     }
 
     public async Task<List<DashboardAlertItemModel>> GetBackupAlertsAsync(
         CancellationToken cancellationToken = default)
     {
-        const string sql = @"
-SELECT TOP (100)
-    SourceType = 'Backup',
-    Id = CAST(Id AS bigint),
-    ClientName = ISNULL(NULLIF(SubscriptionName, ''), 'Sin cliente'),
-    AlertName = ISNULL(NULLIF(AlertRule, ''), 'Sin nombre'),
-    Severity = ISNULL(NULLIF(Severity, ''), 'Unknown'),
-    AlertType = 'Backup',
-    ResourceName = COALESCE(NULLIF(ResourceName, ''), NULLIF(VMName, ''), NULLIF(ProtectedItem, ''), 'Sin recurso'),
-    Events = 1,
-    LastEventAt = COALESCE(UpdatedAt, InsertedAt, AlertTime),
-    AssignedTo = ISNULL(AssignedTo, ''),
-    AssignedEmail = ISNULL(AssignedEmail, '')
-FROM dbo.AlertasBackup
-WHERE ISNULL(Active, 0) = 1
-ORDER BY COALESCE(UpdatedAt, InsertedAt, AlertTime) DESC;
-";
-
         using var connection = _connectionFactory.CreateConnection();
 
-        var command = new CommandDefinition(
-            sql,
-            commandType: CommandType.Text,
-            cancellationToken: cancellationToken);
+        const string sql = @"
+SELECT
+    'Backup'          AS SourceType,
+    Id,
+    SubscriptionName  AS ClientName,
+    AlertRule         AS AlertName,
+    Severity,
+    'Backup'          AS AlertType,
+    VMName            AS ResourceName,
+    1                 AS Events,
+    UpdatedAt         AS LastEventAt,
+    AssignedTo,
+    AssignedEmail
+FROM dbo.AlertasBackup
+WHERE Active = 1
+ORDER BY UpdatedAt DESC;";
 
-        var rows = await connection.QueryAsync<DashboardAlertItemModel>(command);
-        return rows.ToList();
+        var result = await connection.QueryAsync<DashboardAlertItemModel>(sql);
+
+        return result.ToList();
     }
 
     public async Task AssignManagementAlertAsync(
@@ -113,26 +87,21 @@ ORDER BY COALESCE(UpdatedAt, InsertedAt, AlertTime) DESC;
         string userEmail,
         CancellationToken cancellationToken = default)
     {
-        const string sql = @"
-UPDATE dbo.AlertsManagement
-SET
-    AssignedTo = @UserName,
-    AssignedEmail = @UserEmail,
-    UpdatedAt = GETDATE()
-WHERE Id = @Id
-  AND ISNULL(Active, 0) = 1
-  AND ISNULL(AssignedEmail, '') = '';
-";
-
         using var connection = _connectionFactory.CreateConnection();
 
-        var command = new CommandDefinition(
-            sql,
-            new { Id = id, UserName = userName, UserEmail = userEmail },
-            commandType: CommandType.Text,
-            cancellationToken: cancellationToken);
+        const string sql = @"
+UPDATE dbo.AlertsManagement
+SET AssignedTo = @userName,
+    AssignedEmail = @userEmail,
+    UpdatedAt = GETDATE()
+WHERE Id = @id;";
 
-        await connection.ExecuteAsync(command);
+        await connection.ExecuteAsync(sql, new
+        {
+            id,
+            userName,
+            userEmail
+        });
     }
 
     public async Task AssignBackupAlertAsync(
@@ -141,25 +110,20 @@ WHERE Id = @Id
         string userEmail,
         CancellationToken cancellationToken = default)
     {
-        const string sql = @"
-UPDATE dbo.AlertasBackup
-SET
-    AssignedTo = @UserName,
-    AssignedEmail = @UserEmail,
-    UpdatedAt = GETDATE()
-WHERE Id = @Id
-  AND ISNULL(Active, 0) = 1
-  AND ISNULL(AssignedEmail, '') = '';
-";
-
         using var connection = _connectionFactory.CreateConnection();
 
-        var command = new CommandDefinition(
-            sql,
-            new { Id = id, UserName = userName, UserEmail = userEmail },
-            commandType: CommandType.Text,
-            cancellationToken: cancellationToken);
+        const string sql = @"
+UPDATE dbo.AlertsBackups
+SET AssignedTo = @userName,
+    AssignedEmail = @userEmail,
+    UpdatedAt = GETDATE()
+WHERE Id = @id;";
 
-        await connection.ExecuteAsync(command);
+        await connection.ExecuteAsync(sql, new
+        {
+            id,
+            userName,
+            userEmail
+        });
     }
 }

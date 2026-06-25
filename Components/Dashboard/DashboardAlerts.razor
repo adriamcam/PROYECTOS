@@ -1,4 +1,7 @@
 @using ITQS.SupportOperationsCenter.Components.Shared
+@using ITQS.SupportOperationsCenter.Models.Dashboard
+@using ITQS.SupportOperationsCenter.Services.Interfaces
+@inject IAssignedAlertsDashboardService DashboardService
 
 <h1>Dashboard</h1>
 
@@ -22,13 +25,13 @@
         <div class="alert-type-actions">
             <button type="button"
                     class="alert-type-btn @(SelectedAlertType == "Management" ? "active" : "")"
-                    @onclick='() => ChangeAlertType("Management")'>
+                    @onclick='async () => await ChangeAlertType("Management")'>
                 ⚙ Management Alerts
             </button>
 
             <button type="button"
                     class="alert-type-btn @(SelectedAlertType == "Backup" ? "active" : "")"
-                    @onclick='() => ChangeAlertType("Backup")'>
+                    @onclick='async () => await ChangeAlertType("Backup")'>
                 💾 Backup Alerts
             </button>
         </div>
@@ -40,40 +43,68 @@
         @(SelectedAlertType == "Management" ? "⚙ Management Alerts" : "💾 Backup Alerts")
     </h4>
 
-    <div class="table-responsive">
-        <table class="table table-hover align-middle dashboard-alerts-table">
-            <thead>
-                <tr>
-                    <th>Cliente</th>
-                    <th>Alerta</th>
-                    <th>Severidad</th>
-                    <th>Tipo</th>
-                    <th>Recurso</th>
-                    <th class="text-center">Eventos</th>
-                    <th class="text-center">Acción</th>
-                </tr>
-            </thead>
+    @if (IsLoading)
+    {
+        <p>Cargando alertas...</p>
+    }
+    else if (!string.IsNullOrWhiteSpace(ErrorMessage))
+    {
+        <div class="alert alert-danger">@ErrorMessage</div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-hover align-middle dashboard-alerts-table">
+                <thead>
+                    <tr>
+                        <th>Cliente</th>
+                        <th>Alerta</th>
+                        <th>Severidad</th>
+                        <th>Tipo</th>
+                        <th>Recurso</th>
+                        <th class="text-center">Eventos</th>
+                        <th class="text-center">Acción</th>
+                    </tr>
+                </thead>
 
-            <tbody>
-                <tr>
-                    <td>Cliente Demo</td>
-                    <td>CPU mayor al 95%</td>
-                    <td>
-                        <span class="severity-badge critical">Critical</span>
-                    </td>
-                    <td>@SelectedAlertType</td>
-                    <td>Servidor01</td>
-                    <td class="text-center"><strong>10</strong></td>
-                    <td class="text-center">
-                        <button type="button" class="assign-btn">
-                            👤 Asignarme
-                        </button>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-
+                <tbody>
+                    @if (!Alerts.Any())
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center">
+                                No hay alertas disponibles.
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var alert in Alerts)
+                        {
+                            <tr>
+                                <td>@alert.ClientName</td>
+                                <td>@alert.AlertName</td>
+                                <td>
+                                    <span class="severity-badge @GetSeverityClass(alert.Severity)">
+                                        @alert.Severity
+                                    </span>
+                                </td>
+                                <td>@alert.AlertType</td>
+                                <td>@alert.ResourceName</td>
+                                <td class="text-center"><strong>@alert.Events</strong></td>
+                                <td class="text-center">
+                                    <button type="button"
+                                            class="assign-btn"
+                                            @onclick="async () => await AssignAlert(alert)">
+                                        👤 Asignarme
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
 </div>
 
 <style>
@@ -175,7 +206,22 @@
         background: #fee2e2;
     }
 
-    .severity-badge.critical::before {
+    .severity-badge.warning {
+        color: #d97706;
+        background: #fef3c7;
+    }
+
+    .severity-badge.info {
+        color: #2563eb;
+        background: #dbeafe;
+    }
+
+    .severity-badge.normal {
+        color: #475569;
+        background: #e2e8f0;
+    }
+
+    .severity-badge::before {
         content: "●";
         font-size: 10px;
     }
@@ -202,10 +248,77 @@
     [Parameter]
     public string UserEmail { get; set; } = string.Empty;
 
-    private string SelectedAlertType = "Management";
+    [Parameter]
+    public string UserName { get; set; } = string.Empty;
 
-    private void ChangeAlertType(string type)
+    private string SelectedAlertType = "Management";
+    private List<DashboardAlertItemModel> Alerts = new();
+    private bool IsLoading = false;
+    private string ErrorMessage = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAlertsAsync();
+    }
+
+    private async Task ChangeAlertType(string type)
     {
         SelectedAlertType = type;
+        await LoadAlertsAsync();
+    }
+
+    private async Task LoadAlertsAsync()
+    {
+        IsLoading = true;
+        ErrorMessage = string.Empty;
+
+        try
+        {
+            Alerts = SelectedAlertType == "Backup"
+                ? await DashboardService.GetBackupAlertsAsync()
+                : await DashboardService.GetManagementAlertsAsync();
+        }
+        catch
+        {
+            ErrorMessage = "No fue posible cargar las alertas.";
+            Alerts = new();
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private async Task AssignAlert(DashboardAlertItemModel alert)
+    {
+        var assignedName = string.IsNullOrWhiteSpace(UserName)
+            ? UserEmail
+            : UserName;
+
+        if (alert.SourceType == "Backup")
+        {
+            await DashboardService.AssignBackupAlertAsync(alert.Id, assignedName, UserEmail);
+        }
+        else
+        {
+            await DashboardService.AssignManagementAlertAsync(alert.Id, assignedName, UserEmail);
+        }
+
+        await LoadAlertsAsync();
+    }
+
+    private string GetSeverityClass(string severity)
+    {
+        return severity?.ToLowerInvariant() switch
+        {
+            "critical" => "critical",
+            "error" => "critical",
+            "high" => "critical",
+            "warning" => "warning",
+            "medium" => "warning",
+            "informational" => "info",
+            "info" => "info",
+            _ => "normal"
+        };
     }
 }

@@ -29,13 +29,66 @@ public sealed class AssignedAlertsDashboardService : IAssignedAlertsDashboardSer
         }
         catch (Exception ex)
         {
-            _logger.LogError(
-                ex,
+            _logger.LogError(ex,
                 "Error getting Assigned Alerts Dashboard for {UserEmail}",
                 userEmail);
 
             return OperationResult<AssignedAlertsDashboardModel>.Fail(
                 "No fue posible cargar el dashboard de alertas asignadas.");
         }
+    }
+
+    public async Task<List<DashboardAlertItemModel>> GetManagementAlertsAsync(
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            return await _repository.GetManagementAlertsAsync(cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error loading management alerts.");
+            return new List<DashboardAlertItemModel>();
+        }
+    }
+
+    public async Task<List<DashboardAlertItemModel>> GetBackupAlertsAsync(
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            return await _repository.GetBackupAlertsAsync(cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error loading backup alerts.");
+            return new List<DashboardAlertItemModel>();
+        }
+    }
+
+    public async Task AssignManagementAlertAsync(
+        long id,
+        string userName,
+        string userEmail,
+        CancellationToken cancellationToken = default)
+    {
+        await _repository.AssignManagementAlertAsync(
+            id,
+            userName,
+            userEmail,
+            cancellationToken);
+    }
+
+    public async Task AssignBackupAlertAsync(
+        long id,
+        string userName,
+        string userEmail,
+        CancellationToken cancellationToken = default)
+    {
+        await _repository.AssignBackupAlertAsync(
+            id,
+            userName,
+            userEmail,
+            cancellationToken);
     }
 }
