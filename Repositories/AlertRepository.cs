@@ -51,7 +51,7 @@ DECLARE @Today date = CAST(GETDATE() AS date);
             AND CAST(ISNULL(UpdatedAt, ResolveTime) AS date) = @Today
           )
 ),
-Backup AS
+BackupAlertsCte AS
 (
     SELECT
         COUNT(1) AS BackupAlerts
@@ -66,7 +66,7 @@ SELECT
     ISNULL(m.Unassigned, 0) AS Unassigned,
     ISNULL(m.ResolvedToday, 0) AS ResolvedToday
 FROM Management m
-CROSS JOIN Backup b;
+CROSS JOIN BackupAlertsCte b;
 ";
 
         try
@@ -84,7 +84,11 @@ CROSS JOIN Backup b;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error loading alert dashboard KPI data for user {UserEmail}", userEmail);
+            _logger.LogError(
+                ex,
+                "Error loading alert dashboard KPI data for user {UserEmail}",
+                userEmail);
+
             throw;
         }
     }
