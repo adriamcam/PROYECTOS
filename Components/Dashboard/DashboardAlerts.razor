@@ -2,7 +2,7 @@
 @using ITQS.SupportOperationsCenter.Models.Dashboard
 @using ITQS.SupportOperationsCenter.Services.Interfaces
 @inject IAssignedAlertsDashboardService DashboardService
-
+@implements IDisposable
 <h1>Dashboard</h1>
 
 <div class="cloud-divider"></div>
@@ -44,13 +44,17 @@
              Value="@Dashboard.NewToday"
              Label="Hoy" />
 </div>
-
 <div class="cloud-divider"></div>
 
 <div class="dashboard-alerts-panel">
 
     <div class="dashboard-alerts-header">
-        <h3>Alerts</h3>
+        <div>
+            <h3>Alerts</h3>
+            <small class="last-refresh">
+                Última actualización: @LastRefreshAt.ToString("HH:mm:ss")
+            </small>
+        </div>
 
         <div class="alert-type-actions">
             <button type="button"
@@ -363,6 +367,13 @@
         opacity: 0.5;
         cursor: not-allowed;
     }
+	.last-refresh {
+    display: block;
+    margin-top: 4px;
+    color: #64748b;
+    font-size: 13px;
+    font-weight: 700;
+}
 </style>
 
 @code {
@@ -385,12 +396,20 @@ private List<DashboardAlertItemModel> Alerts = new();
     private string SearchText = string.Empty;
     private int TotalCount = 0;
     private int TotalPages = 0;
+	private PeriodicTimer? RefreshTimer;
+private CancellationTokenSource? RefreshCts;
+private DateTime LastRefreshAt = DateTime.Now;
 	
 
-    protected override async Task OnInitializedAsync()
-    {
-        await LoadAlertsAsync();
-    }
+   protected override async Task OnInitializedAsync()
+{
+    await LoadAlertsAsync();
+
+    RefreshCts = new CancellationTokenSource();
+    RefreshTimer = new PeriodicTimer(TimeSpan.FromSeconds(30));
+
+    _ = AutoRefreshAsync(RefreshCts.Token);
+}
 
     private async Task ChangeAlertType(string type)
     {
@@ -501,4 +520,30 @@ if (dashboardResult.Success && dashboardResult.Data is not null)
             _ => "normal"
         };
     }
+	private async Task AutoRefreshAsync(CancellationToken cancellationToken)
+{
+    try
+    {
+        while (RefreshTimer is not null &&
+               await RefreshTimer.WaitForNextTickAsync(cancellationToken))
+        {
+            await InvokeAsync(async () =>
+            {
+                await LoadAlertsAsync();
+                LastRefreshAt = DateTime.Now;
+                StateHasChanged();
+            });
+        }
+    }
+    catch (OperationCanceledException)
+    {
+    }
+}
+
+public void Dispose()
+{
+    RefreshCts?.Cancel();
+    RefreshTimer?.Dispose();
+    RefreshCts?.Dispose();
+}
 }
