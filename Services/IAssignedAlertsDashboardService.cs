@@ -50,4 +50,19 @@ public interface IAssignedAlertsDashboardService
         string userName,
         string userEmail,
         CancellationToken cancellationToken = default);
+	    // ===========================
+    // POPUP DE DETALLE
+    // ===========================
+
+    Task<AlertDetailModel?> GetAlertDetailAsync(
+        DashboardAlertItemModel alert,
+        CancellationToken cancellationToken = default);
+
+    Task SaveAlertCommentAsync(
+        AlertCommentRequestModel request,
+        CancellationToken cancellationToken = default);
+
+    Task CloseAlertAsync(
+        AlertCommentRequestModel request,
+        CancellationToken cancellationToken = default);
 }

@@ -1,4 +1,5 @@
 @using ITQS.SupportOperationsCenter.Components.Shared
+@using ITQS.SupportOperationsCenter.Components.Dialogs
 @using ITQS.SupportOperationsCenter.Models.Dashboard
 @using ITQS.SupportOperationsCenter.Services.Interfaces
 @inject IAssignedAlertsDashboardService DashboardService
@@ -146,11 +147,17 @@
                                 <td>@alert.AlertType</td>
                                 <td>@alert.ResourceName</td>
                                 <td class="text-center"><strong>@alert.Events</strong></td>
-                                <td class="text-center">
+                                <td class="text-center action-cell">
                                     <button type="button"
                                             class="assign-btn"
                                             @onclick="async () => await AssignAlert(alert)">
                                         👤 Asignarme
+                                    </button>
+
+                                    <button type="button"
+                                            class="detail-btn"
+                                            @onclick="async () => await OpenDetailAsync(alert)">
+                                        🔎 Ver detalle
                                     </button>
                                 </td>
                             </tr>
@@ -184,6 +191,12 @@
         </div>
     }
 </div>
+
+<AlertDetailDialog IsOpen="@IsDetailOpen"
+                   Detail="@SelectedDetail"
+                   OnClose="CloseDetailAsync"
+                   OnSaveComment="SaveDetailCommentAsync"
+                   OnCloseAlert="CloseDetailAlertAsync" />
 
 <style>
     .dashboard-alerts-panel {
@@ -369,6 +382,10 @@
         font-size: 10px;
     }
 
+    .action-cell {
+        white-space: nowrap;
+    }
+
     .assign-btn {
         border: 0;
         background: linear-gradient(135deg, #1262ff, #4c6fff);
@@ -384,6 +401,21 @@
     .assign-btn:hover {
         transform: translateY(-1px);
         box-shadow: 0 12px 24px rgba(18, 98, 255, 0.32);
+    }
+
+    .detail-btn {
+        border: 1px solid #bcd0ee;
+        background: #ffffff;
+        color: #1262ff;
+        border-radius: 9px;
+        padding: 9px 16px;
+        font-weight: 800;
+        font-size: 14px;
+        margin-left: 8px;
+    }
+
+    .detail-btn:hover {
+        background: #eff6ff;
     }
 
     .pagination-bar {
@@ -439,6 +471,10 @@
     private PeriodicTimer? RefreshTimer;
     private CancellationTokenSource? RefreshCts;
     private DateTime LastRefreshAt = DateTime.Now;
+
+    private bool IsDetailOpen = false;
+    private AlertDetailModel? SelectedDetail;
+    private DashboardAlertItemModel? SelectedAlert;
 
     protected override async Task OnInitializedAsync()
     {
@@ -606,6 +642,89 @@
         await LoadAlertsAsync();
     }
 
+    private async Task OpenDetailAsync(DashboardAlertItemModel alert)
+    {
+        SelectedAlert = alert;
+        SelectedDetail = await DashboardService.GetAlertDetailAsync(alert);
+        IsDetailOpen = SelectedDetail is not null;
+    }
+
+    private Task CloseDetailAsync()
+    {
+        IsDetailOpen = false;
+        SelectedDetail = null;
+        SelectedAlert = null;
+
+        return Task.CompletedTask;
+    }
+
+    private async Task SaveDetailCommentAsync(string comment)
+    {
+        if (SelectedDetail is null)
+        {
+            return;
+        }
+
+        var assignedName = string.IsNullOrWhiteSpace(UserName)
+            ? UserEmail
+            : UserName;
+
+        var request = new AlertCommentRequestModel
+        {
+            SourceType = SelectedDetail.SourceType,
+            AlertId = SelectedDetail.AlertId,
+            ClientName = SelectedDetail.ClientName,
+            AlertName = SelectedDetail.AlertName,
+            Severity = SelectedDetail.Severity,
+            ResourceName = SelectedDetail.ResourceName,
+            Status = "InProgress",
+            Comment = comment,
+            UpdatedBy = assignedName,
+            UserEmail = UserEmail
+        };
+
+        await DashboardService.SaveAlertCommentAsync(request);
+
+        if (SelectedAlert is not null)
+        {
+            SelectedDetail = await DashboardService.GetAlertDetailAsync(SelectedAlert);
+        }
+    }
+
+    private async Task CloseDetailAlertAsync(string comment)
+    {
+        if (SelectedDetail is null)
+        {
+            return;
+        }
+
+        var assignedName = string.IsNullOrWhiteSpace(UserName)
+            ? UserEmail
+            : UserName;
+
+        var request = new AlertCommentRequestModel
+        {
+            SourceType = SelectedDetail.SourceType,
+            AlertId = SelectedDetail.AlertId,
+            ClientName = SelectedDetail.ClientName,
+            AlertName = SelectedDetail.AlertName,
+            Severity = SelectedDetail.Severity,
+            ResourceName = SelectedDetail.ResourceName,
+            Status = "Closed",
+            Comment = comment,
+            UpdatedBy = assignedName,
+            UserEmail = UserEmail
+        };
+
+        await DashboardService.CloseAlertAsync(request);
+
+        IsDetailOpen = false;
+        SelectedDetail = null;
+        SelectedAlert = null;
+
+        await LoadAlertsAsync();
+    }
+
     private string GetSeverityClass(string severity)
     {
         return severity?.ToLowerInvariant() switch
@@ -634,7 +753,7 @@
             {
                 await InvokeAsync(async () =>
                 {
-                    if (SelectedCount == 0)
+                    if (SelectedCount == 0 && !IsDetailOpen)
                     {
                         await LoadAlertsAsync();
                         StateHasChanged();

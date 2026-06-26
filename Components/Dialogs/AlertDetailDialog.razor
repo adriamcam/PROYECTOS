@@ -1,0 +1,614 @@
+@using ITQS.SupportOperationsCenter.Models.Dashboard
+
+@if (IsOpen && Detail is not null)
+{
+    <div class="soc-modal-backdrop">
+        <div class="soc-modal">
+
+            <div class="soc-modal-header">
+                <div>
+                    <div class="soc-modal-title-row">
+                        <h3>Incidente SOC</h3>
+                        <span class="severity-pill @GetSeverityClass(Detail.Severity)">
+                            @Detail.Severity
+                        </span>
+                    </div>
+
+                    <p>@Detail.ClientName · @Detail.ResourceName</p>
+                </div>
+
+                <button type="button" class="soc-modal-close" @onclick="Close">
+                    ✕
+                </button>
+            </div>
+
+            <div class="soc-modal-body">
+
+                <div class="incident-summary">
+                    <div>
+                        <span>Estado</span>
+                        <strong class="status-pill @GetStatusClass(Detail.AlertStatus)">
+                            @GetStatusText(Detail.AlertStatus)
+                        </strong>
+                    </div>
+
+                    <div>
+                        <span>Tipo</span>
+                        <strong>@Detail.SourceType</strong>
+                    </div>
+
+                    <div>
+                        <span>Eventos</span>
+                        <strong>@Detail.Events</strong>
+                    </div>
+
+                    <div>
+                        <span>Último evento</span>
+                        <strong>@FormatDate(Detail.LastOccurrence)</strong>
+                    </div>
+                </div>
+
+                <div class="detail-layout">
+
+                    <div class="detail-main">
+
+                        <section class="detail-card">
+                            <h4>Información de la alerta</h4>
+
+                            <div class="detail-grid">
+                                <div>
+                                    <span>Cliente</span>
+                                    <strong>@Detail.ClientName</strong>
+                                </div>
+
+                                <div>
+                                    <span>Suscripción</span>
+                                    <strong>@Detail.SubscriptionName</strong>
+                                </div>
+
+                                <div>
+                                    <span>Subscription Id</span>
+                                    <strong>@Detail.SubscriptionId</strong>
+                                </div>
+
+                                <div>
+                                    <span>Tenant Id</span>
+                                    <strong>@Detail.TenantId</strong>
+                                </div>
+
+                                <div>
+                                    <span>Alerta</span>
+                                    <strong>@Detail.AlertName</strong>
+                                </div>
+
+                                <div>
+                                    <span>Resource Group</span>
+                                    <strong>@Detail.ResourceGroup</strong>
+                                </div>
+
+                                <div>
+                                    <span>Recurso</span>
+                                    <strong>@Detail.ResourceName</strong>
+                                </div>
+
+                                <div>
+                                    <span>Tipo recurso</span>
+                                    <strong>@Detail.ResourceType</strong>
+                                </div>
+
+                                <div>
+                                    <span>Ubicación</span>
+                                    <strong>@Detail.Location</strong>
+                                </div>
+                            </div>
+                        </section>
+
+                        <section class="detail-card">
+                            <h4>Detalles técnicos</h4>
+
+                            <div class="technical-box">
+                                @if (!string.IsNullOrWhiteSpace(Detail.Details))
+                                {
+                                    <pre>@Detail.Details</pre>
+                                }
+                                else if (!string.IsNullOrWhiteSpace(Detail.ErrorDetail))
+                                {
+                                    <pre>@Detail.ErrorDetail</pre>
+                                }
+                                else
+                                {
+                                    <p>No hay detalles técnicos disponibles.</p>
+                                }
+                            </div>
+                        </section>
+
+                        <section class="detail-card">
+                            <h4>Comentario de seguimiento</h4>
+
+                            <select class="status-select" @bind="SelectedStatus">
+                                <option value="InProgress">In Progress</option>
+                                <option value="Closed">Closed</option>
+                            </select>
+
+                            <textarea class="comment-box"
+                                      @bind="Comment"
+                                      placeholder="Agregar comentario de seguimiento..."></textarea>
+                        </section>
+
+                    </div>
+
+                    <aside class="history-panel">
+                        <h4>Historial</h4>
+
+                        @if (Detail.History is null || !Detail.History.Any())
+                        {
+                            <div class="empty-history">
+                                Sin comentarios registrados.
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="timeline">
+                                @foreach (var item in Detail.History)
+                                {
+                                    <div class="timeline-item">
+                                        <div class="timeline-dot"></div>
+
+                                        <div class="timeline-content">
+                                            <div class="timeline-header">
+                                                <strong>@item.UpdatedBy</strong>
+                                                <span>@FormatDate(item.UpdatedAt)</span>
+                                            </div>
+
+                                            <span class="timeline-status @GetStatusClass(item.Status)">
+                                                @GetStatusText(item.Status)
+                                            </span>
+
+                                            <p>@item.Comment</p>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </aside>
+
+                </div>
+            </div>
+
+            <div class="soc-modal-footer">
+                <button type="button" class="secondary-btn" @onclick="Close">
+                    Cancelar
+                </button>
+
+                <button type="button" class="primary-btn" @onclick="SaveComment">
+                    Guardar comentario
+                </button>
+
+                <button type="button" class="danger-btn" @onclick="CloseAlert">
+                    Cerrar alerta
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+<style>
+    .soc-modal-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.65);
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+    }
+
+    .soc-modal {
+        width: min(1180px, 100%);
+        max-height: 92vh;
+        background: #ffffff;
+        border-radius: 20px;
+        box-shadow: 0 30px 90px rgba(15, 23, 42, 0.45);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .soc-modal-header {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 24px 28px;
+        background: linear-gradient(135deg, #061634, #0f2a55);
+        color: #ffffff;
+    }
+
+    .soc-modal-title-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .soc-modal-header h3 {
+        margin: 0;
+        font-size: 26px;
+        font-weight: 900;
+    }
+
+    .soc-modal-header p {
+        margin: 7px 0 0 0;
+        color: #cbd5e1;
+        font-weight: 700;
+    }
+
+    .soc-modal-close {
+        border: 0;
+        background: rgba(255,255,255,0.12);
+        color: #ffffff;
+        width: 40px;
+        height: 40px;
+        border-radius: 999px;
+        font-weight: 900;
+    }
+
+    .soc-modal-body {
+        padding: 24px 28px;
+        overflow-y: auto;
+        background: #f8fafc;
+    }
+
+    .incident-summary {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 14px;
+        margin-bottom: 20px;
+    }
+
+    .incident-summary div,
+    .detail-grid div {
+        border: 1px solid #dbe4f0;
+        border-radius: 14px;
+        padding: 14px;
+        background: #ffffff;
+    }
+
+    .incident-summary span,
+    .detail-grid span {
+        display: block;
+        color: #64748b;
+        font-size: 12px;
+        font-weight: 900;
+        margin-bottom: 7px;
+        text-transform: uppercase;
+    }
+
+    .incident-summary strong,
+    .detail-grid strong {
+        color: #061634;
+        font-size: 14px;
+        font-weight: 900;
+        word-break: break-word;
+    }
+
+    .detail-layout {
+        display: grid;
+        grid-template-columns: 1fr 360px;
+        gap: 20px;
+    }
+
+    .detail-main {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+    }
+
+    .detail-card,
+    .history-panel {
+        background: #ffffff;
+        border: 1px solid #dbe4f0;
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: 0 10px 28px rgba(15, 23, 42, 0.05);
+    }
+
+    .detail-card h4,
+    .history-panel h4 {
+        margin: 0 0 16px 0;
+        color: #061634;
+        font-weight: 900;
+        font-size: 18px;
+    }
+
+    .detail-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 14px;
+    }
+
+    .technical-box {
+        border: 1px solid #dbe4f0;
+        border-radius: 12px;
+        background: #0f172a;
+        color: #e2e8f0;
+        padding: 16px;
+        min-height: 120px;
+        overflow-x: auto;
+    }
+
+    .technical-box pre {
+        margin: 0;
+        white-space: pre-wrap;
+        word-break: break-word;
+        font-size: 13px;
+    }
+
+    .technical-box p {
+        margin: 0;
+        color: #cbd5e1;
+        font-weight: 700;
+    }
+
+    .status-select {
+        width: 220px;
+        border: 1px solid #cbd5e1;
+        border-radius: 10px;
+        padding: 10px 12px;
+        font-weight: 800;
+        margin-bottom: 12px;
+    }
+
+    .comment-box {
+        width: 100%;
+        min-height: 120px;
+        border: 1px solid #cbd5e1;
+        border-radius: 12px;
+        padding: 12px 14px;
+        font-weight: 600;
+        resize: vertical;
+    }
+
+    .history-panel {
+        max-height: 580px;
+        overflow-y: auto;
+    }
+
+    .timeline {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .timeline-item {
+        display: grid;
+        grid-template-columns: 18px 1fr;
+        gap: 12px;
+    }
+
+    .timeline-dot {
+        width: 12px;
+        height: 12px;
+        margin-top: 5px;
+        border-radius: 999px;
+        background: #1262ff;
+        box-shadow: 0 0 0 4px #dbeafe;
+    }
+
+    .timeline-content {
+        border-bottom: 1px solid #e2e8f0;
+        padding-bottom: 14px;
+    }
+
+    .timeline-header {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 6px;
+    }
+
+    .timeline-header strong {
+        color: #061634;
+        font-size: 14px;
+        font-weight: 900;
+    }
+
+    .timeline-header span {
+        color: #64748b;
+        font-size: 12px;
+        font-weight: 800;
+    }
+
+    .timeline-content p {
+        margin: 8px 0 0 0;
+        color: #334155;
+        font-weight: 600;
+        line-height: 1.45;
+    }
+
+    .empty-history {
+        border: 1px dashed #cbd5e1;
+        border-radius: 14px;
+        padding: 24px;
+        color: #64748b;
+        font-weight: 800;
+        text-align: center;
+    }
+
+    .severity-pill,
+    .status-pill,
+    .timeline-status {
+        display: inline-flex;
+        align-items: center;
+        border-radius: 999px;
+        padding: 6px 12px;
+        font-size: 12px;
+        font-weight: 900;
+    }
+
+    .severity-critical {
+        color: #dc2626;
+        background: #fee2e2;
+    }
+
+    .severity-warning {
+        color: #d97706;
+        background: #fef3c7;
+    }
+
+    .severity-info {
+        color: #2563eb;
+        background: #dbeafe;
+    }
+
+    .severity-normal {
+        color: #475569;
+        background: #e2e8f0;
+    }
+
+    .status-inprogress {
+        color: #d97706;
+        background: #fef3c7;
+    }
+
+    .status-closed {
+        color: #15803d;
+        background: #dcfce7;
+    }
+
+    .status-new {
+        color: #2563eb;
+        background: #dbeafe;
+    }
+
+    .soc-modal-footer {
+        padding: 18px 28px;
+        border-top: 1px solid #e2e8f0;
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+        background: #ffffff;
+    }
+
+    .primary-btn,
+    .secondary-btn,
+    .danger-btn {
+        border: 0;
+        border-radius: 10px;
+        padding: 11px 18px;
+        font-weight: 900;
+    }
+
+    .primary-btn {
+        background: #1262ff;
+        color: #ffffff;
+    }
+
+    .secondary-btn {
+        background: #e2e8f0;
+        color: #061634;
+    }
+
+    .danger-btn {
+        background: #dc2626;
+        color: #ffffff;
+    }
+
+    @@media (max-width: 1100px) {
+        .detail-layout,
+        .incident-summary,
+        .detail-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+@code {
+    [Parameter] public bool IsOpen { get; set; }
+    [Parameter] public AlertDetailModel? Detail { get; set; }
+
+    [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public EventCallback<string> OnSaveComment { get; set; }
+    [Parameter] public EventCallback<string> OnCloseAlert { get; set; }
+
+    private string Comment { get; set; } = string.Empty;
+    private string SelectedStatus { get; set; } = "InProgress";
+
+    protected override void OnParametersSet()
+    {
+        if (Detail is not null && !string.IsNullOrWhiteSpace(Detail.AlertStatus))
+        {
+            SelectedStatus = Detail.AlertStatus.Equals("Closed", StringComparison.OrdinalIgnoreCase)
+                ? "Closed"
+                : "InProgress";
+        }
+    }
+
+    private async Task Close()
+    {
+        Comment = string.Empty;
+        await OnClose.InvokeAsync();
+    }
+
+    private async Task SaveComment()
+    {
+        await OnSaveComment.InvokeAsync(Comment);
+        Comment = string.Empty;
+    }
+
+    private async Task CloseAlert()
+    {
+        await OnCloseAlert.InvokeAsync(Comment);
+        Comment = string.Empty;
+    }
+
+    private string FormatDate(DateTime? value)
+    {
+        return value.HasValue
+            ? value.Value.ToString("dd/MM/yyyy HH:mm")
+            : "-";
+    }
+
+    private string GetSeverityClass(string severity)
+    {
+        return severity?.ToLowerInvariant() switch
+        {
+            "critical" => "severity-critical",
+            "error" => "severity-critical",
+            "high" => "severity-critical",
+            "warning" => "severity-warning",
+            "medium" => "severity-warning",
+            "informational" => "severity-info",
+            "info" => "severity-info",
+            "sev0" => "severity-critical",
+            "sev1" => "severity-critical",
+            "sev2" => "severity-warning",
+            "sev3" => "severity-info",
+            _ => "severity-normal"
+        };
+    }
+
+    private string GetStatusClass(string status)
+    {
+        return status?.ToLowerInvariant() switch
+        {
+            "closed" => "status-closed",
+            "inprogress" => "status-inprogress",
+            "in progress" => "status-inprogress",
+            "new" => "status-new",
+            _ => "status-new"
+        };
+    }
+
+    private string GetStatusText(string status)
+    {
+        return status?.ToLowerInvariant() switch
+        {
+            "closed" => "Closed",
+            "inprogress" => "In Progress",
+            "in progress" => "In Progress",
+            "new" => "New",
+            _ => string.IsNullOrWhiteSpace(status) ? "New" : status
+        };
+    }
+}

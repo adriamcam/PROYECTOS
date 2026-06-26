@@ -158,4 +158,50 @@ public sealed class AssignedAlertsDashboardService : IAssignedAlertsDashboardSer
             userEmail,
             cancellationToken);
     }
+	//========================================================
+// DETALLE DE ALERTA
+//========================================================
+
+public async Task<AlertDetailModel?> GetAlertDetailAsync(
+    DashboardAlertItemModel alert,
+    CancellationToken cancellationToken = default)
+{
+    try
+    {
+        return await _repository.GetAlertDetailAsync(
+            alert,
+            cancellationToken);
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Error getting alert detail.");
+        return null;
+    }
+}
+
+//========================================================
+// COMENTARIOS
+//========================================================
+
+public async Task SaveAlertCommentAsync(
+    AlertCommentRequestModel request,
+    CancellationToken cancellationToken = default)
+{
+    await _repository.SaveAlertCommentAsync(
+        request,
+        cancellationToken);
+}
+
+//========================================================
+// CERRAR ALERTA
+//========================================================
+
+public async Task CloseAlertAsync(
+    AlertCommentRequestModel request,
+    CancellationToken cancellationToken = default)
+{
+    await _repository.CloseAlertAsync(
+        request,
+        cancellationToken);
+}
 }

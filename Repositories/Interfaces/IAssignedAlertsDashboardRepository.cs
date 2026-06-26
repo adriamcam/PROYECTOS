@@ -49,4 +49,22 @@ public interface IAssignedAlertsDashboardRepository
         string userName,
         string userEmail,
         CancellationToken cancellationToken = default);
+		
+	// ===========================
+    // NUEVOS MÉTODOS DEL POPUP
+    // ===========================
+
+    Task<AlertDetailModel?> GetAlertDetailAsync(
+        DashboardAlertItemModel alert,
+        CancellationToken cancellationToken = default);
+
+    Task SaveAlertCommentAsync(
+        AlertCommentRequestModel request,
+        CancellationToken cancellationToken = default);
+
+    Task CloseAlertAsync(
+        AlertCommentRequestModel request,
+        CancellationToken cancellationToken = default);
+	
+		
 }
