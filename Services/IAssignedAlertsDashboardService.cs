@@ -9,6 +9,10 @@ public interface IAssignedAlertsDashboardService
         string userEmail,
         CancellationToken cancellationToken = default);
 
+    //===========================================
+    // DASHBOARD
+    //===========================================
+
     Task<DashboardAlertPagedResultModel> GetManagementAlertsAsync(
         int pageNumber,
         int pageSize,
@@ -23,9 +27,29 @@ public interface IAssignedAlertsDashboardService
         string? clientName = null,
         CancellationToken cancellationToken = default);
 
+    //===========================================
+    // ASIGNADAS A MI
+    //===========================================
+
+    Task<DashboardAlertPagedResultModel> GetAssignedAlertsAsync(
+        string userEmail,
+        int pageNumber,
+        int pageSize,
+        string? search = null,
+        string? clientName = null,
+        CancellationToken cancellationToken = default);
+
     Task<List<string>> GetClientsAsync(
         string sourceType,
         CancellationToken cancellationToken = default);
+
+    Task<List<string>> GetAssignedClientsAsync(
+        string userEmail,
+        CancellationToken cancellationToken = default);
+
+    //===========================================
+    // ASIGNACION
+    //===========================================
 
     Task AssignManagementAlertAsync(
         DashboardAlertItemModel alert,
@@ -50,9 +74,10 @@ public interface IAssignedAlertsDashboardService
         string userName,
         string userEmail,
         CancellationToken cancellationToken = default);
-	    // ===========================
-    // POPUP DE DETALLE
-    // ===========================
+
+    //===========================================
+    // POPUP
+    //===========================================
 
     Task<AlertDetailModel?> GetAlertDetailAsync(
         DashboardAlertItemModel alert,

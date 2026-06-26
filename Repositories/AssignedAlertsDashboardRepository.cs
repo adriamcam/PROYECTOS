@@ -789,4 +789,31 @@ VALUES
         });
     }
 }
+//========================================================
+// ASIGNADAS A MÍ
+//========================================================
+
+public async Task<DashboardAlertPagedResultModel> GetAssignedAlertsAsync(
+    string userEmail,
+    int pageNumber,
+    int pageSize,
+    string? search = null,
+    string? clientName = null,
+    CancellationToken cancellationToken = default)
+{
+return await Task.FromResult(new DashboardAlertPagedResultModel
+{
+    PageNumber = pageNumber,
+    PageSize = pageSize,
+    TotalCount = 0,
+    Items = new List<DashboardAlertItemModel>()
+});
+}
+
+public async Task<List<string>> GetAssignedClientsAsync(
+    string userEmail,
+    CancellationToken cancellationToken = default)
+{
+    return await Task.FromResult(new List<string>());
+}
 }

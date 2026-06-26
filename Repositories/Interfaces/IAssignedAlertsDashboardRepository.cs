@@ -22,8 +22,20 @@ public interface IAssignedAlertsDashboardRepository
         string? clientName = null,
         CancellationToken cancellationToken = default);
 
+    Task<DashboardAlertPagedResultModel> GetAssignedAlertsAsync(
+        string userEmail,
+        int pageNumber,
+        int pageSize,
+        string? search = null,
+        string? clientName = null,
+        CancellationToken cancellationToken = default);
+
     Task<List<string>> GetClientsAsync(
         string sourceType,
+        CancellationToken cancellationToken = default);
+
+    Task<List<string>> GetAssignedClientsAsync(
+        string userEmail,
         CancellationToken cancellationToken = default);
 
     Task AssignManagementAlertAsync(
@@ -49,10 +61,6 @@ public interface IAssignedAlertsDashboardRepository
         string userName,
         string userEmail,
         CancellationToken cancellationToken = default);
-		
-	// ===========================
-    // NUEVOS MÉTODOS DEL POPUP
-    // ===========================
 
     Task<AlertDetailModel?> GetAlertDetailAsync(
         DashboardAlertItemModel alert,
@@ -65,6 +73,4 @@ public interface IAssignedAlertsDashboardRepository
     Task CloseAlertAsync(
         AlertCommentRequestModel request,
         CancellationToken cancellationToken = default);
-	
-		
 }

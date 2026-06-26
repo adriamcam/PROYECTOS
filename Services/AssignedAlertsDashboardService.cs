@@ -92,6 +92,36 @@ public sealed class AssignedAlertsDashboardService : IAssignedAlertsDashboardSer
         }
     }
 
+    public async Task<DashboardAlertPagedResultModel> GetAssignedAlertsAsync(
+        string userEmail,
+        int pageNumber,
+        int pageSize,
+        string? search = null,
+        string? clientName = null,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            return await _repository.GetAssignedAlertsAsync(
+                userEmail,
+                pageNumber,
+                pageSize,
+                search,
+                clientName,
+                cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error loading assigned alerts for {UserEmail}.", userEmail);
+
+            return new DashboardAlertPagedResultModel
+            {
+                PageNumber = pageNumber,
+                PageSize = pageSize
+            };
+        }
+    }
+
     public async Task<List<string>> GetClientsAsync(
         string sourceType,
         CancellationToken cancellationToken = default)
@@ -103,6 +133,21 @@ public sealed class AssignedAlertsDashboardService : IAssignedAlertsDashboardSer
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error loading clients.");
+            return new List<string>();
+        }
+    }
+
+    public async Task<List<string>> GetAssignedClientsAsync(
+        string userEmail,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            return await _repository.GetAssignedClientsAsync(userEmail, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error loading assigned clients for {UserEmail}.", userEmail);
             return new List<string>();
         }
     }
@@ -158,50 +203,39 @@ public sealed class AssignedAlertsDashboardService : IAssignedAlertsDashboardSer
             userEmail,
             cancellationToken);
     }
-	//========================================================
-// DETALLE DE ALERTA
-//========================================================
 
-public async Task<AlertDetailModel?> GetAlertDetailAsync(
-    DashboardAlertItemModel alert,
-    CancellationToken cancellationToken = default)
-{
-    try
+    public async Task<AlertDetailModel?> GetAlertDetailAsync(
+        DashboardAlertItemModel alert,
+        CancellationToken cancellationToken = default)
     {
-        return await _repository.GetAlertDetailAsync(
-            alert,
+        try
+        {
+            return await _repository.GetAlertDetailAsync(
+                alert,
+                cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting alert detail.");
+            return null;
+        }
+    }
+
+    public async Task SaveAlertCommentAsync(
+        AlertCommentRequestModel request,
+        CancellationToken cancellationToken = default)
+    {
+        await _repository.SaveAlertCommentAsync(
+            request,
             cancellationToken);
     }
-    catch (Exception ex)
+
+    public async Task CloseAlertAsync(
+        AlertCommentRequestModel request,
+        CancellationToken cancellationToken = default)
     {
-        _logger.LogError(ex, "Error getting alert detail.");
-        return null;
+        await _repository.CloseAlertAsync(
+            request,
+            cancellationToken);
     }
-}
-
-//========================================================
-// COMENTARIOS
-//========================================================
-
-public async Task SaveAlertCommentAsync(
-    AlertCommentRequestModel request,
-    CancellationToken cancellationToken = default)
-{
-    await _repository.SaveAlertCommentAsync(
-        request,
-        cancellationToken);
-}
-
-//========================================================
-// CERRAR ALERTA
-//========================================================
-
-public async Task CloseAlertAsync(
-    AlertCommentRequestModel request,
-    CancellationToken cancellationToken = default)
-{
-    await _repository.CloseAlertAsync(
-        request,
-        cancellationToken);
-}
 }
