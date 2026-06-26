@@ -2,6 +2,7 @@ using Dapper;
 using ITQS.SupportOperationsCenter.Data;
 using ITQS.SupportOperationsCenter.Models.Dashboard;
 using ITQS.SupportOperationsCenter.Repositories.Interfaces;
+using System.Data;
 
 namespace ITQS.SupportOperationsCenter.Repositories;
 
@@ -29,42 +30,19 @@ DECLARE @Today date = CAST(GETDATE() AS date);
 (
     SELECT
         COUNT(1) AS ManagementAlerts,
-        SUM(CASE 
-                WHEN Active = 1 
-                 AND AssignedEmail = @UserEmail 
-                THEN 1 ELSE 0 
-            END) AS AssignedToMe,
-        SUM(CASE 
-                WHEN Active = 1 
-                 AND (AssignedEmail IS NULL OR LTRIM(RTRIM(AssignedEmail)) = '') 
-                THEN 1 ELSE 0 
-            END) AS Unassigned,
-        SUM(CASE 
-                WHEN Active = 0 
-                 AND CAST(ISNULL(UpdatedAt, ResolveTime) AS date) = @Today
-                THEN 1 ELSE 0 
-            END) AS ResolvedToday
+        SUM(CASE WHEN Active = 1 AND AssignedEmail = @UserEmail THEN 1 ELSE 0 END) AS AssignedToMe,
+        SUM(CASE WHEN Active = 1 AND (AssignedEmail IS NULL OR LTRIM(RTRIM(AssignedEmail)) = '') THEN 1 ELSE 0 END) AS Unassigned,
+        SUM(CASE WHEN Active = 0 AND CAST(ISNULL(UpdatedAt, ResolveTime) AS date) = @Today THEN 1 ELSE 0 END) AS ResolvedToday
     FROM dbo.AlertsManagement
     WHERE Active = 1
-       OR (
-            Active = 0 
-            AND CAST(ISNULL(UpdatedAt, ResolveTime) AS date) = @Today
-          )
+       OR (Active = 0 AND CAST(ISNULL(UpdatedAt, ResolveTime) AS date) = @Today)
 ),
 BackupAlertsCte AS
 (
     SELECT
         COUNT(1) AS BackupAlerts,
-        SUM(CASE 
-                WHEN Active = 1 
-                 AND AssignedEmail = @UserEmail 
-                THEN 1 ELSE 0 
-            END) AS AssignedToMe,
-        SUM(CASE 
-                WHEN Active = 1 
-                 AND (AssignedEmail IS NULL OR LTRIM(RTRIM(AssignedEmail)) = '') 
-                THEN 1 ELSE 0 
-            END) AS Unassigned
+        SUM(CASE WHEN Active = 1 AND AssignedEmail = @UserEmail THEN 1 ELSE 0 END) AS AssignedToMe,
+        SUM(CASE WHEN Active = 1 AND (AssignedEmail IS NULL OR LTRIM(RTRIM(AssignedEmail)) = '') THEN 1 ELSE 0 END) AS Unassigned
     FROM dbo.AlertasBackup
     WHERE Active = 1
 )
@@ -77,6 +55,77 @@ SELECT
     ISNULL(m.ResolvedToday, 0) AS ResolvedToday
 FROM Management m
 CROSS JOIN BackupAlertsCte b;
+
+;WITH AllAlerts AS
+(
+    SELECT Severity
+    FROM dbo.AlertsManagement
+    WHERE Active = 1
+
+    UNION ALL
+
+    SELECT Severity
+    FROM dbo.AlertasBackup
+    WHERE Active = 1
+)
+SELECT
+    Severity =
+        CASE
+            WHEN UPPER(ISNULL(Severity, '')) IN ('CRITICAL', 'SEV0') THEN 'Critical / Sev0'
+            WHEN UPPER(ISNULL(Severity, '')) IN ('HIGH', 'SEV1') THEN 'High / Sev1'
+            WHEN UPPER(ISNULL(Severity, '')) IN ('MEDIUM', 'WARNING', 'SEV2') THEN 'Medium / Sev2'
+            ELSE 'Low / Sev3+'
+        END,
+    Total = COUNT(1)
+FROM AllAlerts
+GROUP BY
+    CASE
+        WHEN UPPER(ISNULL(Severity, '')) IN ('CRITICAL', 'SEV0') THEN 'Critical / Sev0'
+        WHEN UPPER(ISNULL(Severity, '')) IN ('HIGH', 'SEV1') THEN 'High / Sev1'
+        WHEN UPPER(ISNULL(Severity, '')) IN ('MEDIUM', 'WARNING', 'SEV2') THEN 'Medium / Sev2'
+        ELSE 'Low / Sev3+'
+    END
+ORDER BY
+    CASE
+        WHEN CASE
+                WHEN UPPER(ISNULL(Severity, '')) IN ('CRITICAL', 'SEV0') THEN 'Critical / Sev0'
+                WHEN UPPER(ISNULL(Severity, '')) IN ('HIGH', 'SEV1') THEN 'High / Sev1'
+                WHEN UPPER(ISNULL(Severity, '')) IN ('MEDIUM', 'WARNING', 'SEV2') THEN 'Medium / Sev2'
+                ELSE 'Low / Sev3+'
+             END = 'Critical / Sev0' THEN 1
+        WHEN CASE
+                WHEN UPPER(ISNULL(Severity, '')) IN ('CRITICAL', 'SEV0') THEN 'Critical / Sev0'
+                WHEN UPPER(ISNULL(Severity, '')) IN ('HIGH', 'SEV1') THEN 'High / Sev1'
+                WHEN UPPER(ISNULL(Severity, '')) IN ('MEDIUM', 'WARNING', 'SEV2') THEN 'Medium / Sev2'
+                ELSE 'Low / Sev3+'
+             END = 'High / Sev1' THEN 2
+        WHEN CASE
+                WHEN UPPER(ISNULL(Severity, '')) IN ('CRITICAL', 'SEV0') THEN 'Critical / Sev0'
+                WHEN UPPER(ISNULL(Severity, '')) IN ('HIGH', 'SEV1') THEN 'High / Sev1'
+                WHEN UPPER(ISNULL(Severity, '')) IN ('MEDIUM', 'WARNING', 'SEV2') THEN 'Medium / Sev2'
+                ELSE 'Low / Sev3+'
+             END = 'Medium / Sev2' THEN 3
+        ELSE 4
+    END;
+
+;WITH AllAlerts AS
+(
+    SELECT ClientName = ISNULL(NULLIF(SubscriptionName, ''), 'Sin cliente')
+    FROM dbo.AlertsManagement
+    WHERE Active = 1
+
+    UNION ALL
+
+    SELECT ClientName = ISNULL(NULLIF(SubscriptionName, ''), 'Sin cliente')
+    FROM dbo.AlertasBackup
+    WHERE Active = 1
+)
+SELECT TOP (10)
+    ClientName,
+    Total = COUNT(1)
+FROM AllAlerts
+GROUP BY ClientName
+ORDER BY COUNT(1) DESC;
 ";
 
         try
@@ -86,11 +135,22 @@ CROSS JOIN BackupAlertsCte b;
             var command = new CommandDefinition(
                 sql,
                 new { UserEmail = userEmail },
+                commandType: CommandType.Text,
                 cancellationToken: cancellationToken);
 
-            var result = await connection.QuerySingleOrDefaultAsync<AlertDashboardModel>(command);
+            using var multi = await connection.QueryMultipleAsync(command);
 
-            return result ?? new AlertDashboardModel();
+            var dashboard =
+                await multi.ReadSingleOrDefaultAsync<AlertDashboardModel>()
+                ?? new AlertDashboardModel();
+
+            dashboard.Severities =
+                (await multi.ReadAsync<DashboardSeverityModel>()).ToList();
+
+            dashboard.TopClients =
+                (await multi.ReadAsync<DashboardTopClientModel>()).ToList();
+
+            return dashboard;
         }
         catch (Exception ex)
         {

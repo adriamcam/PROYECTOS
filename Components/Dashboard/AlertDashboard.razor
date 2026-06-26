@@ -20,95 +20,76 @@ else if (!string.IsNullOrWhiteSpace(ErrorMessage))
 }
 else
 {
-<div class="kpi-row">
-    <KpiCard Title="Alertas Totales"
-             Icon="🔔"
-             CssClass="blue"
-             Value="@Dashboard.TotalAlerts"
-             Label="Activas" />
+    <div class="kpi-row">
+        <KpiCard Title="Alertas Totales" Icon="🔔" CssClass="blue" Value="@Dashboard.TotalAlerts" Label="Activas" />
+        <KpiCard Title="Backup Alerts" Icon="💾" CssClass="purple" Value="@Dashboard.BackupAlerts" Label="Activas" />
+        <KpiCard Title="Management Alerts" Icon="⚙" CssClass="orange" Value="@Dashboard.ManagementAlerts" Label="Activas" />
+        <KpiCard Title="Asignadas a mí" Icon="👤" CssClass="green" Value="@Dashboard.AssignedToMe" Label="Pendientes" />
+        <KpiCard Title="Sin asignar" Icon="⚠" CssClass="red" Value="@Dashboard.Unassigned" Label="Pendientes" />
+        <KpiCard Title="Resueltas hoy" Icon="✓" CssClass="purple" Value="@Dashboard.ResolvedToday" Label="Cerradas" />
+    </div>
 
-    <KpiCard Title="Backup Alerts"
-             Icon="💾"
-             CssClass="purple"
-             Value="@Dashboard.BackupAlerts"
-             Label="Activas" />
+    <div class="cloud-divider"></div>
 
-    <KpiCard Title="Management Alerts"
-             Icon="⚙"
-             CssClass="orange"
-             Value="@Dashboard.ManagementAlerts"
-             Label="Activas" />
+    <div class="soc-insights-grid">
+        <div class="soc-insight-card">
+            <div class="soc-insight-header">
+                <h3>Alertas por severidad</h3>
+                <span>Distribución actual</span>
+            </div>
 
-    <KpiCard Title="Asignadas a mí"
-             Icon="👤"
-             CssClass="green"
-             Value="@Dashboard.AssignedToMe"
-             Label="Pendientes" />
-
-    <KpiCard Title="Sin asignar"
-             Icon="⚠"
-             CssClass="red"
-             Value="@Dashboard.Unassigned"
-             Label="Pendientes" />
-
-    <KpiCard Title="Resueltas hoy"
-             Icon="✓"
-             CssClass="purple"
-             Value="@Dashboard.ResolvedToday"
-             Label="Cerradas" />
-</div>
-
-<div class="cloud-divider"></div>
-
-<div class="soc-insights-grid">
-    <div class="soc-insight-card">
-        <div class="soc-insight-header">
-            <h3>Alertas por severidad</h3>
-            <span>Distribución actual</span>
+            <div class="severity-list">
+                @if (Dashboard.Severities.Any())
+                {
+                    @foreach (var item in Dashboard.Severities)
+                    {
+                        <div class="severity-row">
+                            <span class="severity-dot @GetSeverityCss(item.Severity)"></span>
+                            <span>@item.Severity</span>
+                            <strong>@item.Total</strong>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="severity-row">
+                        <span class="severity-dot low"></span>
+                        <span>Sin datos aún</span>
+                        <strong>0</strong>
+                    </div>
+                }
+            </div>
         </div>
 
-        <div class="severity-list">
-            <div class="severity-row">
-                <span class="severity-dot critical"></span>
-                <span>Critical / Sev0</span>
-                <strong>0</strong>
+        <div class="soc-insight-card">
+            <div class="soc-insight-header">
+                <h3>Top clientes</h3>
+                <span>Mayor volumen de alertas</span>
             </div>
 
-            <div class="severity-row">
-                <span class="severity-dot high"></span>
-                <span>High / Sev1</span>
-                <strong>0</strong>
-            </div>
-
-            <div class="severity-row">
-                <span class="severity-dot medium"></span>
-                <span>Medium / Sev2</span>
-                <strong>0</strong>
-            </div>
-
-            <div class="severity-row">
-                <span class="severity-dot low"></span>
-                <span>Low / Sev3+</span>
-                <strong>0</strong>
+            <div class="top-client-list">
+                @if (Dashboard.TopClients.Any())
+                {
+                    @foreach (var item in Dashboard.TopClients)
+                    {
+                        <div class="top-client-row">
+                            <span>@item.ClientName</span>
+                            <strong>@item.Total</strong>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="top-client-row">
+                        <span>Sin datos aún</span>
+                        <strong>0</strong>
+                    </div>
+                }
             </div>
         </div>
     </div>
-
-    <div class="soc-insight-card">
-        <div class="soc-insight-header">
-            <h3>Top clientes</h3>
-            <span>Mayor volumen de alertas</span>
-        </div>
-
-        <div class="top-client-list">
-            <div class="top-client-row">
-                <span>Sin datos aún</span>
-                <strong>0</strong>
-            </div>
-        </div>
-    </div>
-</div>
 }
+
 <style>
     .soc-insights-grid {
         display: grid;
@@ -200,8 +181,10 @@ else
         }
     }
 </style>
+
 @code {
-    [Parameter] public string UserEmail { get; set; } = "wcambronero@itqscr.com";
+    [Parameter]
+    public string UserEmail { get; set; } = "wcambronero@itqscr.com";
 
     private AlertDashboardModel Dashboard { get; set; } = new();
     private bool IsLoading { get; set; } = true;
@@ -221,5 +204,16 @@ else
         }
 
         IsLoading = false;
+    }
+
+    private string GetSeverityCss(string severity)
+    {
+        return severity switch
+        {
+            "Critical / Sev0" => "critical",
+            "High / Sev1" => "high",
+            "Medium / Sev2" => "medium",
+            _ => "low"
+        };
     }
 }
