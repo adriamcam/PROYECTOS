@@ -18,11 +18,82 @@ public sealed class AssignedAlertsDashboardRepository : IAssignedAlertsDashboard
         _logger = logger;
     }
 
-    public Task<AssignedAlertsDashboardModel> GetDashboardAsync(
+    public async Task<AssignedAlertsDashboardModel> GetDashboardAsync(
         string userEmail,
         CancellationToken cancellationToken = default)
     {
-        return Task.FromResult(new AssignedAlertsDashboardModel());
+        using var connection = _connectionFactory.CreateConnection();
+
+        const string sql = @"
+SELECT
+(
+    SELECT COUNT(1)
+    FROM dbo.AlertsManagement
+    WHERE ISNULL(Active, 0) = 1
+)
++
+(
+    SELECT COUNT(1)
+    FROM dbo.AlertasBackup
+    WHERE ISNULL(Active, 0) = 1
+) AS TotalAlerts,
+
+(
+    SELECT COUNT(1)
+    FROM dbo.AlertsManagement
+    WHERE ISNULL(Active, 0) = 1
+) AS ManagementAlerts,
+
+(
+    SELECT COUNT(1)
+    FROM dbo.AlertasBackup
+    WHERE ISNULL(Active, 0) = 1
+) AS BackupAlerts,
+
+(
+    SELECT COUNT(1)
+    FROM dbo.AlertsManagement
+    WHERE ISNULL(Active, 0) = 1
+      AND ISNULL(AssignedEmail, '') = ''
+)
++
+(
+    SELECT COUNT(1)
+    FROM dbo.AlertasBackup
+    WHERE ISNULL(Active, 0) = 1
+      AND ISNULL(AssignedEmail, '') = ''
+) AS UnassignedAlerts,
+
+(
+    SELECT COUNT(1)
+    FROM dbo.AlertsManagement
+    WHERE ISNULL(Active, 0) = 1
+      AND UPPER(ISNULL(Severity, '')) IN ('CRITICAL', 'HIGH', 'SEV0', 'SEV1')
+)
++
+(
+    SELECT COUNT(1)
+    FROM dbo.AlertasBackup
+    WHERE ISNULL(Active, 0) = 1
+      AND UPPER(ISNULL(Severity, '')) IN ('CRITICAL', 'HIGH', 'SEV0', 'SEV1')
+) AS CriticalAlerts,
+
+(
+    SELECT COUNT(1)
+    FROM dbo.AlertsManagement
+    WHERE CAST(ISNULL(UpdatedAt, GETDATE()) AS date) = CAST(GETDATE() AS date)
+)
++
+(
+    SELECT COUNT(1)
+    FROM dbo.AlertasBackup
+    WHERE CAST(ISNULL(UpdatedAt, GETDATE()) AS date) = CAST(GETDATE() AS date)
+) AS NewToday;
+";
+
+        var dashboard = await connection.QueryFirstOrDefaultAsync<AssignedAlertsDashboardModel>(sql);
+
+        return dashboard ?? new AssignedAlertsDashboardModel();
     }
 
     public async Task<DashboardAlertPagedResultModel> GetManagementAlertsAsync(
@@ -79,7 +150,7 @@ FROM GroupedAlerts;
         AlertType = 'Management',
         ResourceName = ISNULL(NULLIF(TargetResourceName, ''), 'Sin recurso'),
         Events = COUNT(1),
-        LastEventAt = MAX(COALESCE(UpdatedAt, InsertedAt, AlertTime)),
+        LastEventAt = MAX(UpdatedAt),
         AssignedTo = '',
         AssignedEmail = ''
     FROM dbo.AlertsManagement
@@ -193,7 +264,7 @@ FROM GroupedAlerts;
         AlertType = 'Backup',
         ResourceName = COALESCE(NULLIF(ResourceName, ''), NULLIF(VMName, ''), NULLIF(ProtectedItem, ''), 'Sin recurso'),
         Events = COUNT(1),
-        LastEventAt = MAX(COALESCE(UpdatedAt, InsertedAt, AlertTime)),
+        LastEventAt = MAX(UpdatedAt),
         AssignedTo = '',
         AssignedEmail = ''
     FROM dbo.AlertasBackup
