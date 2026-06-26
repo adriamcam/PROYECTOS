@@ -49,6 +49,7 @@ public sealed class AssignedAlertsDashboardRepository : IAssignedAlertsDashboard
         ResourceName = ISNULL(NULLIF(TargetResourceName, ''), 'Sin recurso')
     FROM dbo.AlertsManagement
     WHERE ISNULL(Active, 0) = 1
+      AND ISNULL(AssignedEmail, '') = ''
       AND (
             @Search IS NULL
             OR SubscriptionName LIKE @Search
@@ -79,10 +80,11 @@ FROM GroupedAlerts;
         ResourceName = ISNULL(NULLIF(TargetResourceName, ''), 'Sin recurso'),
         Events = COUNT(1),
         LastEventAt = MAX(COALESCE(UpdatedAt, InsertedAt, AlertTime)),
-        AssignedTo = ISNULL(MAX(AssignedTo), ''),
-        AssignedEmail = ISNULL(MAX(AssignedEmail), '')
+        AssignedTo = '',
+        AssignedEmail = ''
     FROM dbo.AlertsManagement
     WHERE ISNULL(Active, 0) = 1
+      AND ISNULL(AssignedEmail, '') = ''
       AND (
             @Search IS NULL
             OR SubscriptionName LIKE @Search
@@ -159,6 +161,7 @@ FETCH NEXT @PageSize ROWS ONLY;
         ResourceName = COALESCE(NULLIF(ResourceName, ''), NULLIF(VMName, ''), NULLIF(ProtectedItem, ''), 'Sin recurso')
     FROM dbo.AlertasBackup
     WHERE ISNULL(Active, 0) = 1
+      AND ISNULL(AssignedEmail, '') = ''
       AND (
             @Search IS NULL
             OR SubscriptionName LIKE @Search
@@ -191,10 +194,11 @@ FROM GroupedAlerts;
         ResourceName = COALESCE(NULLIF(ResourceName, ''), NULLIF(VMName, ''), NULLIF(ProtectedItem, ''), 'Sin recurso'),
         Events = COUNT(1),
         LastEventAt = MAX(COALESCE(UpdatedAt, InsertedAt, AlertTime)),
-        AssignedTo = ISNULL(MAX(AssignedTo), ''),
-        AssignedEmail = ISNULL(MAX(AssignedEmail), '')
+        AssignedTo = '',
+        AssignedEmail = ''
     FROM dbo.AlertasBackup
     WHERE ISNULL(Active, 0) = 1
+      AND ISNULL(AssignedEmail, '') = ''
       AND (
             @Search IS NULL
             OR SubscriptionName LIKE @Search
@@ -277,7 +281,6 @@ SET
     AssignedEmail = @UserEmail,
     UpdatedAt = GETDATE()
 WHERE ISNULL(Active, 0) = 1
-  AND ISNULL(AssignedEmail, '') = ''
   AND ISNULL(SubscriptionName, '') = ISNULL(@SubscriptionName, '')
   AND ISNULL(AlertName, '') = ISNULL(@AlertName, '')
   AND ISNULL(Severity, '') = ISNULL(@Severity, '')
@@ -319,7 +322,6 @@ SET
     AssignedEmail = @UserEmail,
     UpdatedAt = GETDATE()
 WHERE ISNULL(Active, 0) = 1
-  AND ISNULL(AssignedEmail, '') = ''
   AND ISNULL(SubscriptionName, '') = ISNULL(@SubscriptionName, '')
   AND ISNULL(AlertRule, '') = ISNULL(@AlertRule, '')
   AND ISNULL(Severity, '') = ISNULL(@Severity, '')
