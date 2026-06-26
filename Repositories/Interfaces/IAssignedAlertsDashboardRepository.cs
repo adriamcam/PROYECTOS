@@ -8,10 +8,16 @@ public interface IAssignedAlertsDashboardRepository
         string userEmail,
         CancellationToken cancellationToken = default);
 
-    Task<List<DashboardAlertItemModel>> GetManagementAlertsAsync(
+    Task<DashboardAlertPagedResultModel> GetManagementAlertsAsync(
+        int pageNumber,
+        int pageSize,
+        string? search = null,
         CancellationToken cancellationToken = default);
 
-    Task<List<DashboardAlertItemModel>> GetBackupAlertsAsync(
+    Task<DashboardAlertPagedResultModel> GetBackupAlertsAsync(
+        int pageNumber,
+        int pageSize,
+        string? search = null,
         CancellationToken cancellationToken = default);
 
     Task AssignManagementAlertAsync(

@@ -29,7 +29,8 @@ public sealed class AssignedAlertsDashboardService : IAssignedAlertsDashboardSer
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex,
+            _logger.LogError(
+                ex,
                 "Error getting Assigned Alerts Dashboard for {UserEmail}",
                 userEmail);
 
@@ -38,31 +39,55 @@ public sealed class AssignedAlertsDashboardService : IAssignedAlertsDashboardSer
         }
     }
 
-    public async Task<List<DashboardAlertItemModel>> GetManagementAlertsAsync(
+    public async Task<DashboardAlertPagedResultModel> GetManagementAlertsAsync(
+        int pageNumber,
+        int pageSize,
+        string? search = null,
         CancellationToken cancellationToken = default)
     {
         try
         {
-            return await _repository.GetManagementAlertsAsync(cancellationToken);
+            return await _repository.GetManagementAlertsAsync(
+                pageNumber,
+                pageSize,
+                search,
+                cancellationToken);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error loading management alerts.");
-            return new List<DashboardAlertItemModel>();
+
+            return new DashboardAlertPagedResultModel
+            {
+                PageNumber = pageNumber,
+                PageSize = pageSize
+            };
         }
     }
 
-    public async Task<List<DashboardAlertItemModel>> GetBackupAlertsAsync(
+    public async Task<DashboardAlertPagedResultModel> GetBackupAlertsAsync(
+        int pageNumber,
+        int pageSize,
+        string? search = null,
         CancellationToken cancellationToken = default)
     {
         try
         {
-            return await _repository.GetBackupAlertsAsync(cancellationToken);
+            return await _repository.GetBackupAlertsAsync(
+                pageNumber,
+                pageSize,
+                search,
+                cancellationToken);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error loading backup alerts.");
-            return new List<DashboardAlertItemModel>();
+
+            return new DashboardAlertPagedResultModel
+            {
+                PageNumber = pageNumber,
+                PageSize = pageSize
+            };
         }
     }
 
