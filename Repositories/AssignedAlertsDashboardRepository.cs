@@ -364,38 +364,38 @@ FETCH NEXT @PageSize ROWS ONLY;
     }
 
     public async Task AssignManagementAlertAsync(
-        long id,
+        DashboardAlertItemModel alert,
         string userName,
         string userEmail,
         CancellationToken cancellationToken = default)
     {
         await AssignManagementAlertsAsync(
-            new List<long> { id },
+            new List<DashboardAlertItemModel> { alert },
             userName,
             userEmail,
             cancellationToken);
     }
 
     public async Task AssignBackupAlertAsync(
-        long id,
+        DashboardAlertItemModel alert,
         string userName,
         string userEmail,
         CancellationToken cancellationToken = default)
     {
         await AssignBackupAlertsAsync(
-            new List<long> { id },
+            new List<DashboardAlertItemModel> { alert },
             userName,
             userEmail,
             cancellationToken);
     }
 
     public async Task AssignManagementAlertsAsync(
-        List<long> ids,
+        List<DashboardAlertItemModel> alerts,
         string userName,
         string userEmail,
         CancellationToken cancellationToken = default)
     {
-        if (ids is null || ids.Count == 0)
+        if (alerts is null || alerts.Count == 0)
         {
             return;
         }
@@ -409,23 +409,33 @@ SET
     AssignedEmail = @UserEmail,
     UpdatedAt = GETDATE()
 WHERE ISNULL(Active, 0) = 1
-  AND Id IN @Ids;";
+  AND ISNULL(AssignedEmail, '') = ''
+  AND ISNULL(NULLIF(SubscriptionName, ''), 'Sin cliente') = @ClientName
+  AND ISNULL(NULLIF(AlertName, ''), 'Sin nombre') = @AlertName
+  AND ISNULL(NULLIF(Severity, ''), 'Unknown') = @Severity
+  AND ISNULL(NULLIF(TargetResourceName, ''), 'Sin recurso') = @ResourceName;";
 
-        await connection.ExecuteAsync(sql, new
+        foreach (var alert in alerts)
         {
-            Ids = ids,
-            UserName = userName,
-            UserEmail = userEmail
-        });
+            await connection.ExecuteAsync(sql, new
+            {
+                UserName = userName,
+                UserEmail = userEmail,
+                alert.ClientName,
+                alert.AlertName,
+                alert.Severity,
+                alert.ResourceName
+            });
+        }
     }
 
     public async Task AssignBackupAlertsAsync(
-        List<long> ids,
+        List<DashboardAlertItemModel> alerts,
         string userName,
         string userEmail,
         CancellationToken cancellationToken = default)
     {
-        if (ids is null || ids.Count == 0)
+        if (alerts is null || alerts.Count == 0)
         {
             return;
         }
@@ -439,13 +449,23 @@ SET
     AssignedEmail = @UserEmail,
     UpdatedAt = GETDATE()
 WHERE ISNULL(Active, 0) = 1
-  AND Id IN @Ids;";
+  AND ISNULL(AssignedEmail, '') = ''
+  AND ISNULL(NULLIF(SubscriptionName, ''), 'Sin cliente') = @ClientName
+  AND ISNULL(NULLIF(AlertRule, ''), 'Sin nombre') = @AlertName
+  AND ISNULL(NULLIF(Severity, ''), 'Unknown') = @Severity
+  AND COALESCE(NULLIF(ResourceName, ''), NULLIF(VMName, ''), NULLIF(ProtectedItem, ''), 'Sin recurso') = @ResourceName;";
 
-        await connection.ExecuteAsync(sql, new
+        foreach (var alert in alerts)
         {
-            Ids = ids,
-            UserName = userName,
-            UserEmail = userEmail
-        });
+            await connection.ExecuteAsync(sql, new
+            {
+                UserName = userName,
+                UserEmail = userEmail,
+                alert.ClientName,
+                alert.AlertName,
+                alert.Severity,
+                alert.ResourceName
+            });
+        }
     }
 }

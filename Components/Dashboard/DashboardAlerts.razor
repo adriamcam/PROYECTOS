@@ -562,13 +562,11 @@
 
     private async Task AssignSelectedAsync()
     {
-        var ids = Alerts
+        var selectedAlerts = Alerts
             .Where(x => x.Selected)
-            .Select(x => x.Id)
-            .Distinct()
             .ToList();
 
-        if (!ids.Any())
+        if (!selectedAlerts.Any())
         {
             return;
         }
@@ -579,11 +577,11 @@
 
         if (SelectedAlertType == "Backup")
         {
-            await DashboardService.AssignBackupAlertsAsync(ids, assignedName, UserEmail);
+            await DashboardService.AssignBackupAlertsAsync(selectedAlerts, assignedName, UserEmail);
         }
         else
         {
-            await DashboardService.AssignManagementAlertsAsync(ids, assignedName, UserEmail);
+            await DashboardService.AssignManagementAlertsAsync(selectedAlerts, assignedName, UserEmail);
         }
 
         SelectAll = false;
@@ -598,11 +596,11 @@
 
         if (alert.SourceType == "Backup")
         {
-            await DashboardService.AssignBackupAlertAsync(alert.Id, assignedName, UserEmail);
+            await DashboardService.AssignBackupAlertAsync(alert, assignedName, UserEmail);
         }
         else
         {
-            await DashboardService.AssignManagementAlertAsync(alert.Id, assignedName, UserEmail);
+            await DashboardService.AssignManagementAlertAsync(alert, assignedName, UserEmail);
         }
 
         await LoadAlertsAsync();

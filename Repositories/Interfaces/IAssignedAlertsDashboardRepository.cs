@@ -27,25 +27,25 @@ public interface IAssignedAlertsDashboardRepository
         CancellationToken cancellationToken = default);
 
     Task AssignManagementAlertAsync(
-        long id,
+        DashboardAlertItemModel alert,
         string userName,
         string userEmail,
         CancellationToken cancellationToken = default);
 
     Task AssignBackupAlertAsync(
-        long id,
+        DashboardAlertItemModel alert,
         string userName,
         string userEmail,
         CancellationToken cancellationToken = default);
 
     Task AssignManagementAlertsAsync(
-        List<long> ids,
+        List<DashboardAlertItemModel> alerts,
         string userName,
         string userEmail,
         CancellationToken cancellationToken = default);
 
     Task AssignBackupAlertsAsync(
-        List<long> ids,
+        List<DashboardAlertItemModel> alerts,
         string userName,
         string userEmail,
         CancellationToken cancellationToken = default);

@@ -25,15 +25,11 @@ public sealed class AssignedAlertsDashboardService : IAssignedAlertsDashboardSer
         try
         {
             var dashboard = await _repository.GetDashboardAsync(userEmail, cancellationToken);
-
             return OperationResult<AssignedAlertsDashboardModel>.Ok(dashboard);
         }
         catch (Exception ex)
         {
-            _logger.LogError(
-                ex,
-                "Error getting Assigned Alerts Dashboard for {UserEmail}",
-                userEmail);
+            _logger.LogError(ex, "Error getting Assigned Alerts Dashboard for {UserEmail}", userEmail);
 
             return OperationResult<AssignedAlertsDashboardModel>.Fail(
                 "No fue posible cargar el dashboard.");
@@ -102,65 +98,62 @@ public sealed class AssignedAlertsDashboardService : IAssignedAlertsDashboardSer
     {
         try
         {
-            return await _repository.GetClientsAsync(
-                sourceType,
-                cancellationToken);
+            return await _repository.GetClientsAsync(sourceType, cancellationToken);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error loading clients.");
-
             return new List<string>();
         }
     }
 
     public async Task AssignManagementAlertAsync(
-        long id,
+        DashboardAlertItemModel alert,
         string userName,
         string userEmail,
         CancellationToken cancellationToken = default)
     {
         await _repository.AssignManagementAlertAsync(
-            id,
+            alert,
             userName,
             userEmail,
             cancellationToken);
     }
 
     public async Task AssignBackupAlertAsync(
-        long id,
+        DashboardAlertItemModel alert,
         string userName,
         string userEmail,
         CancellationToken cancellationToken = default)
     {
         await _repository.AssignBackupAlertAsync(
-            id,
+            alert,
             userName,
             userEmail,
             cancellationToken);
     }
 
     public async Task AssignManagementAlertsAsync(
-        List<long> ids,
+        List<DashboardAlertItemModel> alerts,
         string userName,
         string userEmail,
         CancellationToken cancellationToken = default)
     {
         await _repository.AssignManagementAlertsAsync(
-            ids,
+            alerts,
             userName,
             userEmail,
             cancellationToken);
     }
 
     public async Task AssignBackupAlertsAsync(
-        List<long> ids,
+        List<DashboardAlertItemModel> alerts,
         string userName,
         string userEmail,
         CancellationToken cancellationToken = default)
     {
         await _repository.AssignBackupAlertsAsync(
-            ids,
+            alerts,
             userName,
             userEmail,
             cancellationToken);
