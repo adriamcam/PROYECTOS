@@ -1,7 +1,12 @@
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Components.Authorization
 @using ITQS.SupportOperationsCenter.Components.Dialogs
 @using ITQS.SupportOperationsCenter.Models.Dashboard
 @using ITQS.SupportOperationsCenter.Services.Interfaces
+
 @inject IAssignedAlertsDashboardService DashboardService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
 @implements IDisposable
 
 <h1>Asignadas a mí</h1>
@@ -424,14 +429,13 @@
 </style>
 
 @code {
-    [Parameter] public string UserEmail { get; set; } = "wcambronero@itqscr.com";
-    [Parameter] public string UserName { get; set; } = "William Adrian Cambronero Acosta";
-
     private List<DashboardAlertItemModel> Alerts = new();
     private List<string> Clients = new();
 
     private bool IsLoading = false;
     private string ErrorMessage = string.Empty;
+    private string UserEmail = string.Empty;
+    private string UserName = string.Empty;
 
     private int PageNumber = 1;
     private int PageSize = 25;
@@ -459,6 +463,20 @@
 
     protected override async Task OnInitializedAsync()
     {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        UserEmail =
+            user.FindFirst(ClaimTypes.Email)?.Value
+            ?? user.FindFirst("preferred_username")?.Value
+            ?? user.Identity?.Name
+            ?? string.Empty;
+
+        UserName =
+            user.FindFirst("name")?.Value
+            ?? user.Identity?.Name
+            ?? UserEmail;
+
         await LoadAssignedAlertsAsync();
 
         RefreshCts = new CancellationTokenSource();
@@ -469,6 +487,12 @@
 
     private async Task LoadAssignedAlertsAsync()
     {
+        if (string.IsNullOrWhiteSpace(UserEmail))
+        {
+            ErrorMessage = "No fue posible obtener el usuario autenticado.";
+            return;
+        }
+
         IsLoading = true;
         ErrorMessage = string.Empty;
 
@@ -497,6 +521,7 @@
             Clients = new();
             TotalCount = 0;
             TotalPages = 0;
+            PageNumber = 1;
         }
         finally
         {
