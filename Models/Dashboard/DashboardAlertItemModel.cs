@@ -4,7 +4,7 @@ public sealed class DashboardAlertItemModel
 {
     public string SourceType { get; set; } = string.Empty;
     public long Id { get; set; }
-
+    public bool Selected { get; set; }
     public string ClientName { get; set; } = string.Empty;
     public string AlertName { get; set; } = string.Empty;
     public string Severity { get; set; } = string.Empty;

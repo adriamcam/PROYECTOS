@@ -25,6 +25,7 @@ public sealed class AssignedAlertsDashboardService : IAssignedAlertsDashboardSer
         try
         {
             var dashboard = await _repository.GetDashboardAsync(userEmail, cancellationToken);
+
             return OperationResult<AssignedAlertsDashboardModel>.Ok(dashboard);
         }
         catch (Exception ex)
@@ -35,7 +36,7 @@ public sealed class AssignedAlertsDashboardService : IAssignedAlertsDashboardSer
                 userEmail);
 
             return OperationResult<AssignedAlertsDashboardModel>.Fail(
-                "No fue posible cargar el dashboard de alertas asignadas.");
+                "No fue posible cargar el dashboard.");
         }
     }
 
@@ -43,6 +44,7 @@ public sealed class AssignedAlertsDashboardService : IAssignedAlertsDashboardSer
         int pageNumber,
         int pageSize,
         string? search = null,
+        string? clientName = null,
         CancellationToken cancellationToken = default)
     {
         try
@@ -51,11 +53,12 @@ public sealed class AssignedAlertsDashboardService : IAssignedAlertsDashboardSer
                 pageNumber,
                 pageSize,
                 search,
+                clientName,
                 cancellationToken);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error loading management alerts.");
+            _logger.LogError(ex, "Error loading Management alerts.");
 
             return new DashboardAlertPagedResultModel
             {
@@ -69,6 +72,7 @@ public sealed class AssignedAlertsDashboardService : IAssignedAlertsDashboardSer
         int pageNumber,
         int pageSize,
         string? search = null,
+        string? clientName = null,
         CancellationToken cancellationToken = default)
     {
         try
@@ -77,17 +81,36 @@ public sealed class AssignedAlertsDashboardService : IAssignedAlertsDashboardSer
                 pageNumber,
                 pageSize,
                 search,
+                clientName,
                 cancellationToken);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error loading backup alerts.");
+            _logger.LogError(ex, "Error loading Backup alerts.");
 
             return new DashboardAlertPagedResultModel
             {
                 PageNumber = pageNumber,
                 PageSize = pageSize
             };
+        }
+    }
+
+    public async Task<List<string>> GetClientsAsync(
+        string sourceType,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            return await _repository.GetClientsAsync(
+                sourceType,
+                cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error loading clients.");
+
+            return new List<string>();
         }
     }
 
@@ -112,6 +135,32 @@ public sealed class AssignedAlertsDashboardService : IAssignedAlertsDashboardSer
     {
         await _repository.AssignBackupAlertAsync(
             id,
+            userName,
+            userEmail,
+            cancellationToken);
+    }
+
+    public async Task AssignManagementAlertsAsync(
+        List<long> ids,
+        string userName,
+        string userEmail,
+        CancellationToken cancellationToken = default)
+    {
+        await _repository.AssignManagementAlertsAsync(
+            ids,
+            userName,
+            userEmail,
+            cancellationToken);
+    }
+
+    public async Task AssignBackupAlertsAsync(
+        List<long> ids,
+        string userName,
+        string userEmail,
+        CancellationToken cancellationToken = default)
+    {
+        await _repository.AssignBackupAlertsAsync(
+            ids,
             userName,
             userEmail,
             cancellationToken);

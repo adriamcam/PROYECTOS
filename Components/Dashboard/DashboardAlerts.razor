@@ -3,47 +3,20 @@
 @using ITQS.SupportOperationsCenter.Services.Interfaces
 @inject IAssignedAlertsDashboardService DashboardService
 @implements IDisposable
+
 <h1>Dashboard</h1>
 
 <div class="cloud-divider"></div>
 
 <div class="kpi-row">
-    <KpiCard Title="Alertas activas"
-             Icon="🚨"
-             CssClass="red"
-           Value="@Dashboard.TotalAlerts"
-             Label="Activas" />
-
-    <KpiCard Title="Management"
-             Icon="⚙"
-             CssClass="orange"
-            Value="@Dashboard.ManagementAlerts"
-             Label="Activas" />
-
-    <KpiCard Title="Backup"
-             Icon="💾"
-             CssClass="purple"
-             Value="@Dashboard.BackupAlerts"
-             Label="Activas" />
-
-    <KpiCard Title="Sin asignar"
-             Icon="📋"
-             CssClass="blue"
-             Value="@Dashboard.UnassignedAlerts"
-             Label="Pendientes" />
-
-    <KpiCard Title="Críticas"
-             Icon="🔥"
-             CssClass="red"
-             Value="@Dashboard.CriticalAlerts"
-             Label="Sev0 / Sev1" />
-
-    <KpiCard Title="Nuevas hoy"
-             Icon="📈"
-             CssClass="green"
-             Value="@Dashboard.NewToday"
-             Label="Hoy" />
+    <KpiCard Title="Alertas activas" Icon="🚨" CssClass="red" Value="@Dashboard.TotalAlerts" Label="Activas" />
+    <KpiCard Title="Management" Icon="⚙" CssClass="orange" Value="@Dashboard.ManagementAlerts" Label="Activas" />
+    <KpiCard Title="Backup" Icon="💾" CssClass="purple" Value="@Dashboard.BackupAlerts" Label="Activas" />
+    <KpiCard Title="Sin asignar" Icon="📋" CssClass="blue" Value="@Dashboard.UnassignedAlerts" Label="Pendientes" />
+    <KpiCard Title="Críticas" Icon="🔥" CssClass="red" Value="@Dashboard.CriticalAlerts" Label="Sev0 / Sev1" />
+    <KpiCard Title="Nuevas hoy" Icon="📈" CssClass="green" Value="@Dashboard.NewToday" Label="Hoy" />
 </div>
+
 <div class="cloud-divider"></div>
 
 <div class="dashboard-alerts-panel">
@@ -52,7 +25,7 @@
         <div>
             <h3>Alerts</h3>
             <small class="last-refresh">
-                Última actualización: @LastRefreshAt.ToString("HH:mm:ss")
+                Última sincronización: @LastRefreshAt.ToString("HH:mm:ss")
             </small>
         </div>
 
@@ -68,6 +41,15 @@
                     @onclick='async () => await ChangeAlertType("Backup")'>
                 💾 Backup Alerts
             </button>
+
+            @if (SelectedCount > 0)
+            {
+                <button type="button"
+                        class="assign-selected-btn"
+                        @onclick="AssignSelectedAsync">
+                    👤 Asignarme (@SelectedCount)
+                </button>
+            }
         </div>
     </div>
 
@@ -78,6 +60,17 @@
                placeholder="Buscar cliente, alerta o recurso..."
                @bind="SearchText"
                @bind:event="oninput" />
+
+        <select class="client-select"
+                @bind="SelectedClient"
+                @bind:after="ClientChangedAsync">
+            <option value="">Todos los clientes</option>
+
+            @foreach (var client in Clients)
+            {
+                <option value="@client">@client</option>
+            }
+        </select>
 
         <button type="button" class="search-btn" @onclick="SearchAsync">
             Buscar
@@ -91,7 +84,7 @@
     </div>
 
     <h4 class="alerts-section-title">
-        @(SelectedAlertType == "Management" ? "⚙ Management Alerts" : "💾 Backup Alerts")
+        @(SelectedAlertType == "Management" ? "⚙ Management sin asignar" : "💾 Backup sin asignar")
     </h4>
 
     @if (IsLoading)
@@ -108,6 +101,11 @@
             <table class="table table-hover align-middle dashboard-alerts-table">
                 <thead>
                     <tr>
+                        <th class="text-center">
+                            <input type="checkbox"
+                                   checked="@SelectAll"
+                                   @onchange="ToggleSelectAll" />
+                        </th>
                         <th>Cliente</th>
                         <th>Alerta</th>
                         <th>Severidad</th>
@@ -122,7 +120,7 @@
                     @if (!Alerts.Any())
                     {
                         <tr>
-                            <td colspan="7" class="text-center">
+                            <td colspan="8" class="text-center">
                                 No hay alertas disponibles.
                             </td>
                         </tr>
@@ -131,7 +129,13 @@
                     {
                         @foreach (var alert in Alerts)
                         {
-                            <tr>
+                            <tr class="@(alert.Selected ? "selected-row" : "")">
+                                <td class="text-center">
+                                    <input type="checkbox"
+                                           checked="@alert.Selected"
+                                           @onchange="e => ToggleAlert(alert, e)" />
+                                </td>
+
                                 <td>@alert.ClientName</td>
                                 <td>@alert.AlertName</td>
                                 <td>
@@ -206,6 +210,14 @@
         color: #061634;
     }
 
+    .last-refresh {
+        display: block;
+        margin-top: 4px;
+        color: #64748b;
+        font-size: 13px;
+        font-weight: 700;
+    }
+
     .alert-type-actions {
         display: flex;
         gap: 12px;
@@ -238,6 +250,23 @@
         box-shadow: 0 10px 24px rgba(18, 98, 255, 0.28);
     }
 
+    .assign-selected-btn {
+        border: 0;
+        background: linear-gradient(135deg, #16a34a, #22c55e);
+        color: #ffffff;
+        border-radius: 10px;
+        padding: 12px 22px;
+        font-weight: 900;
+        font-size: 15px;
+        box-shadow: 0 10px 24px rgba(22, 163, 74, 0.25);
+        transition: all .15s ease-in-out;
+    }
+
+    .assign-selected-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 12px 26px rgba(22, 163, 74, 0.32);
+    }
+
     .alerts-toolbar {
         display: flex;
         gap: 12px;
@@ -257,13 +286,19 @@
 
     .search-btn,
     .page-btn,
-    .page-size-select {
+    .page-size-select,
+    .client-select {
         border: 1px solid #bcd0ee;
         background: #ffffff;
         color: #061634;
         border-radius: 10px;
         padding: 10px 14px;
         font-weight: 800;
+    }
+
+    .client-select {
+        min-width: 240px;
+        max-width: 340px;
     }
 
     .alerts-section-title {
@@ -293,6 +328,10 @@
         padding: 14px 16px;
         border-bottom: 1px solid #eef2f7;
         vertical-align: middle;
+    }
+
+    .selected-row {
+        background: #eff6ff;
     }
 
     .severity-badge {
@@ -367,13 +406,6 @@
         opacity: 0.5;
         cursor: not-allowed;
     }
-	.last-refresh {
-    display: block;
-    margin-top: 4px;
-    color: #64748b;
-    font-size: 13px;
-    font-weight: 700;
-}
 </style>
 
 @code {
@@ -385,8 +417,9 @@
 
     private AssignedAlertsDashboardModel Dashboard = new();
 
-private string SelectedAlertType = "Management";
-private List<DashboardAlertItemModel> Alerts = new();
+    private string SelectedAlertType = "Management";
+    private List<DashboardAlertItemModel> Alerts = new();
+    private List<string> Clients = new();
 
     private bool IsLoading = false;
     private string ErrorMessage = string.Empty;
@@ -394,39 +427,58 @@ private List<DashboardAlertItemModel> Alerts = new();
     private int PageNumber = 1;
     private int PageSize = 25;
     private string SearchText = string.Empty;
+    private string SelectedClient = string.Empty;
     private int TotalCount = 0;
     private int TotalPages = 0;
-	private PeriodicTimer? RefreshTimer;
-private CancellationTokenSource? RefreshCts;
-private DateTime LastRefreshAt = DateTime.Now;
-	
 
-   protected override async Task OnInitializedAsync()
-{
-    await LoadAlertsAsync();
+    private bool SelectAll = false;
 
-    RefreshCts = new CancellationTokenSource();
-    RefreshTimer = new PeriodicTimer(TimeSpan.FromSeconds(30));
+    private int SelectedCount =>
+        Alerts.Count(a => a.Selected);
 
-    _ = AutoRefreshAsync(RefreshCts.Token);
-}
+    private PeriodicTimer? RefreshTimer;
+    private CancellationTokenSource? RefreshCts;
+    private DateTime LastRefreshAt = DateTime.Now;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAlertsAsync();
+
+        RefreshCts = new CancellationTokenSource();
+        RefreshTimer = new PeriodicTimer(TimeSpan.FromSeconds(30));
+
+        _ = AutoRefreshAsync(RefreshCts.Token);
+    }
 
     private async Task ChangeAlertType(string type)
     {
         SelectedAlertType = type;
         PageNumber = 1;
+        SearchText = string.Empty;
+        SelectedClient = string.Empty;
+        SelectAll = false;
+
         await LoadAlertsAsync();
     }
 
     private async Task SearchAsync()
     {
         PageNumber = 1;
+        SelectAll = false;
+        await LoadAlertsAsync();
+    }
+
+    private async Task ClientChangedAsync()
+    {
+        PageNumber = 1;
+        SelectAll = false;
         await LoadAlertsAsync();
     }
 
     private async Task PageSizeChangedAsync()
     {
         PageNumber = 1;
+        SelectAll = false;
         await LoadAlertsAsync();
     }
 
@@ -435,6 +487,7 @@ private DateTime LastRefreshAt = DateTime.Now;
         if (PageNumber > 1)
         {
             PageNumber--;
+            SelectAll = false;
             await LoadAlertsAsync();
         }
     }
@@ -444,37 +497,44 @@ private DateTime LastRefreshAt = DateTime.Now;
         if (PageNumber < TotalPages)
         {
             PageNumber++;
+            SelectAll = false;
             await LoadAlertsAsync();
         }
     }
 
-   private async Task LoadAlertsAsync()
-{
-    IsLoading = true;
-    ErrorMessage = string.Empty;
-
-    try
+    private async Task LoadAlertsAsync()
     {
-	var dashboardResult = await DashboardService.GetDashboardAsync(UserEmail);
+        IsLoading = true;
+        ErrorMessage = string.Empty;
 
-if (dashboardResult.Success && dashboardResult.Data is not null)
-{
-    Dashboard = dashboardResult.Data;
-}
-        var result = SelectedAlertType == "Backup"
-            ? await DashboardService.GetBackupAlertsAsync(PageNumber, PageSize, SearchText)
-            : await DashboardService.GetManagementAlertsAsync(PageNumber, PageSize, SearchText);
+        try
+        {
+            var dashboardResult = await DashboardService.GetDashboardAsync(UserEmail);
+
+            if (dashboardResult.Success && dashboardResult.Data is not null)
+            {
+                Dashboard = dashboardResult.Data;
+            }
+
+            Clients = await DashboardService.GetClientsAsync(SelectedAlertType);
+
+            var result = SelectedAlertType == "Backup"
+                ? await DashboardService.GetBackupAlertsAsync(PageNumber, PageSize, SearchText, SelectedClient)
+                : await DashboardService.GetManagementAlertsAsync(PageNumber, PageSize, SearchText, SelectedClient);
 
             Alerts = result.Items;
             TotalCount = result.TotalCount;
             TotalPages = result.TotalPages;
             PageNumber = result.PageNumber;
             PageSize = result.PageSize;
+            SelectAll = false;
+            LastRefreshAt = DateTime.Now;
         }
         catch
         {
             ErrorMessage = "No fue posible cargar las alertas.";
             Alerts = new();
+            Clients = new();
             TotalCount = 0;
             TotalPages = 0;
         }
@@ -482,6 +542,52 @@ if (dashboardResult.Success && dashboardResult.Data is not null)
         {
             IsLoading = false;
         }
+    }
+
+    private void ToggleAlert(DashboardAlertItemModel alert, ChangeEventArgs e)
+    {
+        alert.Selected = e.Value is bool value && value;
+        SelectAll = Alerts.Any() && Alerts.All(a => a.Selected);
+    }
+
+    private void ToggleSelectAll(ChangeEventArgs e)
+    {
+        SelectAll = e.Value is bool value && value;
+
+        foreach (var alert in Alerts)
+        {
+            alert.Selected = SelectAll;
+        }
+    }
+
+    private async Task AssignSelectedAsync()
+    {
+        var ids = Alerts
+            .Where(x => x.Selected)
+            .Select(x => x.Id)
+            .Distinct()
+            .ToList();
+
+        if (!ids.Any())
+        {
+            return;
+        }
+
+        var assignedName = string.IsNullOrWhiteSpace(UserName)
+            ? UserEmail
+            : UserName;
+
+        if (SelectedAlertType == "Backup")
+        {
+            await DashboardService.AssignBackupAlertsAsync(ids, assignedName, UserEmail);
+        }
+        else
+        {
+            await DashboardService.AssignManagementAlertsAsync(ids, assignedName, UserEmail);
+        }
+
+        SelectAll = false;
+        await LoadAlertsAsync();
     }
 
     private async Task AssignAlert(DashboardAlertItemModel alert)
@@ -520,30 +626,33 @@ if (dashboardResult.Success && dashboardResult.Data is not null)
             _ => "normal"
         };
     }
-	private async Task AutoRefreshAsync(CancellationToken cancellationToken)
-{
-    try
+
+    private async Task AutoRefreshAsync(CancellationToken cancellationToken)
     {
-        while (RefreshTimer is not null &&
-               await RefreshTimer.WaitForNextTickAsync(cancellationToken))
+        try
         {
-            await InvokeAsync(async () =>
+            while (RefreshTimer is not null &&
+                   await RefreshTimer.WaitForNextTickAsync(cancellationToken))
             {
-                await LoadAlertsAsync();
-                LastRefreshAt = DateTime.Now;
-                StateHasChanged();
-            });
+                await InvokeAsync(async () =>
+                {
+                    if (SelectedCount == 0)
+                    {
+                        await LoadAlertsAsync();
+                        StateHasChanged();
+                    }
+                });
+            }
+        }
+        catch (OperationCanceledException)
+        {
         }
     }
-    catch (OperationCanceledException)
-    {
-    }
-}
 
-public void Dispose()
-{
-    RefreshCts?.Cancel();
-    RefreshTimer?.Dispose();
-    RefreshCts?.Dispose();
-}
+    public void Dispose()
+    {
+        RefreshCts?.Cancel();
+        RefreshTimer?.Dispose();
+        RefreshCts?.Dispose();
+    }
 }

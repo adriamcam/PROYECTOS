@@ -27,27 +27,19 @@ public sealed class AssignedAlertsDashboardRepository : IAssignedAlertsDashboard
         const string sql = @"
 SELECT
 (
-    SELECT COUNT(1)
-    FROM dbo.AlertsManagement
-    WHERE ISNULL(Active, 0) = 1
+    SELECT COUNT(1) FROM dbo.AlertsManagement WHERE ISNULL(Active, 0) = 1
 )
 +
 (
-    SELECT COUNT(1)
-    FROM dbo.AlertasBackup
-    WHERE ISNULL(Active, 0) = 1
+    SELECT COUNT(1) FROM dbo.AlertasBackup WHERE ISNULL(Active, 0) = 1
 ) AS TotalAlerts,
 
 (
-    SELECT COUNT(1)
-    FROM dbo.AlertsManagement
-    WHERE ISNULL(Active, 0) = 1
+    SELECT COUNT(1) FROM dbo.AlertsManagement WHERE ISNULL(Active, 0) = 1
 ) AS ManagementAlerts,
 
 (
-    SELECT COUNT(1)
-    FROM dbo.AlertasBackup
-    WHERE ISNULL(Active, 0) = 1
+    SELECT COUNT(1) FROM dbo.AlertasBackup WHERE ISNULL(Active, 0) = 1
 ) AS BackupAlerts,
 
 (
@@ -92,14 +84,40 @@ SELECT
 ";
 
         var dashboard = await connection.QueryFirstOrDefaultAsync<AssignedAlertsDashboardModel>(sql);
-
         return dashboard ?? new AssignedAlertsDashboardModel();
+    }
+
+    public async Task<List<string>> GetClientsAsync(
+        string sourceType,
+        CancellationToken cancellationToken = default)
+    {
+        using var connection = _connectionFactory.CreateConnection();
+
+        var sql = sourceType == "Backup"
+            ? @"
+SELECT DISTINCT
+    ISNULL(NULLIF(SubscriptionName, ''), 'Sin cliente') AS ClientName
+FROM dbo.AlertasBackup
+WHERE ISNULL(Active, 0) = 1
+  AND ISNULL(AssignedEmail, '') = ''
+ORDER BY ClientName;"
+            : @"
+SELECT DISTINCT
+    ISNULL(NULLIF(SubscriptionName, ''), 'Sin cliente') AS ClientName
+FROM dbo.AlertsManagement
+WHERE ISNULL(Active, 0) = 1
+  AND ISNULL(AssignedEmail, '') = ''
+ORDER BY ClientName;";
+
+        var result = await connection.QueryAsync<string>(sql);
+        return result.ToList();
     }
 
     public async Task<DashboardAlertPagedResultModel> GetManagementAlertsAsync(
         int pageNumber,
         int pageSize,
         string? search = null,
+        string? clientName = null,
         CancellationToken cancellationToken = default)
     {
         using var connection = _connectionFactory.CreateConnection();
@@ -109,6 +127,7 @@ SELECT
 
         var offset = (pageNumber - 1) * pageSize;
         var searchValue = string.IsNullOrWhiteSpace(search) ? null : $"%{search.Trim()}%";
+        var clientValue = string.IsNullOrWhiteSpace(clientName) ? null : clientName.Trim();
 
         const string countSql = @"
 ;WITH GroupedAlerts AS
@@ -121,6 +140,10 @@ SELECT
     FROM dbo.AlertsManagement
     WHERE ISNULL(Active, 0) = 1
       AND ISNULL(AssignedEmail, '') = ''
+      AND (
+            @ClientName IS NULL
+            OR ISNULL(NULLIF(SubscriptionName, ''), 'Sin cliente') = @ClientName
+          )
       AND (
             @Search IS NULL
             OR SubscriptionName LIKE @Search
@@ -157,6 +180,10 @@ FROM GroupedAlerts;
     WHERE ISNULL(Active, 0) = 1
       AND ISNULL(AssignedEmail, '') = ''
       AND (
+            @ClientName IS NULL
+            OR ISNULL(NULLIF(SubscriptionName, ''), 'Sin cliente') = @ClientName
+          )
+      AND (
             @Search IS NULL
             OR SubscriptionName LIKE @Search
             OR AlertName LIKE @Search
@@ -192,6 +219,7 @@ FETCH NEXT @PageSize ROWS ONLY;
         var parameters = new
         {
             Search = searchValue,
+            ClientName = clientValue,
             Offset = offset,
             PageSize = pageSize
         };
@@ -212,6 +240,7 @@ FETCH NEXT @PageSize ROWS ONLY;
         int pageNumber,
         int pageSize,
         string? search = null,
+        string? clientName = null,
         CancellationToken cancellationToken = default)
     {
         using var connection = _connectionFactory.CreateConnection();
@@ -221,6 +250,7 @@ FETCH NEXT @PageSize ROWS ONLY;
 
         var offset = (pageNumber - 1) * pageSize;
         var searchValue = string.IsNullOrWhiteSpace(search) ? null : $"%{search.Trim()}%";
+        var clientValue = string.IsNullOrWhiteSpace(clientName) ? null : clientName.Trim();
 
         const string countSql = @"
 ;WITH GroupedAlerts AS
@@ -233,6 +263,10 @@ FETCH NEXT @PageSize ROWS ONLY;
     FROM dbo.AlertasBackup
     WHERE ISNULL(Active, 0) = 1
       AND ISNULL(AssignedEmail, '') = ''
+      AND (
+            @ClientName IS NULL
+            OR ISNULL(NULLIF(SubscriptionName, ''), 'Sin cliente') = @ClientName
+          )
       AND (
             @Search IS NULL
             OR SubscriptionName LIKE @Search
@@ -271,6 +305,10 @@ FROM GroupedAlerts;
     WHERE ISNULL(Active, 0) = 1
       AND ISNULL(AssignedEmail, '') = ''
       AND (
+            @ClientName IS NULL
+            OR ISNULL(NULLIF(SubscriptionName, ''), 'Sin cliente') = @ClientName
+          )
+      AND (
             @Search IS NULL
             OR SubscriptionName LIKE @Search
             OR AlertRule LIKE @Search
@@ -308,6 +346,7 @@ FETCH NEXT @PageSize ROWS ONLY;
         var parameters = new
         {
             Search = searchValue,
+            ClientName = clientValue,
             Offset = offset,
             PageSize = pageSize
         };
@@ -330,39 +369,11 @@ FETCH NEXT @PageSize ROWS ONLY;
         string userEmail,
         CancellationToken cancellationToken = default)
     {
-        using var connection = _connectionFactory.CreateConnection();
-
-        const string sql = @"
-DECLARE @SubscriptionName nvarchar(255);
-DECLARE @AlertName nvarchar(500);
-DECLARE @Severity nvarchar(100);
-DECLARE @ResourceName nvarchar(500);
-
-SELECT
-    @SubscriptionName = SubscriptionName,
-    @AlertName = AlertName,
-    @Severity = Severity,
-    @ResourceName = TargetResourceName
-FROM dbo.AlertsManagement
-WHERE Id = @Id;
-
-UPDATE dbo.AlertsManagement
-SET
-    AssignedTo = @UserName,
-    AssignedEmail = @UserEmail,
-    UpdatedAt = GETDATE()
-WHERE ISNULL(Active, 0) = 1
-  AND ISNULL(SubscriptionName, '') = ISNULL(@SubscriptionName, '')
-  AND ISNULL(AlertName, '') = ISNULL(@AlertName, '')
-  AND ISNULL(Severity, '') = ISNULL(@Severity, '')
-  AND ISNULL(TargetResourceName, '') = ISNULL(@ResourceName, '');";
-
-        await connection.ExecuteAsync(sql, new
-        {
-            Id = id,
-            UserName = userName,
-            UserEmail = userEmail
-        });
+        await AssignManagementAlertsAsync(
+            new List<long> { id },
+            userName,
+            userEmail,
+            cancellationToken);
     }
 
     public async Task AssignBackupAlertAsync(
@@ -371,36 +382,68 @@ WHERE ISNULL(Active, 0) = 1
         string userEmail,
         CancellationToken cancellationToken = default)
     {
+        await AssignBackupAlertsAsync(
+            new List<long> { id },
+            userName,
+            userEmail,
+            cancellationToken);
+    }
+
+    public async Task AssignManagementAlertsAsync(
+        List<long> ids,
+        string userName,
+        string userEmail,
+        CancellationToken cancellationToken = default)
+    {
+        if (ids is null || ids.Count == 0)
+        {
+            return;
+        }
+
         using var connection = _connectionFactory.CreateConnection();
 
         const string sql = @"
-DECLARE @SubscriptionName nvarchar(255);
-DECLARE @AlertRule nvarchar(500);
-DECLARE @Severity nvarchar(100);
-DECLARE @ResourceName nvarchar(500);
+UPDATE dbo.AlertsManagement
+SET
+    AssignedTo = @UserName,
+    AssignedEmail = @UserEmail,
+    UpdatedAt = GETDATE()
+WHERE ISNULL(Active, 0) = 1
+  AND Id IN @Ids;";
 
-SELECT
-    @SubscriptionName = SubscriptionName,
-    @AlertRule = AlertRule,
-    @Severity = Severity,
-    @ResourceName = COALESCE(NULLIF(ResourceName, ''), NULLIF(VMName, ''), NULLIF(ProtectedItem, ''))
-FROM dbo.AlertasBackup
-WHERE Id = @Id;
+        await connection.ExecuteAsync(sql, new
+        {
+            Ids = ids,
+            UserName = userName,
+            UserEmail = userEmail
+        });
+    }
 
+    public async Task AssignBackupAlertsAsync(
+        List<long> ids,
+        string userName,
+        string userEmail,
+        CancellationToken cancellationToken = default)
+    {
+        if (ids is null || ids.Count == 0)
+        {
+            return;
+        }
+
+        using var connection = _connectionFactory.CreateConnection();
+
+        const string sql = @"
 UPDATE dbo.AlertasBackup
 SET
     AssignedTo = @UserName,
     AssignedEmail = @UserEmail,
     UpdatedAt = GETDATE()
 WHERE ISNULL(Active, 0) = 1
-  AND ISNULL(SubscriptionName, '') = ISNULL(@SubscriptionName, '')
-  AND ISNULL(AlertRule, '') = ISNULL(@AlertRule, '')
-  AND ISNULL(Severity, '') = ISNULL(@Severity, '')
-  AND ISNULL(COALESCE(NULLIF(ResourceName, ''), NULLIF(VMName, ''), NULLIF(ProtectedItem, '')), '') = ISNULL(@ResourceName, '');";
+  AND Id IN @Ids;";
 
         await connection.ExecuteAsync(sql, new
         {
-            Id = id,
+            Ids = ids,
             UserName = userName,
             UserEmail = userEmail
         });

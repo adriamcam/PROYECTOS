@@ -12,12 +12,18 @@ public interface IAssignedAlertsDashboardRepository
         int pageNumber,
         int pageSize,
         string? search = null,
+        string? clientName = null,
         CancellationToken cancellationToken = default);
 
     Task<DashboardAlertPagedResultModel> GetBackupAlertsAsync(
         int pageNumber,
         int pageSize,
         string? search = null,
+        string? clientName = null,
+        CancellationToken cancellationToken = default);
+
+    Task<List<string>> GetClientsAsync(
+        string sourceType,
         CancellationToken cancellationToken = default);
 
     Task AssignManagementAlertAsync(
@@ -28,6 +34,18 @@ public interface IAssignedAlertsDashboardRepository
 
     Task AssignBackupAlertAsync(
         long id,
+        string userName,
+        string userEmail,
+        CancellationToken cancellationToken = default);
+
+    Task AssignManagementAlertsAsync(
+        List<long> ids,
+        string userName,
+        string userEmail,
+        CancellationToken cancellationToken = default);
+
+    Task AssignBackupAlertsAsync(
+        List<long> ids,
         string userName,
         string userEmail,
         CancellationToken cancellationToken = default);
