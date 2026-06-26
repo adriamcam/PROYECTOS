@@ -801,19 +801,219 @@ public async Task<DashboardAlertPagedResultModel> GetAssignedAlertsAsync(
     string? clientName = null,
     CancellationToken cancellationToken = default)
 {
-return await Task.FromResult(new DashboardAlertPagedResultModel
-{
-    PageNumber = pageNumber,
-    PageSize = pageSize,
-    TotalCount = 0,
-    Items = new List<DashboardAlertItemModel>()
-});
+    using var connection = _connectionFactory.CreateConnection();
+
+    pageNumber = pageNumber < 1 ? 1 : pageNumber;
+    pageSize = pageSize <= 0 ? 25 : pageSize;
+
+    var offset = (pageNumber - 1) * pageSize;
+    var searchValue = string.IsNullOrWhiteSpace(search) ? null : $"%{search.Trim()}%";
+    var clientValue = string.IsNullOrWhiteSpace(clientName) ? null : clientName.Trim();
+
+    const string countSql = @"
+;WITH AssignedAlerts AS
+(
+    SELECT
+        ClientName = ISNULL(NULLIF(SubscriptionName, ''), 'Sin cliente'),
+        AlertName = ISNULL(NULLIF(AlertName, ''), 'Sin nombre'),
+        Severity = ISNULL(NULLIF(Severity, ''), 'Unknown'),
+        ResourceName = ISNULL(NULLIF(TargetResourceName, ''), 'Sin recurso'),
+        SourceType = 'Management'
+    FROM dbo.AlertsManagement
+    WHERE ISNULL(Active, 0) = 1
+      AND LOWER(ISNULL(AssignedEmail, '')) = LOWER(@UserEmail)
+
+    UNION ALL
+
+    SELECT
+        ClientName = ISNULL(NULLIF(SubscriptionName, ''), 'Sin cliente'),
+        AlertName = ISNULL(NULLIF(AlertRule, ''), 'Sin nombre'),
+        Severity = ISNULL(NULLIF(Severity, ''), 'Unknown'),
+        ResourceName = COALESCE(NULLIF(ResourceName, ''), NULLIF(VMName, ''), NULLIF(ProtectedItem, ''), 'Sin recurso'),
+        SourceType = 'Backup'
+    FROM dbo.AlertasBackup
+    WHERE ISNULL(Active, 0) = 1
+      AND LOWER(ISNULL(AssignedEmail, '')) = LOWER(@UserEmail)
+),
+GroupedAlerts AS
+(
+    SELECT
+        ClientName,
+        AlertName,
+        Severity,
+        ResourceName,
+        SourceType
+    FROM AssignedAlerts
+    WHERE
+        (
+            @ClientName IS NULL
+            OR ClientName = @ClientName
+        )
+        AND
+        (
+            @Search IS NULL
+            OR ClientName LIKE @Search
+            OR AlertName LIKE @Search
+            OR Severity LIKE @Search
+            OR ResourceName LIKE @Search
+            OR SourceType LIKE @Search
+        )
+    GROUP BY
+        ClientName,
+        AlertName,
+        Severity,
+        ResourceName,
+        SourceType
+)
+SELECT COUNT(1)
+FROM GroupedAlerts;
+";
+
+    const string dataSql = @"
+;WITH AssignedAlerts AS
+(
+    SELECT
+        SourceType = 'Management',
+        Id = CAST(Id AS bigint),
+        ClientName = ISNULL(NULLIF(SubscriptionName, ''), 'Sin cliente'),
+        AlertName = ISNULL(NULLIF(AlertName, ''), 'Sin nombre'),
+        Severity = ISNULL(NULLIF(Severity, ''), 'Unknown'),
+        AlertType = 'Management',
+        ResourceName = ISNULL(NULLIF(TargetResourceName, ''), 'Sin recurso'),
+        LastEventAt = ISNULL(UpdatedAt, InsertedAt),
+        AssignedTo = ISNULL(AssignedTo, ''),
+        AssignedEmail = ISNULL(AssignedEmail, '')
+    FROM dbo.AlertsManagement
+    WHERE ISNULL(Active, 0) = 1
+      AND LOWER(ISNULL(AssignedEmail, '')) = LOWER(@UserEmail)
+
+    UNION ALL
+
+    SELECT
+        SourceType = 'Backup',
+        Id = CAST(Id AS bigint),
+        ClientName = ISNULL(NULLIF(SubscriptionName, ''), 'Sin cliente'),
+        AlertName = ISNULL(NULLIF(AlertRule, ''), 'Sin nombre'),
+        Severity = ISNULL(NULLIF(Severity, ''), 'Unknown'),
+        AlertType = 'Backup',
+        ResourceName = COALESCE(NULLIF(ResourceName, ''), NULLIF(VMName, ''), NULLIF(ProtectedItem, ''), 'Sin recurso'),
+        LastEventAt = ISNULL(UpdatedAt, InsertedAt),
+        AssignedTo = ISNULL(AssignedTo, ''),
+        AssignedEmail = ISNULL(AssignedEmail, '')
+    FROM dbo.AlertasBackup
+    WHERE ISNULL(Active, 0) = 1
+      AND LOWER(ISNULL(AssignedEmail, '')) = LOWER(@UserEmail)
+),
+GroupedAlerts AS
+(
+    SELECT
+        SourceType,
+        Id = MIN(Id),
+        ClientName,
+        AlertName,
+        Severity,
+        AlertType,
+        ResourceName,
+        Events = COUNT(1),
+        LastEventAt = MAX(LastEventAt),
+        AssignedTo = MAX(AssignedTo),
+        AssignedEmail = MAX(AssignedEmail)
+    FROM AssignedAlerts
+    WHERE
+        (
+            @ClientName IS NULL
+            OR ClientName = @ClientName
+        )
+        AND
+        (
+            @Search IS NULL
+            OR ClientName LIKE @Search
+            OR AlertName LIKE @Search
+            OR Severity LIKE @Search
+            OR ResourceName LIKE @Search
+            OR SourceType LIKE @Search
+        )
+    GROUP BY
+        SourceType,
+        ClientName,
+        AlertName,
+        Severity,
+        AlertType,
+        ResourceName
+)
+SELECT
+    SourceType,
+    Id,
+    ClientName,
+    AlertName,
+    Severity,
+    AlertType,
+    ResourceName,
+    Events,
+    LastEventAt,
+    AssignedTo,
+    AssignedEmail
+FROM GroupedAlerts
+ORDER BY
+    LastEventAt DESC,
+    Events DESC
+OFFSET @Offset ROWS
+FETCH NEXT @PageSize ROWS ONLY;
+";
+
+    var parameters = new
+    {
+        UserEmail = userEmail,
+        Search = searchValue,
+        ClientName = clientValue,
+        Offset = offset,
+        PageSize = pageSize
+    };
+
+    var totalCount = await connection.ExecuteScalarAsync<int>(countSql, parameters);
+    var items = await connection.QueryAsync<DashboardAlertItemModel>(dataSql, parameters);
+
+    return new DashboardAlertPagedResultModel
+    {
+        Items = items.ToList(),
+        TotalCount = totalCount,
+        PageNumber = pageNumber,
+        PageSize = pageSize
+    };
 }
 
 public async Task<List<string>> GetAssignedClientsAsync(
     string userEmail,
     CancellationToken cancellationToken = default)
 {
-    return await Task.FromResult(new List<string>());
+    using var connection = _connectionFactory.CreateConnection();
+
+    const string sql = @"
+SELECT DISTINCT ClientName
+FROM
+(
+    SELECT
+        ClientName = ISNULL(NULLIF(SubscriptionName, ''), 'Sin cliente')
+    FROM dbo.AlertsManagement
+    WHERE ISNULL(Active, 0) = 1
+      AND LOWER(ISNULL(AssignedEmail, '')) = LOWER(@UserEmail)
+
+    UNION ALL
+
+    SELECT
+        ClientName = ISNULL(NULLIF(SubscriptionName, ''), 'Sin cliente')
+    FROM dbo.AlertasBackup
+    WHERE ISNULL(Active, 0) = 1
+      AND LOWER(ISNULL(AssignedEmail, '')) = LOWER(@UserEmail)
+) X
+ORDER BY ClientName;
+";
+
+    var result = await connection.QueryAsync<string>(
+        sql,
+        new { UserEmail = userEmail });
+
+    return result.ToList();
 }
+
 }

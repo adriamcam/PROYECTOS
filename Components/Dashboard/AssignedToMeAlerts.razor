@@ -1,3 +1,679 @@
+@using ITQS.SupportOperationsCenter.Components.Dialogs
+@using ITQS.SupportOperationsCenter.Models.Dashboard
+@using ITQS.SupportOperationsCenter.Services.Interfaces
+@inject IAssignedAlertsDashboardService DashboardService
+@implements IDisposable
+
 <h1>Asignadas a mí</h1>
-<p>Módulo de alertas asignadas al usuario autenticado.</p>
+<p>Alertas asignadas al usuario conectado para seguimiento, comentarios y cierre.</p>
+
 <div class="cloud-divider"></div>
+
+<div class="assigned-kpi-row">
+    <div class="assigned-kpi-card red">
+        <span>🚨</span>
+        <div>
+            <strong>@TotalCount</strong>
+            <small>Total asignadas</small>
+        </div>
+    </div>
+
+    <div class="assigned-kpi-card orange">
+        <span>🔥</span>
+        <div>
+            <strong>@CriticalCount</strong>
+            <small>Críticas</small>
+        </div>
+    </div>
+
+    <div class="assigned-kpi-card blue">
+        <span>⚙</span>
+        <div>
+            <strong>@ManagementCount</strong>
+            <small>Management</small>
+        </div>
+    </div>
+
+    <div class="assigned-kpi-card purple">
+        <span>💾</span>
+        <div>
+            <strong>@BackupCount</strong>
+            <small>Backup</small>
+        </div>
+    </div>
+</div>
+
+<div class="cloud-divider"></div>
+
+<div class="assigned-panel">
+    <div class="assigned-header">
+        <div>
+            <h3>Mis incidentes</h3>
+            <small>Última actualización: @LastRefreshAt.ToString("HH:mm:ss")</small>
+        </div>
+
+        <button type="button" class="refresh-btn" @onclick="LoadAssignedAlertsAsync">
+            🔄 Actualizar
+        </button>
+    </div>
+
+    <div class="assigned-toolbar">
+        <input class="assigned-search"
+               placeholder="Buscar cliente, alerta o recurso..."
+               @bind="SearchText"
+               @bind:event="oninput" />
+
+        <select class="assigned-select"
+                @bind="SelectedClient"
+                @bind:after="ClientChangedAsync">
+            <option value="">Todos los clientes</option>
+
+            @foreach (var client in Clients)
+            {
+                <option value="@client">@client</option>
+            }
+        </select>
+
+        <button type="button" class="search-btn" @onclick="SearchAsync">
+            Buscar
+        </button>
+
+        <select class="assigned-select small"
+                @bind="PageSize"
+                @bind:after="PageSizeChangedAsync">
+            <option value="25">25</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+        </select>
+    </div>
+
+    @if (IsLoading)
+    {
+        <p>Cargando alertas asignadas...</p>
+    }
+    else if (!string.IsNullOrWhiteSpace(ErrorMessage))
+    {
+        <div class="assigned-error">@ErrorMessage</div>
+    }
+    else
+    {
+        <div class="table-responsive w-100">
+            <table class="table table-hover align-middle assigned-table">
+                <thead>
+                    <tr>
+                        <th>Cliente</th>
+                        <th>Alerta</th>
+                        <th>Severidad</th>
+                        <th>Tipo</th>
+                        <th>Recurso</th>
+                        <th class="text-center">Eventos</th>
+                        <th>Último evento</th>
+                        <th class="text-center">Acción</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @if (!Alerts.Any())
+                    {
+                        <tr>
+                            <td colspan="8" class="text-center">
+                                No tienes alertas asignadas actualmente.
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var alert in Alerts)
+                        {
+                            <tr>
+                                <td>@alert.ClientName</td>
+                                <td>@alert.AlertName</td>
+                                <td>
+                                    <span class="severity-badge @GetSeverityClass(alert.Severity)">
+                                        @alert.Severity
+                                    </span>
+                                </td>
+                                <td>@alert.AlertType</td>
+                                <td>@alert.ResourceName</td>
+                                <td class="text-center"><strong>@alert.Events</strong></td>
+                                <td>@FormatDate(alert.LastEventAt)</td>
+                                <td class="text-center">
+                                    <button type="button"
+                                            class="detail-btn"
+                                            @onclick="async () => await OpenDetailAsync(alert)">
+                                        🔎 Ver detalle
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="pagination-bar">
+            <div>
+                Página <strong>@PageNumber</strong> de <strong>@TotalPages</strong>
+                — Total: <strong>@TotalCount</strong>
+            </div>
+
+            <div class="pagination-actions">
+                <button type="button"
+                        class="page-btn"
+                        disabled="@(PageNumber <= 1)"
+                        @onclick="PreviousPageAsync">
+                    ◀ Anterior
+                </button>
+
+                <button type="button"
+                        class="page-btn"
+                        disabled="@(PageNumber >= TotalPages)"
+                        @onclick="NextPageAsync">
+                    Siguiente ▶
+                </button>
+            </div>
+        </div>
+    }
+</div>
+
+<AlertDetailDialog IsOpen="@IsDetailOpen"
+                   Detail="@SelectedDetail"
+                   OnClose="CloseDetailAsync"
+                   OnSaveComment="SaveDetailCommentAsync"
+                   OnCloseAlert="CloseDetailAlertAsync" />
+
+<style>
+    .assigned-kpi-row {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 18px;
+    }
+
+    .assigned-kpi-card {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        background: #ffffff;
+        border: 1px solid #dbe4f0;
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: 0 10px 28px rgba(15, 23, 42, 0.06);
+    }
+
+    .assigned-kpi-card span {
+        width: 46px;
+        height: 46px;
+        display: grid;
+        place-items: center;
+        border-radius: 14px;
+        font-size: 24px;
+    }
+
+    .assigned-kpi-card strong {
+        display: block;
+        color: #061634;
+        font-size: 28px;
+        font-weight: 900;
+        line-height: 1;
+    }
+
+    .assigned-kpi-card small {
+        color: #64748b;
+        font-weight: 800;
+    }
+
+    .assigned-kpi-card.red span {
+        background: #fee2e2;
+    }
+
+    .assigned-kpi-card.orange span {
+        background: #fef3c7;
+    }
+
+    .assigned-kpi-card.blue span {
+        background: #dbeafe;
+    }
+
+    .assigned-kpi-card.purple span {
+        background: #ede9fe;
+    }
+
+    .assigned-panel {
+        background: #ffffff;
+        border: 1px solid #dbe4f0;
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 10px 28px rgba(15, 23, 42, 0.06);
+        width: 100%;
+    }
+
+    .assigned-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
+        margin-bottom: 18px;
+    }
+
+    .assigned-header h3 {
+        margin: 0;
+        color: #061634;
+        font-size: 24px;
+        font-weight: 900;
+    }
+
+    .assigned-header small {
+        color: #64748b;
+        font-weight: 800;
+    }
+
+    .assigned-toolbar {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        flex-wrap: wrap;
+        margin-bottom: 18px;
+    }
+
+    .assigned-search {
+        min-width: 320px;
+        flex: 1;
+        border: 1px solid #cbd5e1;
+        border-radius: 10px;
+        padding: 10px 14px;
+        font-weight: 600;
+    }
+
+    .assigned-select,
+    .search-btn,
+    .refresh-btn,
+    .page-btn {
+        border: 1px solid #bcd0ee;
+        background: #ffffff;
+        color: #061634;
+        border-radius: 10px;
+        padding: 10px 14px;
+        font-weight: 800;
+    }
+
+    .assigned-select {
+        min-width: 240px;
+    }
+
+    .assigned-select.small {
+        min-width: 90px;
+    }
+
+    .refresh-btn {
+        color: #1262ff;
+    }
+
+    .assigned-table {
+        border: 1px solid #dbe4f0;
+        border-radius: 12px;
+        overflow: hidden;
+        background: #ffffff;
+        width: 100%;
+    }
+
+    .assigned-table thead th {
+        background: #f6f9fd;
+        color: #061634;
+        font-weight: 900;
+        padding: 14px 16px;
+        border-bottom: 1px solid #dbe4f0;
+        white-space: nowrap;
+    }
+
+    .assigned-table tbody td {
+        padding: 14px 16px;
+        border-bottom: 1px solid #eef2f7;
+        vertical-align: middle;
+    }
+
+    .severity-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        border-radius: 999px;
+        font-size: 13px;
+        font-weight: 900;
+    }
+
+    .severity-badge::before {
+        content: "●";
+        font-size: 10px;
+    }
+
+    .severity-badge.critical {
+        color: #dc2626;
+        background: #fee2e2;
+    }
+
+    .severity-badge.warning {
+        color: #d97706;
+        background: #fef3c7;
+    }
+
+    .severity-badge.info {
+        color: #2563eb;
+        background: #dbeafe;
+    }
+
+    .severity-badge.normal {
+        color: #475569;
+        background: #e2e8f0;
+    }
+
+    .detail-btn {
+        border: 1px solid #bcd0ee;
+        background: #ffffff;
+        color: #1262ff;
+        border-radius: 9px;
+        padding: 9px 16px;
+        font-weight: 900;
+        font-size: 14px;
+    }
+
+    .detail-btn:hover {
+        background: #eff6ff;
+    }
+
+    .pagination-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        flex-wrap: wrap;
+        margin-top: 16px;
+        font-weight: 700;
+        color: #334155;
+    }
+
+    .pagination-actions {
+        display: flex;
+        gap: 10px;
+    }
+
+    .page-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .assigned-error {
+        background: #fee2e2;
+        color: #991b1b;
+        border: 1px solid #fecaca;
+        border-radius: 12px;
+        padding: 14px 16px;
+        font-weight: 800;
+    }
+
+    @@media (max-width: 1100px) {
+        .assigned-kpi-row {
+            grid-template-columns: 1fr;
+        }
+
+        .assigned-search,
+        .assigned-select {
+            min-width: 100%;
+        }
+    }
+</style>
+
+@code {
+    [Parameter] public string UserEmail { get; set; } = "wcambronero@itqscr.com";
+    [Parameter] public string UserName { get; set; } = "William Adrian Cambronero Acosta";
+
+    private List<DashboardAlertItemModel> Alerts = new();
+    private List<string> Clients = new();
+
+    private bool IsLoading = false;
+    private string ErrorMessage = string.Empty;
+
+    private int PageNumber = 1;
+    private int PageSize = 25;
+    private string SearchText = string.Empty;
+    private string SelectedClient = string.Empty;
+    private int TotalCount = 0;
+    private int TotalPages = 0;
+
+    private DateTime LastRefreshAt = DateTime.Now;
+    private PeriodicTimer? RefreshTimer;
+    private CancellationTokenSource? RefreshCts;
+
+    private bool IsDetailOpen = false;
+    private AlertDetailModel? SelectedDetail;
+    private DashboardAlertItemModel? SelectedAlert;
+
+    private int CriticalCount =>
+        Alerts.Count(x => IsCritical(x.Severity));
+
+    private int ManagementCount =>
+        Alerts.Count(x => x.SourceType == "Management");
+
+    private int BackupCount =>
+        Alerts.Count(x => x.SourceType == "Backup");
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAssignedAlertsAsync();
+
+        RefreshCts = new CancellationTokenSource();
+        RefreshTimer = new PeriodicTimer(TimeSpan.FromSeconds(30));
+
+        _ = AutoRefreshAsync(RefreshCts.Token);
+    }
+
+    private async Task LoadAssignedAlertsAsync()
+    {
+        IsLoading = true;
+        ErrorMessage = string.Empty;
+
+        try
+        {
+            Clients = await DashboardService.GetAssignedClientsAsync(UserEmail);
+
+            var result = await DashboardService.GetAssignedAlertsAsync(
+                UserEmail,
+                PageNumber,
+                PageSize,
+                SearchText,
+                SelectedClient);
+
+            Alerts = result.Items;
+            TotalCount = result.TotalCount;
+            TotalPages = result.TotalPages;
+            PageNumber = result.PageNumber;
+            PageSize = result.PageSize;
+            LastRefreshAt = DateTime.Now;
+        }
+        catch
+        {
+            ErrorMessage = "No fue posible cargar las alertas asignadas.";
+            Alerts = new();
+            Clients = new();
+            TotalCount = 0;
+            TotalPages = 0;
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private async Task SearchAsync()
+    {
+        PageNumber = 1;
+        await LoadAssignedAlertsAsync();
+    }
+
+    private async Task ClientChangedAsync()
+    {
+        PageNumber = 1;
+        await LoadAssignedAlertsAsync();
+    }
+
+    private async Task PageSizeChangedAsync()
+    {
+        PageNumber = 1;
+        await LoadAssignedAlertsAsync();
+    }
+
+    private async Task PreviousPageAsync()
+    {
+        if (PageNumber > 1)
+        {
+            PageNumber--;
+            await LoadAssignedAlertsAsync();
+        }
+    }
+
+    private async Task NextPageAsync()
+    {
+        if (PageNumber < TotalPages)
+        {
+            PageNumber++;
+            await LoadAssignedAlertsAsync();
+        }
+    }
+
+    private async Task OpenDetailAsync(DashboardAlertItemModel alert)
+    {
+        SelectedAlert = alert;
+        SelectedDetail = await DashboardService.GetAlertDetailAsync(alert);
+        IsDetailOpen = SelectedDetail is not null;
+    }
+
+    private Task CloseDetailAsync()
+    {
+        IsDetailOpen = false;
+        SelectedDetail = null;
+        SelectedAlert = null;
+
+        return Task.CompletedTask;
+    }
+
+    private async Task SaveDetailCommentAsync(string comment)
+    {
+        if (SelectedDetail is null)
+        {
+            return;
+        }
+
+        var request = new AlertCommentRequestModel
+        {
+            SourceType = SelectedDetail.SourceType,
+            AlertId = SelectedDetail.AlertId,
+            ClientName = SelectedDetail.ClientName,
+            AlertName = SelectedDetail.AlertName,
+            Severity = SelectedDetail.Severity,
+            ResourceName = SelectedDetail.ResourceName,
+            Status = "InProgress",
+            Comment = comment,
+            UpdatedBy = UserName,
+            UserEmail = UserEmail
+        };
+
+        await DashboardService.SaveAlertCommentAsync(request);
+
+        if (SelectedAlert is not null)
+        {
+            SelectedDetail = await DashboardService.GetAlertDetailAsync(SelectedAlert);
+        }
+    }
+
+    private async Task CloseDetailAlertAsync(string comment)
+    {
+        if (SelectedDetail is null)
+        {
+            return;
+        }
+
+        var request = new AlertCommentRequestModel
+        {
+            SourceType = SelectedDetail.SourceType,
+            AlertId = SelectedDetail.AlertId,
+            ClientName = SelectedDetail.ClientName,
+            AlertName = SelectedDetail.AlertName,
+            Severity = SelectedDetail.Severity,
+            ResourceName = SelectedDetail.ResourceName,
+            Status = "Closed",
+            Comment = comment,
+            UpdatedBy = UserName,
+            UserEmail = UserEmail
+        };
+
+        await DashboardService.CloseAlertAsync(request);
+
+        IsDetailOpen = false;
+        SelectedDetail = null;
+        SelectedAlert = null;
+
+        await LoadAssignedAlertsAsync();
+    }
+
+    private string GetSeverityClass(string severity)
+    {
+        return severity?.ToLowerInvariant() switch
+        {
+            "critical" => "critical",
+            "error" => "critical",
+            "high" => "critical",
+            "warning" => "warning",
+            "medium" => "warning",
+            "informational" => "info",
+            "info" => "info",
+            "sev0" => "critical",
+            "sev1" => "critical",
+            "sev2" => "warning",
+            "sev3" => "info",
+            _ => "normal"
+        };
+    }
+
+    private bool IsCritical(string severity)
+    {
+        var value = severity?.ToLowerInvariant();
+
+        return value is "critical" or "error" or "high" or "sev0" or "sev1";
+    }
+
+    private string FormatDate(DateTime? value)
+    {
+        return value.HasValue
+            ? value.Value.ToString("dd/MM/yyyy HH:mm")
+            : "-";
+    }
+
+    private async Task AutoRefreshAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            while (RefreshTimer is not null &&
+                   await RefreshTimer.WaitForNextTickAsync(cancellationToken))
+            {
+                await InvokeAsync(async () =>
+                {
+                    if (!IsDetailOpen)
+                    {
+                        await LoadAssignedAlertsAsync();
+                        StateHasChanged();
+                    }
+                });
+            }
+        }
+        catch (OperationCanceledException)
+        {
+        }
+    }
+
+    public void Dispose()
+    {
+        RefreshCts?.Cancel();
+        RefreshTimer?.Dispose();
+        RefreshCts?.Dispose();
+    }
+}
