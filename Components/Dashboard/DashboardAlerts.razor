@@ -8,11 +8,41 @@
 <div class="cloud-divider"></div>
 
 <div class="kpi-row">
-    <KpiCard Title="Total asignadas" Icon="👤" CssClass="blue" Value="180" Label="Asignadas" />
-    <KpiCard Title="Backup asignadas" Icon="💾" CssClass="purple" Value="45" Label="Backup" />
-    <KpiCard Title="Management asignadas" Icon="⚙" CssClass="orange" Value="135" Label="Management" />
-    <KpiCard Title="Pendientes" Icon="⚠" CssClass="red" Value="170" Label="Pendientes" />
-    <KpiCard Title="Resueltas" Icon="✓" CssClass="green" Value="10" Label="Resueltas" />
+    <KpiCard Title="Alertas activas"
+             Icon="🚨"
+             CssClass="red"
+           Value="@Dashboard.TotalAlerts"
+             Label="Activas" />
+
+    <KpiCard Title="Management"
+             Icon="⚙"
+             CssClass="orange"
+            Value="@Dashboard.ManagementAlerts"
+             Label="Activas" />
+
+    <KpiCard Title="Backup"
+             Icon="💾"
+             CssClass="purple"
+             Value="@Dashboard.BackupAlerts"
+             Label="Activas" />
+
+    <KpiCard Title="Sin asignar"
+             Icon="📋"
+             CssClass="blue"
+             Value="@Dashboard.UnassignedAlerts"
+             Label="Pendientes" />
+
+    <KpiCard Title="Críticas"
+             Icon="🔥"
+             CssClass="red"
+             Value="@Dashboard.CriticalAlerts"
+             Label="Sev0 / Sev1" />
+
+    <KpiCard Title="Nuevas hoy"
+             Icon="📈"
+             CssClass="green"
+             Value="@Dashboard.NewToday"
+             Label="Hoy" />
 </div>
 
 <div class="cloud-divider"></div>
@@ -342,8 +372,10 @@
     [Parameter]
     public string UserName { get; set; } = string.Empty;
 
-    private string SelectedAlertType = "Management";
-    private List<DashboardAlertItemModel> Alerts = new();
+    private AssignedAlertsDashboardModel Dashboard = new();
+
+private string SelectedAlertType = "Management";
+private List<DashboardAlertItemModel> Alerts = new();
 
     private bool IsLoading = false;
     private string ErrorMessage = string.Empty;
@@ -353,6 +385,7 @@
     private string SearchText = string.Empty;
     private int TotalCount = 0;
     private int TotalPages = 0;
+	
 
     protected override async Task OnInitializedAsync()
     {
@@ -396,16 +429,22 @@
         }
     }
 
-    private async Task LoadAlertsAsync()
-    {
-        IsLoading = true;
-        ErrorMessage = string.Empty;
+   private async Task LoadAlertsAsync()
+{
+    IsLoading = true;
+    ErrorMessage = string.Empty;
 
-        try
-        {
-            var result = SelectedAlertType == "Backup"
-                ? await DashboardService.GetBackupAlertsAsync(PageNumber, PageSize, SearchText)
-                : await DashboardService.GetManagementAlertsAsync(PageNumber, PageSize, SearchText);
+    try
+    {
+	var dashboardResult = await DashboardService.GetDashboardAsync(UserEmail);
+
+if (dashboardResult.Success && dashboardResult.Data is not null)
+{
+    Dashboard = dashboardResult.Data;
+}
+        var result = SelectedAlertType == "Backup"
+            ? await DashboardService.GetBackupAlertsAsync(PageNumber, PageSize, SearchText)
+            : await DashboardService.GetManagementAlertsAsync(PageNumber, PageSize, SearchText);
 
             Alerts = result.Items;
             TotalCount = result.TotalCount;
