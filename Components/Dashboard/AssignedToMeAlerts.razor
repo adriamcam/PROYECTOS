@@ -62,35 +62,23 @@
         </button>
     </div>
 
-    <div class="assigned-toolbar">
-        <input class="assigned-search"
-               placeholder="Buscar cliente, alerta o recurso..."
-               @bind="SearchText"
-               @bind:event="oninput" />
+</div>
 
-        <select class="assigned-select"
-                @bind="SelectedClient"
-                @bind:after="ClientChangedAsync">
-            <option value="">Todos los clientes</option>
+<div class="assigned-tabs">
+    <button type="button"
+            class="assigned-tab @(SelectedSourceType == "Management" ? "active" : "")"
+            @onclick='() => ChangeSourceType("Management")'>
+        ⚙ Management Alerts
+    </button>
 
-            @foreach (var client in Clients)
-            {
-                <option value="@client">@client</option>
-            }
-        </select>
+    <button type="button"
+            class="assigned-tab @(SelectedSourceType == "Backup" ? "active" : "")"
+            @onclick='() => ChangeSourceType("Backup")'>
+        💾 Backup Alerts
+    </button>
+</div>
 
-        <button type="button" class="search-btn" @onclick="SearchAsync">
-            Buscar
-        </button>
-
-        <select class="assigned-select small"
-                @bind="PageSize"
-                @bind:after="PageSizeChangedAsync">
-            <option value="25">25</option>
-            <option value="50">50</option>
-            <option value="100">100</option>
-        </select>
-    </div>
+<div class="assigned-toolbar">
 
     @if (IsLoading)
     {
@@ -118,7 +106,7 @@
                 </thead>
 
                 <tbody>
-                    @if (!Alerts.Any())
+                    @if (!FilteredAlerts.Any())
                     {
                         <tr>
                             <td colspan="8" class="text-center">
@@ -128,7 +116,7 @@
                     }
                     else
                     {
-                        @foreach (var alert in Alerts)
+                        @foreach (var alert in FilteredAlerts)
                         {
                             <tr>
                                 <td>@alert.ClientName</td>
@@ -188,6 +176,29 @@
                    OnCloseAlert="CloseDetailAlertAsync" />
 
 <style>
+.assigned-tabs {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+.assigned-tab {
+    border: 1px solid #bcd0ee;
+    background: #ffffff;
+    color: #061634;
+    border-radius: 12px;
+    padding: 13px 24px;
+    font-weight: 900;
+    min-width: 210px;
+}
+
+.assigned-tab.active {
+    background: #2563eb;
+    color: #ffffff;
+    border-color: #2563eb;
+    box-shadow: 0 10px 24px rgba(37, 99, 235, 0.22);
+}
     .assigned-kpi-row {
         display: grid;
         grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -429,6 +440,10 @@
 </style>
 
 @code {
+private void ChangeSourceType(string sourceType)
+{
+    SelectedSourceType = sourceType;
+}
     private List<DashboardAlertItemModel> Alerts = new();
     private List<string> Clients = new();
 
@@ -441,6 +456,7 @@
     private int PageSize = 25;
     private string SearchText = string.Empty;
     private string SelectedClient = string.Empty;
+	private string SelectedSourceType = "Management";
     private int TotalCount = 0;
     private int TotalPages = 0;
 
@@ -451,6 +467,10 @@
     private bool IsDetailOpen = false;
     private AlertDetailModel? SelectedDetail;
     private DashboardAlertItemModel? SelectedAlert;
+	private List<DashboardAlertItemModel> FilteredAlerts =>
+    Alerts
+        .Where(x => x.SourceType == SelectedSourceType)
+        .ToList();
 
     private int CriticalCount =>
         Alerts.Count(x => IsCritical(x.Severity));
