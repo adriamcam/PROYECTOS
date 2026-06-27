@@ -647,64 +647,84 @@
         return Task.CompletedTask;
     }
 
-    private async Task SaveDetailCommentAsync(string comment)
+private async Task SaveDetailCommentAsync(string payload)
+{
+    if (SelectedDetail is null)
     {
-        if (SelectedDetail is null)
-        {
-            return;
-        }
-
-        var request = new AlertCommentRequestModel
-        {
-            SourceType = SelectedDetail.SourceType,
-            AlertId = SelectedDetail.AlertId,
-            ClientName = SelectedDetail.ClientName,
-            AlertName = SelectedDetail.AlertName,
-            Severity = SelectedDetail.Severity,
-            ResourceName = SelectedDetail.ResourceName,
-            Status = "InProgress",
-            Comment = comment,
-            UpdatedBy = UserName,
-            UserEmail = UserEmail
-        };
-
-        await DashboardService.SaveAlertCommentAsync(request);
-
-        if (SelectedAlert is not null)
-        {
-            SelectedDetail = await DashboardService.GetAlertDetailAsync(SelectedAlert);
-        }
+        return;
     }
 
-    private async Task CloseDetailAlertAsync(string comment)
+    var status = "InProgress";
+    var comment = payload;
+
+    if (!string.IsNullOrWhiteSpace(payload) && payload.Contains('|'))
     {
-        if (SelectedDetail is null)
-        {
-            return;
-        }
-
-        var request = new AlertCommentRequestModel
-        {
-            SourceType = SelectedDetail.SourceType,
-            AlertId = SelectedDetail.AlertId,
-            ClientName = SelectedDetail.ClientName,
-            AlertName = SelectedDetail.AlertName,
-            Severity = SelectedDetail.Severity,
-            ResourceName = SelectedDetail.ResourceName,
-            Status = "Closed",
-            Comment = comment,
-            UpdatedBy = UserName,
-            UserEmail = UserEmail
-        };
-
-        await DashboardService.CloseAlertAsync(request);
-
-        IsDetailOpen = false;
-        SelectedDetail = null;
-        SelectedAlert = null;
-
-        await LoadAssignedAlertsAsync();
+        var parts = payload.Split('|', 2);
+        status = parts[0];
+        comment = parts.Length > 1 ? parts[1] : string.Empty;
     }
+
+    var request = new AlertCommentRequestModel
+    {
+        SourceType = SelectedDetail.SourceType,
+        AlertId = SelectedDetail.AlertId,
+        ClientName = SelectedDetail.ClientName,
+        AlertName = SelectedDetail.AlertName,
+        Severity = SelectedDetail.Severity,
+        ResourceName = SelectedDetail.ResourceName,
+        Status = status,
+        Comment = comment,
+        UpdatedBy = UserName,
+        UserEmail = UserEmail
+    };
+
+    await DashboardService.SaveAlertCommentAsync(request);
+
+    if (SelectedAlert is not null)
+    {
+        SelectedDetail = await DashboardService.GetAlertDetailAsync(SelectedAlert);
+    }
+
+    await LoadAssignedAlertsAsync();
+    StateHasChanged();
+}
+private async Task CloseDetailAlertAsync(string payload)
+{
+    if (SelectedDetail is null)
+    {
+        return;
+    }
+
+    var comment = payload;
+
+    if (!string.IsNullOrWhiteSpace(payload) && payload.Contains('|'))
+    {
+        var parts = payload.Split('|', 2);
+        comment = parts.Length > 1 ? parts[1] : string.Empty;
+    }
+
+    var request = new AlertCommentRequestModel
+    {
+        SourceType = SelectedDetail.SourceType,
+        AlertId = SelectedDetail.AlertId,
+        ClientName = SelectedDetail.ClientName,
+        AlertName = SelectedDetail.AlertName,
+        Severity = SelectedDetail.Severity,
+        ResourceName = SelectedDetail.ResourceName,
+        Status = "Closed",
+        Comment = comment,
+        UpdatedBy = UserName,
+        UserEmail = UserEmail
+    };
+
+    await DashboardService.CloseAlertAsync(request);
+
+    IsDetailOpen = false;
+    SelectedDetail = null;
+    SelectedAlert = null;
+
+    await LoadAssignedAlertsAsync();
+}
 
     private string GetSeverityClass(string severity)
     {
