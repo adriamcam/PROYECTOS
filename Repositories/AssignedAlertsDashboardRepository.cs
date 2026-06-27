@@ -490,7 +490,7 @@ SELECT TOP 1
     TenantId = ISNULL(B.TenantId, ''),
     AlertName = ISNULL(B.AlertRule, ''),
     Severity = ISNULL(B.Severity, ''),
-    AlertStatus = CASE WHEN ISNULL(B.Active, 0) = 1 THEN 'InProgress' ELSE 'Closed' END,
+    AlertStatus = COALESCE(NULLIF(H.Status, ''), CASE WHEN ISNULL(B.Active, 0) = 1 THEN 'Activa' ELSE 'Closed' END),
     AlertState = '',
     ResourceName = COALESCE(NULLIF(B.ResourceName, ''), NULLIF(B.VMName, ''), NULLIF(B.ProtectedItem, ''), ''),
     ResourceType = 'Backup',
@@ -507,6 +507,14 @@ SELECT TOP 1
     AssignedEmail = ISNULL(B.AssignedEmail, ''),
     ResolutionNotes = ISNULL(B.ResolutionNotes, '')
 FROM dbo.AlertasBackup B
+OUTER APPLY
+(
+    SELECT TOP 1 Status
+    FROM dbo.AlertUpdatesHistory H
+    WHERE H.KPIType = 'Backup'
+      AND H.AlertId = CAST(B.Id AS bigint)
+    ORDER BY H.UpdatedAt DESC
+) H
 WHERE B.Id = @AlertId;
 
 SELECT
@@ -550,7 +558,7 @@ SELECT TOP 1
     TenantId = ISNULL(A.TenantId, ''),
     AlertName = ISNULL(A.AlertName, ''),
     Severity = ISNULL(A.Severity, ''),
-    AlertStatus = ISNULL(A.AlertStatus, CASE WHEN ISNULL(A.Active, 0) = 1 THEN 'InProgress' ELSE 'Closed' END),
+    AlertStatus = COALESCE(NULLIF(A.AlertStatus, ''), NULLIF(H.Status, ''), CASE WHEN ISNULL(A.Active, 0) = 1 THEN 'Activa' ELSE 'Closed' END),
     AlertState = ISNULL(A.AlertState, ''),
     ResourceName = ISNULL(A.TargetResourceName, ''),
     ResourceType = ISNULL(I.Type, ''),
@@ -570,6 +578,14 @@ FROM dbo.AlertsManagement A
 LEFT JOIN dbo.ITQS_CustomerInventory_Current I
     ON I.SubscriptionId = A.SubscriptionId
    AND I.Name = A.TargetResourceName
+OUTER APPLY
+(
+    SELECT TOP 1 Status
+    FROM dbo.AlertUpdatesHistory H
+    WHERE H.KPIType = 'Management'
+      AND H.AlertId = CAST(A.Id AS bigint)
+    ORDER BY H.UpdatedAt DESC
+) H
 WHERE A.Id = @AlertId;
 
 SELECT
@@ -606,14 +622,24 @@ ORDER BY UpdatedAt DESC;
 //========================================================
 // COMENTARIOS
 //========================================================
-
 public async Task SaveAlertCommentAsync(
     AlertCommentRequestModel request,
     CancellationToken cancellationToken = default)
 {
     using var connection = _connectionFactory.CreateConnection();
 
-    const string sql = @"
+    string sql;
+
+    if (request.SourceType == "Management")
+    {
+        sql = @"
+UPDATE dbo.AlertsManagement
+SET
+    AlertStatus = @Status,
+    UpdatedAt = GETDATE(),
+    LastUpdatedBy = @UpdatedBy
+WHERE Id = @AlertId;
+
 INSERT INTO dbo.AlertUpdatesHistory
 (
     KPIType,
@@ -637,7 +663,44 @@ VALUES
     @ResourceName,
     @AlertName,
     @UserEmail
-);";
+);
+";
+    }
+    else
+    {
+        sql = @"
+UPDATE dbo.AlertasBackup
+SET
+    UpdatedAt = GETDATE(),
+    LastUpdatedBy = @UpdatedBy
+WHERE Id = @AlertId;
+
+INSERT INTO dbo.AlertUpdatesHistory
+(
+    KPIType,
+    AlertId,
+    Comment,
+    Status,
+    UpdatedBy,
+    UpdatedAt,
+    Res_nom,
+    Alert_nom,
+    UserEmail
+)
+VALUES
+(
+    @KPIType,
+    @AlertId,
+    @Comment,
+    @Status,
+    @UpdatedBy,
+    GETDATE(),
+    @ResourceName,
+    @AlertName,
+    @UserEmail
+);
+";
+    }
 
     await connection.ExecuteAsync(sql, new
     {
@@ -651,6 +714,7 @@ VALUES
         request.UserEmail
     });
 }
+
 //========================================================
 // CERRAR ALERTA
 //========================================================
@@ -671,11 +735,7 @@ SET
     ResolutionNotes = @Comment,
     LastUpdatedBy = @UpdatedBy,
     UpdatedAt = SYSDATETIME()
-WHERE ISNULL(Active, 0) = 1
-  AND ISNULL(NULLIF(SubscriptionName, ''), 'Sin cliente') = @ClientName
-  AND ISNULL(NULLIF(AlertRule, ''), 'Sin nombre') = @AlertName
-  AND ISNULL(NULLIF(Severity, ''), 'Unknown') = @Severity
-  AND COALESCE(NULLIF(ResourceName, ''), NULLIF(VMName, ''), NULLIF(ProtectedItem, ''), 'Sin recurso') = @ResourceName;
+WHERE Id = @AlertId;
 
 INSERT INTO dbo.AlertUpdatesHistory
 (
@@ -700,16 +760,15 @@ VALUES
     @ResourceName,
     @AlertName,
     @UserEmail
-);";
+);
+";
 
         await connection.ExecuteAsync(sql, new
         {
             KPIType = request.SourceType,
             request.AlertId,
-            request.ClientName,
-            request.AlertName,
-            request.Severity,
             request.ResourceName,
+            request.AlertName,
             request.Comment,
             request.UpdatedBy,
             request.UserEmail
@@ -726,11 +785,7 @@ SET
     ResolutionNotes = @Comment,
     LastUpdatedBy = @UpdatedBy,
     UpdatedAt = SYSDATETIME()
-WHERE ISNULL(Active, 0) = 1
-  AND ISNULL(NULLIF(SubscriptionName, ''), 'Sin cliente') = @ClientName
-  AND ISNULL(NULLIF(AlertName, ''), 'Sin nombre') = @AlertName
-  AND ISNULL(NULLIF(Severity, ''), 'Unknown') = @Severity
-  AND ISNULL(NULLIF(TargetResourceName, ''), 'Sin recurso') = @ResourceName;
+WHERE Id = @AlertId;
 
 INSERT INTO dbo.AlertUpdatesHistory
 (
@@ -755,22 +810,22 @@ VALUES
     @ResourceName,
     @AlertName,
     @UserEmail
-);";
+);
+";
 
         await connection.ExecuteAsync(sql, new
         {
             KPIType = request.SourceType,
             request.AlertId,
-            request.ClientName,
-            request.AlertName,
-            request.Severity,
             request.ResourceName,
+            request.AlertName,
             request.Comment,
             request.UpdatedBy,
             request.UserEmail
         });
     }
 }
+
 //========================================================
 // ASIGNADAS A MÍ
 //========================================================
@@ -856,35 +911,53 @@ FROM GroupedAlerts;
 (
     SELECT
         SourceType = 'Management',
-        Id = CAST(Id AS bigint),
-        ClientName = ISNULL(NULLIF(SubscriptionName, ''), 'Sin cliente'),
-        AlertName = ISNULL(NULLIF(AlertName, ''), 'Sin nombre'),
-        Severity = ISNULL(NULLIF(Severity, ''), 'Unknown'),
+        Id = CAST(A.Id AS bigint),
+        ClientName = ISNULL(NULLIF(A.SubscriptionName, ''), 'Sin cliente'),
+        AlertName = ISNULL(NULLIF(A.AlertName, ''), 'Sin nombre'),
+        Severity = ISNULL(NULLIF(A.Severity, ''), 'Unknown'),
         AlertType = 'Management',
-        ResourceName = ISNULL(NULLIF(TargetResourceName, ''), 'Sin recurso'),
-        LastEventAt = ISNULL(UpdatedAt, InsertedAt),
-        AssignedTo = ISNULL(AssignedTo, ''),
-        AssignedEmail = ISNULL(AssignedEmail, '')
-    FROM dbo.AlertsManagement
-    WHERE ISNULL(Active, 0) = 1
-      AND LOWER(ISNULL(AssignedEmail, '')) = LOWER(@UserEmail)
+        ResourceName = ISNULL(NULLIF(A.TargetResourceName, ''), 'Sin recurso'),
+        LastEventAt = ISNULL(A.UpdatedAt, A.InsertedAt),
+        AssignedTo = ISNULL(A.AssignedTo, ''),
+        AssignedEmail = ISNULL(A.AssignedEmail, ''),
+        AlertStatus = COALESCE(NULLIF(A.AlertStatus, ''), NULLIF(H.Status, ''), 'Activa')
+    FROM dbo.AlertsManagement A
+    OUTER APPLY
+    (
+        SELECT TOP 1 Status
+        FROM dbo.AlertUpdatesHistory H
+        WHERE H.KPIType = 'Management'
+          AND H.AlertId = CAST(A.Id AS bigint)
+        ORDER BY H.UpdatedAt DESC
+    ) H
+    WHERE ISNULL(A.Active, 0) = 1
+      AND LOWER(ISNULL(A.AssignedEmail, '')) = LOWER(@UserEmail)
 
     UNION ALL
 
     SELECT
         SourceType = 'Backup',
-        Id = CAST(Id AS bigint),
-        ClientName = ISNULL(NULLIF(SubscriptionName, ''), 'Sin cliente'),
-        AlertName = ISNULL(NULLIF(AlertRule, ''), 'Sin nombre'),
-        Severity = ISNULL(NULLIF(Severity, ''), 'Unknown'),
+        Id = CAST(B.Id AS bigint),
+        ClientName = ISNULL(NULLIF(B.SubscriptionName, ''), 'Sin cliente'),
+        AlertName = ISNULL(NULLIF(B.AlertRule, ''), 'Sin nombre'),
+        Severity = ISNULL(NULLIF(B.Severity, ''), 'Unknown'),
         AlertType = 'Backup',
-        ResourceName = COALESCE(NULLIF(ResourceName, ''), NULLIF(VMName, ''), NULLIF(ProtectedItem, ''), 'Sin recurso'),
-        LastEventAt = ISNULL(UpdatedAt, InsertedAt),
-        AssignedTo = ISNULL(AssignedTo, ''),
-        AssignedEmail = ISNULL(AssignedEmail, '')
-    FROM dbo.AlertasBackup
-    WHERE ISNULL(Active, 0) = 1
-      AND LOWER(ISNULL(AssignedEmail, '')) = LOWER(@UserEmail)
+        ResourceName = COALESCE(NULLIF(B.ResourceName, ''), NULLIF(B.VMName, ''), NULLIF(B.ProtectedItem, ''), 'Sin recurso'),
+        LastEventAt = ISNULL(B.UpdatedAt, B.InsertedAt),
+        AssignedTo = ISNULL(B.AssignedTo, ''),
+        AssignedEmail = ISNULL(B.AssignedEmail, ''),
+        AlertStatus = COALESCE(NULLIF(H.Status, ''), 'Activa')
+    FROM dbo.AlertasBackup B
+    OUTER APPLY
+    (
+        SELECT TOP 1 Status
+        FROM dbo.AlertUpdatesHistory H
+        WHERE H.KPIType = 'Backup'
+          AND H.AlertId = CAST(B.Id AS bigint)
+        ORDER BY H.UpdatedAt DESC
+    ) H
+    WHERE ISNULL(B.Active, 0) = 1
+      AND LOWER(ISNULL(B.AssignedEmail, '')) = LOWER(@UserEmail)
 ),
 GroupedAlerts AS
 (
@@ -898,6 +971,7 @@ GroupedAlerts AS
         ResourceName,
         Events = COUNT(1),
         LastEventAt = MAX(LastEventAt),
+        AlertStatus = MAX(AlertStatus),
         AssignedTo = MAX(AssignedTo),
         AssignedEmail = MAX(AssignedEmail)
     FROM AssignedAlerts
@@ -933,6 +1007,7 @@ SELECT
     ResourceName,
     Events,
     LastEventAt,
+    AlertStatus,
     AssignedTo,
     AssignedEmail
 FROM GroupedAlerts

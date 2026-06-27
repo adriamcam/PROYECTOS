@@ -184,9 +184,12 @@
                     Guardar comentario
                 </button>
 
-                <button type="button" class="danger-btn" @onclick="CloseAlert">
-                    Cerrar alerta
-                </button>
+              <button type="button"
+        class="danger-btn"
+        disabled="@(!CanCloseAlert)"
+        @onclick="CloseAlert">
+    Cerrar alerta
+</button>
             </div>
         </div>
     </div>
@@ -509,10 +512,12 @@
         color: #061634;
     }
 
-    .danger-btn {
-        background: #dc2626;
-        color: #ffffff;
-    }
+    .danger-btn:disabled {
+    background: #cbd5e1;
+    color: #64748b;
+    cursor: not-allowed;
+    opacity: .6;
+}
 
     @@media (max-width: 1100px) {
         .detail-layout,
@@ -533,6 +538,8 @@
 
     private string Comment { get; set; } = string.Empty;
     private string SelectedStatus { get; set; } = "InProgress";
+	private bool CanCloseAlert =>
+    SelectedStatus.Equals("Closed", StringComparison.OrdinalIgnoreCase);
 
     protected override void OnParametersSet()
     {
@@ -544,23 +551,26 @@
         }
     }
 
-    private async Task Close()
-    {
-        Comment = string.Empty;
-        await OnClose.InvokeAsync();
-    }
 
-    private async Task SaveComment()
-    {
-        await OnSaveComment.InvokeAsync(Comment);
-        Comment = string.Empty;
-    }
+private async Task CloseAlert()
+{
+    if (!CanCloseAlert)
+        return;
 
-    private async Task CloseAlert()
-    {
-        await OnCloseAlert.InvokeAsync(Comment);
-        Comment = string.Empty;
-    }
+    await OnCloseAlert.InvokeAsync($"{SelectedStatus}|{Comment}");
+    Comment = string.Empty;
+}
+
+private async Task Close()
+{
+    Comment = string.Empty;
+    await OnClose.InvokeAsync();
+}
+private async Task SaveComment()
+{
+    await OnSaveComment.InvokeAsync($"{SelectedStatus}|{Comment}");
+    Comment = string.Empty;
+}
 
     private string FormatDate(DateTime? value)
     {
