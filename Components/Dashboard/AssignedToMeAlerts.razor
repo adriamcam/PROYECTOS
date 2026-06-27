@@ -565,13 +565,19 @@
         }
     }
 
-    private async Task OpenDetailAsync(DashboardAlertItemModel alert)
+  private async Task OpenDetailAsync(DashboardAlertItemModel alert)
+{
+    SelectedAlert = alert;
+    SelectedDetail = await DashboardService.GetAlertDetailAsync(alert);
+
+    if (SelectedDetail is null)
     {
-        SelectedAlert = alert;
-        SelectedDetail = await DashboardService.GetAlertDetailAsync(alert);
-        IsDetailOpen = SelectedDetail is not null;
+        ErrorMessage = $"No se encontró detalle para la alerta: {alert.AlertName} - {alert.ResourceName}";
+        return;
     }
 
+    IsDetailOpen = true;
+}
     private Task CloseDetailAsync()
     {
         IsDetailOpen = false;
