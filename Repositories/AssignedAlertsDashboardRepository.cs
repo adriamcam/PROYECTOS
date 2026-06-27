@@ -502,16 +502,12 @@ SELECT TOP 1
     Events = @Events,
     AlertTime = B.AlertTime,
     FirstOccurrence = B.InsertedAt,
-    LastOccurrence = B.UpdatedAt,
+    LastOccurrence = ISNULL(B.UpdatedAt, B.InsertedAt),
     AssignedTo = ISNULL(B.AssignedTo, ''),
     AssignedEmail = ISNULL(B.AssignedEmail, ''),
     ResolutionNotes = ISNULL(B.ResolutionNotes, '')
 FROM dbo.AlertasBackup B
-WHERE ISNULL(B.SubscriptionName, '') = @ClientName
-  AND ISNULL(B.AlertRule, '') = @AlertName
-  AND ISNULL(B.Severity, '') = @Severity
-  AND COALESCE(NULLIF(B.ResourceName, ''), NULLIF(B.VMName, ''), NULLIF(B.ProtectedItem, ''), '') = @ResourceName
-ORDER BY ISNULL(B.UpdatedAt, B.InsertedAt) DESC;
+WHERE B.Id = @AlertId;
 
 SELECT
     HistoryId,
@@ -524,17 +520,13 @@ SELECT
     UpdatedAt
 FROM dbo.AlertUpdatesHistory
 WHERE KPIType = 'Backup'
-  AND ISNULL(Res_nom, '') = @ResourceName
-  AND ISNULL(Alert_nom, '') = @AlertName
+  AND AlertId = @AlertId
 ORDER BY UpdatedAt DESC;
 ";
 
         using var multi = await connection.QueryMultipleAsync(sql, new
         {
-            alert.ClientName,
-            alert.AlertName,
-            alert.Severity,
-            alert.ResourceName,
+            AlertId = alert.Id,
             alert.Events
         });
 
@@ -547,9 +539,8 @@ ORDER BY UpdatedAt DESC;
 
         return detail;
     }
-    else
-    {
-        const string sql = @"
+
+    const string managementSql = @"
 SELECT TOP 1
     SourceType = 'Management',
     AlertId = CAST(A.Id AS bigint),
@@ -571,7 +562,7 @@ SELECT TOP 1
     Events = @Events,
     AlertTime = A.AlertTime,
     FirstOccurrence = A.InsertedAt,
-    LastOccurrence = A.UpdatedAt,
+    LastOccurrence = ISNULL(A.UpdatedAt, A.InsertedAt),
     AssignedTo = ISNULL(A.AssignedTo, ''),
     AssignedEmail = ISNULL(A.AssignedEmail, ''),
     ResolutionNotes = ISNULL(A.ResolutionNotes, '')
@@ -579,11 +570,7 @@ FROM dbo.AlertsManagement A
 LEFT JOIN dbo.ITQS_CustomerInventory_Current I
     ON I.SubscriptionId = A.SubscriptionId
    AND I.Name = A.TargetResourceName
-WHERE ISNULL(A.SubscriptionName, '') = @ClientName
-  AND ISNULL(A.AlertName, '') = @AlertName
-  AND ISNULL(A.Severity, '') = @Severity
-  AND ISNULL(A.TargetResourceName, '') = @ResourceName
-ORDER BY ISNULL(A.UpdatedAt, A.InsertedAt) DESC;
+WHERE A.Id = @AlertId;
 
 SELECT
     HistoryId,
@@ -596,29 +583,24 @@ SELECT
     UpdatedAt
 FROM dbo.AlertUpdatesHistory
 WHERE KPIType = 'Management'
-  AND ISNULL(Res_nom, '') = @ResourceName
-  AND ISNULL(Alert_nom, '') = @AlertName
+  AND AlertId = @AlertId
 ORDER BY UpdatedAt DESC;
 ";
 
-        using var multi = await connection.QueryMultipleAsync(sql, new
-        {
-            alert.ClientName,
-            alert.AlertName,
-            alert.Severity,
-            alert.ResourceName,
-            alert.Events
-        });
+    using var managementMulti = await connection.QueryMultipleAsync(managementSql, new
+    {
+        AlertId = alert.Id,
+        alert.Events
+    });
 
-        var detail = await multi.ReadFirstOrDefaultAsync<AlertDetailModel>();
+    var managementDetail = await managementMulti.ReadFirstOrDefaultAsync<AlertDetailModel>();
 
-        if (detail is not null)
-        {
-            detail.History = (await multi.ReadAsync<AlertHistoryItemModel>()).ToList();
-        }
-
-        return detail;
+    if (managementDetail is not null)
+    {
+        managementDetail.History = (await managementMulti.ReadAsync<AlertHistoryItemModel>()).ToList();
     }
+
+    return managementDetail;
 }
 
 //========================================================
