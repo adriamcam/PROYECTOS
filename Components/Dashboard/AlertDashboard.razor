@@ -1,219 +1,145 @@
 @using ITQS.SupportOperationsCenter.Models.Dashboard
 @using ITQS.SupportOperationsCenter.Services.Interfaces
-@using ITQS.SupportOperationsCenter.Components.Shared
-@inject IAlertService AlertService
+
+@inject IAlertMonitoringDashboardService AlertMonitoringService
 
 <h1>Monitoreo de Alertas</h1>
-<p>Monitoreo centralizado de alertas, asignaciones y operación.</p>
+<p>Vista general del estado actual de las alertas en todos los clientes y entornos.</p>
 
 <div class="cloud-divider"></div>
 
 @if (IsLoading)
 {
-    <p>Cargando KPI de alertas...</p>
-}
-else if (!string.IsNullOrWhiteSpace(ErrorMessage))
-{
-    <div class="soc-alert-error">
-        @ErrorMessage
-    </div>
+    <div class="monitor-card loading-card">Cargando monitoreo de alertas...</div>
 }
 else
 {
-    <div class="kpi-row">
-        <KpiCard Title="Alertas Totales" Icon="🔔" CssClass="blue" Value="@Dashboard.TotalAlerts" Label="Activas" />
-        <KpiCard Title="Backup Alerts" Icon="💾" CssClass="purple" Value="@Dashboard.BackupAlerts" Label="Activas" />
-        <KpiCard Title="Management Alerts" Icon="⚙" CssClass="orange" Value="@Dashboard.ManagementAlerts" Label="Activas" />
-        <KpiCard Title="Asignadas a mí" Icon="👤" CssClass="green" Value="@Dashboard.AssignedToMe" Label="Pendientes" />
-        <KpiCard Title="Sin asignar" Icon="⚠" CssClass="red" Value="@Dashboard.Unassigned" Label="Pendientes" />
-        <KpiCard Title="Resueltas hoy" Icon="✓" CssClass="purple" Value="@Dashboard.ResolvedToday" Label="Cerradas" />
-    </div>
+    <section class="monitor-kpis">
+        <div class="monitor-kpi"><span class="kpi-icon blue">🏢</span><div><small>Clientes afectados</small><b>@Dashboard.Kpis.AffectedClients</b><em>Con alertas activas</em></div></div>
+        <div class="monitor-kpi"><span class="kpi-icon red">⚠</span><div><small>Críticas activas</small><b>@Dashboard.Kpis.CriticalAlerts</b><em>Sev0 / Sev1</em></div></div>
+        <div class="monitor-kpi"><span class="kpi-icon green">👥</span><div><small>Ingenieros con carga</small><b>@Dashboard.Kpis.EngineersWithLoad</b><em>Con alertas asignadas</em></div></div>
+        <div class="monitor-kpi"><span class="kpi-icon amber">🧩</span><div><small>Recursos afectados</small><b>@Dashboard.Kpis.AffectedResources</b><em>Recursos únicos</em></div></div>
+        <div class="monitor-kpi"><span class="kpi-icon purple">⏱</span><div><small>Tiempo promedio resolución</small><b>@FormatHours(Dashboard.Kpis.AverageResolutionHours)</b><em>Últimos 7 días</em></div></div>
+        <div class="monitor-kpi"><span class="kpi-icon green">✅</span><div><small>Resueltas hoy</small><b>@Dashboard.Kpis.ResolvedToday</b><em>Alertas cerradas hoy</em></div></div>
+    </section>
 
-    <div class="cloud-divider"></div>
-
-    <div class="soc-insights-grid">
-        <div class="soc-insight-card">
-            <div class="soc-insight-header">
-                <h3>Alertas por severidad</h3>
-                <span>Distribución actual</span>
-            </div>
-
-            <div class="severity-list">
-                @if (Dashboard.Severities.Any())
-                {
-                    @foreach (var item in Dashboard.Severities)
-                    {
-                        <div class="severity-row">
-                            <span class="severity-dot @GetSeverityCss(item.Severity)"></span>
-                            <span>@item.Severity</span>
-                            <strong>@item.Total</strong>
-                        </div>
-                    }
-                }
-                else
-                {
-                    <div class="severity-row">
-                        <span class="severity-dot low"></span>
-                        <span>Sin datos aún</span>
-                        <strong>0</strong>
-                    </div>
-                }
-            </div>
+    <section class="monitor-secondary">
+        <div class="monitor-card">
+            <div class="card-title"><h3>Distribución por fuente</h3><small>Management vs Backup</small></div>
+            @foreach (var item in Dashboard.SourceDistribution)
+            {
+                <div class="metric-row"><span>@item.SourceType</span><div class="bar-wrap"><div class="bar-fill source" style="width:@ClampPercent(item.Percentage)%"></div></div><b>@item.TotalAlerts</b><small>@item.Percentage.ToString("0.0")%</small></div>
+            }
         </div>
 
-        <div class="soc-insight-card">
-            <div class="soc-insight-header">
-                <h3>Top clientes</h3>
-                <span>Mayor volumen de alertas</span>
-            </div>
-
-            <div class="top-client-list">
-                @if (Dashboard.TopClients.Any())
+        <div class="monitor-card">
+            <div class="card-title"><h3>Tendencia de alertas</h3><small>Últimos 7 días</small></div>
+            <div class="trend-grid">
+                @foreach (var item in Dashboard.Trends)
                 {
-                    @foreach (var item in Dashboard.TopClients)
-                    {
-                        <div class="top-client-row">
-                            <span>@item.ClientName</span>
-                            <strong>@item.Total</strong>
-                        </div>
-                    }
-                }
-                else
-                {
-                    <div class="top-client-row">
-                        <span>Sin datos aún</span>
-                        <strong>0</strong>
-                    </div>
+                    var max = MaxTrendValue;
+                    var newHeight = max == 0 ? 0 : Math.Max(6, item.NewAlerts * 100 / max);
+                    var criticalHeight = max == 0 ? 0 : Math.Max(6, item.CriticalAlerts * 100 / max);
+                    var closedHeight = max == 0 ? 0 : Math.Max(6, item.ClosedAlerts * 100 / max);
+                    <div class="trend-day"><div class="trend-bars"><i class="new" style="height:@newHeight%"></i><i class="critical" style="height:@criticalHeight%"></i><i class="closed" style="height:@closedHeight%"></i></div><small>@item.TrendDate.ToString("dd/MM")</small></div>
                 }
             </div>
+            <div class="legend"><span><i class="new"></i> Nuevas</span><span><i class="critical"></i> Críticas</span><span><i class="closed"></i> Cerradas</span></div>
         </div>
-    </div>
+
+        <div class="monitor-card">
+            <div class="card-title"><h3>Top clientes por alertas activas</h3><small>Mayor volumen</small></div>
+            @foreach (var client in Dashboard.TopClients)
+            {
+                var pct = MaxClientAlerts == 0 ? 0 : Math.Max(3, client.TotalAlerts * 100 / MaxClientAlerts);
+                <div class="ranking-row"><div><b>@client.ClientName</b><small>Críticas: @client.CriticalAlerts</small></div><div class="bar-wrap"><div class="bar-fill danger" style="width:@pct%"></div></div><strong>@client.TotalAlerts</strong></div>
+            }
+        </div>
+    </section>
+
+    <section class="monitor-bottom">
+        <div class="monitor-card">
+            <div class="card-title"><h3>Alertas por severidad</h3><small>Distribución actual</small></div>
+            @foreach (var severity in Dashboard.SeverityDistribution)
+            {
+                <div class="severity-row"><span class="@GetSeverityDot(severity.SeverityGroup)"></span><b>@severity.SeverityGroup</b><div class="bar-wrap"><div class="bar-fill @GetSeverityBar(severity.SeverityGroup)" style="width:@ClampPercent(severity.Percentage)%"></div></div><strong>@severity.TotalAlerts</strong><small>@severity.Percentage.ToString("0.0")%</small></div>
+            }
+        </div>
+
+        <div class="monitor-card">
+            <div class="card-title"><h3>Actividad reciente</h3><small>Últimos eventos</small></div>
+            @foreach (var activity in Dashboard.RecentActivity)
+            {
+                <div class="activity-row"><span class="@GetActivityIcon(activity.ActivityType)">@GetActivitySymbol(activity.ActivityType)</span><div><b>@activity.AlertName</b><small>@activity.ClientName · @activity.ResourceName</small></div><em>@activity.Severity</em><strong>@FormatDate(activity.ActivityDate)</strong></div>
+            }
+        </div>
+
+        <div class="monitor-card">
+            <div class="card-title"><h3>Top alertas activas</h3><small>Reglas con más recurrencia</small></div>
+            @foreach (var alert in Dashboard.TopAlerts)
+            {
+                var pct = MaxTopAlertEvents == 0 ? 0 : Math.Max(3, alert.TotalAlerts * 100 / MaxTopAlertEvents);
+                <div class="ranking-row"><div><b>@alert.AlertName</b><small>@alert.SourceType</small></div><div class="bar-wrap"><div class="bar-fill warning" style="width:@pct%"></div></div><strong>@alert.TotalAlerts</strong></div>
+            }
+        </div>
+    </section>
 }
 
 <style>
-    .soc-insights-grid {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 20px;
-        margin-top: 24px;
-    }
-
-    .soc-insight-card {
-        background: #ffffff;
-        border: 1px solid #dbe4f0;
-        border-radius: 16px;
-        padding: 22px;
-        box-shadow: 0 10px 28px rgba(15, 23, 42, 0.06);
-        min-height: 240px;
-    }
-
-    .soc-insight-header {
-        display: flex;
-        align-items: flex-start;
-        justify-content: space-between;
-        gap: 16px;
-        margin-bottom: 18px;
-    }
-
-    .soc-insight-header h3 {
-        margin: 0;
-        color: #061634;
-        font-size: 20px;
-        font-weight: 800;
-    }
-
-    .soc-insight-header span {
-        color: #64748b;
-        font-size: 13px;
-        font-weight: 700;
-    }
-
-    .severity-list,
-    .top-client-list {
-        display: flex;
-        flex-direction: column;
-        gap: 14px;
-    }
-
-    .severity-row,
-    .top-client-row {
-        display: grid;
-        grid-template-columns: auto 1fr auto;
-        align-items: center;
-        gap: 12px;
-        padding: 12px 14px;
-        background: #f8fafc;
-        border: 1px solid #e2e8f0;
-        border-radius: 12px;
-        font-weight: 700;
-    }
-
-    .top-client-row {
-        grid-template-columns: 1fr auto;
-    }
-
-    .severity-dot {
-        width: 12px;
-        height: 12px;
-        border-radius: 999px;
-        display: inline-block;
-    }
-
-    .severity-dot.critical {
-        background: #dc2626;
-    }
-
-    .severity-dot.high {
-        background: #f97316;
-    }
-
-    .severity-dot.medium {
-        background: #eab308;
-    }
-
-    .severity-dot.low {
-        background: #22c55e;
-    }
-
-    @@media (max-width: 1100px) {
-        .soc-insights-grid {
-            grid-template-columns: 1fr;
-        }
-    }
+.monitor-kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:16px;margin-bottom:18px}.monitor-kpi{background:#fff;border:1px solid #dbe4f0;border-radius:16px;padding:18px;display:flex;gap:14px;align-items:center;box-shadow:0 10px 26px rgba(15,23,42,.06)}.monitor-kpi small{display:block;color:#061634;font-weight:900}.monitor-kpi b{display:block;font-size:30px;color:#0f5cff;line-height:1.1}.monitor-kpi em{display:block;color:#64748b;font-style:normal;font-weight:700;font-size:12px}.kpi-icon{width:52px;height:52px;border-radius:16px;display:grid;place-items:center;font-size:25px}.kpi-icon.blue{background:#dbeafe}.kpi-icon.red{background:#fee2e2}.kpi-icon.green{background:#dcfce7}.kpi-icon.amber{background:#fef3c7}.kpi-icon.purple{background:#ede9fe}.monitor-secondary{display:grid;grid-template-columns:1fr 1fr 1.2fr;gap:18px;margin-bottom:18px}.monitor-bottom{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px}.monitor-card{background:#fff;border:1px solid #dbe4f0;border-radius:16px;padding:18px;box-shadow:0 10px 26px rgba(15,23,42,.06)}.card-title{display:flex;justify-content:space-between;gap:12px;margin-bottom:16px}.card-title h3{margin:0;color:#061634;font-weight:900}.card-title small{color:#64748b;font-weight:800}.metric-row,.severity-row,.ranking-row,.activity-row{display:grid;align-items:center;gap:12px;border-top:1px solid #eef2f7;padding:13px 0}.metric-row{grid-template-columns:110px 1fr 70px 60px}.severity-row{grid-template-columns:14px 145px 1fr 70px 60px}.ranking-row{grid-template-columns:1.3fr 1fr 80px}.activity-row{grid-template-columns:32px 1fr 70px 80px}.ranking-row b,.activity-row b{color:#061634}.ranking-row small,.activity-row small{display:block;color:#64748b;font-weight:700}.bar-wrap{height:9px;background:#e2e8f0;border-radius:999px;overflow:hidden}.bar-fill{height:100%;border-radius:999px}.bar-fill.source{background:#2563eb}.bar-fill.danger{background:#ef4444}.bar-fill.warning{background:#f59e0b}.bar-fill.critical{background:#ef4444}.bar-fill.high{background:#f97316}.bar-fill.medium{background:#f59e0b}.bar-fill.low{background:#22c55e}.bar-fill.info{background:#3b82f6}.trend-grid{height:220px;display:grid;grid-template-columns:repeat(7,1fr);gap:12px;align-items:end;border-bottom:1px solid #dbe4f0;padding:16px 0}.trend-day{height:100%;display:flex;flex-direction:column;justify-content:end;align-items:center;gap:8px}.trend-bars{height:180px;display:flex;align-items:end;gap:5px}.trend-bars i{width:8px;border-radius:999px;display:block}.trend-bars .new,.legend .new{background:#2563eb}.trend-bars .critical,.legend .critical{background:#ef4444}.trend-bars .closed,.legend .closed{background:#16a34a}.legend{display:flex;gap:18px;margin-top:12px;color:#64748b;font-weight:800}.legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px}.sev-dot-critical,.sev-dot-high,.sev-dot-medium,.sev-dot-low,.sev-dot-info{width:11px;height:11px;border-radius:50%;display:inline-block}.sev-dot-critical{background:#ef4444}.sev-dot-high{background:#f97316}.sev-dot-medium{background:#f59e0b}.sev-dot-low{background:#22c55e}.sev-dot-info{background:#3b82f6}.activity-icon{width:28px;height:28px;border-radius:9px;display:grid;place-items:center;font-weight:900}.activity-icon.close{color:#166534;background:#dcfce7}.activity-icon.active{color:#b45309;background:#fef3c7}.loading-card{font-weight:900;color:#64748b}@@media(max-width:1500px){.monitor-kpis{grid-template-columns:repeat(3,1fr)}.monitor-secondary,.monitor-bottom{grid-template-columns:1fr}}@@media(max-width:760px){.monitor-kpis{grid-template-columns:1fr}.metric-row,.severity-row,.ranking-row,.activity-row{grid-template-columns:1fr}.trend-grid{overflow-x:auto}}
 </style>
 
 @code {
-    [Parameter]
-    public string UserEmail { get; set; } = "wcambronero@itqscr.com";
+    private AlertMonitoringDashboardModel Dashboard = new();
+    private bool IsLoading = true;
 
-    private AlertDashboardModel Dashboard { get; set; } = new();
-    private bool IsLoading { get; set; } = true;
-    private string? ErrorMessage { get; set; }
+    private int MaxTrendValue => Dashboard.Trends.Count == 0 ? 0 : Dashboard.Trends.Max(x => Math.Max(x.NewAlerts, Math.Max(x.CriticalAlerts, x.ClosedAlerts)));
+    private int MaxClientAlerts => Dashboard.TopClients.Count == 0 ? 0 : Dashboard.TopClients.Max(x => x.TotalAlerts);
+    private int MaxTopAlertEvents => Dashboard.TopAlerts.Count == 0 ? 0 : Dashboard.TopAlerts.Max(x => x.TotalAlerts);
 
     protected override async Task OnInitializedAsync()
     {
-        var result = await AlertService.GetDashboardAsync(UserEmail);
-
-        if (result.Success && result.Data is not null)
-        {
-            Dashboard = result.Data;
-        }
-        else
-        {
-            ErrorMessage = result.ErrorMessage ?? "No fue posible cargar la información.";
-        }
-
+        Dashboard = await AlertMonitoringService.GetDashboardAsync();
         IsLoading = false;
     }
 
-    private string GetSeverityCss(string severity)
+    private static string ClampPercent(decimal value)
     {
-        return severity switch
-        {
-            "Critical / Sev0" => "critical",
-            "High / Sev1" => "high",
-            "Medium / Sev2" => "medium",
-            _ => "low"
-        };
+        if (value <= 0) return "0";
+        if (value > 100) return "100";
+        return value.ToString("0.##");
     }
+
+    private static string FormatHours(decimal hours)
+    {
+        var totalMinutes = (int)Math.Round(hours * 60, 0);
+        var h = totalMinutes / 60;
+        var m = totalMinutes % 60;
+        return $"{h}h {m}m";
+    }
+
+    private static string FormatDate(DateTime? value) => value.HasValue ? value.Value.ToString("HH:mm") : "-";
+
+    private static string GetSeverityDot(string severity)
+    {
+        var normalized = severity.ToLowerInvariant();
+        if (normalized.Contains("critical") || normalized.Contains("sev0")) return "sev-dot-critical";
+        if (normalized.Contains("high") || normalized.Contains("sev1")) return "sev-dot-high";
+        if (normalized.Contains("medium") || normalized.Contains("sev2")) return "sev-dot-medium";
+        if (normalized.Contains("low") || normalized.Contains("sev3")) return "sev-dot-low";
+        return "sev-dot-info";
+    }
+
+    private static string GetSeverityBar(string severity)
+    {
+        var normalized = severity.ToLowerInvariant();
+        if (normalized.Contains("critical") || normalized.Contains("sev0")) return "critical";
+        if (normalized.Contains("high") || normalized.Contains("sev1")) return "high";
+        if (normalized.Contains("medium") || normalized.Contains("sev2")) return "medium";
+        if (normalized.Contains("low") || normalized.Contains("sev3")) return "low";
+        return "info";
+    }
+
+    private static string GetActivityIcon(string activityType) => activityType.Equals("Cierre", StringComparison.OrdinalIgnoreCase) ? "activity-icon close" : "activity-icon active";
+    private static string GetActivitySymbol(string activityType) => activityType.Equals("Cierre", StringComparison.OrdinalIgnoreCase) ? "✓" : "!";
 }
