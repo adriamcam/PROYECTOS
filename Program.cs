@@ -11,6 +11,9 @@ using ITQS.SupportOperationsCenter.Repositories.Interfaces;
 using ITQS.SupportOperationsCenter.Services;
 using ITQS.SupportOperationsCenter.Services.Interfaces;
 
+
+
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services
@@ -45,6 +48,8 @@ builder.Services.AddRazorComponents()
 builder.Services.AddItqsSocServices(builder.Configuration);
 builder.Services.AddScoped<IAdminManagerRepository, AdminManagerRepository>();
 builder.Services.AddScoped<IAdminManagerService, AdminManagerService>();
+builder.Services.AddScoped<IAlertMonitoringDashboardRepository, AlertMonitoringDashboardRepository>();
+builder.Services.AddScoped<IAlertMonitoringDashboardService, AlertMonitoringDashboardService>();
 var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())
