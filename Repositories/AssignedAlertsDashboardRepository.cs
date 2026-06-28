@@ -622,6 +622,101 @@ ORDER BY UpdatedAt DESC;
 //========================================================
 // COMENTARIOS
 //========================================================
+public async Task SaveAlertCommentAsync(
+    AlertCommentRequestModel request,
+    CancellationToken cancellationToken = default)
+{
+    using var connection = _connectionFactory.CreateConnection();
+
+    string sql;
+
+    if (request.SourceType == "Backup")
+    {
+        sql = @"
+UPDATE dbo.AlertasBackup
+SET
+    UpdatedAt = SYSDATETIME(),
+    LastUpdatedBy = @UpdatedBy
+WHERE Id = @AlertId;
+
+INSERT INTO dbo.AlertUpdatesHistory
+(
+    KPIType,
+    AlertId,
+    Comment,
+    Status,
+    UpdatedBy,
+    UpdatedAt,
+    Res_norm,
+    Alert_norm,
+    UserEmail
+)
+VALUES
+(
+    @KPIType,
+    @AlertId,
+    @Comment,
+    @Status,
+    @UpdatedBy,
+    SYSDATETIME(),
+    @ResourceName,
+    @AlertName,
+    @UserEmail
+);";
+    }
+    else
+    {
+        sql = @"
+UPDATE dbo.AlertsManagement
+SET
+    AlertStatus = @Status,
+    UpdatedAt = SYSDATETIME(),
+    LastUpdatedBy = @UpdatedBy
+WHERE Id = @AlertId;
+
+INSERT INTO dbo.AlertUpdatesHistory
+(
+    KPIType,
+    AlertId,
+    Comment,
+    Status,
+    UpdatedBy,
+    UpdatedAt,
+    Res_norm,
+    Alert_norm,
+    UserEmail
+)
+VALUES
+(
+    @KPIType,
+    @AlertId,
+    @Comment,
+    @Status,
+    @UpdatedBy,
+    SYSDATETIME(),
+    @ResourceName,
+    @AlertName,
+    @UserEmail
+);";
+    }
+
+    await connection.ExecuteAsync(sql, new
+    {
+        KPIType = request.SourceType,
+        request.AlertId,
+        request.Comment,
+        request.Status,
+        UpdatedBy = request.UpdatedBy,
+        request.ResourceName,
+        request.AlertName,
+        request.UserEmail
+    });
+}
+
+//========================================================
+// CERRAR ALERTA
+//========================================================
+
 public async Task CloseAlertAsync(
     AlertCommentRequestModel request,
     CancellationToken cancellationToken = default)
@@ -636,7 +731,7 @@ public async Task CloseAlertAsync(
 UPDATE dbo.AlertasBackup
 SET
     Active = 0,
-    ResolveTime = GETDATE(),
+    ResolveTime = SYSDATETIME(),
     ResolutionNotes = @Comment,
     LastUpdatedBy = @UpdatedBy,
     UpdatedAt = SYSDATETIME()
@@ -661,7 +756,7 @@ VALUES
     @Comment,
     'Closed',
     @UpdatedBy,
-    GETDATE(),
+    SYSDATETIME(),
     @ResourceName,
     @AlertName,
     @UserEmail
@@ -674,7 +769,7 @@ UPDATE dbo.AlertsManagement
 SET
     Active = 0,
     AlertStatus = 'Closed',
-    ResolveTime = GETDATE(),
+    ResolveTime = SYSDATETIME(),
     ResolutionNotes = @Comment,
     LastUpdatedBy = @UpdatedBy,
     UpdatedAt = SYSDATETIME()
@@ -699,7 +794,7 @@ VALUES
     @Comment,
     'Closed',
     @UpdatedBy,
-    GETDATE(),
+    SYSDATETIME(),
     @ResourceName,
     @AlertName,
     @UserEmail
@@ -716,117 +811,6 @@ VALUES
         request.UpdatedBy,
         request.UserEmail
     });
-}
-
-//========================================================
-// CERRAR ALERTA
-//========================================================
-
-public async Task CloseAlertAsync(
-    AlertCommentRequestModel request,
-    CancellationToken cancellationToken = default)
-{
-    using var connection = _connectionFactory.CreateConnection();
-
-    if (request.SourceType == "Backup")
-    {
-        const string sql = @"
-UPDATE dbo.AlertasBackup
-SET
-    Active = 0,
-    ResolveTime = GETDATE(),
-    ResolutionNotes = @Comment,
-    LastUpdatedBy = @UpdatedBy,
-    UpdatedAt = SYSDATETIME()
-WHERE Id = @AlertId;
-
-INSERT INTO dbo.AlertUpdatesHistory
-(
-    KPIType,
-    AlertId,
-    Comment,
-    Status,
-    UpdatedBy,
-    UpdatedAt,
-    Res_nom,
-    Alert_nom,
-    UserEmail
-)
-VALUES
-(
-    @KPIType,
-    @AlertId,
-    @Comment,
-    'Closed',
-    @UpdatedBy,
-    GETDATE(),
-    @ResourceName,
-    @AlertName,
-    @UserEmail
-);
-";
-
-        await connection.ExecuteAsync(sql, new
-        {
-            KPIType = request.SourceType,
-            request.AlertId,
-            request.ResourceName,
-            request.AlertName,
-            request.Comment,
-            request.UpdatedBy,
-            request.UserEmail
-        });
-    }
-    else
-    {
-        const string sql = @"
-UPDATE dbo.AlertsManagement
-SET
-    Active = 0,
-    AlertStatus = 'Closed',
-    ResolveTime = GETDATE(),
-    ResolutionNotes = @Comment,
-    LastUpdatedBy = @UpdatedBy,
-    UpdatedAt = SYSDATETIME()
-WHERE Id = @AlertId;
-
-INSERT INTO dbo.AlertUpdatesHistory
-(
-    KPIType,
-    AlertId,
-    Comment,
-    Status,
-    UpdatedBy,
-    UpdatedAt,
-    Res_nom,
-    Alert_nom,
-    UserEmail
-)
-VALUES
-(
-    @KPIType,
-    @AlertId,
-    @Comment,
-    'Closed',
-    @UpdatedBy,
-    GETDATE(),
-    @ResourceName,
-    @AlertName,
-    @UserEmail
-);
-";
-
-        await connection.ExecuteAsync(sql, new
-        {
-            KPIType = request.SourceType,
-            request.AlertId,
-            request.ResourceName,
-            request.AlertName,
-            request.Comment,
-            request.UpdatedBy,
-            request.UserEmail
-        });
-    }
 }
 
 //========================================================
