@@ -129,7 +129,9 @@ public sealed class AdminManagerService : IAdminManagerService
     {
         try
         {
-            return await _repository.GetClosedHistoryAsync(take, cancellationToken);
+            return await _repository.GetClosedHistoryAsync(
+                take,
+                cancellationToken);
         }
         catch (Exception ex)
         {
@@ -138,17 +140,72 @@ public sealed class AdminManagerService : IAdminManagerService
         }
     }
 
+    public async Task<AdminManagerClosedHistoryPagedResultModel> GetClosedHistoryPagedAsync(
+        int pageNumber,
+        int pageSize,
+        string? search = null,
+        string? kpiType = null,
+        string? userEmail = null,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            return await _repository.GetClosedHistoryPagedAsync(
+                pageNumber,
+                pageSize,
+                search,
+                kpiType,
+                userEmail,
+                cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error loading paged closed alert history.");
+
+            return new AdminManagerClosedHistoryPagedResultModel
+            {
+                PageNumber = pageNumber,
+                PageSize = pageSize
+            };
+        }
+    }
+
+    public async Task<List<AdminManagerClosedHistoryModel>> GetClosedHistoryForExportAsync(
+        string? search = null,
+        string? kpiType = null,
+        string? userEmail = null,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            return await _repository.GetClosedHistoryForExportAsync(
+                search,
+                kpiType,
+                userEmail,
+                cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error exporting closed alert history.");
+            return new List<AdminManagerClosedHistoryModel>();
+        }
+    }
+
     public async Task ReassignAlertsAsync(
         AdminManagerReassignRequestModel request,
         CancellationToken cancellationToken = default)
     {
-        await _repository.ReassignAlertsAsync(request, cancellationToken);
+        await _repository.ReassignAlertsAsync(
+            request,
+            cancellationToken);
     }
 
     public async Task CloseSeverityAsync(
         AdminManagerCloseSeverityRequestModel request,
         CancellationToken cancellationToken = default)
     {
-        await _repository.CloseSeverityAsync(request, cancellationToken);
+        await _repository.CloseSeverityAsync(
+            request,
+            cancellationToken);
     }
 }

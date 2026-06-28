@@ -550,6 +550,164 @@ ORDER BY H.UpdatedAt DESC;
         return result.ToList();
     }
 
+
+    public async Task<AdminManagerClosedHistoryPagedResultModel> GetClosedHistoryPagedAsync(
+        int pageNumber,
+        int pageSize,
+        string? search = null,
+        string? kpiType = null,
+        string? userEmail = null,
+        CancellationToken cancellationToken = default)
+    {
+        using var connection = _connectionFactory.CreateConnection();
+
+        pageNumber = pageNumber < 1 ? 1 : pageNumber;
+        pageSize = pageSize <= 0 ? 25 : pageSize;
+
+        var offset = (pageNumber - 1) * pageSize;
+        var searchValue = string.IsNullOrWhiteSpace(search) ? null : $"%{search.Trim()}%";
+        var kpiTypeValue = string.IsNullOrWhiteSpace(kpiType) || kpiType == "All" ? null : kpiType.Trim();
+        var userEmailValue = string.IsNullOrWhiteSpace(userEmail) ? null : userEmail.Trim();
+
+        const string baseSql = @"
+;WITH ClosedHistory AS
+(
+    SELECT
+        HistoryId = H.HistoryId,
+        KPIType = ISNULL(H.KPIType, ''),
+        AlertId = CAST(ISNULL(H.AlertId, 0) AS bigint),
+        ClientName = ISNULL(COALESCE(AM.SubscriptionName, AB.SubscriptionName), ''),
+        AlertName = ISNULL(COALESCE(AM.AlertName, AB.AlertRule, H.Alert_norm), ''),
+        ResourceName = ISNULL(COALESCE(AM.TargetResourceName, AB.ResourceName, AB.VMName, AB.ProtectedItem, H.Res_norm), ''),
+        Severity = ISNULL(COALESCE(AM.Severity, AB.Severity), ''),
+        ClosedBy = ISNULL(H.UpdatedBy, ''),
+        UserEmail = ISNULL(H.UserEmail, ''),
+        Comment = ISNULL(H.Comment, ''),
+        ClosedAt = H.UpdatedAt
+    FROM dbo.AlertUpdatesHistory H
+    LEFT JOIN dbo.AlertsManagement AM
+        ON H.KPIType = 'Management'
+       AND H.AlertId = AM.Id
+    LEFT JOIN dbo.AlertasBackup AB
+        ON H.KPIType = 'Backup'
+       AND H.AlertId = AB.Id
+    WHERE LOWER(ISNULL(H.Status, '')) IN ('closed', 'close')
+      AND (@Search IS NULL
+           OR ISNULL(H.UpdatedBy, '') LIKE @Search
+           OR ISNULL(H.UserEmail, '') LIKE @Search
+           OR ISNULL(H.Comment, '') LIKE @Search
+           OR ISNULL(H.KPIType, '') LIKE @Search
+           OR ISNULL(COALESCE(AM.SubscriptionName, AB.SubscriptionName), '') LIKE @Search
+           OR ISNULL(COALESCE(AM.AlertName, AB.AlertRule, H.Alert_norm), '') LIKE @Search
+           OR ISNULL(COALESCE(AM.TargetResourceName, AB.ResourceName, AB.VMName, AB.ProtectedItem, H.Res_norm), '') LIKE @Search)
+      AND (@KPIType IS NULL OR H.KPIType = @KPIType)
+      AND (@UserEmail IS NULL OR LOWER(ISNULL(H.UserEmail, '')) = LOWER(@UserEmail))
+)
+";
+
+        var countSql = baseSql + @"
+SELECT COUNT(1)
+FROM ClosedHistory;
+";
+
+        var dataSql = baseSql + @"
+SELECT
+    HistoryId,
+    KPIType,
+    AlertId,
+    ClientName,
+    AlertName,
+    ResourceName,
+    Severity,
+    ClosedBy,
+    UserEmail,
+    Comment,
+    ClosedAt
+FROM ClosedHistory
+ORDER BY ClosedAt DESC
+OFFSET @Offset ROWS
+FETCH NEXT @PageSize ROWS ONLY;
+";
+
+        var parameters = new
+        {
+            Search = searchValue,
+            KPIType = kpiTypeValue,
+            UserEmail = userEmailValue,
+            Offset = offset,
+            PageSize = pageSize
+        };
+
+        var total = await connection.ExecuteScalarAsync<int>(countSql, parameters);
+        var items = await connection.QueryAsync<AdminManagerClosedHistoryModel>(dataSql, parameters);
+
+        return new AdminManagerClosedHistoryPagedResultModel
+        {
+            Items = items.ToList(),
+            TotalCount = total,
+            PageNumber = pageNumber,
+            PageSize = pageSize
+        };
+    }
+
+    public async Task<List<AdminManagerClosedHistoryModel>> GetClosedHistoryForExportAsync(
+        string? search = null,
+        string? kpiType = null,
+        string? userEmail = null,
+        CancellationToken cancellationToken = default)
+    {
+        using var connection = _connectionFactory.CreateConnection();
+
+        var searchValue = string.IsNullOrWhiteSpace(search) ? null : $"%{search.Trim()}%";
+        var kpiTypeValue = string.IsNullOrWhiteSpace(kpiType) || kpiType == "All" ? null : kpiType.Trim();
+        var userEmailValue = string.IsNullOrWhiteSpace(userEmail) ? null : userEmail.Trim();
+
+        const string sql = @"
+SELECT
+    HistoryId = H.HistoryId,
+    KPIType = ISNULL(H.KPIType, ''),
+    AlertId = CAST(ISNULL(H.AlertId, 0) AS bigint),
+    ClientName = ISNULL(COALESCE(AM.SubscriptionName, AB.SubscriptionName), ''),
+    AlertName = ISNULL(COALESCE(AM.AlertName, AB.AlertRule, H.Alert_norm), ''),
+    ResourceName = ISNULL(COALESCE(AM.TargetResourceName, AB.ResourceName, AB.VMName, AB.ProtectedItem, H.Res_norm), ''),
+    Severity = ISNULL(COALESCE(AM.Severity, AB.Severity), ''),
+    ClosedBy = ISNULL(H.UpdatedBy, ''),
+    UserEmail = ISNULL(H.UserEmail, ''),
+    Comment = ISNULL(H.Comment, ''),
+    ClosedAt = H.UpdatedAt
+FROM dbo.AlertUpdatesHistory H
+LEFT JOIN dbo.AlertsManagement AM
+    ON H.KPIType = 'Management'
+   AND H.AlertId = AM.Id
+LEFT JOIN dbo.AlertasBackup AB
+    ON H.KPIType = 'Backup'
+   AND H.AlertId = AB.Id
+WHERE LOWER(ISNULL(H.Status, '')) IN ('closed', 'close')
+  AND (@Search IS NULL
+       OR ISNULL(H.UpdatedBy, '') LIKE @Search
+       OR ISNULL(H.UserEmail, '') LIKE @Search
+       OR ISNULL(H.Comment, '') LIKE @Search
+       OR ISNULL(H.KPIType, '') LIKE @Search
+       OR ISNULL(COALESCE(AM.SubscriptionName, AB.SubscriptionName), '') LIKE @Search
+       OR ISNULL(COALESCE(AM.AlertName, AB.AlertRule, H.Alert_norm), '') LIKE @Search
+       OR ISNULL(COALESCE(AM.TargetResourceName, AB.ResourceName, AB.VMName, AB.ProtectedItem, H.Res_norm), '') LIKE @Search)
+  AND (@KPIType IS NULL OR H.KPIType = @KPIType)
+  AND (@UserEmail IS NULL OR LOWER(ISNULL(H.UserEmail, '')) = LOWER(@UserEmail))
+ORDER BY H.UpdatedAt DESC;
+";
+
+        var result = await connection.QueryAsync<AdminManagerClosedHistoryModel>(
+            sql,
+            new
+            {
+                Search = searchValue,
+                KPIType = kpiTypeValue,
+                UserEmail = userEmailValue
+            });
+
+        return result.ToList();
+    }
+
     public async Task ReassignAlertsAsync(
         AdminManagerReassignRequestModel request,
         CancellationToken cancellationToken = default)

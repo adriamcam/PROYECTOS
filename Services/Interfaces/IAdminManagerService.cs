@@ -34,6 +34,20 @@ public interface IAdminManagerService
         int take = 100,
         CancellationToken cancellationToken = default);
 
+    Task<AdminManagerClosedHistoryPagedResultModel> GetClosedHistoryPagedAsync(
+        int pageNumber,
+        int pageSize,
+        string? search = null,
+        string? kpiType = null,
+        string? userEmail = null,
+        CancellationToken cancellationToken = default);
+
+    Task<List<AdminManagerClosedHistoryModel>> GetClosedHistoryForExportAsync(
+        string? search = null,
+        string? kpiType = null,
+        string? userEmail = null,
+        CancellationToken cancellationToken = default);
+
     Task ReassignAlertsAsync(
         AdminManagerReassignRequestModel request,
         CancellationToken cancellationToken = default);

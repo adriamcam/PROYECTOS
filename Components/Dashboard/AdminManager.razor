@@ -1,4 +1,5 @@
 @using System.Security.Claims
+@using System.Text
 @using Microsoft.AspNetCore.Components.Authorization
 @using ITQS.SupportOperationsCenter.Models.Dashboard
 @using ITQS.SupportOperationsCenter.Services.Interfaces
@@ -46,7 +47,7 @@
     </select>
 
     <select class="admin-input" @bind="SelectedSourceType">
-        <option value="All">Todos</option>
+        <option value="All">Todos los tipos</option>
         <option value="Management">Management</option>
         <option value="Backup">Backup</option>
     </select>
@@ -144,14 +145,18 @@
 
         <div class="pagination">
             <span>Página <b>@PageNumber</b> de <b>@Math.Max(Alerts.TotalPages, 1)</b> · Total <b>@Alerts.TotalCount</b></span>
-            <div>
-                <select class="admin-input page-size" @bind="PageSize" @bind:after="PageSizeChangedAsync">
-                    <option value="25">25</option>
-                    <option value="50">50</option>
-                    <option value="100">100</option>
-                </select>
+            <div class="pagination-actions">
+                <button class="secondary-btn" disabled="@(PageNumber <= 1)" @onclick="FirstPageAsync">1</button>
                 <button class="secondary-btn" disabled="@(PageNumber <= 1)" @onclick="PreviousPageAsync">◀</button>
+
+                <select class="admin-input page-size" @bind="PageSize" @bind:after="PageSizeChangedAsync">
+                    <option value="25">25 / página</option>
+                    <option value="50">50 / página</option>
+                    <option value="100">100 / página</option>
+                </select>
+
                 <button class="secondary-btn" disabled="@(PageNumber >= Alerts.TotalPages)" @onclick="NextPageAsync">▶</button>
+                <button class="secondary-btn" disabled="@(PageNumber >= Alerts.TotalPages)" @onclick="LastPageAsync">@Math.Max(Alerts.TotalPages, 1)</button>
             </div>
         </div>
     </section>
@@ -186,7 +191,38 @@
 </div>
 
 <section class="admin-card history">
-    <h3>Historial de alertas cerradas</h3>
+    <div class="admin-card-header">
+        <div>
+            <h3>Historial de alertas cerradas</h3>
+            <small>@ClosedHistory.TotalCount cierres encontrados</small>
+        </div>
+
+        <button class="primary-btn" type="button" @onclick="ExportHistoryExcelAsync">
+            ⬇ Descargar Excel
+        </button>
+    </div>
+
+    <div class="history-filters">
+        <input class="admin-input" placeholder="Buscar historial..." @bind="HistorySearchText" @bind:event="oninput" />
+
+        <select class="admin-input" @bind="HistoryKpiType">
+            <option value="All">Todos los tipos</option>
+            <option value="Management">Management</option>
+            <option value="Backup">Backup</option>
+        </select>
+
+        <select class="admin-input" @bind="HistoryUserEmail">
+            <option value="">Todos los usuarios</option>
+            @foreach (var user in Users)
+            {
+                <option value="@user.UserEmail">@user.DisplayName</option>
+            }
+        </select>
+
+        <button class="secondary-btn" type="button" @onclick="ClearHistoryFiltersAsync">Limpiar</button>
+        <button class="primary-btn" type="button" @onclick="SearchHistoryAsync">Buscar</button>
+    </div>
+
     <div class="table-wrap">
         <table class="admin-table">
             <thead>
@@ -201,13 +237,13 @@
                 </tr>
             </thead>
             <tbody>
-                @if (ClosedHistory.Count == 0)
+                @if (ClosedHistory.Items.Count == 0)
                 {
                     <tr><td colspan="7" class="empty">No hay historial de cierres.</td></tr>
                 }
                 else
                 {
-                    @foreach (var item in ClosedHistory)
+                    @foreach (var item in ClosedHistory.Items)
                     {
                         <tr>
                             <td>@FormatDate(item.ClosedAt)</td>
@@ -223,20 +259,38 @@
             </tbody>
         </table>
     </div>
+
+    <div class="pagination">
+        <span>Página <b>@HistoryPageNumber</b> de <b>@Math.Max(ClosedHistory.TotalPages, 1)</b> · Total <b>@ClosedHistory.TotalCount</b></span>
+        <div class="pagination-actions">
+            <button class="secondary-btn" disabled="@(HistoryPageNumber <= 1)" @onclick="FirstHistoryPageAsync">1</button>
+            <button class="secondary-btn" disabled="@(HistoryPageNumber <= 1)" @onclick="PreviousHistoryPageAsync">◀</button>
+
+            <select class="admin-input page-size" @bind="HistoryPageSize" @bind:after="HistoryPageSizeChangedAsync">
+                <option value="25">25 / página</option>
+                <option value="50">50 / página</option>
+                <option value="100">100 / página</option>
+            </select>
+
+            <button class="secondary-btn" disabled="@(HistoryPageNumber >= ClosedHistory.TotalPages)" @onclick="NextHistoryPageAsync">▶</button>
+            <button class="secondary-btn" disabled="@(HistoryPageNumber >= ClosedHistory.TotalPages)" @onclick="LastHistoryPageAsync">@Math.Max(ClosedHistory.TotalPages, 1)</button>
+        </div>
+    </div>
 </section>
 
 <style>
-.admin-kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;margin-bottom:18px}.kpi{background:white;border:1px solid #dbe4f0;border-radius:16px;padding:18px;box-shadow:0 10px 28px rgba(15,23,42,.06)}.kpi span{font-size:22px}.kpi b{display:block;font-size:28px;color:#061634}.kpi small{color:#64748b;font-weight:700}.admin-filters{display:grid;grid-template-columns:1.5fr repeat(5,1fr) auto auto;gap:10px;background:white;border:1px solid #dbe4f0;border-radius:16px;padding:16px;margin-bottom:18px}.admin-input{border:1px solid #bcd0ee;border-radius:10px;padding:10px 12px;font-weight:700;width:100%;background:white}.primary-btn,.secondary-btn,.danger-btn{border-radius:10px;padding:10px 14px;font-weight:900;border:1px solid #bcd0ee;white-space:nowrap}.primary-btn{background:#2563eb;color:white;border-color:#2563eb}.secondary-btn{background:white;color:#2563eb}.danger-btn{background:#dc2626;color:white;border-color:#dc2626}button:disabled{opacity:.55}.admin-grid{display:grid;grid-template-columns:1fr 360px;gap:18px}.admin-card{background:white;border:1px solid #dbe4f0;border-radius:16px;padding:18px;box-shadow:0 10px 28px rgba(15,23,42,.06)}.admin-card-header{display:flex;justify-content:space-between;gap:12px;margin-bottom:14px}.admin-card h3{margin:0;color:#061634;font-weight:900}.admin-card small,.admin-card p{color:#64748b;font-weight:700}.reassign-row{display:grid;grid-template-columns:1fr 1fr auto;gap:10px;margin-bottom:14px}.table-wrap{overflow-x:auto;border:1px solid #dbe4f0;border-radius:14px}.admin-table{width:100%;border-collapse:collapse;min-width:1100px}.admin-table th{background:#f6f9fd;color:#061634;padding:13px;text-align:left;font-weight:900}.admin-table td{padding:13px;border-top:1px solid #eef2f7;font-weight:600}.admin-table td small{display:block;color:#64748b;font-size:12px}.type-badge,.severity,.status{display:inline-flex;padding:6px 10px;border-radius:999px;font-size:12px;font-weight:900}.management{color:#2563eb;background:#dbeafe}.backup{color:#7c3aed;background:#ede9fe}.critical{color:#dc2626;background:#fee2e2}.warning{color:#d97706;background:#fef3c7}.info{color:#2563eb;background:#dbeafe}.normal{color:#475569;background:#e2e8f0}.active{color:#15803d;background:#dcfce7}.in-progress{color:#d97706;background:#fef3c7}.closed{color:#991b1b;background:#fee2e2}.pagination{display:flex;justify-content:space-between;align-items:center;margin-top:14px}.page-size{width:90px;display:inline-block}.severity-close{display:flex;justify-content:space-between;gap:10px;padding:12px 0;border-top:1px solid #eef2f7}.severity-close small{display:block}.workload{padding:12px 0;border-top:1px solid #eef2f7}.workload div:first-child{display:flex;justify-content:space-between}.bar{height:9px;background:#e2e8f0;border-radius:999px;overflow:hidden;margin:8px 0}.bar i{display:block;height:100%;background:#2563eb}.history{margin-top:18px}.empty{text-align:center;color:#64748b;padding:18px}.admin-message{border-radius:12px;padding:12px 16px;font-weight:900;margin-bottom:16px}.admin-message.ok{color:#166534;background:#dcfce7;border:1px solid #bbf7d0}.admin-message.error{color:#991b1b;background:#fee2e2;border:1px solid #fecaca}@@media(max-width:1400px){.admin-kpis{grid-template-columns:repeat(3,1fr)}.admin-filters{grid-template-columns:repeat(2,1fr)}.admin-grid{grid-template-columns:1fr}}@@media(max-width:760px){.admin-kpis,.admin-filters,.reassign-row{grid-template-columns:1fr}.pagination,.admin-card-header{flex-direction:column;align-items:stretch}}
+.admin-kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;margin-bottom:18px}.kpi{background:white;border:1px solid #dbe4f0;border-radius:16px;padding:18px;box-shadow:0 10px 28px rgba(15,23,42,.06)}.kpi span{font-size:22px}.kpi b{display:block;font-size:28px;color:#061634}.kpi small{color:#64748b;font-weight:700}.admin-filters,.history-filters{display:grid;grid-template-columns:1.5fr repeat(5,1fr) auto auto;gap:10px;background:white;border:1px solid #dbe4f0;border-radius:16px;padding:16px;margin-bottom:18px}.history-filters{grid-template-columns:1.5fr 1fr 1fr auto auto}.admin-input{border:1px solid #bcd0ee;border-radius:10px;padding:10px 12px;font-weight:700;width:100%;background:white}.primary-btn,.secondary-btn,.danger-btn{border-radius:10px;padding:10px 14px;font-weight:900;border:1px solid #bcd0ee;white-space:nowrap}.primary-btn{background:#2563eb;color:white;border-color:#2563eb}.secondary-btn{background:white;color:#2563eb}.danger-btn{background:#dc2626;color:white;border-color:#dc2626}button:disabled{opacity:.55}.admin-grid{display:grid;grid-template-columns:1fr 360px;gap:18px}.admin-card{background:white;border:1px solid #dbe4f0;border-radius:16px;padding:18px;box-shadow:0 10px 28px rgba(15,23,42,.06)}.admin-card-header{display:flex;justify-content:space-between;gap:12px;margin-bottom:14px}.admin-card h3{margin:0;color:#061634;font-weight:900}.admin-card small,.admin-card p{color:#64748b;font-weight:700}.reassign-row{display:grid;grid-template-columns:1fr 1fr auto;gap:10px;margin-bottom:14px}.table-wrap{overflow-x:auto;border:1px solid #dbe4f0;border-radius:14px}.admin-table{width:100%;border-collapse:collapse;min-width:1100px}.admin-table th{background:#f6f9fd;color:#061634;padding:13px;text-align:left;font-weight:900}.admin-table td{padding:13px;border-top:1px solid #eef2f7;font-weight:600}.admin-table td small{display:block;color:#64748b;font-size:12px}.type-badge,.severity,.status{display:inline-flex;padding:6px 10px;border-radius:999px;font-size:12px;font-weight:900}.management{color:#2563eb;background:#dbeafe}.backup{color:#7c3aed;background:#ede9fe}.critical{color:#dc2626;background:#fee2e2}.warning{color:#d97706;background:#fef3c7}.info{color:#2563eb;background:#dbeafe}.normal{color:#475569;background:#e2e8f0}.active{color:#15803d;background:#dcfce7}.in-progress{color:#d97706;background:#fef3c7}.closed{color:#991b1b;background:#fee2e2}.pagination{display:flex;justify-content:space-between;align-items:center;margin-top:14px;gap:12px}.pagination-actions{display:flex;gap:8px;align-items:center}.page-size{width:140px;display:inline-block}.severity-close{display:flex;justify-content:space-between;gap:10px;padding:12px 0;border-top:1px solid #eef2f7}.severity-close small{display:block}.workload{padding:12px 0;border-top:1px solid #eef2f7}.workload div:first-child{display:flex;justify-content:space-between}.bar{height:9px;background:#e2e8f0;border-radius:999px;overflow:hidden;margin:8px 0}.bar i{display:block;height:100%;background:#2563eb}.history{margin-top:18px}.empty{text-align:center;color:#64748b;padding:18px}.admin-message{border-radius:12px;padding:12px 16px;font-weight:900;margin-bottom:16px}.admin-message.ok{color:#166534;background:#dcfce7;border:1px solid #bbf7d0}.admin-message.error{color:#991b1b;background:#fee2e2;border:1px solid #fecaca}@@media(max-width:1400px){.admin-kpis{grid-template-columns:repeat(3,1fr)}.admin-filters,.history-filters{grid-template-columns:repeat(2,1fr)}.admin-grid{grid-template-columns:1fr}}@@media(max-width:760px){.admin-kpis,.admin-filters,.history-filters,.reassign-row{grid-template-columns:1fr}.pagination,.admin-card-header{flex-direction:column;align-items:stretch}}
 </style>
 
 @code {
     private AdminManagerDashboardModel Dashboard = new();
     private AdminManagerAlertPagedResultModel Alerts = new();
+    private AdminManagerClosedHistoryPagedResultModel ClosedHistory = new();
+
     private List<string> Clients = new();
     private List<AdminManagerAppUserModel> Users = new();
     private List<AdminManagerEngineerWorkloadModel> Workload = new();
     private List<AdminManagerSeveritySummaryModel> SeveritySummary = new();
-    private List<AdminManagerClosedHistoryModel> ClosedHistory = new();
 
     private bool IsLoading;
     private string Message = string.Empty;
@@ -245,13 +299,20 @@
     private string UserName = string.Empty;
 
     private int PageNumber = 1;
-    private int PageSize = 25;
+    private int PageSize = 50;
     private string SearchText = string.Empty;
     private string SelectedClient = string.Empty;
     private string SelectedAssignedEmail = string.Empty;
     private string SelectedSourceType = "All";
     private string SelectedSeverity = "All";
     private string SelectedStatus = "All";
+
+    private int HistoryPageNumber = 1;
+    private int HistoryPageSize = 50;
+    private string HistorySearchText = string.Empty;
+    private string HistoryKpiType = "All";
+    private string HistoryUserEmail = string.Empty;
+
     private string ReassignToEmail = string.Empty;
     private string ReassignComment = string.Empty;
     private DateTime LastRefreshAt = DateTime.Now;
@@ -283,9 +344,10 @@
             Users = await AdminService.GetUsersAsync();
             Workload = await AdminService.GetEngineerWorkloadAsync();
             SeveritySummary = await AdminService.GetSeveritySummaryAsync();
-            ClosedHistory = await AdminService.GetClosedHistoryAsync(100);
 
-            Alerts = await AdminService.GetAlertsAsync(PageNumber, PageSize, SearchText, SelectedClient, SelectedAssignedEmail, SelectedSourceType, SelectedSeverity, SelectedStatus);
+            await LoadAlertsAsync();
+            await LoadHistoryAsync();
+
             LastRefreshAt = DateTime.Now;
         }
         catch (Exception ex)
@@ -298,11 +360,31 @@
         }
     }
 
-    private async Task SearchAsync(){ PageNumber = 1; await LoadAllAsync(); }
-    private async Task ClearFiltersAsync(){ SearchText = string.Empty; SelectedClient = string.Empty; SelectedAssignedEmail = string.Empty; SelectedSourceType = "All"; SelectedSeverity = "All"; SelectedStatus = "All"; PageNumber = 1; await LoadAllAsync(); }
-    private async Task PageSizeChangedAsync(){ PageNumber = 1; await LoadAllAsync(); }
-    private async Task PreviousPageAsync(){ if (PageNumber > 1){ PageNumber--; await LoadAllAsync(); } }
-    private async Task NextPageAsync(){ if (PageNumber < Alerts.TotalPages){ PageNumber++; await LoadAllAsync(); } }
+    private async Task LoadAlertsAsync()
+    {
+        Alerts = await AdminService.GetAlertsAsync(PageNumber, PageSize, SearchText, SelectedClient, SelectedAssignedEmail, SelectedSourceType, SelectedSeverity, SelectedStatus);
+    }
+
+    private async Task LoadHistoryAsync()
+    {
+        ClosedHistory = await AdminService.GetClosedHistoryPagedAsync(HistoryPageNumber, HistoryPageSize, HistorySearchText, HistoryKpiType, HistoryUserEmail);
+    }
+
+    private async Task SearchAsync(){ PageNumber = 1; await LoadAlertsAsync(); }
+    private async Task ClearFiltersAsync(){ SearchText = string.Empty; SelectedClient = string.Empty; SelectedAssignedEmail = string.Empty; SelectedSourceType = "All"; SelectedSeverity = "All"; SelectedStatus = "All"; PageNumber = 1; await LoadAlertsAsync(); }
+    private async Task PageSizeChangedAsync(){ PageNumber = 1; await LoadAlertsAsync(); }
+    private async Task FirstPageAsync(){ PageNumber = 1; await LoadAlertsAsync(); }
+    private async Task PreviousPageAsync(){ if (PageNumber > 1){ PageNumber--; await LoadAlertsAsync(); } }
+    private async Task NextPageAsync(){ if (PageNumber < Alerts.TotalPages){ PageNumber++; await LoadAlertsAsync(); } }
+    private async Task LastPageAsync(){ PageNumber = Math.Max(Alerts.TotalPages, 1); await LoadAlertsAsync(); }
+
+    private async Task SearchHistoryAsync(){ HistoryPageNumber = 1; await LoadHistoryAsync(); }
+    private async Task ClearHistoryFiltersAsync(){ HistorySearchText = string.Empty; HistoryKpiType = "All"; HistoryUserEmail = string.Empty; HistoryPageNumber = 1; await LoadHistoryAsync(); }
+    private async Task HistoryPageSizeChangedAsync(){ HistoryPageNumber = 1; await LoadHistoryAsync(); }
+    private async Task FirstHistoryPageAsync(){ HistoryPageNumber = 1; await LoadHistoryAsync(); }
+    private async Task PreviousHistoryPageAsync(){ if (HistoryPageNumber > 1){ HistoryPageNumber--; await LoadHistoryAsync(); } }
+    private async Task NextHistoryPageAsync(){ if (HistoryPageNumber < ClosedHistory.TotalPages){ HistoryPageNumber++; await LoadHistoryAsync(); } }
+    private async Task LastHistoryPageAsync(){ HistoryPageNumber = Math.Max(ClosedHistory.TotalPages, 1); await LoadHistoryAsync(); }
 
     private void ToggleAllCurrentPage(ChangeEventArgs args)
     {
@@ -351,13 +433,47 @@
         await LoadAllAsync();
     }
 
+    private async Task ExportHistoryExcelAsync()
+    {
+        var rows = await AdminService.GetClosedHistoryForExportAsync(HistorySearchText, HistoryKpiType, HistoryUserEmail);
+
+        var csv = new StringBuilder();
+        csv.AppendLine("Fecha,Usuario,Correo,Tipo,Cliente,Alerta,Recurso,Severidad,Comentario");
+
+        foreach (var item in rows)
+        {
+            csv.AppendLine(string.Join(",",
+                Csv(item.ClosedAt?.ToString("dd/MM/yyyy HH:mm") ?? ""),
+                Csv(item.ClosedBy),
+                Csv(item.UserEmail),
+                Csv(item.KPIType),
+                Csv(item.ClientName),
+                Csv(item.AlertName),
+                Csv(item.ResourceName),
+                Csv(item.Severity),
+                Csv(item.Comment)));
+        }
+
+        var bytes = Encoding.UTF8.GetPreamble().Concat(Encoding.UTF8.GetBytes(csv.ToString())).ToArray();
+        var base64 = Convert.ToBase64String(bytes);
+        var fileName = $"Historial_Alertas_Cerradas_{DateTime.Now:yyyyMMdd_HHmm}.csv";
+
+        NavigationManager.NavigateTo($"data:text/csv;base64,{base64}", forceLoad: true);
+    }
+
+    private static string Csv(string value)
+    {
+        value = value?.Replace("\"", "\"\"") ?? string.Empty;
+        return $"\"{value}\"";
+    }
+
     private void OpenReassignmentEmail(AdminManagerAppUserModel user, List<AdminManagerAlertItemModel> selectedAlerts)
     {
         if (selectedAlerts.Count == 0) return;
 
         var totalEvents = selectedAlerts.Sum(x => x.Events);
         var subject = $"Reasignación de alertas SOC | {selectedAlerts.Count} grupos | {totalEvents} eventos";
-        var body = $"Hola {user.DisplayName},\r\n\r\nSe te han reasignado alertas desde Admin / Manager View.\r\n\r\nGrupos reasignados: {selectedAlerts.Count}\r\nEventos incluidos: {totalEvents}\r\nReasignado por: {UserName} ({UserEmail})\r\nFecha: {DateTime.Now:dd/MM/yyyy HH:mm}\r\n\r\nPor favor validar el panel Asignadas a mí para dar seguimiento.\r\n\r\nSaludos,\r\nSoporte ITQS";
+        var body = $"Hola {user.DisplayName},\\r\\n\\r\\nSe te han reasignado alertas desde Admin / Manager View.\\r\\n\\r\\nGrupos reasignados: {selectedAlerts.Count}\\r\\nEventos incluidos: {totalEvents}\\r\\nReasignado por: {UserName} ({UserEmail})\\r\\nFecha: {DateTime.Now:dd/MM/yyyy HH:mm}\\r\\n\\r\\nPor favor validar el panel Asignadas a mí para dar seguimiento.\\r\\n\\r\\nSaludos,\\r\\nSoporte ITQS";
         var mailto = $"mailto:{Uri.EscapeDataString(user.UserEmail)}?subject={Uri.EscapeDataString(subject)}&body={Uri.EscapeDataString(body)}";
         NavigationManager.NavigateTo(mailto, forceLoad: true);
     }
