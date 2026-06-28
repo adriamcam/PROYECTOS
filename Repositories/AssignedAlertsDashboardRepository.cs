@@ -27,19 +27,31 @@ public sealed class AssignedAlertsDashboardRepository : IAssignedAlertsDashboard
         const string sql = @"
 SELECT
 (
-    SELECT COUNT(1) FROM dbo.AlertsManagement WHERE ISNULL(Active, 0) = 1
+    SELECT COUNT(1)
+    FROM dbo.AlertsManagement
+    WHERE ISNULL(Active, 0) = 1
+      AND ISNULL(AssignedEmail, '') = ''
 )
 +
 (
-    SELECT COUNT(1) FROM dbo.AlertasBackup WHERE ISNULL(Active, 0) = 1
+    SELECT COUNT(1)
+    FROM dbo.AlertasBackup
+    WHERE ISNULL(Active, 0) = 1
+      AND ISNULL(AssignedEmail, '') = ''
 ) AS TotalAlerts,
 
 (
-    SELECT COUNT(1) FROM dbo.AlertsManagement WHERE ISNULL(Active, 0) = 1
+    SELECT COUNT(1)
+    FROM dbo.AlertsManagement
+    WHERE ISNULL(Active, 0) = 1
+      AND ISNULL(AssignedEmail, '') = ''
 ) AS ManagementAlerts,
 
 (
-    SELECT COUNT(1) FROM dbo.AlertasBackup WHERE ISNULL(Active, 0) = 1
+    SELECT COUNT(1)
+    FROM dbo.AlertasBackup
+    WHERE ISNULL(Active, 0) = 1
+      AND ISNULL(AssignedEmail, '') = ''
 ) AS BackupAlerts,
 
 (
@@ -60,6 +72,7 @@ SELECT
     SELECT COUNT(1)
     FROM dbo.AlertsManagement
     WHERE ISNULL(Active, 0) = 1
+      AND ISNULL(AssignedEmail, '') = ''
       AND UPPER(ISNULL(Severity, '')) IN ('CRITICAL', 'HIGH', 'SEV0', 'SEV1')
 )
 +
@@ -67,19 +80,24 @@ SELECT
     SELECT COUNT(1)
     FROM dbo.AlertasBackup
     WHERE ISNULL(Active, 0) = 1
+      AND ISNULL(AssignedEmail, '') = ''
       AND UPPER(ISNULL(Severity, '')) IN ('CRITICAL', 'HIGH', 'SEV0', 'SEV1')
 ) AS CriticalAlerts,
 
 (
     SELECT COUNT(1)
     FROM dbo.AlertsManagement
-    WHERE CAST(ISNULL(UpdatedAt, GETDATE()) AS date) = CAST(GETDATE() AS date)
+    WHERE ISNULL(Active, 0) = 1
+      AND ISNULL(AssignedEmail, '') = ''
+      AND CAST(ISNULL(UpdatedAt, GETDATE()) AS date) = CAST(GETDATE() AS date)
 )
 +
 (
     SELECT COUNT(1)
     FROM dbo.AlertasBackup
-    WHERE CAST(ISNULL(UpdatedAt, GETDATE()) AS date) = CAST(GETDATE() AS date)
+    WHERE ISNULL(Active, 0) = 1
+      AND ISNULL(AssignedEmail, '') = ''
+      AND CAST(ISNULL(UpdatedAt, GETDATE()) AS date) = CAST(GETDATE() AS date)
 ) AS NewToday;
 ";
 
