@@ -28,7 +28,7 @@ public sealed class AdminManagerAlertItemModel
 {
     public bool Selected { get; set; }
 
-    public string SourceType { get; set; } = string.Empty; // Management / Backup
+    public string SourceType { get; set; } = string.Empty;
     public long Id { get; set; }
 
     public string ClientName { get; set; } = string.Empty;
