@@ -779,20 +779,19 @@ INSERT INTO dbo.AzureAlertCloseQueue
 )
 SELECT
     @KPIType,
-    'AlertsManagement',
-    A.Id,
-    A.AlertId,
-    A.TenantId,
-    A.SubscriptionId,
+    'AlertasBackup',
+    B.Id,
+    NULL,
+    B.TenantId,
+    B.SubscriptionId,
     @UserEmail,
     @UpdatedBy,
     @Comment,
     SYSDATETIME(),
     'Pending',
     0
-FROM dbo.AlertsManagement A
-WHERE A.Id = @AlertId;
-);";
+FROM dbo.AlertasBackup B
+WHERE B.Id = @AlertId;";
     }
     else
     {
@@ -847,32 +846,27 @@ INSERT INTO dbo.AzureAlertCloseQueue
     Status,
     RetryCount
 )
-VALUES
-(
+SELECT
     @KPIType,
-    @SourceTable,
-    @AlertId,
-    NULL,
-    @TenantId,
-    @SubscriptionId,
+    'AlertsManagement',
+    A.Id,
+    A.AlertId,
+    A.TenantId,
+    A.SubscriptionId,
     @UserEmail,
     @UpdatedBy,
     @Comment,
     SYSDATETIME(),
     'Pending',
     0
-);";
+FROM dbo.AlertsManagement A
+WHERE A.Id = @AlertId;";
     }
 
     await connection.ExecuteAsync(sql, new
     {
         KPIType = request.SourceType,
-        SourceTable = request.SourceType == "Management"
-            ? "AlertsManagement"
-            : "AlertasBackup",
         request.AlertId,
-        request.TenantId,
-        request.SubscriptionId,
         request.ResourceName,
         request.AlertName,
         request.Comment,
