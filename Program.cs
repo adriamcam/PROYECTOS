@@ -6,6 +6,10 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.Identity.Web;
 using Microsoft.Identity.Web.UI;
+using ITQS.SupportOperationsCenter.Repositories;
+using ITQS.SupportOperationsCenter.Repositories.Interfaces;
+using ITQS.SupportOperationsCenter.Services;
+using ITQS.SupportOperationsCenter.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -39,7 +43,8 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 builder.Services.AddItqsSocServices(builder.Configuration);
-
+builder.Services.AddScoped<IAdminManagerRepository, AdminManagerRepository>();
+builder.Services.AddScoped<IAdminManagerService, AdminManagerService>();
 var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())
