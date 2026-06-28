@@ -11,6 +11,14 @@
 <h1>Admin / Manager View</h1>
 <p>Gestión administrativa de todas las alertas asignadas.</p>
 
+@if (!HasAdminAccess)
+{
+    <div class="admin-message error">Acceso denegado. Solo usuarios activos con rol Admin en dbo.ITQS_AppUsers pueden ingresar a Admin / Manager View.</div>
+    return;
+}
+
+<button class="primary-btn config-button" type="button" @onclick="OpenUserConfigAsync">⚙ Configuración</button>
+
 <div class="cloud-divider"></div>
 
 @if (!string.IsNullOrWhiteSpace(Message))
@@ -29,43 +37,11 @@
 
 <div class="admin-filters">
     <input class="admin-input search" placeholder="Buscar cliente, alerta, recurso o usuario..." @bind="SearchText" @bind:event="oninput" />
-
-    <select class="admin-input" @bind="SelectedClient">
-        <option value="">Todos los clientes</option>
-        @foreach (var client in Clients)
-        {
-            <option value="@client">@client</option>
-        }
-    </select>
-
-    <select class="admin-input" @bind="SelectedAssignedEmail">
-        <option value="">Todos los usuarios</option>
-        @foreach (var user in Users)
-        {
-            <option value="@user.UserEmail">@user.DisplayName</option>
-        }
-    </select>
-
-    <select class="admin-input" @bind="SelectedSourceType">
-        <option value="All">Todos los tipos</option>
-        <option value="Management">Management</option>
-        <option value="Backup">Backup</option>
-    </select>
-
-    <select class="admin-input" @bind="SelectedSeverity">
-        <option value="All">Todas las severidades</option>
-        @foreach (var sev in SeverityOptions)
-        {
-            <option value="@sev">@sev</option>
-        }
-    </select>
-
-    <select class="admin-input" @bind="SelectedStatus">
-        <option value="All">Todos los estados</option>
-        <option value="Activa">Activa</option>
-        <option value="InProgress">In Progress</option>
-    </select>
-
+    <select class="admin-input" @bind="SelectedClient"><option value="">Todos los clientes</option>@foreach (var client in Clients){<option value="@client">@client</option>}</select>
+    <select class="admin-input" @bind="SelectedAssignedEmail"><option value="">Todos los usuarios</option>@foreach (var user in Users){<option value="@user.UserEmail">@user.DisplayName</option>}</select>
+    <select class="admin-input" @bind="SelectedSourceType"><option value="All">Todos los tipos</option><option value="Management">Management</option><option value="Backup">Backup</option></select>
+    <select class="admin-input" @bind="SelectedSeverity"><option value="All">Todas las severidades</option>@foreach (var sev in SeverityOptions){<option value="@sev">@sev</option>}</select>
+    <select class="admin-input" @bind="SelectedStatus"><option value="All">Todos los estados</option><option value="Activa">Activa</option><option value="InProgress">In Progress</option></select>
     <button class="secondary-btn" type="button" @onclick="ClearFiltersAsync">Limpiar</button>
     <button class="primary-btn" type="button" @onclick="SearchAsync">Buscar</button>
 </div>
@@ -73,54 +49,22 @@
 <div class="admin-grid">
     <section class="admin-card">
         <div class="admin-card-header">
-            <div>
-                <h3>Todas las alertas asignadas</h3>
-                <small>Última actualización: @LastRefreshAt.ToString("HH:mm:ss") · @Alerts.TotalCount grupos</small>
-            </div>
+            <div><h3>Todas las alertas asignadas</h3><small>Última actualización: @LastRefreshAt.ToString("HH:mm:ss") · @Alerts.TotalCount grupos</small></div>
             <button class="secondary-btn" type="button" @onclick="LoadAllAsync">🔄 Actualizar</button>
         </div>
 
         <div class="reassign-row">
-            <select class="admin-input" @bind="ReassignToEmail">
-                <option value="">Seleccionar usuario para reasignar</option>
-                @foreach (var user in Users)
-                {
-                    <option value="@user.UserEmail">@user.DisplayName (@user.UserEmail)</option>
-                }
-            </select>
-
+            <select class="admin-input" @bind="ReassignToEmail"><option value="">Seleccionar usuario para reasignar</option>@foreach (var user in Users){<option value="@user.UserEmail">@user.DisplayName (@user.UserEmail)</option>}</select>
             <input class="admin-input" placeholder="Comentario de reasignación..." @bind="ReassignComment" />
-
-            <button class="primary-btn" type="button" disabled="@(!CanReassign)" @onclick="ReassignSelectedAsync">
-                Reasignar (@SelectedCount)
-            </button>
+            <button class="primary-btn" type="button" disabled="@(!CanReassign)" @onclick="ReassignSelectedAsync">Reasignar (@SelectedCount)</button>
         </div>
 
         <div class="table-wrap">
             <table class="admin-table">
-                <thead>
-                    <tr>
-                        <th><input type="checkbox" checked="@AllCurrentSelected" @onchange="ToggleAllCurrentPage" /></th>
-                        <th>Cliente</th>
-                        <th>Tipo</th>
-                        <th>Severidad</th>
-                        <th>Alerta</th>
-                        <th>Recurso</th>
-                        <th>Eventos</th>
-                        <th>Usuario asignado</th>
-                        <th>Estado</th>
-                        <th>Último evento</th>
-                    </tr>
-                </thead>
+                <thead><tr><th><input type="checkbox" checked="@AllCurrentSelected" @onchange="ToggleAllCurrentPage" /></th><th>Cliente</th><th>Tipo</th><th>Severidad</th><th>Alerta</th><th>Recurso</th><th>Eventos</th><th>Usuario asignado</th><th>Estado</th><th>Último evento</th></tr></thead>
                 <tbody>
-                    @if (IsLoading)
-                    {
-                        <tr><td colspan="10" class="empty">Cargando...</td></tr>
-                    }
-                    else if (Alerts.Items.Count == 0)
-                    {
-                        <tr><td colspan="10" class="empty">No se encontraron alertas asignadas.</td></tr>
-                    }
+                    @if (IsLoading){<tr><td colspan="10" class="empty">Cargando...</td></tr>}
+                    else if (Alerts.Items.Count == 0){<tr><td colspan="10" class="empty">No se encontraron alertas asignadas.</td></tr>}
                     else
                     {
                         @foreach (var alert in Alerts.Items)
@@ -148,13 +92,7 @@
             <div class="pagination-actions">
                 <button class="secondary-btn" disabled="@(PageNumber <= 1)" @onclick="FirstPageAsync">1</button>
                 <button class="secondary-btn" disabled="@(PageNumber <= 1)" @onclick="PreviousPageAsync">◀</button>
-
-                <select class="admin-input page-size" @bind="PageSize" @bind:after="PageSizeChangedAsync">
-                    <option value="25">25 / página</option>
-                    <option value="50">50 / página</option>
-                    <option value="100">100 / página</option>
-                </select>
-
+                <select class="admin-input page-size" @bind="PageSize" @bind:after="PageSizeChangedAsync"><option value="25">25 / página</option><option value="50">50 / página</option><option value="100">100 / página</option></select>
                 <button class="secondary-btn" disabled="@(PageNumber >= Alerts.TotalPages)" @onclick="NextPageAsync">▶</button>
                 <button class="secondary-btn" disabled="@(PageNumber >= Alerts.TotalPages)" @onclick="LastPageAsync">@Math.Max(Alerts.TotalPages, 1)</button>
             </div>
@@ -163,15 +101,10 @@
 
     <aside class="side">
         <section class="admin-card">
-            <h3>Cerrar por severidad</h3>
-            <p>Solo cierra alertas sin usuario asignado y no In Progress.</p>
-
+            <h3>Cerrar por severidad</h3><p>Solo cierra alertas sin usuario asignado y no In Progress.</p>
             @foreach (var sev in SeveritySummary)
             {
-                <div class="severity-close">
-                    <div><b>@sev.SourceType · @sev.Severity</b><small>@sev.CloseableGroups grupos · @sev.CloseableEvents eventos</small></div>
-                    <button class="danger-btn" @onclick="async () => await CloseSeverityAsync(sev)">Cerrar</button>
-                </div>
+                <div class="severity-close"><div><b>@sev.SourceType · @sev.Severity</b><small>@sev.CloseableGroups grupos · @sev.CloseableEvents eventos</small></div><button class="danger-btn" @onclick="async () => await CloseSeverityAsync(sev)">Cerrar</button></div>
             }
         </section>
 
@@ -180,109 +113,83 @@
             @foreach (var user in Workload)
             {
                 var pct = MaxUserEvents == 0 ? 0 : Math.Min(100, (int)Math.Round(user.TotalEvents * 100.0 / MaxUserEvents));
-                <div class="workload">
-                    <div><b>@user.DisplayName</b><span>@user.TotalEvents eventos</span></div>
-                    <div class="bar"><i style="width:@pct%"></i></div>
-                    <small>Activas: @user.ActiveGroups · In Progress: @user.InProgressGroups · Cerradas hoy: @user.ClosedToday</small>
-                </div>
+                <div class="workload"><div><b>@user.DisplayName</b><span>@user.TotalEvents eventos</span></div><div class="bar"><i style="width:@pct%"></i></div><small>Activas: @user.ActiveGroups · In Progress: @user.InProgressGroups · Cerradas hoy: @user.ClosedToday</small></div>
             }
         </section>
     </aside>
 </div>
 
 <section class="admin-card history">
-    <div class="admin-card-header">
-        <div>
-            <h3>Historial de alertas cerradas</h3>
-            <small>@ClosedHistory.TotalCount cierres encontrados</small>
-        </div>
-
-        <button class="primary-btn" type="button" @onclick="ExportHistoryExcelAsync">
-            ⬇ Descargar Excel
-        </button>
-    </div>
-
+    <div class="admin-card-header"><div><h3>Historial de alertas cerradas</h3><small>@ClosedHistory.TotalCount cierres encontrados</small></div><button class="primary-btn" type="button" @onclick="ExportHistoryExcelAsync">⬇ Descargar Excel</button></div>
     <div class="history-filters">
         <input class="admin-input" placeholder="Buscar historial..." @bind="HistorySearchText" @bind:event="oninput" />
-
-        <select class="admin-input" @bind="HistoryKpiType">
-            <option value="All">Todos los tipos</option>
-            <option value="Management">Management</option>
-            <option value="Backup">Backup</option>
-        </select>
-
-        <select class="admin-input" @bind="HistoryUserEmail">
-            <option value="">Todos los usuarios</option>
-            @foreach (var user in Users)
-            {
-                <option value="@user.UserEmail">@user.DisplayName</option>
-            }
-        </select>
-
+        <select class="admin-input" @bind="HistoryKpiType"><option value="All">Todos los tipos</option><option value="Management">Management</option><option value="Backup">Backup</option></select>
+        <select class="admin-input" @bind="HistoryUserEmail"><option value="">Todos los usuarios</option>@foreach (var user in Users){<option value="@user.UserEmail">@user.DisplayName</option>}</select>
         <button class="secondary-btn" type="button" @onclick="ClearHistoryFiltersAsync">Limpiar</button>
         <button class="primary-btn" type="button" @onclick="SearchHistoryAsync">Buscar</button>
     </div>
-
     <div class="table-wrap">
         <table class="admin-table">
-            <thead>
-                <tr>
-                    <th>Fecha</th>
-                    <th>Usuario</th>
-                    <th>Tipo</th>
-                    <th>Cliente</th>
-                    <th>Alerta</th>
-                    <th>Recurso</th>
-                    <th>Comentario</th>
-                </tr>
-            </thead>
+            <thead><tr><th>Fecha</th><th>Usuario</th><th>Tipo</th><th>Cliente</th><th>Alerta</th><th>Recurso</th><th>Comentario</th></tr></thead>
             <tbody>
-                @if (ClosedHistory.Items.Count == 0)
-                {
-                    <tr><td colspan="7" class="empty">No hay historial de cierres.</td></tr>
-                }
+                @if (ClosedHistory.Items.Count == 0){<tr><td colspan="7" class="empty">No hay historial de cierres.</td></tr>}
                 else
                 {
                     @foreach (var item in ClosedHistory.Items)
                     {
-                        <tr>
-                            <td>@FormatDate(item.ClosedAt)</td>
-                            <td><strong>@item.ClosedBy</strong><small>@item.UserEmail</small></td>
-                            <td>@item.KPIType</td>
-                            <td>@item.ClientName</td>
-                            <td>@item.AlertName</td>
-                            <td>@item.ResourceName</td>
-                            <td>@item.Comment</td>
-                        </tr>
+                        <tr><td>@FormatDate(item.ClosedAt)</td><td><strong>@item.ClosedBy</strong><small>@item.UserEmail</small></td><td>@item.KPIType</td><td>@item.ClientName</td><td>@item.AlertName</td><td>@item.ResourceName</td><td>@item.Comment</td></tr>
                     }
                 }
             </tbody>
         </table>
     </div>
-
-    <div class="pagination">
-        <span>Página <b>@HistoryPageNumber</b> de <b>@Math.Max(ClosedHistory.TotalPages, 1)</b> · Total <b>@ClosedHistory.TotalCount</b></span>
-        <div class="pagination-actions">
-            <button class="secondary-btn" disabled="@(HistoryPageNumber <= 1)" @onclick="FirstHistoryPageAsync">1</button>
-            <button class="secondary-btn" disabled="@(HistoryPageNumber <= 1)" @onclick="PreviousHistoryPageAsync">◀</button>
-
-            <select class="admin-input page-size" @bind="HistoryPageSize" @bind:after="HistoryPageSizeChangedAsync">
-                <option value="25">25 / página</option>
-                <option value="50">50 / página</option>
-                <option value="100">100 / página</option>
-            </select>
-
-            <button class="secondary-btn" disabled="@(HistoryPageNumber >= ClosedHistory.TotalPages)" @onclick="NextHistoryPageAsync">▶</button>
-            <button class="secondary-btn" disabled="@(HistoryPageNumber >= ClosedHistory.TotalPages)" @onclick="LastHistoryPageAsync">@Math.Max(ClosedHistory.TotalPages, 1)</button>
-        </div>
-    </div>
+    <div class="pagination"><span>Página <b>@HistoryPageNumber</b> de <b>@Math.Max(ClosedHistory.TotalPages, 1)</b> · Total <b>@ClosedHistory.TotalCount</b></span><div class="pagination-actions"><button class="secondary-btn" disabled="@(HistoryPageNumber <= 1)" @onclick="FirstHistoryPageAsync">1</button><button class="secondary-btn" disabled="@(HistoryPageNumber <= 1)" @onclick="PreviousHistoryPageAsync">◀</button><select class="admin-input page-size" @bind="HistoryPageSize" @bind:after="HistoryPageSizeChangedAsync"><option value="25">25 / página</option><option value="50">50 / página</option><option value="100">100 / página</option></select><button class="secondary-btn" disabled="@(HistoryPageNumber >= ClosedHistory.TotalPages)" @onclick="NextHistoryPageAsync">▶</button><button class="secondary-btn" disabled="@(HistoryPageNumber >= ClosedHistory.TotalPages)" @onclick="LastHistoryPageAsync">@Math.Max(ClosedHistory.TotalPages, 1)</button></div></div>
 </section>
 
+@if (ShowUserConfigModal)
+{
+    <div class="config-modal-backdrop">
+        <div class="config-modal">
+            <div class="config-modal-header"><div><h3>Configuración de usuarios</h3><small>Administración de acceso al módulo Admin / Manager View desde dbo.ITQS_AppUsers.</small></div><button class="secondary-btn" type="button" @onclick="CloseUserConfig">Cerrar</button></div>
+            <div class="table-wrap">
+                <table class="admin-table config-table">
+                    <thead><tr><th>Usuario</th><th>Correo</th><th>BaseRole</th><th>EffectiveRole</th><th>Temp Admin</th><th>Activo</th><th>Acceso Admin</th><th>Notas</th><th>Acción</th></tr></thead>
+                    <tbody>
+                        @foreach (var appUser in UserMaintenance)
+                        {
+                            <tr>
+                                <td><input class="admin-input" @bind="appUser.DisplayName" /></td>
+                                <td>@appUser.UserEmail</td>
+                                <td><select class="admin-input" @bind="appUser.BaseRole"><option value="Admin">Admin</option><option value="User">User</option></select></td>
+                                <td><select class="admin-input" @bind="appUser.EffectiveRole"><option value="Admin">Admin</option><option value="User">User</option></select></td>
+                                <td><input type="checkbox" @bind="appUser.IsTempAdmin" /></td>
+                                <td><input type="checkbox" @bind="appUser.IsActive" /></td>
+                                <td><span class="status @(appUser.CanAccessAdminManager ? "active" : "closed")">@(appUser.CanAccessAdminManager ? "Permitido" : "Bloqueado")</span></td>
+                                <td><input class="admin-input" @bind="appUser.Notes" /></td>
+                                <td><button class="primary-btn" type="button" @onclick="async () => await SaveUserConfigAsync(appUser)">Guardar</button></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <p class="config-help">Para permitir acceso al módulo, el usuario debe estar activo y tener BaseRole o EffectiveRole igual a Admin.</p>
+        </div>
+    </div>
+}
+
 <style>
-.admin-kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;margin-bottom:18px}.kpi{background:white;border:1px solid #dbe4f0;border-radius:16px;padding:18px;box-shadow:0 10px 28px rgba(15,23,42,.06)}.kpi span{font-size:22px}.kpi b{display:block;font-size:28px;color:#061634}.kpi small{color:#64748b;font-weight:700}.admin-filters,.history-filters{display:grid;grid-template-columns:1.5fr repeat(5,1fr) auto auto;gap:10px;background:white;border:1px solid #dbe4f0;border-radius:16px;padding:16px;margin-bottom:18px}.history-filters{grid-template-columns:1.5fr 1fr 1fr auto auto}.admin-input{border:1px solid #bcd0ee;border-radius:10px;padding:10px 12px;font-weight:700;width:100%;background:white}.primary-btn,.secondary-btn,.danger-btn{border-radius:10px;padding:10px 14px;font-weight:900;border:1px solid #bcd0ee;white-space:nowrap}.primary-btn{background:#2563eb;color:white;border-color:#2563eb}.secondary-btn{background:white;color:#2563eb}.danger-btn{background:#dc2626;color:white;border-color:#dc2626}button:disabled{opacity:.55}.admin-grid{display:grid;grid-template-columns:1fr 360px;gap:18px}.admin-card{background:white;border:1px solid #dbe4f0;border-radius:16px;padding:18px;box-shadow:0 10px 28px rgba(15,23,42,.06)}.admin-card-header{display:flex;justify-content:space-between;gap:12px;margin-bottom:14px}.admin-card h3{margin:0;color:#061634;font-weight:900}.admin-card small,.admin-card p{color:#64748b;font-weight:700}.reassign-row{display:grid;grid-template-columns:1fr 1fr auto;gap:10px;margin-bottom:14px}.table-wrap{overflow-x:auto;border:1px solid #dbe4f0;border-radius:14px}.admin-table{width:100%;border-collapse:collapse;min-width:1100px}.admin-table th{background:#f6f9fd;color:#061634;padding:13px;text-align:left;font-weight:900}.admin-table td{padding:13px;border-top:1px solid #eef2f7;font-weight:600}.admin-table td small{display:block;color:#64748b;font-size:12px}.type-badge,.severity,.status{display:inline-flex;padding:6px 10px;border-radius:999px;font-size:12px;font-weight:900}.management{color:#2563eb;background:#dbeafe}.backup{color:#7c3aed;background:#ede9fe}.critical{color:#dc2626;background:#fee2e2}.warning{color:#d97706;background:#fef3c7}.info{color:#2563eb;background:#dbeafe}.normal{color:#475569;background:#e2e8f0}.active{color:#15803d;background:#dcfce7}.in-progress{color:#d97706;background:#fef3c7}.closed{color:#991b1b;background:#fee2e2}.pagination{display:flex;justify-content:space-between;align-items:center;margin-top:14px;gap:12px}.pagination-actions{display:flex;gap:8px;align-items:center}.page-size{width:140px;display:inline-block}.severity-close{display:flex;justify-content:space-between;gap:10px;padding:12px 0;border-top:1px solid #eef2f7}.severity-close small{display:block}.workload{padding:12px 0;border-top:1px solid #eef2f7}.workload div:first-child{display:flex;justify-content:space-between}.bar{height:9px;background:#e2e8f0;border-radius:999px;overflow:hidden;margin:8px 0}.bar i{display:block;height:100%;background:#2563eb}.history{margin-top:18px}.empty{text-align:center;color:#64748b;padding:18px}.admin-message{border-radius:12px;padding:12px 16px;font-weight:900;margin-bottom:16px}.admin-message.ok{color:#166534;background:#dcfce7;border:1px solid #bbf7d0}.admin-message.error{color:#991b1b;background:#fee2e2;border:1px solid #fecaca}@@media(max-width:1400px){.admin-kpis{grid-template-columns:repeat(3,1fr)}.admin-filters,.history-filters{grid-template-columns:repeat(2,1fr)}.admin-grid{grid-template-columns:1fr}}@@media(max-width:760px){.admin-kpis,.admin-filters,.history-filters,.reassign-row{grid-template-columns:1fr}.pagination,.admin-card-header{flex-direction:column;align-items:stretch}}
+.config-button{margin-bottom:14px}.admin-kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;margin-bottom:18px}.kpi{background:white;border:1px solid #dbe4f0;border-radius:16px;padding:18px;box-shadow:0 10px 28px rgba(15,23,42,.06)}.kpi span{font-size:22px}.kpi b{display:block;font-size:28px;color:#061634}.kpi small{color:#64748b;font-weight:700}.admin-filters,.history-filters{display:grid;grid-template-columns:1.5fr repeat(5,1fr) auto auto;gap:10px;background:white;border:1px solid #dbe4f0;border-radius:16px;padding:16px;margin-bottom:18px}.history-filters{grid-template-columns:1.5fr 1fr 1fr auto auto}.admin-input{border:1px solid #bcd0ee;border-radius:10px;padding:10px 12px;font-weight:700;width:100%;background:white}.primary-btn,.secondary-btn,.danger-btn{border-radius:10px;padding:10px 14px;font-weight:900;border:1px solid #bcd0ee;white-space:nowrap}.primary-btn{background:#2563eb;color:white;border-color:#2563eb}.secondary-btn{background:white;color:#2563eb}.danger-btn{background:#dc2626;color:white;border-color:#dc2626}button:disabled{opacity:.55}.admin-grid{display:grid;grid-template-columns:1fr 360px;gap:18px}.admin-card{background:white;border:1px solid #dbe4f0;border-radius:16px;padding:18px;box-shadow:0 10px 28px rgba(15,23,42,.06)}.admin-card-header{display:flex;justify-content:space-between;gap:12px;margin-bottom:14px}.admin-card h3{margin:0;color:#061634;font-weight:900}.admin-card small,.admin-card p{color:#64748b;font-weight:700}.reassign-row{display:grid;grid-template-columns:1fr 1fr auto;gap:10px;margin-bottom:14px}.table-wrap{overflow-x:auto;border:1px solid #dbe4f0;border-radius:14px}.admin-table{width:100%;border-collapse:collapse;min-width:1100px}.admin-table th{background:#f6f9fd;color:#061634;padding:13px;text-align:left;font-weight:900}.admin-table td{padding:13px;border-top:1px solid #eef2f7;font-weight:600}.admin-table td small{display:block;color:#64748b;font-size:12px}.type-badge,.severity,.status{display:inline-flex;padding:6px 10px;border-radius:999px;font-size:12px;font-weight:900}.management{color:#2563eb;background:#dbeafe}.backup{color:#7c3aed;background:#ede9fe}.critical{color:#dc2626;background:#fee2e2}.warning{color:#d97706;background:#fef3c7}.info{color:#2563eb;background:#dbeafe}.normal{color:#475569;background:#e2e8f0}.active{color:#15803d;background:#dcfce7}.in-progress{color:#d97706;background:#fef3c7}.closed{color:#991b1b;background:#fee2e2}.pagination{display:flex;justify-content:space-between;align-items:center;margin-top:14px;gap:12px}.pagination-actions{display:flex;gap:8px;align-items:center}.page-size{width:140px;display:inline-block}.severity-close{display:flex;justify-content:space-between;gap:10px;padding:12px 0;border-top:1px solid #eef2f7}.severity-close small{display:block}.workload{padding:12px 0;border-top:1px solid #eef2f7}.workload div:first-child{display:flex;justify-content:space-between}.bar{height:9px;background:#e2e8f0;border-radius:999px;overflow:hidden;margin:8px 0}.bar i{display:block;height:100%;background:#2563eb}.history{margin-top:18px}.empty{text-align:center;color:#64748b;padding:18px}.admin-message{border-radius:12px;padding:12px 16px;font-weight:900;margin-bottom:16px}.admin-message.ok{color:#166534;background:#dcfce7;border:1px solid #bbf7d0}.admin-message.error{color:#991b1b;background:#fee2e2;border:1px solid #fecaca}.config-modal-backdrop{position:fixed;inset:0;background:rgba(2,6,23,.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px}.config-modal{width:min(1400px,96vw);max-height:90vh;overflow:auto;background:#fff;border-radius:18px;border:1px solid #dbe4f0;padding:20px;box-shadow:0 25px 80px rgba(2,6,23,.35)}.config-modal-header{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:16px}.config-table{min-width:1200px}.config-help{color:#64748b;font-weight:700;margin-top:12px}@@media(max-width:1400px){.admin-kpis{grid-template-columns:repeat(3,1fr)}.admin-filters,.history-filters{grid-template-columns:repeat(2,1fr)}.admin-grid{grid-template-columns:1fr}}@@media(max-width:760px){.admin-kpis,.admin-filters,.history-filters,.reassign-row{grid-template-columns:1fr}.pagination,.admin-card-header{flex-direction:column;align-items:stretch}}
 </style>
 
 @code {
+    private bool HasAdminAccess;
+    private bool IsLoading;
+    private bool ShowUserConfigModal;
+    private string Message = string.Empty;
+    private string MessageCss = "admin-message ok";
+    private string UserEmail = string.Empty;
+    private string UserName = string.Empty;
+
     private AdminManagerDashboardModel Dashboard = new();
     private AdminManagerAlertPagedResultModel Alerts = new();
     private AdminManagerClosedHistoryPagedResultModel ClosedHistory = new();
@@ -291,12 +198,7 @@
     private List<AdminManagerAppUserModel> Users = new();
     private List<AdminManagerEngineerWorkloadModel> Workload = new();
     private List<AdminManagerSeveritySummaryModel> SeveritySummary = new();
-
-    private bool IsLoading;
-    private string Message = string.Empty;
-    private string MessageCss = "admin-message ok";
-    private string UserEmail = string.Empty;
-    private string UserName = string.Empty;
+    private List<AdminManagerUserMaintenanceModel> UserMaintenance = new();
 
     private int PageNumber = 1;
     private int PageSize = 50;
@@ -331,6 +233,13 @@
         UserEmail = user.FindFirst(ClaimTypes.Email)?.Value ?? user.FindFirst("preferred_username")?.Value ?? user.Identity?.Name ?? string.Empty;
         UserName = user.FindFirst("name")?.Value ?? user.Identity?.Name ?? UserEmail;
 
+        HasAdminAccess = await AdminService.CanAccessAdminManagerAsync(UserEmail);
+
+        if (!HasAdminAccess)
+        {
+            return;
+        }
+
         await LoadAllAsync();
     }
 
@@ -344,10 +253,8 @@
             Users = await AdminService.GetUsersAsync();
             Workload = await AdminService.GetEngineerWorkloadAsync();
             SeveritySummary = await AdminService.GetSeveritySummaryAsync();
-
             await LoadAlertsAsync();
             await LoadHistoryAsync();
-
             LastRefreshAt = DateTime.Now;
         }
         catch (Exception ex)
@@ -360,15 +267,8 @@
         }
     }
 
-    private async Task LoadAlertsAsync()
-    {
-        Alerts = await AdminService.GetAlertsAsync(PageNumber, PageSize, SearchText, SelectedClient, SelectedAssignedEmail, SelectedSourceType, SelectedSeverity, SelectedStatus);
-    }
-
-    private async Task LoadHistoryAsync()
-    {
-        ClosedHistory = await AdminService.GetClosedHistoryPagedAsync(HistoryPageNumber, HistoryPageSize, HistorySearchText, HistoryKpiType, HistoryUserEmail);
-    }
+    private async Task LoadAlertsAsync() => Alerts = await AdminService.GetAlertsAsync(PageNumber, PageSize, SearchText, SelectedClient, SelectedAssignedEmail, SelectedSourceType, SelectedSeverity, SelectedStatus);
+    private async Task LoadHistoryAsync() => ClosedHistory = await AdminService.GetClosedHistoryPagedAsync(HistoryPageNumber, HistoryPageSize, HistorySearchText, HistoryKpiType, HistoryUserEmail);
 
     private async Task SearchAsync(){ PageNumber = 1; await LoadAlertsAsync(); }
     private async Task ClearFiltersAsync(){ SearchText = string.Empty; SelectedClient = string.Empty; SelectedAssignedEmail = string.Empty; SelectedSourceType = "All"; SelectedSeverity = "All"; SelectedStatus = "All"; PageNumber = 1; await LoadAlertsAsync(); }
@@ -456,8 +356,6 @@
 
         var bytes = Encoding.UTF8.GetPreamble().Concat(Encoding.UTF8.GetBytes(csv.ToString())).ToArray();
         var base64 = Convert.ToBase64String(bytes);
-        var fileName = $"Historial_Alertas_Cerradas_{DateTime.Now:yyyyMMdd_HHmm}.csv";
-
         NavigationManager.NavigateTo($"data:text/csv;base64,{base64}", forceLoad: true);
     }
 
@@ -467,6 +365,36 @@
         return $"\"{value}\"";
     }
 
+    private async Task OpenUserConfigAsync()
+    {
+        UserMaintenance = await AdminService.GetUserMaintenanceAsync();
+        ShowUserConfigModal = true;
+    }
+
+    private void CloseUserConfig() => ShowUserConfigModal = false;
+
+    private async Task SaveUserConfigAsync(AdminManagerUserMaintenanceModel appUser)
+    {
+        await AdminService.SaveUserMaintenanceAsync(new AdminManagerUserSaveRequestModel
+        {
+            Id = appUser.Id,
+            UserEmail = appUser.UserEmail,
+            DisplayName = appUser.DisplayName,
+            BaseRole = appUser.BaseRole,
+            EffectiveRole = appUser.EffectiveRole,
+            IsTempAdmin = appUser.IsTempAdmin,
+            TempAdminStartAt = appUser.TempAdminStartAt,
+            TempAdminEndAt = appUser.TempAdminEndAt,
+            IsActive = appUser.IsActive,
+            Notes = appUser.Notes,
+            UpdatedBy = UserEmail
+        });
+
+        UserMaintenance = await AdminService.GetUserMaintenanceAsync();
+        Users = await AdminService.GetUsersAsync();
+        SetOk($"Usuario {appUser.DisplayName} actualizado correctamente.");
+    }
+
     private void OpenReassignmentEmail(AdminManagerAppUserModel user, List<AdminManagerAlertItemModel> selectedAlerts)
     {
         if (selectedAlerts.Count == 0) return;
@@ -474,8 +402,7 @@
         var totalEvents = selectedAlerts.Sum(x => x.Events);
         var subject = $"Reasignación de alertas SOC | {selectedAlerts.Count} grupos | {totalEvents} eventos";
         var body = $"Hola {user.DisplayName},\\r\\n\\r\\nSe te han reasignado alertas desde Admin / Manager View.\\r\\n\\r\\nGrupos reasignados: {selectedAlerts.Count}\\r\\nEventos incluidos: {totalEvents}\\r\\nReasignado por: {UserName} ({UserEmail})\\r\\nFecha: {DateTime.Now:dd/MM/yyyy HH:mm}\\r\\n\\r\\nPor favor validar el panel Asignadas a mí para dar seguimiento.\\r\\n\\r\\nSaludos,\\r\\nSoporte ITQS";
-        var mailto = $"mailto:{Uri.EscapeDataString(user.UserEmail)}?subject={Uri.EscapeDataString(subject)}&body={Uri.EscapeDataString(body)}";
-        NavigationManager.NavigateTo(mailto, forceLoad: true);
+        NavigationManager.NavigateTo($"mailto:{Uri.EscapeDataString(user.UserEmail)}?subject={Uri.EscapeDataString(subject)}&body={Uri.EscapeDataString(body)}", forceLoad: true);
     }
 
     private void SetOk(string message){ Message = message; MessageCss = "admin-message ok"; }
@@ -483,35 +410,24 @@
 
     private string GetSeverityClass(string severity) => severity?.ToLowerInvariant() switch
     {
-        "critical" => "critical",
-        "error" => "critical",
-        "high" => "critical",
-        "sev0" => "critical",
-        "sev1" => "critical",
-        "warning" => "warning",
-        "medium" => "warning",
-        "sev2" => "warning",
-        "informational" => "info",
-        "info" => "info",
-        "sev3" => "info",
+        "critical" or "error" or "high" or "sev0" or "sev1" => "critical",
+        "warning" or "medium" or "sev2" => "warning",
+        "informational" or "info" or "sev3" => "info",
         _ => "normal"
     };
 
     private string GetStatusClass(string status) => status?.ToLowerInvariant() switch
     {
         "closed" => "closed",
-        "inprogress" => "in-progress",
-        "in progress" => "in-progress",
+        "inprogress" or "in progress" => "in-progress",
         _ => "active"
     };
 
     private string GetStatusText(string status) => status?.ToLowerInvariant() switch
     {
         "closed" => "Closed",
-        "inprogress" => "In Progress",
-        "in progress" => "In Progress",
-        "activa" => "Activa",
-        "active" => "Activa",
+        "inprogress" or "in progress" => "In Progress",
+        "activa" or "active" => "Activa",
         _ => string.IsNullOrWhiteSpace(status) ? "Activa" : status
     };
 

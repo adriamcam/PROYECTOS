@@ -4,6 +4,10 @@ namespace ITQS.SupportOperationsCenter.Repositories.Interfaces;
 
 public interface IAdminManagerRepository
 {
+    Task<bool> CanAccessAdminManagerAsync(
+        string userEmail,
+        CancellationToken cancellationToken = default);
+
     Task<AdminManagerDashboardModel> GetDashboardAsync(
         CancellationToken cancellationToken = default);
 
@@ -30,10 +34,6 @@ public interface IAdminManagerRepository
     Task<List<AdminManagerSeveritySummaryModel>> GetSeveritySummaryAsync(
         CancellationToken cancellationToken = default);
 
-    Task<List<AdminManagerClosedHistoryModel>> GetClosedHistoryAsync(
-        int take = 100,
-        CancellationToken cancellationToken = default);
-
     Task<AdminManagerClosedHistoryPagedResultModel> GetClosedHistoryPagedAsync(
         int pageNumber,
         int pageSize,
@@ -54,5 +54,12 @@ public interface IAdminManagerRepository
 
     Task CloseSeverityAsync(
         AdminManagerCloseSeverityRequestModel request,
+        CancellationToken cancellationToken = default);
+
+    Task<List<AdminManagerUserMaintenanceModel>> GetUserMaintenanceAsync(
+        CancellationToken cancellationToken = default);
+
+    Task SaveUserMaintenanceAsync(
+        AdminManagerUserSaveRequestModel request,
         CancellationToken cancellationToken = default);
 }

@@ -18,7 +18,7 @@ public sealed class AdminManagerAlertPagedResultModel
     public List<AdminManagerAlertItemModel> Items { get; set; } = new();
     public int TotalCount { get; set; }
     public int PageNumber { get; set; } = 1;
-    public int PageSize { get; set; } = 25;
+    public int PageSize { get; set; } = 50;
 
     public int TotalPages =>
         PageSize <= 0 ? 0 : (int)Math.Ceiling(TotalCount / (double)PageSize);
@@ -78,13 +78,12 @@ public sealed class AdminManagerSeveritySummaryModel
     public int CloseableEvents { get; set; }
 }
 
-
 public sealed class AdminManagerClosedHistoryPagedResultModel
 {
     public List<AdminManagerClosedHistoryModel> Items { get; set; } = new();
     public int TotalCount { get; set; }
     public int PageNumber { get; set; } = 1;
-    public int PageSize { get; set; } = 25;
+    public int PageSize { get; set; } = 50;
 
     public int TotalPages =>
         PageSize <= 0 ? 0 : (int)Math.Ceiling(TotalCount / (double)PageSize);
@@ -127,4 +126,48 @@ public sealed class AdminManagerCloseSeverityRequestModel
     public string RequestedByEmail { get; set; } = string.Empty;
 
     public string Comment { get; set; } = string.Empty;
+}
+
+public sealed class AdminManagerUserMaintenanceModel
+{
+    public int Id { get; set; }
+    public string UserEmail { get; set; } = string.Empty;
+    public string DisplayName { get; set; } = string.Empty;
+    public string BaseRole { get; set; } = string.Empty;
+    public string EffectiveRole { get; set; } = string.Empty;
+    public bool IsTempAdmin { get; set; }
+    public DateTime? TempAdminStartAt { get; set; }
+    public DateTime? TempAdminEndAt { get; set; }
+    public bool IsActive { get; set; }
+    public DateTime? LastSyncAt { get; set; }
+    public DateTime? CreatedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
+    public string Notes { get; set; } = string.Empty;
+
+    public bool CanAccessAdminManager =>
+        IsActive &&
+        (
+            string.Equals(BaseRole, "Admin", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(EffectiveRole, "Admin", StringComparison.OrdinalIgnoreCase) ||
+            (
+                IsTempAdmin &&
+                (!TempAdminStartAt.HasValue || TempAdminStartAt.Value <= DateTime.Now) &&
+                (!TempAdminEndAt.HasValue || TempAdminEndAt.Value >= DateTime.Now)
+            )
+        );
+}
+
+public sealed class AdminManagerUserSaveRequestModel
+{
+    public int Id { get; set; }
+    public string UserEmail { get; set; } = string.Empty;
+    public string DisplayName { get; set; } = string.Empty;
+    public string BaseRole { get; set; } = "User";
+    public string EffectiveRole { get; set; } = "User";
+    public bool IsTempAdmin { get; set; }
+    public DateTime? TempAdminStartAt { get; set; }
+    public DateTime? TempAdminEndAt { get; set; }
+    public bool IsActive { get; set; } = true;
+    public string Notes { get; set; } = string.Empty;
+    public string UpdatedBy { get; set; } = string.Empty;
 }

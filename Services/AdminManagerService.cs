@@ -17,6 +17,21 @@ public sealed class AdminManagerService : IAdminManagerService
         _logger = logger;
     }
 
+    public async Task<bool> CanAccessAdminManagerAsync(
+        string userEmail,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            return await _repository.CanAccessAdminManagerAsync(userEmail, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error validating Admin Manager access for {UserEmail}.", userEmail);
+            return false;
+        }
+    }
+
     public async Task<AdminManagerDashboardModel> GetDashboardAsync(
         CancellationToken cancellationToken = default)
     {
@@ -123,23 +138,6 @@ public sealed class AdminManagerService : IAdminManagerService
         }
     }
 
-    public async Task<List<AdminManagerClosedHistoryModel>> GetClosedHistoryAsync(
-        int take = 100,
-        CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            return await _repository.GetClosedHistoryAsync(
-                take,
-                cancellationToken);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error loading closed alert history.");
-            return new List<AdminManagerClosedHistoryModel>();
-        }
-    }
-
     public async Task<AdminManagerClosedHistoryPagedResultModel> GetClosedHistoryPagedAsync(
         int pageNumber,
         int pageSize,
@@ -195,17 +193,34 @@ public sealed class AdminManagerService : IAdminManagerService
         AdminManagerReassignRequestModel request,
         CancellationToken cancellationToken = default)
     {
-        await _repository.ReassignAlertsAsync(
-            request,
-            cancellationToken);
+        await _repository.ReassignAlertsAsync(request, cancellationToken);
     }
 
     public async Task CloseSeverityAsync(
         AdminManagerCloseSeverityRequestModel request,
         CancellationToken cancellationToken = default)
     {
-        await _repository.CloseSeverityAsync(
-            request,
-            cancellationToken);
+        await _repository.CloseSeverityAsync(request, cancellationToken);
+    }
+
+    public async Task<List<AdminManagerUserMaintenanceModel>> GetUserMaintenanceAsync(
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            return await _repository.GetUserMaintenanceAsync(cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error loading Admin Manager user maintenance.");
+            return new List<AdminManagerUserMaintenanceModel>();
+        }
+    }
+
+    public async Task SaveUserMaintenanceAsync(
+        AdminManagerUserSaveRequestModel request,
+        CancellationToken cancellationToken = default)
+    {
+        await _repository.SaveUserMaintenanceAsync(request, cancellationToken);
     }
 }
