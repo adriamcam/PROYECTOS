@@ -777,20 +777,21 @@ INSERT INTO dbo.AzureAlertCloseQueue
     Status,
     RetryCount
 )
-VALUES
-(
+SELECT
     @KPIType,
-    @SourceTable,
-    @AlertId,
-    NULL,
-    @TenantId,
-    @SubscriptionId,
+    'AlertsManagement',
+    A.Id,
+    A.AlertId,
+    A.TenantId,
+    A.SubscriptionId,
     @UserEmail,
     @UpdatedBy,
     @Comment,
     SYSDATETIME(),
     'Pending',
     0
+FROM dbo.AlertsManagement A
+WHERE A.Id = @AlertId;
 );";
     }
     else
