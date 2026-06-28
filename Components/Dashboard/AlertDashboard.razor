@@ -90,6 +90,11 @@ else
 </style>
 
 @code {
+
+  [Parameter]
+    public string UserEmail { get; set; } = string.Empty;
+
+
     private AlertMonitoringDashboardModel Dashboard = new();
     private bool IsLoading = true;
 
