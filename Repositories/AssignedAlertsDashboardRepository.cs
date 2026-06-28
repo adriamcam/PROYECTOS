@@ -774,17 +774,6 @@ WHERE ISNULL(B.Active, 0) = 1
   AND ISNULL(NULLIF(B.Severity, ''), 'Unknown') = @Severity
   AND COALESCE(NULLIF(B.ResourceName, ''), NULLIF(B.VMName, ''), NULLIF(B.ProtectedItem, ''), 'Sin recurso') = @ResourceName;
 
-UPDATE B
-SET
-    B.Active = 0,
-    B.ResolveTime = SYSDATETIME(),
-    B.ResolutionNotes = @Comment,
-    B.LastUpdatedBy = @UpdatedBy,
-    B.UpdatedAt = SYSDATETIME()
-FROM dbo.AlertasBackup B
-INNER JOIN @ClosedAlerts C
-    ON C.AlertRecordId = B.Id;
-
 INSERT INTO dbo.AlertUpdatesHistory
 (
     KPIType,
@@ -837,7 +826,18 @@ SELECT
     SYSDATETIME(),
     'Pending',
     0
-FROM @ClosedAlerts C;";
+FROM @ClosedAlerts C;
+
+UPDATE B
+SET
+    B.Active = 0,
+    B.ResolveTime = SYSDATETIME(),
+    B.ResolutionNotes = @Comment,
+    B.LastUpdatedBy = @UpdatedBy,
+    B.UpdatedAt = SYSDATETIME()
+FROM dbo.AlertasBackup B
+INNER JOIN @ClosedAlerts C
+    ON C.AlertRecordId = B.Id;";
         }
         else
         {
@@ -869,18 +869,6 @@ WHERE ISNULL(A.Active, 0) = 1
   AND ISNULL(NULLIF(A.AlertName, ''), 'Sin nombre') = @AlertName
   AND ISNULL(NULLIF(A.Severity, ''), 'Unknown') = @Severity
   AND ISNULL(NULLIF(A.TargetResourceName, ''), 'Sin recurso') = @ResourceName;
-
-UPDATE A
-SET
-    A.Active = 0,
-    A.AlertStatus = 'Closed',
-    A.ResolveTime = SYSDATETIME(),
-    A.ResolutionNotes = @Comment,
-    A.LastUpdatedBy = @UpdatedBy,
-    A.UpdatedAt = SYSDATETIME()
-FROM dbo.AlertsManagement A
-INNER JOIN @ClosedAlerts C
-    ON C.AlertRecordId = A.Id;
 
 INSERT INTO dbo.AlertUpdatesHistory
 (
@@ -934,7 +922,19 @@ SELECT
     SYSDATETIME(),
     'Pending',
     0
-FROM @ClosedAlerts C;";
+FROM @ClosedAlerts C;
+
+UPDATE A
+SET
+    A.Active = 0,
+    A.AlertStatus = 'Closed',
+    A.ResolveTime = SYSDATETIME(),
+    A.ResolutionNotes = @Comment,
+    A.LastUpdatedBy = @UpdatedBy,
+    A.UpdatedAt = SYSDATETIME()
+FROM dbo.AlertsManagement A
+INNER JOIN @ClosedAlerts C
+    ON C.AlertRecordId = A.Id;";
         }
 
         await connection.ExecuteAsync(sql, new
