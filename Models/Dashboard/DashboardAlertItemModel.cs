@@ -15,7 +15,7 @@ public sealed class DashboardAlertItemModel
     public DateTime? LastEventAt { get; set; }
 
     public string AlertStatus { get; set; } = "Activa";
-	public bool Selected { get; set; }
+    public bool Selected { get; set; }
 
     public string AssignedTo { get; set; } = string.Empty;
     public string AssignedEmail { get; set; } = string.Empty;

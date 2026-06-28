@@ -175,7 +175,8 @@ FROM GroupedAlerts;
         Events = COUNT(1),
         LastEventAt = MAX(UpdatedAt),
         AssignedTo = '',
-        AssignedEmail = ''
+        AssignedEmail = '',
+        AlertStatus = 'Activa'
     FROM dbo.AlertsManagement
     WHERE ISNULL(Active, 0) = 1
       AND ISNULL(AssignedEmail, '') = ''
@@ -206,6 +207,7 @@ SELECT
     ResourceName,
     Events,
     LastEventAt,
+    AlertStatus,
     AssignedTo,
     AssignedEmail
 FROM GroupedAlerts
@@ -300,7 +302,8 @@ FROM GroupedAlerts;
         Events = COUNT(1),
         LastEventAt = MAX(UpdatedAt),
         AssignedTo = '',
-        AssignedEmail = ''
+        AssignedEmail = '',
+        AlertStatus = 'Activa'
     FROM dbo.AlertasBackup
     WHERE ISNULL(Active, 0) = 1
       AND ISNULL(AssignedEmail, '') = ''
@@ -333,6 +336,7 @@ SELECT
     ResourceName,
     Events,
     LastEventAt,
+    AlertStatus,
     AssignedTo,
     AssignedEmail
 FROM GroupedAlerts
@@ -468,19 +472,16 @@ WHERE ISNULL(Active, 0) = 1
             });
         }
     }
-//========================================================
-// DETALLE DE ALERTA
-//========================================================
 
-public async Task<AlertDetailModel?> GetAlertDetailAsync(
-    DashboardAlertItemModel alert,
-    CancellationToken cancellationToken = default)
-{
-    using var connection = _connectionFactory.CreateConnection();
-
-    if (alert.SourceType == "Backup")
+    public async Task<AlertDetailModel?> GetAlertDetailAsync(
+        DashboardAlertItemModel alert,
+        CancellationToken cancellationToken = default)
     {
-        const string sql = @"
+        using var connection = _connectionFactory.CreateConnection();
+
+        if (alert.SourceType == "Backup")
+        {
+            const string sql = @"
 SELECT TOP 1
     SourceType = 'Backup',
     AlertId = CAST(B.Id AS bigint),
@@ -490,7 +491,13 @@ SELECT TOP 1
     TenantId = ISNULL(B.TenantId, ''),
     AlertName = ISNULL(B.AlertRule, ''),
     Severity = ISNULL(B.Severity, ''),
-    AlertStatus = COALESCE(NULLIF(H.Status, ''), CASE WHEN ISNULL(B.Active, 0) = 1 THEN 'Activa' ELSE 'Closed' END),
+    AlertStatus =
+        CASE
+            WHEN ISNULL(B.Active, 0) = 0 THEN 'Closed'
+            WHEN LOWER(ISNULL(H.Status, '')) IN ('closed', 'close') THEN 'Closed'
+            WHEN LOWER(ISNULL(H.Status, '')) IN ('inprogress', 'in progress', 'update_note') THEN 'InProgress'
+            ELSE 'Activa'
+        END,
     AlertState = '',
     ResourceName = COALESCE(NULLIF(B.ResourceName, ''), NULLIF(B.VMName, ''), NULLIF(B.ProtectedItem, ''), ''),
     ResourceType = 'Backup',
@@ -522,7 +529,12 @@ SELECT
     KPIType,
     AlertId = CAST(ISNULL(AlertId, 0) AS bigint),
     Comment = ISNULL(Comment, ''),
-    Status = ISNULL(Status, ''),
+    Status =
+        CASE
+            WHEN LOWER(ISNULL(Status, '')) IN ('closed', 'close') THEN 'Closed'
+            WHEN LOWER(ISNULL(Status, '')) IN ('inprogress', 'in progress', 'update_note') THEN 'InProgress'
+            ELSE ISNULL(Status, '')
+        END,
     UpdatedBy = ISNULL(UpdatedBy, ''),
     UserEmail = ISNULL(UserEmail, ''),
     UpdatedAt
@@ -532,23 +544,23 @@ WHERE KPIType = 'Backup'
 ORDER BY UpdatedAt DESC;
 ";
 
-        using var multi = await connection.QueryMultipleAsync(sql, new
-        {
-            AlertId = alert.Id,
-            alert.Events
-        });
+            using var multi = await connection.QueryMultipleAsync(sql, new
+            {
+                AlertId = alert.Id,
+                alert.Events
+            });
 
-        var detail = await multi.ReadFirstOrDefaultAsync<AlertDetailModel>();
+            var detail = await multi.ReadFirstOrDefaultAsync<AlertDetailModel>();
 
-        if (detail is not null)
-        {
-            detail.History = (await multi.ReadAsync<AlertHistoryItemModel>()).ToList();
+            if (detail is not null)
+            {
+                detail.History = (await multi.ReadAsync<AlertHistoryItemModel>()).ToList();
+            }
+
+            return detail;
         }
 
-        return detail;
-    }
-
-    const string managementSql = @"
+        const string managementSql = @"
 SELECT TOP 1
     SourceType = 'Management',
     AlertId = CAST(A.Id AS bigint),
@@ -558,7 +570,15 @@ SELECT TOP 1
     TenantId = ISNULL(A.TenantId, ''),
     AlertName = ISNULL(A.AlertName, ''),
     Severity = ISNULL(A.Severity, ''),
-    AlertStatus = COALESCE(NULLIF(A.AlertStatus, ''), NULLIF(H.Status, ''), CASE WHEN ISNULL(A.Active, 0) = 1 THEN 'Activa' ELSE 'Closed' END),
+    AlertStatus =
+        CASE
+            WHEN ISNULL(A.Active, 0) = 0 THEN 'Closed'
+            WHEN LOWER(ISNULL(H.Status, '')) IN ('closed', 'close') THEN 'Closed'
+            WHEN LOWER(ISNULL(A.AlertStatus, '')) IN ('closed', 'close') THEN 'Closed'
+            WHEN LOWER(ISNULL(H.Status, '')) IN ('inprogress', 'in progress', 'update_note') THEN 'InProgress'
+            WHEN LOWER(ISNULL(A.AlertStatus, '')) IN ('inprogress', 'in progress') THEN 'InProgress'
+            ELSE 'Activa'
+        END,
     AlertState = ISNULL(A.AlertState, ''),
     ResourceName = ISNULL(A.TargetResourceName, ''),
     ResourceType = ISNULL(I.Type, ''),
@@ -593,7 +613,12 @@ SELECT
     KPIType,
     AlertId = CAST(ISNULL(AlertId, 0) AS bigint),
     Comment = ISNULL(Comment, ''),
-    Status = ISNULL(Status, ''),
+    Status =
+        CASE
+            WHEN LOWER(ISNULL(Status, '')) IN ('closed', 'close') THEN 'Closed'
+            WHEN LOWER(ISNULL(Status, '')) IN ('inprogress', 'in progress', 'update_note') THEN 'InProgress'
+            ELSE ISNULL(Status, '')
+        END,
     UpdatedBy = ISNULL(UpdatedBy, ''),
     UserEmail = ISNULL(UserEmail, ''),
     UpdatedAt
@@ -603,36 +628,33 @@ WHERE KPIType = 'Management'
 ORDER BY UpdatedAt DESC;
 ";
 
-    using var managementMulti = await connection.QueryMultipleAsync(managementSql, new
-    {
-        AlertId = alert.Id,
-        alert.Events
-    });
+        using var managementMulti = await connection.QueryMultipleAsync(managementSql, new
+        {
+            AlertId = alert.Id,
+            alert.Events
+        });
 
-    var managementDetail = await managementMulti.ReadFirstOrDefaultAsync<AlertDetailModel>();
+        var managementDetail = await managementMulti.ReadFirstOrDefaultAsync<AlertDetailModel>();
 
-    if (managementDetail is not null)
-    {
-        managementDetail.History = (await managementMulti.ReadAsync<AlertHistoryItemModel>()).ToList();
+        if (managementDetail is not null)
+        {
+            managementDetail.History = (await managementMulti.ReadAsync<AlertHistoryItemModel>()).ToList();
+        }
+
+        return managementDetail;
     }
 
-    return managementDetail;
-}
-
-//========================================================
-// COMENTARIOS
-//========================================================
-public async Task SaveAlertCommentAsync(
-    AlertCommentRequestModel request,
-    CancellationToken cancellationToken = default)
-{
-    using var connection = _connectionFactory.CreateConnection();
-
-    string sql;
-
-    if (request.SourceType == "Backup")
+    public async Task SaveAlertCommentAsync(
+        AlertCommentRequestModel request,
+        CancellationToken cancellationToken = default)
     {
-        sql = @"
+        using var connection = _connectionFactory.CreateConnection();
+
+        string sql;
+
+        if (request.SourceType == "Backup")
+        {
+            sql = @"
 UPDATE dbo.AlertasBackup
 SET
     UpdatedAt = SYSDATETIME(),
@@ -663,10 +685,10 @@ VALUES
     @AlertName,
     @UserEmail
 );";
-    }
-    else
-    {
-        sql = @"
+        }
+        else
+        {
+            sql = @"
 UPDATE dbo.AlertsManagement
 SET
     AlertStatus = @Status,
@@ -698,44 +720,70 @@ VALUES
     @AlertName,
     @UserEmail
 );";
+        }
+
+        await connection.ExecuteAsync(sql, new
+        {
+            KPIType = request.SourceType,
+            request.AlertId,
+            request.Comment,
+            request.Status,
+            UpdatedBy = request.UpdatedBy,
+            request.ResourceName,
+            request.AlertName,
+            request.UserEmail
+        });
     }
 
-    await connection.ExecuteAsync(sql, new
+    public async Task CloseAlertAsync(
+        AlertCommentRequestModel request,
+        CancellationToken cancellationToken = default)
     {
-        KPIType = request.SourceType,
-        request.AlertId,
-        request.Comment,
-        request.Status,
-        UpdatedBy = request.UpdatedBy,
-        request.ResourceName,
-        request.AlertName,
-        request.UserEmail
-    });
-}
+        using var connection = _connectionFactory.CreateConnection();
 
-//========================================================
-// CERRAR ALERTA
-//========================================================
+        string sql;
 
-public async Task CloseAlertAsync(
-    AlertCommentRequestModel request,
-    CancellationToken cancellationToken = default)
-{
-    using var connection = _connectionFactory.CreateConnection();
+        if (request.SourceType == "Backup")
+        {
+            sql = @"
+DECLARE @ClosedAlerts TABLE
+(
+    AlertRecordId bigint NOT NULL,
+    AzureAlertId nvarchar(1000) NULL,
+    TenantId nvarchar(100) NULL,
+    SubscriptionId nvarchar(100) NULL
+);
 
-    string sql;
+INSERT INTO @ClosedAlerts
+(
+    AlertRecordId,
+    AzureAlertId,
+    TenantId,
+    SubscriptionId
+)
+SELECT
+    B.Id,
+    NULL,
+    B.TenantId,
+    B.SubscriptionId
+FROM dbo.AlertasBackup B
+WHERE ISNULL(B.Active, 0) = 1
+  AND LOWER(ISNULL(B.AssignedEmail, '')) = LOWER(@UserEmail)
+  AND ISNULL(NULLIF(B.SubscriptionName, ''), 'Sin cliente') = @ClientName
+  AND ISNULL(NULLIF(B.AlertRule, ''), 'Sin nombre') = @AlertName
+  AND ISNULL(NULLIF(B.Severity, ''), 'Unknown') = @Severity
+  AND COALESCE(NULLIF(B.ResourceName, ''), NULLIF(B.VMName, ''), NULLIF(B.ProtectedItem, ''), 'Sin recurso') = @ResourceName;
 
-    if (request.SourceType == "Backup")
-    {
-        sql = @"
-UPDATE dbo.AlertasBackup
+UPDATE B
 SET
-    Active = 0,
-    ResolveTime = SYSDATETIME(),
-    ResolutionNotes = @Comment,
-    LastUpdatedBy = @UpdatedBy,
-    UpdatedAt = SYSDATETIME()
-WHERE Id = @AlertId;
+    B.Active = 0,
+    B.ResolveTime = SYSDATETIME(),
+    B.ResolutionNotes = @Comment,
+    B.LastUpdatedBy = @UpdatedBy,
+    B.UpdatedAt = SYSDATETIME()
+FROM dbo.AlertasBackup B
+INNER JOIN @ClosedAlerts C
+    ON C.AlertRecordId = B.Id;
 
 INSERT INTO dbo.AlertUpdatesHistory
 (
@@ -749,10 +797,9 @@ INSERT INTO dbo.AlertUpdatesHistory
     Alert_norm,
     UserEmail
 )
-VALUES
-(
+SELECT
     @KPIType,
-    @AlertId,
+    C.AlertRecordId,
     @Comment,
     'Closed',
     @UpdatedBy,
@@ -760,7 +807,7 @@ VALUES
     @ResourceName,
     @AlertName,
     @UserEmail
-);
+FROM @ClosedAlerts C;
 
 INSERT INTO dbo.AzureAlertCloseQueue
 (
@@ -780,31 +827,60 @@ INSERT INTO dbo.AzureAlertCloseQueue
 SELECT
     @KPIType,
     'AlertasBackup',
-    B.Id,
-    NULL,
-    B.TenantId,
-    B.SubscriptionId,
+    C.AlertRecordId,
+    C.AzureAlertId,
+    C.TenantId,
+    C.SubscriptionId,
     @UserEmail,
     @UpdatedBy,
     @Comment,
     SYSDATETIME(),
     'Pending',
     0
-FROM dbo.AlertasBackup B
-WHERE B.Id = @AlertId;";
-    }
-    else
-    {
-        sql = @"
-UPDATE dbo.AlertsManagement
+FROM @ClosedAlerts C;";
+        }
+        else
+        {
+            sql = @"
+DECLARE @ClosedAlerts TABLE
+(
+    AlertRecordId bigint NOT NULL,
+    AzureAlertId nvarchar(1000) NULL,
+    TenantId nvarchar(100) NULL,
+    SubscriptionId nvarchar(100) NULL
+);
+
+INSERT INTO @ClosedAlerts
+(
+    AlertRecordId,
+    AzureAlertId,
+    TenantId,
+    SubscriptionId
+)
+SELECT
+    A.Id,
+    A.AlertId,
+    A.TenantId,
+    A.SubscriptionId
+FROM dbo.AlertsManagement A
+WHERE ISNULL(A.Active, 0) = 1
+  AND LOWER(ISNULL(A.AssignedEmail, '')) = LOWER(@UserEmail)
+  AND ISNULL(NULLIF(A.SubscriptionName, ''), 'Sin cliente') = @ClientName
+  AND ISNULL(NULLIF(A.AlertName, ''), 'Sin nombre') = @AlertName
+  AND ISNULL(NULLIF(A.Severity, ''), 'Unknown') = @Severity
+  AND ISNULL(NULLIF(A.TargetResourceName, ''), 'Sin recurso') = @ResourceName;
+
+UPDATE A
 SET
-    Active = 0,
-    AlertStatus = 'Closed',
-    ResolveTime = SYSDATETIME(),
-    ResolutionNotes = @Comment,
-    LastUpdatedBy = @UpdatedBy,
-    UpdatedAt = SYSDATETIME()
-WHERE Id = @AlertId;
+    A.Active = 0,
+    A.AlertStatus = 'Closed',
+    A.ResolveTime = SYSDATETIME(),
+    A.ResolutionNotes = @Comment,
+    A.LastUpdatedBy = @UpdatedBy,
+    A.UpdatedAt = SYSDATETIME()
+FROM dbo.AlertsManagement A
+INNER JOIN @ClosedAlerts C
+    ON C.AlertRecordId = A.Id;
 
 INSERT INTO dbo.AlertUpdatesHistory
 (
@@ -818,10 +894,9 @@ INSERT INTO dbo.AlertUpdatesHistory
     Alert_norm,
     UserEmail
 )
-VALUES
-(
+SELECT
     @KPIType,
-    @AlertId,
+    C.AlertRecordId,
     @Comment,
     'Closed',
     @UpdatedBy,
@@ -829,7 +904,7 @@ VALUES
     @ResourceName,
     @AlertName,
     @UserEmail
-);
+FROM @ClosedAlerts C;
 
 INSERT INTO dbo.AzureAlertCloseQueue
 (
@@ -849,54 +924,51 @@ INSERT INTO dbo.AzureAlertCloseQueue
 SELECT
     @KPIType,
     'AlertsManagement',
-    A.Id,
-    A.AlertId,
-    A.TenantId,
-    A.SubscriptionId,
+    C.AlertRecordId,
+    C.AzureAlertId,
+    C.TenantId,
+    C.SubscriptionId,
     @UserEmail,
     @UpdatedBy,
     @Comment,
     SYSDATETIME(),
     'Pending',
     0
-FROM dbo.AlertsManagement A
-WHERE A.Id = @AlertId;";
+FROM @ClosedAlerts C;";
+        }
+
+        await connection.ExecuteAsync(sql, new
+        {
+            KPIType = request.SourceType,
+            request.AlertId,
+            request.ClientName,
+            request.AlertName,
+            request.Severity,
+            request.ResourceName,
+            request.Comment,
+            request.UpdatedBy,
+            request.UserEmail
+        });
     }
 
-    await connection.ExecuteAsync(sql, new
+    public async Task<DashboardAlertPagedResultModel> GetAssignedAlertsAsync(
+        string userEmail,
+        int pageNumber,
+        int pageSize,
+        string? search = null,
+        string? clientName = null,
+        CancellationToken cancellationToken = default)
     {
-        KPIType = request.SourceType,
-        request.AlertId,
-        request.ResourceName,
-        request.AlertName,
-        request.Comment,
-        request.UpdatedBy,
-        request.UserEmail
-    });
-}
+        using var connection = _connectionFactory.CreateConnection();
 
-//========================================================
-// ASIGNADAS A MÍ
-//========================================================
+        pageNumber = pageNumber < 1 ? 1 : pageNumber;
+        pageSize = pageSize <= 0 ? 25 : pageSize;
 
-public async Task<DashboardAlertPagedResultModel> GetAssignedAlertsAsync(
-    string userEmail,
-    int pageNumber,
-    int pageSize,
-    string? search = null,
-    string? clientName = null,
-    CancellationToken cancellationToken = default)
-{
-    using var connection = _connectionFactory.CreateConnection();
+        var offset = (pageNumber - 1) * pageSize;
+        var searchValue = string.IsNullOrWhiteSpace(search) ? null : $"%{search.Trim()}%";
+        var clientValue = string.IsNullOrWhiteSpace(clientName) ? null : clientName.Trim();
 
-    pageNumber = pageNumber < 1 ? 1 : pageNumber;
-    pageSize = pageSize <= 0 ? 25 : pageSize;
-
-    var offset = (pageNumber - 1) * pageSize;
-    var searchValue = string.IsNullOrWhiteSpace(search) ? null : $"%{search.Trim()}%";
-    var clientValue = string.IsNullOrWhiteSpace(clientName) ? null : clientName.Trim();
-
-    const string countSql = @"
+        const string countSql = @"
 ;WITH AssignedAlerts AS
 (
     SELECT
@@ -955,7 +1027,7 @@ SELECT COUNT(1)
 FROM GroupedAlerts;
 ";
 
-    const string dataSql = @"
+        const string dataSql = @"
 ;WITH AssignedAlerts AS
 (
     SELECT
@@ -969,7 +1041,14 @@ FROM GroupedAlerts;
         LastEventAt = ISNULL(A.UpdatedAt, A.InsertedAt),
         AssignedTo = ISNULL(A.AssignedTo, ''),
         AssignedEmail = ISNULL(A.AssignedEmail, ''),
-        AlertStatus = COALESCE(NULLIF(A.AlertStatus, ''), NULLIF(H.Status, ''), 'Activa')
+        AlertStatus =
+            CASE
+                WHEN LOWER(ISNULL(H.Status, '')) IN ('closed', 'close') THEN 'Closed'
+                WHEN LOWER(ISNULL(A.AlertStatus, '')) IN ('closed', 'close') THEN 'Closed'
+                WHEN LOWER(ISNULL(H.Status, '')) IN ('inprogress', 'in progress', 'update_note') THEN 'InProgress'
+                WHEN LOWER(ISNULL(A.AlertStatus, '')) IN ('inprogress', 'in progress') THEN 'InProgress'
+                ELSE 'Activa'
+            END
     FROM dbo.AlertsManagement A
     OUTER APPLY
     (
@@ -995,7 +1074,12 @@ FROM GroupedAlerts;
         LastEventAt = ISNULL(B.UpdatedAt, B.InsertedAt),
         AssignedTo = ISNULL(B.AssignedTo, ''),
         AssignedEmail = ISNULL(B.AssignedEmail, ''),
-        AlertStatus = COALESCE(NULLIF(H.Status, ''), 'Activa')
+        AlertStatus =
+            CASE
+                WHEN LOWER(ISNULL(H.Status, '')) IN ('closed', 'close') THEN 'Closed'
+                WHEN LOWER(ISNULL(H.Status, '')) IN ('inprogress', 'in progress', 'update_note') THEN 'InProgress'
+                ELSE 'Activa'
+            END
     FROM dbo.AlertasBackup B
     OUTER APPLY
     (
@@ -1020,7 +1104,11 @@ GroupedAlerts AS
         ResourceName,
         Events = COUNT(1),
         LastEventAt = MAX(LastEventAt),
-        AlertStatus = MAX(AlertStatus),
+        AlertStatus =
+            CASE
+                WHEN SUM(CASE WHEN AlertStatus = 'InProgress' THEN 1 ELSE 0 END) > 0 THEN 'InProgress'
+                ELSE 'Activa'
+            END,
         AssignedTo = MAX(AssignedTo),
         AssignedEmail = MAX(AssignedEmail)
     FROM AssignedAlerts
@@ -1067,34 +1155,34 @@ OFFSET @Offset ROWS
 FETCH NEXT @PageSize ROWS ONLY;
 ";
 
-    var parameters = new
+        var parameters = new
+        {
+            UserEmail = userEmail,
+            Search = searchValue,
+            ClientName = clientValue,
+            Offset = offset,
+            PageSize = pageSize
+        };
+
+        var totalCount = await connection.ExecuteScalarAsync<int>(countSql, parameters);
+        var items = await connection.QueryAsync<DashboardAlertItemModel>(dataSql, parameters);
+
+        return new DashboardAlertPagedResultModel
+        {
+            Items = items.ToList(),
+            TotalCount = totalCount,
+            PageNumber = pageNumber,
+            PageSize = pageSize
+        };
+    }
+
+    public async Task<List<string>> GetAssignedClientsAsync(
+        string userEmail,
+        CancellationToken cancellationToken = default)
     {
-        UserEmail = userEmail,
-        Search = searchValue,
-        ClientName = clientValue,
-        Offset = offset,
-        PageSize = pageSize
-    };
+        using var connection = _connectionFactory.CreateConnection();
 
-    var totalCount = await connection.ExecuteScalarAsync<int>(countSql, parameters);
-    var items = await connection.QueryAsync<DashboardAlertItemModel>(dataSql, parameters);
-
-    return new DashboardAlertPagedResultModel
-    {
-        Items = items.ToList(),
-        TotalCount = totalCount,
-        PageNumber = pageNumber,
-        PageSize = pageSize
-    };
-}
-
-public async Task<List<string>> GetAssignedClientsAsync(
-    string userEmail,
-    CancellationToken cancellationToken = default)
-{
-    using var connection = _connectionFactory.CreateConnection();
-
-    const string sql = @"
+        const string sql = @"
 SELECT DISTINCT ClientName
 FROM
 (
@@ -1115,11 +1203,10 @@ FROM
 ORDER BY ClientName;
 ";
 
-    var result = await connection.QueryAsync<string>(
-        sql,
-        new { UserEmail = userEmail });
+        var result = await connection.QueryAsync<string>(
+            sql,
+            new { UserEmail = userEmail });
 
-    return result.ToList();
-}
-
+        return result.ToList();
+    }
 }

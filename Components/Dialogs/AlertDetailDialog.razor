@@ -184,12 +184,12 @@
                     Guardar comentario
                 </button>
 
-              <button type="button"
-        class="danger-btn"
-        disabled="@(!CanCloseAlert)"
-        @onclick="CloseAlert">
-    Cerrar alerta
-</button>
+                <button type="button"
+                        class="danger-btn"
+                        disabled="@(!CanCloseAlert)"
+                        @onclick="CloseAlert">
+                    Cerrar alerta
+                </button>
             </div>
         </div>
     </div>
@@ -469,19 +469,19 @@
         background: #e2e8f0;
     }
 
+    .status-active {
+        color: #15803d;
+        background: #dcfce7;
+    }
+
     .status-inprogress {
         color: #d97706;
         background: #fef3c7;
     }
 
     .status-closed {
-        color: #15803d;
-        background: #dcfce7;
-    }
-
-    .status-new {
-        color: #2563eb;
-        background: #dbeafe;
+        color: #991b1b;
+        background: #fee2e2;
     }
 
     .soc-modal-footer {
@@ -512,12 +512,17 @@
         color: #061634;
     }
 
+    .danger-btn {
+        background: #dc2626;
+        color: #ffffff;
+    }
+
     .danger-btn:disabled {
-    background: #cbd5e1;
-    color: #64748b;
-    cursor: not-allowed;
-    opacity: .6;
-}
+        background: #cbd5e1;
+        color: #64748b;
+        cursor: not-allowed;
+        opacity: .6;
+    }
 
     @@media (max-width: 1100px) {
         .detail-layout,
@@ -538,39 +543,48 @@
 
     private string Comment { get; set; } = string.Empty;
     private string SelectedStatus { get; set; } = "InProgress";
-	private bool CanCloseAlert =>
-    SelectedStatus.Equals("Closed", StringComparison.OrdinalIgnoreCase);
+
+    private bool CanCloseAlert =>
+        SelectedStatus.Equals("Closed", StringComparison.OrdinalIgnoreCase);
 
     protected override void OnParametersSet()
     {
-        if (Detail is not null && !string.IsNullOrWhiteSpace(Detail.AlertStatus))
+        if (Detail is null)
         {
-            SelectedStatus = Detail.AlertStatus.Equals("Closed", StringComparison.OrdinalIgnoreCase)
-                ? "Closed"
-                : "InProgress";
+            return;
         }
+
+        SelectedStatus = Detail.AlertStatus?.ToLowerInvariant() switch
+        {
+            "closed" => "Closed",
+            "inprogress" => "InProgress",
+            "in progress" => "InProgress",
+            _ => "InProgress"
+        };
     }
 
+    private async Task CloseAlert()
+    {
+        if (!CanCloseAlert)
+        {
+            return;
+        }
 
-private async Task CloseAlert()
-{
-    if (!CanCloseAlert)
-        return;
+        await OnCloseAlert.InvokeAsync($"{SelectedStatus}|{Comment}");
+        Comment = string.Empty;
+    }
 
-    await OnCloseAlert.InvokeAsync($"{SelectedStatus}|{Comment}");
-    Comment = string.Empty;
-}
+    private async Task Close()
+    {
+        Comment = string.Empty;
+        await OnClose.InvokeAsync();
+    }
 
-private async Task Close()
-{
-    Comment = string.Empty;
-    await OnClose.InvokeAsync();
-}
-private async Task SaveComment()
-{
-    await OnSaveComment.InvokeAsync($"{SelectedStatus}|{Comment}");
-    Comment = string.Empty;
-}
+    private async Task SaveComment()
+    {
+        await OnSaveComment.InvokeAsync($"{SelectedStatus}|{Comment}");
+        Comment = string.Empty;
+    }
 
     private string FormatDate(DateTime? value)
     {
@@ -605,8 +619,9 @@ private async Task SaveComment()
             "closed" => "status-closed",
             "inprogress" => "status-inprogress",
             "in progress" => "status-inprogress",
-            "new" => "status-new",
-            _ => "status-new"
+            "activa" => "status-active",
+            "active" => "status-active",
+            _ => "status-active"
         };
     }
 
@@ -617,8 +632,9 @@ private async Task SaveComment()
             "closed" => "Closed",
             "inprogress" => "In Progress",
             "in progress" => "In Progress",
-            "new" => "New",
-            _ => string.IsNullOrWhiteSpace(status) ? "New" : status
+            "activa" => "Activa",
+            "active" => "Activa",
+            _ => string.IsNullOrWhiteSpace(status) ? "Activa" : status
         };
     }
 }

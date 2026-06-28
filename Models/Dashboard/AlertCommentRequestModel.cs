@@ -17,8 +17,7 @@ public sealed class AlertCommentRequestModel
 
     public string UpdatedBy { get; set; } = string.Empty;
     public string UserEmail { get; set; } = string.Empty;
-	
-	 public string? TenantId { get; set; }
 
+    public string? TenantId { get; set; }
     public string? SubscriptionId { get; set; }
 }

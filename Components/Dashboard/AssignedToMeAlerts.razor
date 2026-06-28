@@ -6,6 +6,7 @@
 
 @inject IAssignedAlertsDashboardService DashboardService
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager NavigationManager
 
 @implements IDisposable
 
@@ -127,6 +128,7 @@
                         <th>Recurso</th>
                         <th class="text-center">Eventos</th>
                         <th>Último evento</th>
+                        <th>Estado</th>
                         <th class="text-center">Acción</th>
                     </tr>
                 </thead>
@@ -135,7 +137,7 @@
                     @if (!FilteredAlerts.Any())
                     {
                         <tr>
-                            <td colspan="8" class="text-center">
+                            <td colspan="9" class="text-center">
                                 No tienes alertas asignadas actualmente.
                             </td>
                         </tr>
@@ -156,12 +158,25 @@
                                 <td>@alert.ResourceName</td>
                                 <td class="text-center"><strong>@alert.Events</strong></td>
                                 <td>@FormatDate(alert.LastEventAt)</td>
+                                <td>
+                                    <span class="status-badge @GetStatusClass(alert.AlertStatus)">
+                                        @GetStatusText(alert.AlertStatus)
+                                    </span>
+                                </td>
                                 <td class="text-center">
-                                    <button type="button"
-                                            class="detail-btn"
-                                            @onclick="async () => await OpenDetailAsync(alert)">
-                                        🔎 Ver detalle
-                                    </button>
+                                    <div class="action-buttons">
+                                        <button type="button"
+                                                class="detail-btn"
+                                                @onclick="async () => await OpenDetailAsync(alert)">
+                                            🔎 Ver detalle
+                                        </button>
+
+                                        <button type="button"
+                                                class="email-btn"
+                                                @onclick="() => OpenEmail(alert)">
+                                            ✉ Email
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         }
@@ -376,7 +391,8 @@
         vertical-align: middle;
     }
 
-    .severity-badge {
+    .severity-badge,
+    .status-badge {
         display: inline-flex;
         align-items: center;
         gap: 6px;
@@ -384,9 +400,11 @@
         border-radius: 999px;
         font-size: 13px;
         font-weight: 900;
+        white-space: nowrap;
     }
 
-    .severity-badge::before {
+    .severity-badge::before,
+    .status-badge::before {
         content: "●";
         font-size: 10px;
     }
@@ -411,18 +429,51 @@
         background: #e2e8f0;
     }
 
-    .detail-btn {
+    .status-badge.active {
+        color: #15803d;
+        background: #dcfce7;
+    }
+
+    .status-badge.in-progress {
+        color: #d97706;
+        background: #fef3c7;
+    }
+
+    .status-badge.closed {
+        color: #991b1b;
+        background: #fee2e2;
+    }
+
+    .action-buttons {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .detail-btn,
+    .email-btn {
         border: 1px solid #bcd0ee;
         background: #ffffff;
         color: #1262ff;
         border-radius: 9px;
-        padding: 9px 16px;
+        padding: 9px 14px;
         font-weight: 900;
         font-size: 14px;
+        white-space: nowrap;
+    }
+
+    .email-btn {
+        color: #047857;
+        border-color: #bbf7d0;
     }
 
     .detail-btn:hover {
         background: #eff6ff;
+    }
+
+    .email-btn:hover {
+        background: #ecfdf5;
     }
 
     .pagination-bar {
@@ -647,84 +698,112 @@
         return Task.CompletedTask;
     }
 
-private async Task SaveDetailCommentAsync(string payload)
-{
-    if (SelectedDetail is null)
+    private async Task SaveDetailCommentAsync(string payload)
     {
-        return;
+        if (SelectedDetail is null)
+        {
+            return;
+        }
+
+        var status = "InProgress";
+        var comment = payload;
+
+        if (!string.IsNullOrWhiteSpace(payload) && payload.Contains('|'))
+        {
+            var parts = payload.Split('|', 2);
+            status = parts[0];
+            comment = parts.Length > 1 ? parts[1] : string.Empty;
+        }
+
+        var request = new AlertCommentRequestModel
+        {
+            SourceType = SelectedDetail.SourceType,
+            AlertId = SelectedDetail.AlertId,
+            ClientName = SelectedDetail.ClientName,
+            AlertName = SelectedDetail.AlertName,
+            Severity = SelectedDetail.Severity,
+            ResourceName = SelectedDetail.ResourceName,
+            Status = status,
+            Comment = comment,
+            UpdatedBy = UserName,
+            UserEmail = UserEmail,
+            TenantId = SelectedDetail.TenantId,
+            SubscriptionId = SelectedDetail.SubscriptionId
+        };
+
+        await DashboardService.SaveAlertCommentAsync(request);
+
+        if (SelectedAlert is not null)
+        {
+            SelectedDetail = await DashboardService.GetAlertDetailAsync(SelectedAlert);
+        }
+
+        await LoadAssignedAlertsAsync();
+        StateHasChanged();
     }
 
-    var status = "InProgress";
-    var comment = payload;
-
-    if (!string.IsNullOrWhiteSpace(payload) && payload.Contains('|'))
+    private async Task CloseDetailAlertAsync(string payload)
     {
-        var parts = payload.Split('|', 2);
-        status = parts[0];
-        comment = parts.Length > 1 ? parts[1] : string.Empty;
+        if (SelectedDetail is null)
+        {
+            return;
+        }
+
+        var comment = payload;
+
+        if (!string.IsNullOrWhiteSpace(payload) && payload.Contains('|'))
+        {
+            var parts = payload.Split('|', 2);
+            comment = parts.Length > 1 ? parts[1] : string.Empty;
+        }
+
+        var request = new AlertCommentRequestModel
+        {
+            SourceType = SelectedDetail.SourceType,
+            AlertId = SelectedDetail.AlertId,
+            ClientName = SelectedDetail.ClientName,
+            AlertName = SelectedDetail.AlertName,
+            Severity = SelectedDetail.Severity,
+            ResourceName = SelectedDetail.ResourceName,
+            Status = "Closed",
+            Comment = comment,
+            UpdatedBy = UserName,
+            UserEmail = UserEmail,
+            TenantId = SelectedDetail.TenantId,
+            SubscriptionId = SelectedDetail.SubscriptionId
+        };
+
+        await DashboardService.CloseAlertAsync(request);
+
+        IsDetailOpen = false;
+        SelectedDetail = null;
+        SelectedAlert = null;
+
+        await LoadAssignedAlertsAsync();
+        StateHasChanged();
     }
 
-    var request = new AlertCommentRequestModel
+    private void OpenEmail(DashboardAlertItemModel alert)
     {
-        SourceType = SelectedDetail.SourceType,
-        AlertId = SelectedDetail.AlertId,
-        ClientName = SelectedDetail.ClientName,
-        AlertName = SelectedDetail.AlertName,
-        Severity = SelectedDetail.Severity,
-        ResourceName = SelectedDetail.ResourceName,
-        Status = status,
-        Comment = comment,
-        UpdatedBy = UserName,
-        UserEmail = UserEmail
-    };
+        var subject = $"Alerta SOC - {alert.AlertName} - {alert.ClientName}";
 
-    await DashboardService.SaveAlertCommentAsync(request);
+        var body =
+            "Estimado cliente,\r\n\r\n" +
+            "Se detectó la siguiente alerta en su ambiente:\r\n\r\n" +
+            $"Cliente: {alert.ClientName}\r\n" +
+            $"Alerta: {alert.AlertName}\r\n" +
+            $"Severidad: {alert.Severity}\r\n" +
+            $"Tipo: {alert.AlertType}\r\n" +
+            $"Recurso: {alert.ResourceName}\r\n" +
+            $"Eventos: {alert.Events}\r\n" +
+            $"Último evento: {FormatDate(alert.LastEventAt)}\r\n" +
+            $"Estado: {GetStatusText(alert.AlertStatus)}\r\n\r\n" +
+            "Quedamos atentos.\r\n\r\n" +
+            "Saludos,\r\nSoporte ITQS";
 
-    if (SelectedAlert is not null)
-    {
-        SelectedDetail = await DashboardService.GetAlertDetailAsync(SelectedAlert);
+        var mailto = $"mailto:?subject={Uri.EscapeDataString(subject)}&body={Uri.EscapeDataString(body)}";
+        NavigationManager.NavigateTo(mailto, forceLoad: true);
     }
-
-    await LoadAssignedAlertsAsync();
-    StateHasChanged();
-}
-private async Task CloseDetailAlertAsync(string payload)
-{
-    if (SelectedDetail is null)
-    {
-        return;
-    }
-
-    var comment = payload;
-
-    if (!string.IsNullOrWhiteSpace(payload) && payload.Contains('|'))
-    {
-        var parts = payload.Split('|', 2);
-        comment = parts.Length > 1 ? parts[1] : string.Empty;
-    }
-
-    var request = new AlertCommentRequestModel
-    {
-        SourceType = SelectedDetail.SourceType,
-        AlertId = SelectedDetail.AlertId,
-        ClientName = SelectedDetail.ClientName,
-        AlertName = SelectedDetail.AlertName,
-        Severity = SelectedDetail.Severity,
-        ResourceName = SelectedDetail.ResourceName,
-        Status = "Closed",
-        Comment = comment,
-        UpdatedBy = UserName,
-        UserEmail = UserEmail
-    };
-
-    await DashboardService.CloseAlertAsync(request);
-
-    IsDetailOpen = false;
-    SelectedDetail = null;
-    SelectedAlert = null;
-
-    await LoadAssignedAlertsAsync();
-}
 
     private string GetSeverityClass(string severity)
     {
@@ -742,6 +821,31 @@ private async Task CloseDetailAlertAsync(string payload)
             "sev2" => "warning",
             "sev3" => "info",
             _ => "normal"
+        };
+    }
+
+    private string GetStatusText(string status)
+    {
+        return status?.ToLowerInvariant() switch
+        {
+            "closed" => "Closed",
+            "inprogress" => "In Progress",
+            "in progress" => "In Progress",
+            "activa" => "Activa",
+            "active" => "Activa",
+            "new" => "Activa",
+            _ => string.IsNullOrWhiteSpace(status) ? "Activa" : status
+        };
+    }
+
+    private string GetStatusClass(string status)
+    {
+        return status?.ToLowerInvariant() switch
+        {
+            "closed" => "closed",
+            "inprogress" => "in-progress",
+            "in progress" => "in-progress",
+            _ => "active"
         };
     }
 
