@@ -26,7 +26,7 @@
                 <div class="menu-links @(ShowAlertMenu ? "show" : "")">
                     <button type="button" class="menu-link" @onclick='() => SelectModule("Dashboard")'>Dashboard</button>
                     <button type="button" class="menu-link" @onclick='() => SelectModule("Asignadas")'>Asignadas a mí</button>
-                    <button type="button" class="menu-link" @onclick='() => SelectModule("SinAsignar")'>Sin asignar</button>
+                    <button type="button" class="menu-link" @onclick='() => SelectModule("AdminManagerView")'>Admin / Manager View</button>
                     <button type="button" class="menu-link" @onclick='() => SelectModule("Todas")'>Todas las alertas</button>
                     <button type="button" class="menu-link" @onclick='() => SelectModule("Criticas")'>Alertas críticas</button>
                 </div>
@@ -102,7 +102,7 @@
             {
                 <AssignedToMeAlerts />
             }
-            else if (CurrentModule == "SinAsignar")
+            else if (CurrentModule == "AdminManagerView")
             {
                 <UnassignedAlerts />
             }
@@ -151,7 +151,7 @@
             "Alertas" => "Monitoreo de Alertas",
             "Dashboard" => "Dashboard",
             "Asignadas" => "Asignadas a mí",
-            "SinAsignar" => "Sin asignar",
+            "AdminManagerView" => "Admin / Manager View",
             "Todas" => "Todas las alertas",
             "Criticas" => "Alertas críticas",
             "Clientes" => "Info Clientes",
