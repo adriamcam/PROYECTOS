@@ -622,7 +622,7 @@ ORDER BY UpdatedAt DESC;
 //========================================================
 // COMENTARIOS
 //========================================================
-public async Task SaveAlertCommentAsync(
+public async Task CloseAlertAsync(
     AlertCommentRequestModel request,
     CancellationToken cancellationToken = default)
 {
@@ -630,49 +630,16 @@ public async Task SaveAlertCommentAsync(
 
     string sql;
 
-    if (request.SourceType == "Management")
-    {
-        sql = @"
-UPDATE dbo.AlertsManagement
-SET
-    AlertStatus = @Status,
-    UpdatedAt = GETDATE(),
-    LastUpdatedBy = @UpdatedBy
-WHERE Id = @AlertId;
-
-INSERT INTO dbo.AlertUpdatesHistory
-(
-    KPIType,
-    AlertId,
-    Comment,
-    Status,
-    UpdatedBy,
-    UpdatedAt,
-    Res_nom,
-    Alert_nom,
-    UserEmail
-)
-VALUES
-(
-    @KPIType,
-    @AlertId,
-    @Comment,
-    @Status,
-    @UpdatedBy,
-    GETDATE(),
-    @ResourceName,
-    @AlertName,
-    @UserEmail
-);
-";
-    }
-    else
+    if (request.SourceType == "Backup")
     {
         sql = @"
 UPDATE dbo.AlertasBackup
 SET
-    UpdatedAt = GETDATE(),
-    LastUpdatedBy = @UpdatedBy
+    Active = 0,
+    ResolveTime = GETDATE(),
+    ResolutionNotes = @Comment,
+    LastUpdatedBy = @UpdatedBy,
+    UpdatedAt = SYSDATETIME()
 WHERE Id = @AlertId;
 
 INSERT INTO dbo.AlertUpdatesHistory
@@ -684,7 +651,7 @@ INSERT INTO dbo.AlertUpdatesHistory
     UpdatedBy,
     UpdatedAt,
     Res_norm,
-Alert_norm,
+    Alert_norm,
     UserEmail
 )
 VALUES
@@ -692,28 +659,63 @@ VALUES
     @KPIType,
     @AlertId,
     @Comment,
-    @Status,
+    'Closed',
     @UpdatedBy,
     GETDATE(),
     @ResourceName,
     @AlertName,
     @UserEmail
-);
-";
+);";
+    }
+    else
+    {
+        sql = @"
+UPDATE dbo.AlertsManagement
+SET
+    Active = 0,
+    AlertStatus = 'Closed',
+    ResolveTime = GETDATE(),
+    ResolutionNotes = @Comment,
+    LastUpdatedBy = @UpdatedBy,
+    UpdatedAt = SYSDATETIME()
+WHERE Id = @AlertId;
+
+INSERT INTO dbo.AlertUpdatesHistory
+(
+    KPIType,
+    AlertId,
+    Comment,
+    Status,
+    UpdatedBy,
+    UpdatedAt,
+    Res_norm,
+    Alert_norm,
+    UserEmail
+)
+VALUES
+(
+    @KPIType,
+    @AlertId,
+    @Comment,
+    'Closed',
+    @UpdatedBy,
+    GETDATE(),
+    @ResourceName,
+    @AlertName,
+    @UserEmail
+);";
     }
 
-    var filas = await connection.ExecuteAsync(sql, new
+    await connection.ExecuteAsync(sql, new
     {
         KPIType = request.SourceType,
         request.AlertId,
-        request.Comment,
-        request.Status,
-        UpdatedBy = request.UpdatedBy,
         request.ResourceName,
         request.AlertName,
+        request.Comment,
+        request.UpdatedBy,
         request.UserEmail
     });
-	Console.WriteLine($"Filas afectadas: {filas}");
 }
 
 //========================================================
