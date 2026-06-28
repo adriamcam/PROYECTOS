@@ -786,64 +786,89 @@
 
     private void OpenEmail(DashboardAlertItemModel alert)
     {
+        var alertType = alert.SourceType.Equals("Backup", StringComparison.OrdinalIgnoreCase)
+            ? "Backup"
+            : "Management";
+
         var resourceOrAlert = !string.IsNullOrWhiteSpace(alert.ResourceName)
             ? alert.ResourceName
             : alert.AlertName;
 
         var subject = $"Monitoreo Preventivo | {resourceOrAlert} | {alert.ClientName}";
 
-        var detail =
-            $"Alerta: {alert.AlertName}\r\n" +
-            $"Recurso: {alert.ResourceName}\r\n" +
-            $"Severidad: {alert.Severity}\r\n" +
-            $"Eventos: {alert.Events}\r\n" +
-            $"Último evento: {FormatDate(alert.LastEventAt)}\r\n" +
-            $"Estado: {GetStatusText(alert.AlertStatus)}";
+        var alertDetailHtml =
+            $"<strong>Alerta:</strong> {HtmlEncode(alert.AlertName)}<br>" +
+            $"<strong>Recurso:</strong> {HtmlEncode(alert.ResourceName)}<br>" +
+            $"<strong>Severidad:</strong> {HtmlEncode(alert.Severity)}<br>" +
+            $"<strong>Eventos:</strong> {alert.Events}<br>" +
+            $"<strong>Último evento:</strong> {HtmlEncode(FormatDate(alert.LastEventAt))}<br>" +
+            $"<strong>Estado:</strong> {HtmlEncode(GetStatusText(alert.AlertStatus))}";
 
         var bodyBuilder = new StringBuilder();
 
-        bodyBuilder.AppendLine("Estimado cliente,");
-        bodyBuilder.AppendLine();
-        bodyBuilder.AppendLine("Durante nuestras labores de monitoreo y validación preventiva, hemos identificado alertas activas en su entorno de Azure relacionadas con servicios de infraestructura y/o respaldos.");
-        bodyBuilder.AppendLine("El objetivo de esta notificación es mantener visibilidad temprana sobre eventos que podrían requerir revisión o seguimiento técnico para prevenir impactos operativos.");
-        bodyBuilder.AppendLine();
-        bodyBuilder.AppendLine("Resumen de alertas identificadas");
-        bodyBuilder.AppendLine();
-        bodyBuilder.AppendLine("Tipo de alerta\tDetalle");
+        bodyBuilder.AppendLine("<html>");
+        bodyBuilder.AppendLine("<body style='margin:0;padding:0;background:#ffffff;font-family:Segoe UI,Arial,sans-serif;color:#111827;font-size:14px;line-height:1.55;'>");
+        bodyBuilder.AppendLine("<div style='max-width:820px;margin:0;padding:24px;'>");
 
-        if (alert.SourceType.Equals("Backup", StringComparison.OrdinalIgnoreCase))
-        {
-            bodyBuilder.AppendLine($"Backup\t{detail}");
-        }
-        else
-        {
-            bodyBuilder.AppendLine($"Management\t{detail}");
-        }
+        bodyBuilder.AppendLine("<div style='font-size:42px;font-weight:800;letter-spacing:-2px;color:#0078d4;margin-bottom:22px;'>ITQS</div>");
 
-        bodyBuilder.AppendLine();
-        bodyBuilder.AppendLine("Posibles impactos");
-        bodyBuilder.AppendLine("- Fallos o inconsistencias en procesos de respaldo.");
-        bodyBuilder.AppendLine("- Eventos relacionados con disponibilidad o configuración de recursos.");
-        bodyBuilder.AppendLine("- Alertas de plataforma reportadas por Azure Monitor.");
-        bodyBuilder.AppendLine("- Necesidad de validación preventiva sobre recursos específicos.");
-        bodyBuilder.AppendLine();
-        bodyBuilder.AppendLine("Recomendaciones");
-        bodyBuilder.AppendLine("- Revisar los recursos indicados en las alertas reportadas.");
-        bodyBuilder.AppendLine("- Validar el estado actual de los servicios involucrados.");
-        bodyBuilder.AppendLine("- Dar seguimiento preventivo para evitar impactos futuros.");
-        bodyBuilder.AppendLine("- Coordinar revisión técnica en caso de observar comportamiento inusual.");
-        bodyBuilder.AppendLine();
-        bodyBuilder.AppendLine("Nuestro equipo puede apoyarle en la validación técnica, análisis de impacto y seguimiento de las alertas identificadas.");
-        bodyBuilder.AppendLine("En caso de requerir asistencia, puede generar un caso mediante el siguiente enlace:");
-        bodyBuilder.AppendLine("https://evistacloud.itqscr.com/");
-        bodyBuilder.AppendLine();
-        bodyBuilder.AppendLine("Quedamos atentos para cualquier consulta adicional o coordinación técnica.");
-        bodyBuilder.AppendLine();
-        bodyBuilder.AppendLine("Saludos,");
-        bodyBuilder.AppendLine("Soporte ITQS");
+        bodyBuilder.AppendLine("<p style='margin:0 0 20px 0;font-weight:600;'>Estimado cliente,</p>");
+        bodyBuilder.AppendLine("<p style='margin:0 0 18px 0;'>Durante nuestras labores de monitoreo y validación preventiva, hemos identificado alertas activas en su entorno de Azure relacionadas con servicios de infraestructura y/o respaldos.</p>");
+        bodyBuilder.AppendLine("<p style='margin:0 0 24px 0;'>El objetivo de esta notificación es mantener visibilidad temprana sobre eventos que podrían requerir revisión o seguimiento técnico para prevenir impactos operativos.</p>");
+
+        bodyBuilder.AppendLine("<h3 style='margin:0 0 12px 0;font-size:15px;color:#111827;'>Resumen de alertas identificadas</h3>");
+        bodyBuilder.AppendLine("<table role='presentation' cellspacing='0' cellpadding='0' border='0' style='border-collapse:collapse;margin:0 0 26px 0;min-width:520px;'>");
+        bodyBuilder.AppendLine("<tr>");
+        bodyBuilder.AppendLine("<th style='background:#0078d4;color:#ffffff;text-align:left;padding:12px 16px;font-weight:700;border:1px solid #0078d4;'>Tipo de alerta</th>");
+        bodyBuilder.AppendLine("<th style='background:#0078d4;color:#ffffff;text-align:left;padding:12px 16px;font-weight:700;border:1px solid #0078d4;'>Detalle</th>");
+        bodyBuilder.AppendLine("</tr>");
+        bodyBuilder.AppendLine("<tr>");
+        bodyBuilder.AppendLine($"<td style='padding:13px 16px;border-bottom:1px solid #e5e7eb;font-weight:700;'>{alertType}</td>");
+        bodyBuilder.AppendLine($"<td style='padding:13px 16px;border-bottom:1px solid #e5e7eb;color:#374151;'>{alertDetailHtml}</td>");
+        bodyBuilder.AppendLine("</tr>");
+        bodyBuilder.AppendLine("</table>");
+
+        bodyBuilder.AppendLine("<h3 style='margin:0 0 10px 0;font-size:15px;color:#111827;'>Posibles impactos</h3>");
+        bodyBuilder.AppendLine("<ul style='margin:0 0 24px 20px;padding:0;'>");
+        bodyBuilder.AppendLine("<li>Fallos o inconsistencias en procesos de respaldo.</li>");
+        bodyBuilder.AppendLine("<li>Eventos relacionados con disponibilidad o configuración de recursos.</li>");
+        bodyBuilder.AppendLine("<li>Alertas de plataforma reportadas por Azure Monitor.</li>");
+        bodyBuilder.AppendLine("<li>Necesidad de validación preventiva sobre recursos específicos.</li>");
+        bodyBuilder.AppendLine("</ul>");
+
+        bodyBuilder.AppendLine("<h3 style='margin:0 0 10px 0;font-size:15px;color:#111827;'>Recomendaciones</h3>");
+        bodyBuilder.AppendLine("<ul style='margin:0 0 24px 20px;padding:0;'>");
+        bodyBuilder.AppendLine("<li>Revisar los recursos indicados en las alertas reportadas.</li>");
+        bodyBuilder.AppendLine("<li>Validar el estado actual de los servicios involucrados.</li>");
+        bodyBuilder.AppendLine("<li>Dar seguimiento preventivo para evitar impactos futuros.</li>");
+        bodyBuilder.AppendLine("<li>Coordinar revisión técnica en caso de observar comportamiento inusual.</li>");
+        bodyBuilder.AppendLine("</ul>");
+
+        bodyBuilder.AppendLine("<p style='margin:0 0 18px 0;'>Nuestro equipo puede apoyarle en la validación técnica, análisis de impacto y seguimiento de las alertas identificadas.</p>");
+        bodyBuilder.AppendLine("<p style='margin:0 0 14px 0;'>En caso de requerir asistencia, puede generar un caso mediante el siguiente botón:</p>");
+
+        bodyBuilder.AppendLine("<table role='presentation' cellspacing='0' cellpadding='0' border='0' style='margin:0 0 28px 0;'>");
+        bodyBuilder.AppendLine("<tr>");
+        bodyBuilder.AppendLine("<td align='center' bgcolor='#0078d4' style='border-radius:5px;background:#0078d4;'>");
+        bodyBuilder.AppendLine("<a href='https://evistacloud.itqscr.com/' style='display:inline-block;padding:13px 24px;font-family:Segoe UI,Arial,sans-serif;font-size:14px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:5px;'>Abrir caso de soporte</a>");
+        bodyBuilder.AppendLine("</td>");
+        bodyBuilder.AppendLine("</tr>");
+        bodyBuilder.AppendLine("</table>");
+
+        bodyBuilder.AppendLine("<p style='margin:0 0 20px 0;'>Quedamos atentos para cualquier consulta adicional o coordinación técnica.</p>");
+        bodyBuilder.AppendLine("<p style='margin:0;'>Saludos,<br><strong>Soporte ITQS</strong></p>");
+
+        bodyBuilder.AppendLine("</div>");
+        bodyBuilder.AppendLine("</body>");
+        bodyBuilder.AppendLine("</html>");
 
         var mailto = $"mailto:?subject={Uri.EscapeDataString(subject)}&body={Uri.EscapeDataString(bodyBuilder.ToString())}";
         NavigationManager.NavigateTo(mailto, forceLoad: true);
+    }
+
+    private static string HtmlEncode(string? value)
+    {
+        return System.Net.WebUtility.HtmlEncode(value ?? string.Empty);
     }
 
     private string GetSeverityClass(string severity)
