@@ -760,6 +760,37 @@ VALUES
     @ResourceName,
     @AlertName,
     @UserEmail
+);
+
+INSERT INTO dbo.AzureAlertCloseQueue
+(
+    KPIType,
+    SourceTable,
+    AlertRecordId,
+    AzureAlertId,
+    TenantId,
+    SubscriptionId,
+    UserEmail,
+    UserName,
+    Comment,
+    RequestedAt,
+    Status,
+    RetryCount
+)
+VALUES
+(
+    @KPIType,
+    @SourceTable,
+    @AlertId,
+    NULL,
+    @TenantId,
+    @SubscriptionId,
+    @UserEmail,
+    @UpdatedBy,
+    @Comment,
+    SYSDATETIME(),
+    'Pending',
+    0
 );";
     }
     else
@@ -798,13 +829,49 @@ VALUES
     @ResourceName,
     @AlertName,
     @UserEmail
+);
+
+INSERT INTO dbo.AzureAlertCloseQueue
+(
+    KPIType,
+    SourceTable,
+    AlertRecordId,
+    AzureAlertId,
+    TenantId,
+    SubscriptionId,
+    UserEmail,
+    UserName,
+    Comment,
+    RequestedAt,
+    Status,
+    RetryCount
+)
+VALUES
+(
+    @KPIType,
+    @SourceTable,
+    @AlertId,
+    NULL,
+    @TenantId,
+    @SubscriptionId,
+    @UserEmail,
+    @UpdatedBy,
+    @Comment,
+    SYSDATETIME(),
+    'Pending',
+    0
 );";
     }
 
     await connection.ExecuteAsync(sql, new
     {
         KPIType = request.SourceType,
+        SourceTable = request.SourceType == "Management"
+            ? "AlertsManagement"
+            : "AlertasBackup",
         request.AlertId,
+        request.TenantId,
+        request.SubscriptionId,
         request.ResourceName,
         request.AlertName,
         request.Comment,
