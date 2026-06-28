@@ -1,4 +1,5 @@
 @using System.Security.Claims
+@using System.Text
 @using Microsoft.AspNetCore.Components.Authorization
 @using ITQS.SupportOperationsCenter.Components.Dialogs
 @using ITQS.SupportOperationsCenter.Models.Dashboard
@@ -785,23 +786,63 @@
 
     private void OpenEmail(DashboardAlertItemModel alert)
     {
-        var subject = $"Alerta SOC - {alert.AlertName} - {alert.ClientName}";
+        var resourceOrAlert = !string.IsNullOrWhiteSpace(alert.ResourceName)
+            ? alert.ResourceName
+            : alert.AlertName;
 
-        var body =
-            "Estimado cliente,\r\n\r\n" +
-            "Se detectó la siguiente alerta en su ambiente:\r\n\r\n" +
-            $"Cliente: {alert.ClientName}\r\n" +
+        var subject = $"Monitoreo Preventivo | {resourceOrAlert} | {alert.ClientName}";
+
+        var detail =
             $"Alerta: {alert.AlertName}\r\n" +
-            $"Severidad: {alert.Severity}\r\n" +
-            $"Tipo: {alert.AlertType}\r\n" +
             $"Recurso: {alert.ResourceName}\r\n" +
+            $"Severidad: {alert.Severity}\r\n" +
             $"Eventos: {alert.Events}\r\n" +
             $"Último evento: {FormatDate(alert.LastEventAt)}\r\n" +
-            $"Estado: {GetStatusText(alert.AlertStatus)}\r\n\r\n" +
-            "Quedamos atentos.\r\n\r\n" +
-            "Saludos,\r\nSoporte ITQS";
+            $"Estado: {GetStatusText(alert.AlertStatus)}";
 
-        var mailto = $"mailto:?subject={Uri.EscapeDataString(subject)}&body={Uri.EscapeDataString(body)}";
+        var bodyBuilder = new StringBuilder();
+
+        bodyBuilder.AppendLine("Estimado cliente,");
+        bodyBuilder.AppendLine();
+        bodyBuilder.AppendLine("Durante nuestras labores de monitoreo y validación preventiva, hemos identificado alertas activas en su entorno de Azure relacionadas con servicios de infraestructura y/o respaldos.");
+        bodyBuilder.AppendLine("El objetivo de esta notificación es mantener visibilidad temprana sobre eventos que podrían requerir revisión o seguimiento técnico para prevenir impactos operativos.");
+        bodyBuilder.AppendLine();
+        bodyBuilder.AppendLine("Resumen de alertas identificadas");
+        bodyBuilder.AppendLine();
+        bodyBuilder.AppendLine("Tipo de alerta\tDetalle");
+
+        if (alert.SourceType.Equals("Backup", StringComparison.OrdinalIgnoreCase))
+        {
+            bodyBuilder.AppendLine($"Backup\t{detail}");
+        }
+        else
+        {
+            bodyBuilder.AppendLine($"Management\t{detail}");
+        }
+
+        bodyBuilder.AppendLine();
+        bodyBuilder.AppendLine("Posibles impactos");
+        bodyBuilder.AppendLine("- Fallos o inconsistencias en procesos de respaldo.");
+        bodyBuilder.AppendLine("- Eventos relacionados con disponibilidad o configuración de recursos.");
+        bodyBuilder.AppendLine("- Alertas de plataforma reportadas por Azure Monitor.");
+        bodyBuilder.AppendLine("- Necesidad de validación preventiva sobre recursos específicos.");
+        bodyBuilder.AppendLine();
+        bodyBuilder.AppendLine("Recomendaciones");
+        bodyBuilder.AppendLine("- Revisar los recursos indicados en las alertas reportadas.");
+        bodyBuilder.AppendLine("- Validar el estado actual de los servicios involucrados.");
+        bodyBuilder.AppendLine("- Dar seguimiento preventivo para evitar impactos futuros.");
+        bodyBuilder.AppendLine("- Coordinar revisión técnica en caso de observar comportamiento inusual.");
+        bodyBuilder.AppendLine();
+        bodyBuilder.AppendLine("Nuestro equipo puede apoyarle en la validación técnica, análisis de impacto y seguimiento de las alertas identificadas.");
+        bodyBuilder.AppendLine("En caso de requerir asistencia, puede generar un caso mediante el siguiente enlace:");
+        bodyBuilder.AppendLine("https://evistacloud.itqscr.com/");
+        bodyBuilder.AppendLine();
+        bodyBuilder.AppendLine("Quedamos atentos para cualquier consulta adicional o coordinación técnica.");
+        bodyBuilder.AppendLine();
+        bodyBuilder.AppendLine("Saludos,");
+        bodyBuilder.AppendLine("Soporte ITQS");
+
+        var mailto = $"mailto:?subject={Uri.EscapeDataString(subject)}&body={Uri.EscapeDataString(bodyBuilder.ToString())}";
         NavigationManager.NavigateTo(mailto, forceLoad: true);
     }
 
