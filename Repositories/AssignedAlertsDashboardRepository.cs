@@ -683,8 +683,8 @@ INSERT INTO dbo.AlertUpdatesHistory
     Status,
     UpdatedBy,
     UpdatedAt,
-    Res_nom,
-    Alert_nom,
+    Res_norm,
+Alert_norm,
     UserEmail
 )
 VALUES
@@ -702,7 +702,7 @@ VALUES
 ";
     }
 
-    await connection.ExecuteAsync(sql, new
+    var filas = await connection.ExecuteAsync(sql, new
     {
         KPIType = request.SourceType,
         request.AlertId,
@@ -713,6 +713,7 @@ VALUES
         request.AlertName,
         request.UserEmail
     });
+	Console.WriteLine($"Filas afectadas: {filas}");
 }
 
 //========================================================
