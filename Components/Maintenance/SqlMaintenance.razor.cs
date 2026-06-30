@@ -78,6 +78,7 @@ public partial class SqlMaintenance : ComponentBase
         ExecutedByEmail = UserEmail
     }
 };
+await LoadDashboardAsync();
         }
         finally { IsExecuting = false; }
     }
