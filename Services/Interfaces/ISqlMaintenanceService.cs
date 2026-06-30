@@ -7,4 +7,7 @@ public interface ISqlMaintenanceService
     Task<SqlMaintenanceExecutionResultModel> CleanupAlertsManagementAsync(SqlMaintenanceRequestModel request, CancellationToken cancellationToken = default);
     Task<SqlMaintenanceExecutionResultModel> CleanupAzureAlertCloseQueueAsync(SqlMaintenanceRequestModel request, CancellationToken cancellationToken = default);
     Task<SqlMaintenanceExecutionResultModel> CleanupAlertasBackupAsync(SqlMaintenanceRequestModel request, CancellationToken cancellationToken = default);
+	Task<SqlMaintenanceExecutionResultModel> CleanupAlertUpdatesHistoryAsync(
+    SqlMaintenanceRequestModel request,
+    CancellationToken cancellationToken = default);
 }

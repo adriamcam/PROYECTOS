@@ -61,14 +61,23 @@ public partial class SqlMaintenance : ComponentBase
         try
         {
             var request = BuildRequest(table.TableName);
-            LastExecution = table.TableName switch
-            {
-                "AlertsManagement" => await SqlMaintenanceService.CleanupAlertsManagementAsync(request),
-                "AzureAlertCloseQueue" => await SqlMaintenanceService.CleanupAzureAlertCloseQueueAsync(request),
-                "AlertasBackup" => await SqlMaintenanceService.CleanupAlertasBackupAsync(request),
-                _ => new SqlMaintenanceExecutionResultModel { TableName = table.TableName, Succeeded = false, Message = "Tabla no soportada por el módulo.", StartedAt = DateTime.Now, FinishedAt = DateTime.Now, ExecutedBy = UserName, ExecutedByEmail = UserEmail }
-            };
-            await LoadDashboardAsync();
+          LastExecution = table.TableName switch
+{
+    "AlertsManagement" => await SqlMaintenanceService.CleanupAlertsManagementAsync(request),
+    "AzureAlertCloseQueue" => await SqlMaintenanceService.CleanupAzureAlertCloseQueueAsync(request),
+    "AlertasBackup" => await SqlMaintenanceService.CleanupAlertasBackupAsync(request),
+    "AlertUpdatesHistory" => await SqlMaintenanceService.CleanupAlertUpdatesHistoryAsync(request),
+    _ => new SqlMaintenanceExecutionResultModel
+    {
+        TableName = table.TableName,
+        Succeeded = false,
+        Message = "Tabla no soportada por el módulo.",
+        StartedAt = DateTime.Now,
+        FinishedAt = DateTime.Now,
+        ExecutedBy = UserName,
+        ExecutedByEmail = UserEmail
+    }
+};
         }
         finally { IsExecuting = false; }
     }
