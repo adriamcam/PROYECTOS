@@ -1,0 +1,21 @@
+using System.Data;
+using Dapper;
+using ITQS.SupportOperationsCenter.Data;
+using ITQS.SupportOperationsCenter.Models.Maintenance;
+using ITQS.SupportOperationsCenter.Repositories.Interfaces;
+namespace ITQS.SupportOperationsCenter.Repositories;
+public sealed class SqlMaintenanceRepository : ISqlMaintenanceRepository
+{
+    private readonly ISqlConnectionFactory _connectionFactory; private readonly ILogger<SqlMaintenanceRepository> _logger;
+    public SqlMaintenanceRepository(ISqlConnectionFactory connectionFactory, ILogger<SqlMaintenanceRepository> logger){_connectionFactory=connectionFactory;_logger=logger;}
+    public async Task<bool> CanAccessAsync(string userEmail,CancellationToken cancellationToken=default)
+    { if(string.IsNullOrWhiteSpace(userEmail)) return false; using var c=_connectionFactory.CreateConnection(); const string sql=@"SELECT TOP (1) CASE WHEN ISNULL(IsActive,0)=1 AND (UPPER(ISNULL(EffectiveRole,''))='ADMIN' OR UPPER(ISNULL(BaseRole,''))='ADMIN' OR ISNULL(IsTempAdmin,0)=1) THEN CAST(1 AS bit) ELSE CAST(0 AS bit) END FROM dbo.ITQS_AppUsers WHERE LOWER(LTRIM(RTRIM(UserEmail)))=LOWER(LTRIM(RTRIM(@UserEmail)));"; return await c.ExecuteScalarAsync<bool>(new CommandDefinition(sql,new{UserEmail=userEmail},cancellationToken:cancellationToken));}
+    public async Task<SqlMaintenanceDashboardModel> GetDashboardAsync(int retentionDays,CancellationToken cancellationToken=default)
+    { using var c=_connectionFactory.CreateConnection(); var p=new DynamicParameters(); p.Add("@RetentionDays",retentionDays,DbType.Int32); var rows=await c.QueryAsync<SqlMaintenanceTableSummaryModel>(new CommandDefinition("dbo.ITQS_SOC_sp_SQLMaintenance_GetDashboard",p,commandType:CommandType.StoredProcedure,commandTimeout:300,cancellationToken:cancellationToken)); return new SqlMaintenanceDashboardModel{RetentionDays=retentionDays,Tables=rows.ToList()};}
+    public Task<SqlMaintenanceExecutionResultModel> CleanupAlertsManagementAsync(SqlMaintenanceRequestModel r,CancellationToken c=default){r.TableName="AlertsManagement";r.ActionName="CleanupClosedOlderThanRetention";return Exec("dbo.ITQS_SOC_sp_SQLMaintenance_CleanupAlertsManagement",r,c);}    
+    public Task<SqlMaintenanceExecutionResultModel> CleanupAzureAlertCloseQueueAsync(SqlMaintenanceRequestModel r,CancellationToken c=default){r.TableName="AzureAlertCloseQueue";r.ActionName="CleanupQueueOlderThanRetention";return Exec("dbo.ITQS_SOC_sp_SQLMaintenance_CleanupAzureAlertCloseQueue",r,c);}    
+    public Task<SqlMaintenanceExecutionResultModel> CleanupAlertasBackupAsync(SqlMaintenanceRequestModel r,CancellationToken c=default){r.TableName="AlertasBackup";r.ActionName="CleanupInactiveOlderThanRetention";return Exec("dbo.ITQS_SOC_sp_SQLMaintenance_CleanupAlertasBackup",r,c);}    
+    public Task<SqlMaintenanceExecutionResultModel> UpdateStatisticsAsync(SqlMaintenanceRequestModel r,CancellationToken c=default){r.TableName="ALL";r.ActionName="UpdateStatistics";return Exec("dbo.ITQS_SOC_sp_SQLMaintenance_UpdateStatistics",r,c);}    
+    public Task<SqlMaintenanceExecutionResultModel> RebuildIndexesAsync(SqlMaintenanceRequestModel r,CancellationToken c=default){r.TableName="ALL";r.ActionName="RebuildIndexes";return Exec("dbo.ITQS_SOC_sp_SQLMaintenance_RebuildIndexes",r,c);}    
+    private async Task<SqlMaintenanceExecutionResultModel> Exec(string sp, SqlMaintenanceRequestModel r, CancellationToken ct){using var c=_connectionFactory.CreateConnection(); var p=new DynamicParameters(); p.Add("@RetentionDays",r.RetentionDays,DbType.Int32);p.Add("@BatchSize",r.BatchSize,DbType.Int32);p.Add("@UserEmail",r.UserEmail,DbType.String);p.Add("@UserName",r.UserName,DbType.String);p.Add("@TableName",r.TableName,DbType.String); var result=await c.QueryFirstOrDefaultAsync<SqlMaintenanceExecutionResultModel>(new CommandDefinition(sp,p,commandType:CommandType.StoredProcedure,commandTimeout:600,cancellationToken:ct)); return result??new SqlMaintenanceExecutionResultModel{TableName=r.TableName,ActionName=r.ActionName,RetentionDays=r.RetentionDays,BatchSize=r.BatchSize,Succeeded=false,Message="El procedimiento no devolvió resultado.",StartedAt=DateTime.Now,FinishedAt=DateTime.Now,ExecutedBy=r.UserName,ExecutedByEmail=r.UserEmail};}
+}

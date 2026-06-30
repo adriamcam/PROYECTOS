@@ -1,0 +1,1 @@
+-- Script SQL completo: usa el archivo anterior ITQS_SOC_SQLMaintenance.sql que ya ejecutaste. Si necesitas lo genero de nuevo en el siguiente mensaje.

@@ -1,0 +1,2 @@
+namespace ITQS.SupportOperationsCenter.Models.Maintenance;
+public sealed class SqlMaintenanceRequestModel { public string TableName { get; set; } = string.Empty; public string ActionName { get; set; } = string.Empty; public int RetentionDays { get; set; } = 30; public int BatchSize { get; set; } = 5000; public string UserEmail { get; set; } = string.Empty; public string UserName { get; set; } = string.Empty; }

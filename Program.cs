@@ -50,6 +50,8 @@ builder.Services.AddScoped<IAdminManagerRepository, AdminManagerRepository>();
 builder.Services.AddScoped<IAdminManagerService, AdminManagerService>();
 builder.Services.AddScoped<IAlertMonitoringDashboardRepository, AlertMonitoringDashboardRepository>();
 builder.Services.AddScoped<IAlertMonitoringDashboardService, AlertMonitoringDashboardService>();
+builder.Services.AddScoped<ISqlMaintenanceRepository, SqlMaintenanceRepository>();
+builder.Services.AddScoped<ISqlMaintenanceService, SqlMaintenanceService>();
 var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())
