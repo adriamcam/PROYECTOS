@@ -1,85 +1,131 @@
 @using ITQS.SupportOperationsCenter.Models.Maintenance
 
 <div class="sql-maintenance-page">
+
     @if (IsLoading)
     {
-        <div class="maintenance-panel">
-            <div class="spinner-border spinner-border-sm" role="status"></div>
-            <span class="ms-2">Cargando módulo de mantenimiento SQL...</span>
+        <div class="sql-card">
+            <span>Cargando mantenimiento SQL...</span>
         </div>
     }
     else if (!CanAccess)
     {
-        <div class="maintenance-panel maintenance-denied">
+        <div class="sql-card sql-denied">
             <h3>Acceso denegado</h3>
-            <p>Este módulo solo está disponible para usuarios administradores.</p>
+            <p>Este módulo solo está disponible para administradores.</p>
         </div>
     }
     else
     {
-        <div class="maintenance-header">
+        <div class="sql-header">
             <div>
-                <div class="maintenance-eyebrow">Mantenimiento</div>
-                <h2>SQL Database</h2>
-                <p>Conserva los últimos @RetentionDays días y limpia únicamente información histórica segura.</p>
+                <span class="sql-section">Mantenimiento</span>
+                <h1>Mantenimiento / SQL</h1>
+                <p>Limpieza controlada de tablas históricas conservando los últimos @RetentionDays días.</p>
             </div>
-            <div class="maintenance-toolbar">
-                <label>Retención
-                    <select class="form-select form-select-sm" @bind="RetentionDays" disabled="@IsExecuting">
-                        <option value="30">30 días</option>
-                        <option value="60">60 días</option>
-                        <option value="90">90 días</option>
-                        <option value="180">180 días</option>
-                    </select>
-                </label>
-                <button class="btn btn-primary btn-sm" @onclick="LoadDashboardAsync" disabled="@IsExecuting">Actualizar</button>
+
+            <button class="btn-refresh" @onclick="LoadDashboardAsync" disabled="@IsExecuting">
+                Actualizar
+            </button>
+        </div>
+
+        <div class="sql-retention">
+            <strong>Retención de información</strong>
+
+            <div class="retention-actions">
+                <label>Mantener últimos:</label>
+
+                <select @bind="RetentionDays" disabled="@IsExecuting">
+                    <option value="30">30 días</option>
+                    <option value="60">60 días</option>
+                    <option value="90">90 días</option>
+                    <option value="180">180 días</option>
+                </select>
             </div>
         </div>
+
         @if (LastExecution is not null)
         {
-            <div class="execution-result @(LastExecution.Succeeded ? "success" : "error")">
-                <strong>@(LastExecution.Succeeded ? "Ejecución correcta" : "Ejecución con error")</strong>
-                <span>@LastExecution.TableName - @LastExecution.ActionName</span>
-                <span>@LastExecution.RowsAffected.ToString("N0") registros afectados</span>
+            <div class="sql-result @(LastExecution.Succeeded ? "ok" : "error")">
+                <strong>@(LastExecution.Succeeded ? "Limpieza ejecutada correctamente" : "Error en la limpieza")</strong>
+                <span>@LastExecution.TableName - @LastExecution.RowsAffected.ToString("N0") registros afectados</span>
                 <small>@LastExecution.Message</small>
             </div>
         }
-        <div class="maintenance-grid">
+
+        <div class="sql-table-list">
             @foreach (var table in Dashboard.Tables)
             {
-                <section class="maintenance-card">
-                    <div class="card-title">
-                        <div><h3>@table.TableName</h3><p>@table.RetentionRule</p></div>
-                        <span class="row-badge">@table.TotalRows.ToString("N0")</span>
+                <div class="sql-table-card">
+
+                    <div class="table-icon">
+                        @GetIcon(table.TableName)
                     </div>
-                    <div class="metric-grid">
-                        <div><span>Total</span><strong>@table.TotalRows.ToString("N0")</strong></div>
-                        @if (table.TableName == "AzureAlertCloseQueue")
-                        {
-                            <div><span>Pending</span><strong>@table.PendingRows.ToString("N0")</strong></div>
-                            <div><span>Processed</span><strong>@table.ProcessedRows.ToString("N0")</strong></div>
-                            <div><span>NotFound</span><strong>@table.NotFoundRows.ToString("N0")</strong></div>
-                            <div><span>Retry/Error</span><strong>@((table.RetryRows + table.ErrorRows).ToString("N0"))</strong></div>
-                        }
-                        else
-                        {
-                            <div><span>Activas</span><strong>@table.ActiveRows.ToString("N0")</strong></div>
-                            <div><span>Cerradas</span><strong>@table.ClosedRows.ToString("N0")</strong></div>
-                        }
-                        <div class="metric-danger"><span>A eliminar</span><strong>@table.EligibleToDelete.ToString("N0")</strong></div>
+
+                    <div class="table-info">
+                        <h3>@table.TableName</h3>
+                        <p>@table.RecommendedAction</p>
                     </div>
-                    <p class="recommended-action">@table.RecommendedAction</p>
-                    <button class="btn btn-danger btn-sm" disabled="@(IsExecuting || table.EligibleToDelete <= 0)" @onclick="() => ExecuteCleanupAsync(table)">Ejecutar limpieza</button>
-                </section>
+
+                    <div class="table-metric">
+                        <span>Registros actuales</span>
+                        <strong>@table.TotalRows.ToString("N0")</strong>
+                    </div>
+
+                    @if (table.TableName == "AzureAlertCloseQueue")
+                    {
+                        <div class="table-metric">
+                            <span>Pending</span>
+                            <strong>@table.PendingRows.ToString("N0")</strong>
+                        </div>
+
+                        <div class="table-metric">
+                            <span>Processed</span>
+                            <strong>@table.ProcessedRows.ToString("N0")</strong>
+                        </div>
+
+                        <div class="table-metric">
+                            <span>NotFound</span>
+                            <strong>@table.NotFoundRows.ToString("N0")</strong>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="table-metric">
+                            <span>Activas</span>
+                            <strong>@table.ActiveRows.ToString("N0")</strong>
+                        </div>
+
+                        <div class="table-metric">
+                            <span>Cerradas</span>
+                            <strong>@table.ClosedRows.ToString("N0")</strong>
+                        </div>
+                    }
+
+                    <div class="table-metric danger">
+                        <span>A eliminar</span>
+                        <strong>@table.EligibleToDelete.ToString("N0")</strong>
+                    </div>
+
+                    <div class="table-actions">
+                        <button class="btn-preview" disabled="@(table.EligibleToDelete <= 0)">
+                            Vista Previa
+                        </button>
+
+                        <button class="btn-clean"
+                                disabled="@(IsExecuting || table.EligibleToDelete <= 0)"
+                                @onclick="() => ExecuteCleanupAsync(table)">
+                            Ejecutar Limpieza
+                        </button>
+                    </div>
+
+                </div>
             }
         </div>
-        <section class="maintenance-panel">
-            <h3>Optimización SQL</h3>
-            <p>Ejecuta estas acciones después de una limpieza grande o cuando detectes fragmentación.</p>
-            <div class="maintenance-buttons">
-                <button class="btn btn-outline-primary btn-sm" @onclick="UpdateStatisticsAsync" disabled="@IsExecuting">Actualizar estadísticas</button>
-                <button class="btn btn-outline-warning btn-sm" @onclick="RebuildIndexesAsync" disabled="@IsExecuting">Reconstruir índices</button>
-            </div>
-        </section>
+
+        <div class="sql-note">
+            <strong>Información importante</strong>
+            <p>Este módulo elimina únicamente información histórica según la política de retención seleccionada. No afecta alertas activas ni configuración del sistema.</p>
+        </div>
     }
 </div>
