@@ -13,7 +13,52 @@
 
 @if (!HasAdminAccess)
 {
-    <div class="admin-message error">Acceso denegado. Solo usuarios activos con rol Admin en dbo.ITQS_AppUsers pueden ingresar a Admin / Manager View.</div>
+    <section class="admin-access-denied">
+        <div class="admin-access-icon">🔒</div>
+
+        <h1>Admin / Manager View</h1>
+
+        <p class="subtitle">
+            Gestión administrativa de todas las alertas asignadas.
+        </p>
+
+        <div class="admin-access-card">
+            <h3>Acceso restringido</h3>
+
+            <p>
+                Tu cuenta no posee permisos para ingresar a la vista administrativa de alertas asignadas.
+            </p>
+
+            <div class="access-requirements">
+                <div class="requirement ok">
+                    ✔ Usuario registrado en <b>dbo.ITQS_AppUsers</b>
+                </div>
+
+                <div class="requirement ok">
+                    ✔ Usuario activo
+                </div>
+
+                <div class="requirement error">
+                    ✖ Requiere rol efectivo <b>Admin</b>
+                </div>
+            </div>
+
+            <div class="admin-info">
+                <strong>Información del módulo</strong>
+
+                <p>
+                    Admin / Manager View permite administrar todas las alertas asignadas del SOC,
+                    realizar reasignaciones masivas, administrar usuarios, ejecutar cierres por severidad
+                    y consultar el historial administrativo.
+                </p>
+            </div>
+
+            <div class="admin-contact">
+                Si consideras que necesitas acceso, solicita autorización al administrador del sistema.
+            </div>
+        </div>
+    </section>
+
     return;
 }
 
@@ -178,6 +223,120 @@
 }
 
 <style>
+
+.admin-access-denied{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    padding:70px 20px;
+    min-height:520px;
+}
+
+.admin-access-icon{
+    width:110px;
+    height:110px;
+    border-radius:26px;
+    background:#fee2e2;
+    color:#991b1b;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:52px;
+    margin-bottom:22px;
+    box-shadow:0 18px 40px rgba(220,38,38,.12);
+}
+
+.admin-access-denied h1{
+    margin:0;
+    color:#0f172a;
+    font-size:34px;
+    font-weight:900;
+    letter-spacing:-.03em;
+}
+
+.admin-access-denied .subtitle{
+    color:#64748b;
+    margin-top:10px;
+    margin-bottom:28px;
+    font-weight:700;
+}
+
+.admin-access-card{
+    width:760px;
+    max-width:100%;
+    background:#ffffff;
+    border:1px solid #dbe3ef;
+    border-radius:20px;
+    padding:30px;
+    box-shadow:0 16px 42px rgba(15,23,42,.08);
+}
+
+.admin-access-card h3{
+    margin:0 0 10px;
+    color:#dc2626;
+    font-size:22px;
+    font-weight:900;
+}
+
+.admin-access-card p{
+    color:#334155;
+    margin:0;
+    line-height:1.55;
+}
+
+.access-requirements{
+    margin-top:22px;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+}
+
+.requirement{
+    border-radius:12px;
+    padding:13px 16px;
+    font-weight:800;
+}
+
+.requirement.ok{
+    background:#ecfdf5;
+    color:#15803d;
+    border:1px solid #bbf7d0;
+}
+
+.requirement.error{
+    background:#fef2f2;
+    color:#b91c1c;
+    border:1px solid #fecaca;
+}
+
+.admin-info{
+    margin-top:24px;
+    padding:18px;
+    border-radius:14px;
+    background:#eff6ff;
+    color:#1e3a8a;
+    border:1px solid #bfdbfe;
+}
+
+.admin-info strong{
+    display:block;
+    margin-bottom:8px;
+    font-weight:900;
+}
+
+.admin-info p{
+    color:#1e3a8a;
+}
+
+.admin-contact{
+    margin-top:20px;
+    text-align:center;
+    color:#64748b;
+    font-weight:800;
+}
+
+
 .config-button{margin-bottom:14px}.admin-kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;margin-bottom:18px}.kpi{background:white;border:1px solid #dbe4f0;border-radius:16px;padding:18px;box-shadow:0 10px 28px rgba(15,23,42,.06)}.kpi span{font-size:22px}.kpi b{display:block;font-size:28px;color:#061634}.kpi small{color:#64748b;font-weight:700}.admin-filters,.history-filters{display:grid;grid-template-columns:1.5fr repeat(5,1fr) auto auto;gap:10px;background:white;border:1px solid #dbe4f0;border-radius:16px;padding:16px;margin-bottom:18px}.history-filters{grid-template-columns:1.5fr 1fr 1fr auto auto}.admin-input{border:1px solid #bcd0ee;border-radius:10px;padding:10px 12px;font-weight:700;width:100%;background:white}.primary-btn,.secondary-btn,.danger-btn{border-radius:10px;padding:10px 14px;font-weight:900;border:1px solid #bcd0ee;white-space:nowrap}.primary-btn{background:#2563eb;color:white;border-color:#2563eb}.secondary-btn{background:white;color:#2563eb}.danger-btn{background:#dc2626;color:white;border-color:#dc2626}button:disabled{opacity:.55}.admin-grid{display:grid;grid-template-columns:1fr 360px;gap:18px}.admin-card{background:white;border:1px solid #dbe4f0;border-radius:16px;padding:18px;box-shadow:0 10px 28px rgba(15,23,42,.06)}.admin-card-header{display:flex;justify-content:space-between;gap:12px;margin-bottom:14px}.admin-card h3{margin:0;color:#061634;font-weight:900}.admin-card small,.admin-card p{color:#64748b;font-weight:700}.reassign-row{display:grid;grid-template-columns:1fr 1fr auto;gap:10px;margin-bottom:14px}.table-wrap{overflow-x:auto;border:1px solid #dbe4f0;border-radius:14px}.admin-table{width:100%;border-collapse:collapse;min-width:1100px}.admin-table th{background:#f6f9fd;color:#061634;padding:13px;text-align:left;font-weight:900}.admin-table td{padding:13px;border-top:1px solid #eef2f7;font-weight:600}.admin-table td small{display:block;color:#64748b;font-size:12px}.type-badge,.severity,.status{display:inline-flex;padding:6px 10px;border-radius:999px;font-size:12px;font-weight:900}.management{color:#2563eb;background:#dbeafe}.backup{color:#7c3aed;background:#ede9fe}.critical{color:#dc2626;background:#fee2e2}.warning{color:#d97706;background:#fef3c7}.info{color:#2563eb;background:#dbeafe}.normal{color:#475569;background:#e2e8f0}.active{color:#15803d;background:#dcfce7}.in-progress{color:#d97706;background:#fef3c7}.closed{color:#991b1b;background:#fee2e2}.pagination{display:flex;justify-content:space-between;align-items:center;margin-top:14px;gap:12px}.pagination-actions{display:flex;gap:8px;align-items:center}.page-size{width:140px;display:inline-block}.severity-close{display:flex;justify-content:space-between;gap:10px;padding:12px 0;border-top:1px solid #eef2f7}.severity-close small{display:block}.workload{padding:12px 0;border-top:1px solid #eef2f7}.workload div:first-child{display:flex;justify-content:space-between}.bar{height:9px;background:#e2e8f0;border-radius:999px;overflow:hidden;margin:8px 0}.bar i{display:block;height:100%;background:#2563eb}.history{margin-top:18px}.empty{text-align:center;color:#64748b;padding:18px}.admin-message{border-radius:12px;padding:12px 16px;font-weight:900;margin-bottom:16px}.admin-message.ok{color:#166534;background:#dcfce7;border:1px solid #bbf7d0}.admin-message.error{color:#991b1b;background:#fee2e2;border:1px solid #fecaca}.config-modal-backdrop{position:fixed;inset:0;background:rgba(2,6,23,.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px}.config-modal{width:min(1400px,96vw);max-height:90vh;overflow:auto;background:#fff;border-radius:18px;border:1px solid #dbe4f0;padding:20px;box-shadow:0 25px 80px rgba(2,6,23,.35)}.config-modal-header{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:16px}.config-table{min-width:1200px}.config-help{color:#64748b;font-weight:700;margin-top:12px}@@media(max-width:1400px){.admin-kpis{grid-template-columns:repeat(3,1fr)}.admin-filters,.history-filters{grid-template-columns:repeat(2,1fr)}.admin-grid{grid-template-columns:1fr}}@@media(max-width:760px){.admin-kpis,.admin-filters,.history-filters,.reassign-row{grid-template-columns:1fr}.pagination,.admin-card-header{flex-direction:column;align-items:stretch}}
 </style>
 
