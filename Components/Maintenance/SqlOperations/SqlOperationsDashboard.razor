@@ -1,0 +1,126 @@
+@using ITQS.SupportOperationsCenter.Models.Maintenance.SqlOperations
+
+<div class="sqldash-enterprise">
+    @if (IsLoading)
+    {
+        <section class="sqldash-empty">
+            <strong>Cargando SQL Operations Dashboard...</strong>
+            <span>Consultando estado general de SQL.</span>
+        </section>
+    }
+    else if (!CanAccess)
+    {
+        <section class="sqldash-denied">
+            <h3>Acceso denegado</h3>
+            <p>Este módulo solo está disponible para administradores.</p>
+        </section>
+    }
+    else
+    {
+        <section class="sqldash-hero">
+            <div>
+                <span class="sqldash-eyebrow">Mantenimiento / SQL</span>
+                <h1>SQL Operations Dashboard</h1>
+                <p>Resumen general del estado operativo, mantenimiento y rendimiento SQL.</p>
+            </div>
+
+            <button type="button" class="sqldash-btn-primary" @onclick="LoadAsync" disabled="@IsLoading">
+                Actualizar
+            </button>
+        </section>
+
+        <section class="sqldash-kpi-grid">
+            <div class="sqldash-kpi ok">
+                <span>Base de datos</span>
+                <strong>@Dashboard.HealthStatus</strong>
+                <small>@Dashboard.DatabaseName</small>
+            </div>
+
+            <div class="sqldash-kpi blue">
+                <span>Bloqueos</span>
+                <strong>@Dashboard.ActiveBlocks.ToString("N0")</strong>
+                <small>Bloqueos activos</small>
+            </div>
+
+            <div class="sqldash-kpi blue">
+                <span>Sesiones activas</span>
+                <strong>@Dashboard.ActiveSessions.ToString("N0")</strong>
+                <small>@Dashboard.RunningSessions running / @Dashboard.SleepingSessions sleeping</small>
+            </div>
+
+            <div class="sqldash-kpi warn">
+                <span>Consultas lentas</span>
+                <strong>@Dashboard.SlowQueries.ToString("N0")</strong>
+                <small>Máx avg @Dashboard.MaxAvgDurationMs.ToString("N2") ms</small>
+            </div>
+
+            <div class="sqldash-kpi purple">
+                <span>Jobs SQL</span>
+                <strong>@Dashboard.TotalJobs.ToString("N0")</strong>
+                <small>@Dashboard.FailedJobs con error</small>
+            </div>
+        </section>
+
+        <section class="sqldash-shortcuts">
+            <div class="shortcut-header">
+                <div>
+                    <h3>Acceso rápido</h3>
+                    <p>Selecciona un módulo para revisar detalle operativo.</p>
+                </div>
+            </div>
+
+            <div class="shortcut-grid">
+                <button class="shortcut-card" @onclick='() => NavigateModule.InvokeAsync("SqlMaintenance")'>
+                    <span>🛠️</span>
+                    <strong>Mantenimiento</strong>
+                    <small>Limpieza y retención</small>
+                </button>
+
+                <button class="shortcut-card" @onclick='() => NavigateModule.InvokeAsync("SqlJobs")'>
+                    <span>💼</span>
+                    <strong>Jobs SQL</strong>
+                    <small>Estado y ejecuciones</small>
+                </button>
+
+                <button class="shortcut-card" @onclick='() => NavigateModule.InvokeAsync("SqlBlocking")'>
+                    <span>🔒</span>
+                    <strong>Bloqueos</strong>
+                    <small>Sesiones bloqueadas</small>
+                </button>
+
+                <button class="shortcut-card" @onclick='() => NavigateModule.InvokeAsync("SqlActiveSessions")'>
+                    <span>👤</span>
+                    <strong>Sesiones</strong>
+                    <small>Actividad en tiempo real</small>
+                </button>
+
+                <button class="shortcut-card" @onclick='() => NavigateModule.InvokeAsync("SqlSlowQueries")'>
+                    <span>📊</span>
+                    <strong>Consultas Lentas</strong>
+                    <small>Top queries por duración</small>
+                </button>
+            </div>
+        </section>
+
+        <section class="sqldash-detail-grid">
+            <div class="sqldash-panel">
+                <h3>Capacidad</h3>
+                <div class="metric-line"><span>Tamaño total</span><strong>@Dashboard.TotalSpaceMb.ToString("N2") MB</strong></div>
+                <div class="metric-line"><span>Registros totales</span><strong>@Dashboard.TotalRows.ToString("N0")</strong></div>
+                <div class="metric-line"><span>Recuperable estimado</span><strong>@Dashboard.EstimatedRecoverableMb.ToString("N2") MB</strong></div>
+            </div>
+
+            <div class="sqldash-panel">
+                <h3>Mantenimiento</h3>
+                <div class="metric-line"><span>Último mantenimiento</span><strong>@Dashboard.LastMaintenanceText</strong></div>
+                <div class="metric-line"><span>Ejecuciones Query Stats</span><strong>@Dashboard.TotalExecutions.ToString("N0")</strong></div>
+                <div class="metric-line"><span>Estado operativo</span><strong>@Dashboard.HealthStatus</strong></div>
+            </div>
+        </section>
+
+        <section class="sqldash-info">
+            <strong>Nota operativa</strong>
+            <p>Este dashboard centraliza el acceso a mantenimiento, monitoreo SQL y rendimiento. Algunos datos dependen de permisos DMV y del tipo de plataforma SQL.</p>
+        </section>
+    }
+</div>

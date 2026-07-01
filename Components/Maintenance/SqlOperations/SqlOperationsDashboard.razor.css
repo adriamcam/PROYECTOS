@@ -1,0 +1,22 @@
+.sqldash-enterprise{display:flex;flex-direction:column;gap:18px;padding:24px;color:#0f172a}
+.sqldash-hero,.sqldash-kpi-grid,.sqldash-shortcuts,.sqldash-panel,.sqldash-info,.sqldash-empty{background:#fff;border:1px solid #dbe3ef;border-radius:16px;box-shadow:0 10px 28px rgba(15,23,42,.04)}
+.sqldash-hero{padding:22px 24px;display:flex;justify-content:space-between;align-items:center}
+.sqldash-eyebrow{display:block;font-size:13px;color:#64748b;font-weight:850;margin-bottom:6px;text-transform:uppercase}
+.sqldash-hero h1{margin:0;font-size:30px;font-weight:900;letter-spacing:-.03em}
+.sqldash-hero p{margin:10px 0 0;color:#334155}
+.sqldash-btn-primary{border:none;border-radius:10px;padding:10px 16px;background:#2563eb;color:#fff;font-weight:850;cursor:pointer}
+.sqldash-kpi-grid{padding:18px;display:grid;grid-template-columns:repeat(5,minmax(160px,1fr));gap:14px}
+.sqldash-kpi{padding:16px;border:1px solid #e2e8f0;background:#f8fafc;border-radius:14px}
+.sqldash-kpi span,.sqldash-kpi small{display:block;color:#64748b;font-size:13px;font-weight:700}
+.sqldash-kpi strong{display:block;margin:9px 0;font-size:25px;font-weight:900}
+.sqldash-kpi.ok strong{color:#16a34a}.sqldash-kpi.blue strong{color:#2563eb}.sqldash-kpi.warn strong{color:#ea580c}.sqldash-kpi.purple strong{color:#7c3aed}
+.sqldash-shortcuts{padding:20px 22px}.shortcut-header h3{margin:0;font-size:18px}.shortcut-header p{margin:7px 0 16px;color:#64748b}
+.shortcut-grid{display:grid;grid-template-columns:repeat(5,minmax(150px,1fr));gap:14px}
+.shortcut-card{text-align:left;padding:18px;border-radius:14px;border:1px solid #dbe3ef;background:#fff;cursor:pointer;transition:transform .15s ease,box-shadow .15s ease}
+.shortcut-card:hover{transform:translateY(-2px);box-shadow:0 14px 32px rgba(15,23,42,.09)}
+.shortcut-card span{font-size:28px}.shortcut-card strong{display:block;margin:9px 0 4px}.shortcut-card small{color:#64748b}
+.sqldash-detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.sqldash-panel{padding:20px 22px}.sqldash-panel h3{margin:0 0 14px}
+.metric-line{display:flex;justify-content:space-between;gap:14px;border-top:1px solid #e2e8f0;padding:12px 0}.metric-line:first-of-type{border-top:none}.metric-line span{color:#64748b}.metric-line strong{font-weight:850}
+.sqldash-info{padding:16px 20px;background:#eff6ff;color:#1e3a8a}.sqldash-info p{margin:6px 0 0}.sqldash-empty,.sqldash-denied{padding:22px}.sqldash-denied{border:1px solid #fecaca;border-radius:16px;background:#fef2f2;color:#991b1b}
+@media(max-width:1100px){.sqldash-kpi-grid,.shortcut-grid{grid-template-columns:1fr 1fr}.sqldash-detail-grid{grid-template-columns:1fr}}
+@media(max-width:720px){.sqldash-enterprise{padding:14px}.sqldash-hero{flex-direction:column;align-items:flex-start}.sqldash-kpi-grid,.shortcut-grid{grid-template-columns:1fr}}
