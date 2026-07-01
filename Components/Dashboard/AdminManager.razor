@@ -12,49 +12,17 @@
 @if (!HasAdminAccess)
 {
     <section class="admin-access-denied">
-        <div class="admin-access-icon">🔒</div>
 
-        <h1>Admin / Manager View</h1>
+        <div class="admin-access-icon">
+            🔒
+        </div>
 
-        <p class="subtitle">
-            Gestión administrativa de todas las alertas asignadas.
+        <h1>Acceso denegado</h1>
+
+        <p>
+            No tienes permisos para ingresar a este módulo.
         </p>
 
-        <div class="admin-access-card">
-            <h3>Acceso restringido</h3>
-
-            <p>
-                Tu cuenta no posee permisos para ingresar a la vista administrativa de alertas asignadas.
-            </p>
-
-            <div class="access-requirements">
-                <div class="requirement ok">
-                    ✔ Usuario registrado en <b>dbo.ITQS_AppUsers</b>
-                </div>
-
-                <div class="requirement ok">
-                    ✔ Usuario activo
-                </div>
-
-                <div class="requirement error">
-                    ✖ Requiere rol efectivo <b>Admin</b>
-                </div>
-            </div>
-
-            <div class="admin-info">
-                <strong>Información del módulo</strong>
-
-                <p>
-                    Admin / Manager View permite administrar todas las alertas asignadas del SOC,
-                    realizar reasignaciones masivas, administrar usuarios, ejecutar cierres por severidad
-                    y consultar el historial administrativo.
-                </p>
-            </div>
-
-            <div class="admin-contact">
-                Si consideras que necesitas acceso, solicita autorización al administrador del sistema.
-            </div>
-        </div>
     </section>
 
     return;
@@ -227,39 +195,37 @@
     flex-direction:column;
     align-items:center;
     justify-content:center;
-    padding:70px 20px;
-    min-height:520px;
+    min-height:650px;
+    text-align:center;
 }
 
 .admin-access-icon{
-    width:110px;
-    height:110px;
+    width:120px;
+    height:120px;
     border-radius:26px;
     background:#fee2e2;
-    color:#991b1b;
+    color:#b91c1c;
     display:flex;
     align-items:center;
     justify-content:center;
-    font-size:52px;
-    margin-bottom:22px;
-    box-shadow:0 18px 40px rgba(220,38,38,.12);
+    font-size:58px;
+    margin-bottom:24px;
+    box-shadow:0 15px 35px rgba(220,38,38,.15);
 }
 
 .admin-access-denied h1{
     margin:0;
-    color:#0f172a;
     font-size:34px;
     font-weight:900;
-    letter-spacing:-.03em;
+    color:#0f172a;
 }
 
-.admin-access-denied .subtitle{
+.admin-access-denied p{
+    margin-top:14px;
+    font-size:17px;
     color:#64748b;
-    margin-top:10px;
-    margin-bottom:28px;
-    font-weight:700;
+    font-weight:600;
 }
-
 .admin-access-card{
     width:760px;
     max-width:100%;
