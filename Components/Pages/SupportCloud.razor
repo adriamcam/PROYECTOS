@@ -44,11 +44,32 @@
                     </button>
 
                     <div class="menu-links @(ShowMaintenanceMenu ? "show" : "")">
-                        <button type="button" class="menu-link" @onclick='() => SelectModule("SqlMaintenance")'>SQL</button>
-                        <button type="button" class="menu-link" @onclick='() => SelectModule("SqlJobs")'>Jobs SQL</button>
-                        <button type="button" class="menu-link" @onclick='() => SelectModule("SqlBlocking")'>Bloqueos</button>
-                        <button type="button" class="menu-link" @onclick='() => SelectModule("SqlActiveSessions")'>Sesiones Activas</button>
-                        <button type="button" class="menu-link" @onclick='() => SelectModule("SqlSlowQueries")'>Consultas Lentas</button>
+
+                        <button type="button"
+                                class="menu-link menu-link-parent"
+                                @onclick='() => SelectModule("SqlDashboard")'>
+                            SQL
+                        </button>
+
+                        <div class="menu-subtitle">Dashboard</div>
+                        <button type="button"
+                                class="menu-link menu-link-child"
+                                @onclick='() => SelectModule("SqlDashboard")'>
+                            Dashboard
+                        </button>
+
+                        <div class="menu-subtitle">Mantenimiento</div>
+                        <button type="button"
+                                class="menu-link menu-link-child"
+                                @onclick='() => SelectModule("SqlMaintenance")'>
+                            Mantenimiento
+                        </button>
+
+                        <div class="menu-subtitle">Monitor</div>
+                        <button type="button" class="menu-link menu-link-child" @onclick='() => SelectModule("SqlJobs")'>Jobs SQL</button>
+                        <button type="button" class="menu-link menu-link-child" @onclick='() => SelectModule("SqlBlocking")'>Bloqueos</button>
+                        <button type="button" class="menu-link menu-link-child" @onclick='() => SelectModule("SqlActiveSessions")'>Sesiones</button>
+                        <button type="button" class="menu-link menu-link-child" @onclick='() => SelectModule("SqlSlowQueries")'>Consultas Lentas</button>
                     </div>
                 </div>
             }
@@ -94,6 +115,10 @@
             else if (CurrentModule == "AdminManagerView")
             {
                 <AdminManager />
+            }
+            else if (CurrentModule == "SqlDashboard")
+            {
+                <SqlOperationsDashboard NavigateModule="SelectModule" />
             }
             else if (CurrentModule == "SqlMaintenance")
             {
@@ -164,11 +189,14 @@
             "Dashboard" => "Dashboard",
             "Asignadas" => "Asignadas a mí",
             "AdminManagerView" => "Admin / Manager View",
-            "SqlMaintenance" => "Mantenimiento / SQL",
-            "SqlJobs" => "Mantenimiento / SQL / Jobs SQL",
-            "SqlBlocking" => "Mantenimiento / SQL / Bloqueos",
-            "SqlActiveSessions" => "Mantenimiento / SQL / Sesiones Activas",
-            "SqlSlowQueries" => "Mantenimiento / SQL / Consultas Lentas",
+
+            "SqlDashboard" => "Mantenimiento / SQL / Dashboard",
+            "SqlMaintenance" => "Mantenimiento / SQL / Mantenimiento",
+            "SqlJobs" => "Mantenimiento / SQL / Monitor / Jobs SQL",
+            "SqlBlocking" => "Mantenimiento / SQL / Monitor / Bloqueos",
+            "SqlActiveSessions" => "Mantenimiento / SQL / Monitor / Sesiones",
+            "SqlSlowQueries" => "Mantenimiento / SQL / Monitor / Consultas Lentas",
+
             "Todas" => "Todas las alertas",
             "Criticas" => "Alertas críticas",
             "Clientes" => "Info Clientes",
@@ -223,6 +251,12 @@
     {
         ShowMaintenanceMenu = !ShowMaintenanceMenu;
         ShowAlertMenu = false;
+
+        if (string.IsNullOrWhiteSpace(CurrentModule) ||
+            !CurrentModule.StartsWith("Sql", StringComparison.OrdinalIgnoreCase))
+        {
+            CurrentModule = "SqlDashboard";
+        }
     }
 
     private void SelectModule(string module)
