@@ -47,29 +47,54 @@
 
                         <button type="button"
                                 class="menu-link menu-link-parent"
-                                @onclick='() => SelectModule("SqlDashboard")'>
-                            SQL
+                                @onclick="SelectSqlMenu">
+                            @(ShowSqlMenu ? "▼ SQL" : "▶ SQL")
                         </button>
 
-                        <div class="menu-subtitle">Dashboard</div>
-                        <button type="button"
-                                class="menu-link menu-link-child"
-                                @onclick='() => SelectModule("SqlDashboard")'>
-                            Dashboard
-                        </button>
+                        @if (ShowSqlMenu)
+                        {
+                            <div class="menu-subtitle">Dashboard</div>
 
-                        <div class="menu-subtitle">Mantenimiento</div>
-                        <button type="button"
-                                class="menu-link menu-link-child"
-                                @onclick='() => SelectModule("SqlMaintenance")'>
-                            Mantenimiento
-                        </button>
+                            <button type="button"
+                                    class="menu-link menu-link-child"
+                                    @onclick='() => SelectModule("SqlDashboard")'>
+                                • Dashboard
+                            </button>
 
-                        <div class="menu-subtitle">Monitor</div>
-                        <button type="button" class="menu-link menu-link-child" @onclick='() => SelectModule("SqlJobs")'>Jobs SQL</button>
-                        <button type="button" class="menu-link menu-link-child" @onclick='() => SelectModule("SqlBlocking")'>Bloqueos</button>
-                        <button type="button" class="menu-link menu-link-child" @onclick='() => SelectModule("SqlActiveSessions")'>Sesiones</button>
-                        <button type="button" class="menu-link menu-link-child" @onclick='() => SelectModule("SqlSlowQueries")'>Consultas Lentas</button>
+                            <div class="menu-subtitle">Mantenimiento</div>
+
+                            <button type="button"
+                                    class="menu-link menu-link-child"
+                                    @onclick='() => SelectModule("SqlMaintenance")'>
+                                • Mantenimiento
+                            </button>
+
+                            <div class="menu-subtitle">Monitor</div>
+
+                            <button type="button"
+                                    class="menu-link menu-link-child"
+                                    @onclick='() => SelectModule("SqlJobs")'>
+                                • Jobs SQL
+                            </button>
+
+                            <button type="button"
+                                    class="menu-link menu-link-child"
+                                    @onclick='() => SelectModule("SqlBlocking")'>
+                                • Bloqueos
+                            </button>
+
+                            <button type="button"
+                                    class="menu-link menu-link-child"
+                                    @onclick='() => SelectModule("SqlActiveSessions")'>
+                                • Sesiones
+                            </button>
+
+                            <button type="button"
+                                    class="menu-link menu-link-child"
+                                    @onclick='() => SelectModule("SqlSlowQueries")'>
+                                • Consultas Lentas
+                            </button>
+                        }
                     </div>
                 </div>
             }
@@ -172,8 +197,10 @@
     private bool IsAdmin = false;
 
     private string CurrentModule = "";
+
     private bool ShowAlertMenu = false;
     private bool ShowMaintenanceMenu = false;
+    private bool ShowSqlMenu = false;
 
     private string UserName = "";
     private string UserEmail = "";
@@ -201,6 +228,7 @@
             "Criticas" => "Alertas críticas",
             "Clientes" => "Info Clientes",
             "Admin" => "Admin / Manager View",
+
             _ => "Monitoreo de Alertas"
         };
 
@@ -243,8 +271,10 @@
     private void SelectAlertMonitoring()
     {
         CurrentModule = "Alertas";
+
         ShowAlertMenu = !ShowAlertMenu;
         ShowMaintenanceMenu = false;
+        ShowSqlMenu = false;
     }
 
     private void SelectMaintenance()
@@ -252,8 +282,20 @@
         ShowMaintenanceMenu = !ShowMaintenanceMenu;
         ShowAlertMenu = false;
 
-        if (string.IsNullOrWhiteSpace(CurrentModule) ||
-            !CurrentModule.StartsWith("Sql", StringComparison.OrdinalIgnoreCase))
+        if (!ShowMaintenanceMenu)
+        {
+            ShowSqlMenu = false;
+        }
+    }
+
+    private void SelectSqlMenu()
+    {
+        ShowSqlMenu = !ShowSqlMenu;
+
+        ShowMaintenanceMenu = true;
+        ShowAlertMenu = false;
+
+        if (ShowSqlMenu)
         {
             CurrentModule = "SqlDashboard";
         }
@@ -266,12 +308,14 @@
         if (module.StartsWith("Sql", StringComparison.OrdinalIgnoreCase))
         {
             ShowMaintenanceMenu = true;
+            ShowSqlMenu = true;
             ShowAlertMenu = false;
         }
         else
         {
             ShowAlertMenu = true;
             ShowMaintenanceMenu = false;
+            ShowSqlMenu = false;
         }
     }
 }
