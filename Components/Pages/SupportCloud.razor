@@ -1,11 +1,13 @@
 @page "/support-cloud"
 @rendermode @(new InteractiveServerRenderMode())
-@using ITQS.SupportOperationsCenter.Components.Dashboard
-@using ITQS.SupportOperationsCenter.Components.Maintenance
+
 @using System.Security.Claims
 @using Microsoft.AspNetCore.Components.Authorization
-@inject AuthenticationStateProvider AuthenticationStateProvider
+@using ITQS.SupportOperationsCenter.Components.Dashboard
+@using ITQS.SupportOperationsCenter.Components.Maintenance
 @using ITQS.SupportOperationsCenter.Components.Maintenance.SqlOperations
+
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
 <PageTitle>Support Cloud - ITQS SOC</PageTitle>
 
@@ -42,15 +44,11 @@
                     </button>
 
                     <div class="menu-links @(ShowMaintenanceMenu ? "show" : "")">
-                        <button type="button"
-                                class="menu-link"
-                                @onclick='() => SelectModule("SqlMaintenance")'>
-                            SQL
-                        </button>
-						<button type="button" class="menu-link" @onclick='() => SelectModule("SqlJobs")'>Jobs SQL</button>
-<button type="button" class="menu-link" @onclick='() => SelectModule("SqlBlocking")'>Bloqueos</button>
-<button type="button" class="menu-link" @onclick='() => SelectModule("SqlActiveSessions")'>Sesiones Activas</button>
-<button type="button" class="menu-link" @onclick='() => SelectModule("SqlSlowQueries")'>Consultas Lentas</button>
+                        <button type="button" class="menu-link" @onclick='() => SelectModule("SqlMaintenance")'>SQL</button>
+                        <button type="button" class="menu-link" @onclick='() => SelectModule("SqlJobs")'>Jobs SQL</button>
+                        <button type="button" class="menu-link" @onclick='() => SelectModule("SqlBlocking")'>Bloqueos</button>
+                        <button type="button" class="menu-link" @onclick='() => SelectModule("SqlActiveSessions")'>Sesiones Activas</button>
+                        <button type="button" class="menu-link" @onclick='() => SelectModule("SqlSlowQueries")'>Consultas Lentas</button>
                     </div>
                 </div>
             }
@@ -100,6 +98,22 @@
             else if (CurrentModule == "SqlMaintenance")
             {
                 <SqlMaintenance />
+            }
+            else if (CurrentModule == "SqlJobs")
+            {
+                <SqlJobs />
+            }
+            else if (CurrentModule == "SqlBlocking")
+            {
+                <SqlBlocking />
+            }
+            else if (CurrentModule == "SqlActiveSessions")
+            {
+                <SqlActiveSessions />
+            }
+            else if (CurrentModule == "SqlSlowQueries")
+            {
+                <SqlSlowQueries />
             }
             else if (CurrentModule == "Todas")
             {
@@ -151,6 +165,10 @@
             "Asignadas" => "Asignadas a mí",
             "AdminManagerView" => "Admin / Manager View",
             "SqlMaintenance" => "Mantenimiento / SQL",
+            "SqlJobs" => "Mantenimiento / SQL / Jobs SQL",
+            "SqlBlocking" => "Mantenimiento / SQL / Bloqueos",
+            "SqlActiveSessions" => "Mantenimiento / SQL / Sesiones Activas",
+            "SqlSlowQueries" => "Mantenimiento / SQL / Consultas Lentas",
             "Todas" => "Todas las alertas",
             "Criticas" => "Alertas críticas",
             "Clientes" => "Info Clientes",
@@ -186,7 +204,7 @@
             user.HasClaim("groups", CloudGroupId) ||
             user.HasClaim("http://schemas.microsoft.com/ws/2008/06/identity/claims/groups", CloudGroupId);
 
-        IsAdmin = true; // Temporal para validar. Luego lo conectamos contra ITQS_AppUsers.
+        IsAdmin = true; // Temporal. Luego conectarlo contra dbo.ITQS_AppUsers.
 
         if (!string.IsNullOrWhiteSpace(UserName))
         {
@@ -211,7 +229,7 @@
     {
         CurrentModule = module;
 
-        if (module == "SqlMaintenance")
+        if (module.StartsWith("Sql", StringComparison.OrdinalIgnoreCase))
         {
             ShowMaintenanceMenu = true;
             ShowAlertMenu = false;
