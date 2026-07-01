@@ -16,47 +16,12 @@
     <section class="admin-access-denied">
         <div class="admin-access-icon">🔒</div>
 
-        <h1>Admin / Manager View</h1>
+        <h1>Acceso denegado</h1>
 
-        <p class="subtitle">
-            Gestión administrativa de todas las alertas asignadas.
+        <p>
+            Tu usuario no posee permisos para acceder al módulo
+            <b>Admin / Manager View</b>.
         </p>
-
-        <div class="admin-access-card">
-            <h3>Acceso restringido</h3>
-
-            <p>
-                Tu cuenta no posee permisos para ingresar a la vista administrativa de alertas asignadas.
-            </p>
-
-            <div class="access-requirements">
-                <div class="requirement ok">
-                    ✔ Usuario registrado en <b>dbo.ITQS_AppUsers</b>
-                </div>
-
-                <div class="requirement ok">
-                    ✔ Usuario activo
-                </div>
-
-                <div class="requirement error">
-                    ✖ Requiere rol efectivo <b>Admin</b>
-                </div>
-            </div>
-
-            <div class="admin-info">
-                <strong>Información del módulo</strong>
-
-                <p>
-                    Admin / Manager View permite administrar todas las alertas asignadas del SOC,
-                    realizar reasignaciones masivas, administrar usuarios, ejecutar cierres por severidad
-                    y consultar el historial administrativo.
-                </p>
-            </div>
-
-            <div class="admin-contact">
-                Si consideras que necesitas acceso, solicita autorización al administrador del sistema.
-            </div>
-        </div>
     </section>
 
     return;
@@ -592,3 +557,4 @@
 
     private string FormatDate(DateTime? value) => value.HasValue ? value.Value.ToString("dd/MM/yyyy HH:mm") : "-";
 }
+
