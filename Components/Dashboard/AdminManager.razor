@@ -7,10 +7,6 @@
 @inject IAdminManagerService AdminService
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager NavigationManager
-
-<h1>Admin / Manager View</h1>
-<p>Gestión administrativa de todas las alertas asignadas.</p>
-
 @if (!HasAdminAccess)
 {
     <section class="admin-denied-page">
@@ -232,300 +228,198 @@
 
 <style>
 
-.admin-access-denied{
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-    padding:70px 20px;
-    min-height:520px;
-}
-
-.admin-access-icon{
-    width:110px;
-    height:110px;
-    border-radius:26px;
-    background:#fee2e2;
-    color:#991b1b;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-size:52px;
-    margin-bottom:22px;
-    box-shadow:0 18px 40px rgba(220,38,38,.12);
-}
-
-.admin-access-denied h1{
-    margin:0;
-    color:#0f172a;
-    font-size:34px;
-    font-weight:900;
-    letter-spacing:-.03em;
-}
-
-.admin-access-denied .subtitle{
-    color:#64748b;
-    margin-top:10px;
-    margin-bottom:28px;
-    font-weight:700;
-}
-
-.admin-access-card{
-    width:760px;
-    max-width:100%;
-    background:#ffffff;
-    border:1px solid #dbe3ef;
-    border-radius:20px;
-    padding:30px;
-    box-shadow:0 16px 42px rgba(15,23,42,.08);
-}
-
-.admin-access-card h3{
-    margin:0 0 10px;
-    color:#dc2626;
-    font-size:22px;
-    font-weight:900;
-}
-
-.admin-access-card p{
-    color:#334155;
-    margin:0;
-    line-height:1.55;
-}
-
-.access-requirements{
-    margin-top:22px;
-    display:flex;
-    flex-direction:column;
-    gap:12px;
-}
-
-.requirement{
-    border-radius:12px;
-    padding:13px 16px;
-    font-weight:800;
-}
-
-.requirement.ok{
-    background:#ecfdf5;
-    color:#15803d;
-    border:1px solid #bbf7d0;
-}
-
-.requirement.error{
-    background:#fef2f2;
-    color:#b91c1c;
-    border:1px solid #fecaca;
-}
-
-.admin-info{
-    margin-top:24px;
-    padding:18px;
-    border-radius:14px;
-    background:#eff6ff;
-    color:#1e3a8a;
-    border:1px solid #bfdbfe;
-}
-
-.admin-info strong{
-    display:block;
-    margin-bottom:8px;
-    font-weight:900;
-}
-
-.admin-info p{
-    color:#1e3a8a;
-}
-
-.admin-contact{
-    margin-top:20px;
-    text-align:center;
-    color:#64748b;
-    font-weight:800;
-}
 .admin-denied-page{
-
     width:100%;
-    padding:30px;
-
+    padding:32px;
+    border-radius:24px;
+    background:
+        radial-gradient(circle at top right,#dbeafe 0,#ffffff 42%),
+        linear-gradient(180deg,#ffffff,#f8fafc);
 }
 
 .admin-denied-card{
-
-    background:white;
-
-    border-radius:22px;
-
+    position:relative;
+    overflow:hidden;
+    min-height:420px;
+    background:#ffffff;
+    border-radius:24px;
     display:flex;
-
     align-items:center;
-
     justify-content:space-between;
-
-    padding:55px;
-
-    box-shadow:0 15px 40px rgba(0,0,0,.08);
-
+    padding:58px;
+    box-shadow:0 18px 45px rgba(15,23,42,.10);
     border:1px solid #e5e7eb;
-
 }
 
 .admin-left{
-
     width:280px;
-
     display:flex;
-
     justify-content:center;
-
+    align-items:center;
 }
 
 .shield-circle{
-
-    width:180px;
-
-    height:180px;
-
+    width:185px;
+    height:185px;
     border-radius:50%;
-
-    background:#fee2e2;
-
+    background:linear-gradient(180deg,#ffe5e5,#fff5f5);
     display:flex;
-
     align-items:center;
-
     justify-content:center;
+    box-shadow:0 20px 45px rgba(220,38,38,.15);
+    border:1px solid #fecaca;
+}
 
-    font-size:90px;
-
-    color:#dc2626;
-
+.shield-icon{
+    font-size:92px;
+    line-height:1;
 }
 
 .admin-divider{
-
     width:1px;
-
-    height:220px;
-
+    height:230px;
     background:#dbe4f0;
-
-    margin:0 50px;
-
+    margin:0 52px;
 }
 
 .admin-right{
-
+    position:relative;
     flex:1;
+    z-index:1;
+}
 
+.background-lock{
+    position:absolute;
+    right:30px;
+    top:50%;
+    transform:translateY(-50%);
+    font-size:260px;
+    opacity:.045;
+    pointer-events:none;
+    z-index:-1;
 }
 
 .access-badge{
-
-    display:inline-block;
-
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
     padding:12px 22px;
-
     background:#fee2e2;
-
     color:#b91c1c;
-
     border-radius:12px;
-
-    font-weight:700;
-
-    margin-bottom:25px;
-
+    font-weight:900;
+    margin-bottom:24px;
+    border:1px solid #fecaca;
+    letter-spacing:.02em;
 }
 
 .admin-right h1{
-
     font-size:52px;
-
-    font-weight:800;
-
+    font-weight:900;
     color:#0f172a;
-
-    margin-bottom:20px;
-
+    margin:0 0 18px;
+    letter-spacing:-.04em;
 }
 
 .title-line{
-
-    width:120px;
-
-    height:4px;
-
-    background:#ef4444;
-
+    width:140px;
+    height:5px;
+    background:linear-gradient(90deg,#dc2626,#ef4444);
     border-radius:50px;
-
-    margin-bottom:25px;
-
+    margin-bottom:26px;
 }
 
 .admin-right p{
-
     font-size:22px;
-
     color:#475569;
+    line-height:1.65;
+    margin:0;
+    max-width:680px;
+}
 
-    line-height:1.7;
-
+.admin-right p strong{
+    color:#0f172a;
 }
 
 .admin-info-banner{
-
-    margin-top:35px;
-
-    background:#eef5ff;
-
+    margin-top:34px;
+    background:#f1f7ff;
+    border:1px solid #bfdbfe;
+    border-left:6px solid #2563eb;
     border-radius:18px;
-
-    padding:30px;
-
+    padding:26px 30px;
     display:flex;
-
     align-items:center;
-
-    gap:25px;
-
+    gap:22px;
+    box-shadow:0 10px 28px rgba(15,23,42,.06);
 }
 
 .info-icon{
-
-    width:70px;
-
-    height:70px;
-
+    min-width:68px;
+    width:68px;
+    height:68px;
     border-radius:50%;
-
     background:#2563eb;
-
-    color:white;
-
+    color:#ffffff;
     display:flex;
-
     align-items:center;
-
     justify-content:center;
-
     font-size:34px;
-
+    font-weight:900;
 }
 
 .admin-info-banner h3{
-
-    margin-bottom:8px;
-
+    margin:0 0 8px;
     color:#0f172a;
-
+    font-size:20px;
+    font-weight:900;
 }
 
 .admin-info-banner p{
-
+    margin:0;
     color:#475569;
+    font-weight:700;
+    line-height:1.5;
+}
 
+@@media(max-width:900px){
+    .admin-denied-card{
+        flex-direction:column;
+        text-align:center;
+        padding:36px 24px;
+    }
+
+    .admin-left{
+        width:100%;
+    }
+
+    .admin-divider{
+        width:100%;
+        height:1px;
+        margin:30px 0;
+    }
+
+    .admin-right h1{
+        font-size:38px;
+    }
+
+    .title-line{
+        margin-left:auto;
+        margin-right:auto;
+    }
+
+    .admin-right p{
+        font-size:18px;
+    }
+
+    .background-lock{
+        right:50%;
+        transform:translate(50%,-50%);
+    }
+
+    .admin-info-banner{
+        align-items:flex-start;
+    }
 }
 
 
