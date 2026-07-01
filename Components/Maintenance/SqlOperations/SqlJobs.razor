@@ -1,0 +1,50 @@
+@using ITQS.SupportOperationsCenter.Models.Maintenance.SqlOperations
+<div class="sqlops-page">
+    @if (IsLoading)
+    {
+        <section class="sqlops-card">Cargando Jobs SQL...</section>
+    }
+    else if (!CanAccess)
+    {
+        <section class="sqlops-card denied"><h3>Acceso denegado</h3><p>Este módulo solo está disponible para administradores.</p></section>
+    }
+    else
+    {
+        <section class="sqlops-header">
+            <div><span>SQL</span><h2>Jobs SQL</h2><p>Consulta trabajos SQL disponibles y sus últimas ejecuciones.</p></div>
+            <button type="button" @onclick="LoadAsync" disabled="@IsLoading">Actualizar</button>
+        </section>
+        <section class="sqlops-card">
+            <div class="sqlops-table">
+                <div class="sqlops-row head">
+                    <span>Job</span>
+                    <span>Habilitado</span>
+                    <span>Último estado</span>
+                    <span>Última ejecución</span>
+                    <span>Duración</span>
+                    <span>Próxima ejecución</span>
+                    <span>Mensaje</span>
+                </div>
+                @if (Jobs.Count == 0)
+                {
+                    <div class="empty">No se encontraron registros.</div>
+                }
+                else
+                {
+                    @foreach (var item in Jobs)
+                    {
+                        <div class="sqlops-row">
+                            <span>@item.JobName</span>
+                            <span>@item.Enabled</span>
+                            <span>@item.LastRunStatus</span>
+                            <span>@item.LastRunDateTime</span>
+                            <span>@item.LastRunDuration</span>
+                            <span>@item.NextRunDateTime</span>
+                            <span>@item.LastMessage</span>
+                        </div>
+                    }
+                }
+            </div>
+        </section>
+    }
+</div>

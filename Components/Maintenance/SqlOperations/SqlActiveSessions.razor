@@ -1,0 +1,50 @@
+@using ITQS.SupportOperationsCenter.Models.Maintenance.SqlOperations
+<div class="sqlops-page">
+    @if (IsLoading)
+    {
+        <section class="sqlops-card">Cargando Sesiones Activas...</section>
+    }
+    else if (!CanAccess)
+    {
+        <section class="sqlops-card denied"><h3>Acceso denegado</h3><p>Este módulo solo está disponible para administradores.</p></section>
+    }
+    else
+    {
+        <section class="sqlops-header">
+            <div><span>SQL</span><h2>Sesiones Activas</h2><p>Muestra sesiones activas, CPU, lecturas, escrituras y SQL en ejecución.</p></div>
+            <button type="button" @onclick="LoadAsync" disabled="@IsLoading">Actualizar</button>
+        </section>
+        <section class="sqlops-card">
+            <div class="sqlops-table">
+                <div class="sqlops-row head">
+                    <span>SPID</span>
+                    <span>Usuario</span>
+                    <span>Host</span>
+                    <span>Estado</span>
+                    <span>CPU ms</span>
+                    <span>Reads</span>
+                    <span>SQL</span>
+                </div>
+                @if (Sessions.Count == 0)
+                {
+                    <div class="empty">No se encontraron registros.</div>
+                }
+                else
+                {
+                    @foreach (var item in Sessions)
+                    {
+                        <div class="sqlops-row">
+                            <span>@item.SessionId</span>
+                            <span>@item.LoginName</span>
+                            <span>@item.HostName</span>
+                            <span>@item.Status</span>
+                            <span>@item.CpuTimeMs.ToString("N0")</span>
+                            <span>@item.Reads.ToString("N0")</span>
+                            <span class="sqltext">@item.SqlText</span>
+                        </div>
+                    }
+                }
+            </div>
+        </section>
+    }
+</div>

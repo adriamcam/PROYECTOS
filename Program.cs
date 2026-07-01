@@ -52,6 +52,9 @@ builder.Services.AddScoped<IAlertMonitoringDashboardRepository, AlertMonitoringD
 builder.Services.AddScoped<IAlertMonitoringDashboardService, AlertMonitoringDashboardService>();
 builder.Services.AddScoped<ISqlMaintenanceRepository, SqlMaintenanceRepository>();
 builder.Services.AddScoped<ISqlMaintenanceService, SqlMaintenanceService>();
+builder.Services.AddScoped<ISqlOperationsRepository, SqlOperationsRepository>();
+builder.Services.AddScoped<ISqlOperationsService, SqlOperationsService>();
+
 var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())

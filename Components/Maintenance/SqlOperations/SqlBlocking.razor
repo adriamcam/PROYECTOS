@@ -1,0 +1,50 @@
+@using ITQS.SupportOperationsCenter.Models.Maintenance.SqlOperations
+<div class="sqlops-page">
+    @if (IsLoading)
+    {
+        <section class="sqlops-card">Cargando Bloqueos SQL...</section>
+    }
+    else if (!CanAccess)
+    {
+        <section class="sqlops-card denied"><h3>Acceso denegado</h3><p>Este módulo solo está disponible para administradores.</p></section>
+    }
+    else
+    {
+        <section class="sqlops-header">
+            <div><span>SQL</span><h2>Bloqueos SQL</h2><p>Muestra sesiones bloqueadas y sesiones bloqueadoras.</p></div>
+            <button type="button" @onclick="LoadAsync" disabled="@IsLoading">Actualizar</button>
+        </section>
+        <section class="sqlops-card">
+            <div class="sqlops-table">
+                <div class="sqlops-row head">
+                    <span>SPID</span>
+                    <span>Bloqueador</span>
+                    <span>Usuario</span>
+                    <span>Host</span>
+                    <span>Base</span>
+                    <span>Espera ms</span>
+                    <span>SQL</span>
+                </div>
+                @if (BlockingRows.Count == 0)
+                {
+                    <div class="empty">No se encontraron registros.</div>
+                }
+                else
+                {
+                    @foreach (var item in BlockingRows)
+                    {
+                        <div class="sqlops-row">
+                            <span>@item.SessionId</span>
+                            <span>@item.BlockingSessionId</span>
+                            <span>@item.LoginName</span>
+                            <span>@item.HostName</span>
+                            <span>@item.DatabaseName</span>
+                            <span>@item.WaitTimeMs.ToString("N0")</span>
+                            <span class="sqltext">@item.SqlText</span>
+                        </div>
+                    }
+                }
+            </div>
+        </section>
+    }
+</div>

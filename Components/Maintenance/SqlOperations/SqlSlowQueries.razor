@@ -1,0 +1,50 @@
+@using ITQS.SupportOperationsCenter.Models.Maintenance.SqlOperations
+<div class="sqlops-page">
+    @if (IsLoading)
+    {
+        <section class="sqlops-card">Cargando Consultas Lentas...</section>
+    }
+    else if (!CanAccess)
+    {
+        <section class="sqlops-card denied"><h3>Acceso denegado</h3><p>Este módulo solo está disponible para administradores.</p></section>
+    }
+    else
+    {
+        <section class="sqlops-header">
+            <div><span>SQL</span><h2>Consultas Lentas</h2><p>Top consultas por duración promedio según Query Stats.</p></div>
+            <button type="button" @onclick="LoadAsync" disabled="@IsLoading">Actualizar</button>
+        </section>
+        <section class="sqlops-card">
+            <div class="sqlops-table">
+                <div class="sqlops-row head">
+                    <span>Ejecuciones</span>
+                    <span>Avg duración ms</span>
+                    <span>Avg CPU ms</span>
+                    <span>Avg reads</span>
+                    <span>Total ms</span>
+                    <span>Última ejecución</span>
+                    <span>SQL</span>
+                </div>
+                @if (Queries.Count == 0)
+                {
+                    <div class="empty">No se encontraron registros.</div>
+                }
+                else
+                {
+                    @foreach (var item in Queries)
+                    {
+                        <div class="sqlops-row">
+                            <span>@item.ExecutionCount.ToString("N0")</span>
+                            <span>@item.AvgDurationMs.ToString("N2")</span>
+                            <span>@item.AvgCpuMs.ToString("N2")</span>
+                            <span>@item.AvgReads.ToString("N2")</span>
+                            <span>@item.TotalDurationMs.ToString("N2")</span>
+                            <span>@item.LastExecutionTime</span>
+                            <span class="sqltext">@item.SqlText</span>
+                        </div>
+                    }
+                }
+            </div>
+        </section>
+    }
+</div>

@@ -5,6 +5,7 @@
 @using System.Security.Claims
 @using Microsoft.AspNetCore.Components.Authorization
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@using ITQS.SupportOperationsCenter.Components.Maintenance.SqlOperations
 
 <PageTitle>Support Cloud - ITQS SOC</PageTitle>
 
@@ -46,6 +47,10 @@
                                 @onclick='() => SelectModule("SqlMaintenance")'>
                             SQL
                         </button>
+						<button type="button" class="menu-link" @onclick='() => SelectModule("SqlJobs")'>Jobs SQL</button>
+<button type="button" class="menu-link" @onclick='() => SelectModule("SqlBlocking")'>Bloqueos</button>
+<button type="button" class="menu-link" @onclick='() => SelectModule("SqlActiveSessions")'>Sesiones Activas</button>
+<button type="button" class="menu-link" @onclick='() => SelectModule("SqlSlowQueries")'>Consultas Lentas</button>
                     </div>
                 </div>
             }
