@@ -1,50 +1,86 @@
 @using ITQS.SupportOperationsCenter.Models.Maintenance.SqlOperations
-<div class="sqlops-page">
+
+<div class="sqlops-enterprise">
     @if (IsLoading)
     {
-        <section class="sqlops-card">Cargando Bloqueos SQL...</section>
+        <section class="sqlops-empty-card">
+            <strong>Cargando Bloqueos SQL...</strong>
+            <span>Consultando información SQL.</span>
+        </section>
     }
     else if (!CanAccess)
     {
-        <section class="sqlops-card denied"><h3>Acceso denegado</h3><p>Este módulo solo está disponible para administradores.</p></section>
+        <section class="sqlops-denied">
+            <h3>Acceso denegado</h3>
+            <p>Este módulo solo está disponible para administradores.</p>
+        </section>
     }
     else
     {
-        <section class="sqlops-header">
-            <div><span>SQL</span><h2>Bloqueos SQL</h2><p>Muestra sesiones bloqueadas y sesiones bloqueadoras.</p></div>
-            <button type="button" @onclick="LoadAsync" disabled="@IsLoading">Actualizar</button>
+        <section class="sqlops-hero">
+            <div>
+                <span class="sqlops-eyebrow">Mantenimiento / SQL</span>
+                <h1>Bloqueos SQL</h1>
+                <p>Monitorea sesiones bloqueadas, bloqueadores, wait type y SQL actual.</p>
+            </div>
+            <button type="button" class="sqlops-btn-primary" @onclick="LoadAsync" disabled="@IsLoading">Actualizar</button>
         </section>
-        <section class="sqlops-card">
-            <div class="sqlops-table">
-                <div class="sqlops-row head">
-                    <span>SPID</span>
-                    <span>Bloqueador</span>
-                    <span>Usuario</span>
-                    <span>Host</span>
-                    <span>Base</span>
-                    <span>Espera ms</span>
-                    <span>SQL</span>
-                </div>
-                @if (BlockingRows.Count == 0)
-                {
-                    <div class="empty">No se encontraron registros.</div>
-                }
-                else
-                {
-                    @foreach (var item in BlockingRows)
+
+        <section class="sqlops-kpi-grid">
+            <div class="sqlops-kpi blue"><span>Bloqueos activos</span><strong>@BlockingRows.Count.ToString("N0")</strong></div>
+            <div class="sqlops-kpi danger"><span>Sesiones bloqueadoras</span><strong>@BlockingRows.Select(x => x.BlockingSessionId).Distinct().Count().ToString("N0")</strong></div>
+            <div class="sqlops-kpi warn"><span>Mayor espera ms</span><strong>@(BlockingRows.Count == 0 ? "0" : BlockingRows.Max(x => x.WaitTimeMs).ToString("N0"))</strong></div>
+            <div class="sqlops-kpi ok"><span>Estado</span><strong>@(BlockingRows.Count == 0 ? "Sin bloqueos" : "Atención")</strong></div>
+        </section>
+
+        <section class="sqlops-toolbar">
+            <div>
+                <strong>Resultados</strong>
+                <span>@FilteredRowsCount.ToString("N0") registros mostrados</span>
+            </div>
+            <input class="sqlops-search" placeholder="Buscar..." @bind="SearchText" @bind:event="oninput" />
+        </section>
+
+        @if (FilteredRowsCount == 0)
+        {
+            <section class="sqlops-empty-card">
+                <strong>No existen bloqueos activos</strong>
+                <span>La base no reporta sesiones bloqueadas en este momento.</span>
+            </section>
+        }
+        else
+        {
+            <section class="sqlops-table-card">
+                <div class="sqlops-table">
+                    <div class="sqlops-row head blocking-grid">
+                        <span>SPID</span>
+                        <span>Bloqueador</span>
+                        <span>Usuario</span>
+                        <span>Host</span>
+                        <span>Base</span>
+                        <span>Espera ms</span>
+                        <span>SQL</span>
+                    </div>
+
+                    @foreach (var item in FilteredRows)
                     {
-                        <div class="sqlops-row">
-                            <span>@item.SessionId</span>
-                            <span>@item.BlockingSessionId</span>
-                            <span>@item.LoginName</span>
-                            <span>@item.HostName</span>
-                            <span>@item.DatabaseName</span>
-                            <span>@item.WaitTimeMs.ToString("N0")</span>
-                            <span class="sqltext">@item.SqlText</span>
+                        <div class="sqlops-row blocking-grid">
+                            <span class="sqlops-cell">@item.SessionId</span>
+                            <span class="sqlops-cell"><span class="sqlops-badge danger">@item.BlockingSessionId</span></span>
+                            <span class="sqlops-cell">@item.LoginName</span>
+                            <span class="sqlops-cell">@item.HostName</span>
+                            <span class="sqlops-cell">@item.DatabaseName</span>
+                            <span class="sqlops-cell">@item.WaitTimeMs.ToString("N0")</span>
+                            <span class="sqlops-cell sql">@item.SqlText</span>
                         </div>
                     }
-                }
-            </div>
+                </div>
+            </section>
+        }
+
+        <section class="sqlops-info-card">
+            <strong>Nota operativa</strong>
+            <p>Este módulo es de monitoreo. No ejecuta KILL SPID para evitar cierres accidentales.</p>
         </section>
     }
 </div>

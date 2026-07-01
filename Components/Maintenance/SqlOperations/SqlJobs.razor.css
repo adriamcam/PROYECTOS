@@ -1,16 +1,34 @@
-.sqlops-page{display:flex;flex-direction:column;gap:18px;padding:24px}
-.sqlops-header,.sqlops-card{background:#fff;border:1px solid #dbe3ef;border-radius:16px;box-shadow:0 10px 28px rgba(15,23,42,.04)}
-.sqlops-header{padding:22px 24px;display:flex;justify-content:space-between;gap:20px;align-items:center}
-.sqlops-header span{color:#64748b;font-size:13px;font-weight:800;text-transform:uppercase}
-.sqlops-header h2{margin:6px 0;font-size:26px;font-weight:850;color:#0f172a}
-.sqlops-header p{margin:0;color:#334155}
-.sqlops-header button{background:#2563eb;color:white;border:none;border-radius:10px;padding:10px 16px;font-weight:800;cursor:pointer}
-.sqlops-card{padding:18px;overflow-x:auto}
-.sqlops-table{min-width:1100px}
-.sqlops-row{display:grid;grid-template-columns:repeat(7,minmax(120px,1fr));gap:12px;padding:12px 10px;border-top:1px solid #e2e8f0;align-items:start}
+.sqlops-enterprise{display:flex;flex-direction:column;gap:18px;padding:24px;color:#0f172a}
+.sqlops-hero,.sqlops-kpi-grid,.sqlops-table-card,.sqlops-info-card,.sqlops-empty-card{background:#fff;border:1px solid #dbe3ef;border-radius:16px;box-shadow:0 10px 28px rgba(15,23,42,.04)}
+.sqlops-hero{padding:22px 24px;display:flex;justify-content:space-between;align-items:center;gap:20px}
+.sqlops-eyebrow{display:block;font-size:13px;color:#64748b;font-weight:800;margin-bottom:6px;text-transform:uppercase}
+.sqlops-hero h1{margin:0;font-size:30px;font-weight:850;letter-spacing:-.03em}
+.sqlops-hero p{margin:10px 0 0;color:#334155}
+.sqlops-btn-primary{background:#2563eb;color:#fff;border:none;border-radius:10px;padding:10px 16px;font-weight:850;cursor:pointer}
+.sqlops-kpi-grid{padding:18px;display:grid;grid-template-columns:repeat(4,minmax(180px,1fr));gap:14px}
+.sqlops-kpi{border:1px solid #e2e8f0;border-radius:14px;padding:16px;background:#f8fafc}
+.sqlops-kpi span{display:block;color:#64748b;font-size:13px;font-weight:700}
+.sqlops-kpi strong{display:block;margin-top:8px;font-size:26px;font-weight:900}
+.sqlops-kpi.ok strong{color:#16a34a}.sqlops-kpi.warn strong{color:#ea580c}.sqlops-kpi.danger strong{color:#dc2626}.sqlops-kpi.blue strong{color:#2563eb}
+.sqlops-toolbar{display:flex;justify-content:space-between;gap:16px;align-items:center;padding:18px;background:#fff;border:1px solid #dbe3ef;border-radius:16px}
+.sqlops-search{min-width:320px;border:1px solid #cbd5e1;border-radius:10px;padding:10px 12px}
+.sqlops-table-card{padding:18px;overflow-x:auto}
+.sqlops-table{min-width:1180px}
+.sqlops-row{display:grid;gap:12px;padding:12px 10px;border-top:1px solid #e2e8f0;align-items:center}
 .sqlops-row:first-child{border-top:none}
 .sqlops-row.head{background:#f8fafc;font-weight:850;color:#334155;border-radius:10px}
-.sqlops-row span{color:#0f172a;word-break:break-word}
-.sqlops-row .sqltext{grid-column:span 3;font-family:Consolas,monospace;font-size:12px;color:#334155;max-height:90px;overflow:auto;background:#f8fafc;padding:8px;border-radius:8px}
-.empty{color:#64748b;padding:22px}.denied{background:#fef2f2;color:#991b1b}
-@media(max-width:900px){.sqlops-header{flex-direction:column;align-items:flex-start}}
+.sqlops-cell{color:#0f172a;word-break:break-word}
+.sqlops-cell.sql{font-family:Consolas,monospace;font-size:12px;color:#334155;max-height:92px;overflow:auto;background:#f8fafc;padding:8px;border-radius:8px}
+.sqlops-badge{display:inline-flex;border-radius:999px;padding:4px 10px;font-size:12px;font-weight:850}
+.sqlops-badge.ok{background:#dcfce7;color:#166534}.sqlops-badge.warn{background:#ffedd5;color:#9a3412}.sqlops-badge.danger{background:#fee2e2;color:#991b1b}.sqlops-badge.neutral{background:#e2e8f0;color:#334155}
+.sqlops-empty-card{padding:28px;text-align:center;color:#475569}
+.sqlops-empty-card strong{display:block;font-size:20px;color:#0f172a;margin-bottom:8px}
+.sqlops-info-card{padding:16px 20px;background:#eff6ff;color:#1e3a8a}
+.sqlops-info-card p{margin:6px 0 0}
+.sqlops-denied{padding:20px;border:1px solid #fecaca;border-radius:16px;background:#fef2f2;color:#991b1b}
+.jobs-grid{grid-template-columns:1.5fr .7fr .9fr 1fr .8fr 1fr 1.8fr}
+.blocking-grid{grid-template-columns:.6fr .8fr 1fr 1fr 1fr .9fr 2.2fr}
+.sessions-grid{grid-template-columns:.6fr 1.1fr 1.1fr .9fr .8fr .8fr 2.5fr}
+.slow-grid{grid-template-columns:.8fr 1fr 1fr 1fr 1fr 1fr 3fr}
+@media(max-width:1000px){.sqlops-hero,.sqlops-toolbar{flex-direction:column;align-items:flex-start}.sqlops-kpi-grid{grid-template-columns:1fr 1fr}.sqlops-search{width:100%;min-width:unset}}
+@media(max-width:700px){.sqlops-enterprise{padding:14px}.sqlops-kpi-grid{grid-template-columns:1fr}}

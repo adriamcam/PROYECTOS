@@ -14,15 +14,31 @@ public partial class SqlActiveSessions : ComponentBase
     protected bool IsLoading { get; set; } = true;
     protected bool CanAccess { get; set; }
     protected string UserEmail { get; set; } = string.Empty;
+    protected string SearchText { get; set; } = string.Empty;
     protected List<SqlSessionModel> Sessions { get; set; } = new();
+
+    protected IEnumerable<SqlSessionModel> FilteredRows =>
+        string.IsNullOrWhiteSpace(SearchText)
+            ? Sessions
+            : Sessions.Where(MatchesSearch);
+
+    protected int FilteredRowsCount => FilteredRows.Count();
 
     protected override async Task OnInitializedAsync()
     {
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
-        UserEmail = user.FindFirst(ClaimTypes.Email)?.Value ?? user.FindFirst("email")?.Value ?? user.FindFirst("preferred_username")?.Value ?? user.Identity?.Name ?? string.Empty;
+
+        UserEmail = user.FindFirst(ClaimTypes.Email)?.Value
+            ?? user.FindFirst("email")?.Value
+            ?? user.FindFirst("preferred_username")?.Value
+            ?? user.Identity?.Name
+            ?? string.Empty;
+
         CanAccess = await SqlOperationsService.CanAccessAsync(UserEmail);
+
         if (CanAccess) await LoadAsync();
+
         IsLoading = false;
     }
 
@@ -31,5 +47,11 @@ public partial class SqlActiveSessions : ComponentBase
         IsLoading = true;
         try { Sessions = (await SqlOperationsService.GetActiveSessionsAsync()).ToList(); }
         finally { IsLoading = false; }
+    }
+
+    protected bool MatchesSearch(SqlSessionModel item)
+    {
+        var text = string.Join(" | ", item.GetType().GetProperties().Select(p => p.GetValue(item)?.ToString() ?? string.Empty));
+        return text.Contains(SearchText, StringComparison.OrdinalIgnoreCase);
     }
 }

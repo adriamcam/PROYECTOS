@@ -1,50 +1,86 @@
 @using ITQS.SupportOperationsCenter.Models.Maintenance.SqlOperations
-<div class="sqlops-page">
+
+<div class="sqlops-enterprise">
     @if (IsLoading)
     {
-        <section class="sqlops-card">Cargando Consultas Lentas...</section>
+        <section class="sqlops-empty-card">
+            <strong>Cargando Consultas Lentas...</strong>
+            <span>Consultando información SQL.</span>
+        </section>
     }
     else if (!CanAccess)
     {
-        <section class="sqlops-card denied"><h3>Acceso denegado</h3><p>Este módulo solo está disponible para administradores.</p></section>
+        <section class="sqlops-denied">
+            <h3>Acceso denegado</h3>
+            <p>Este módulo solo está disponible para administradores.</p>
+        </section>
     }
     else
     {
-        <section class="sqlops-header">
-            <div><span>SQL</span><h2>Consultas Lentas</h2><p>Top consultas por duración promedio según Query Stats.</p></div>
-            <button type="button" @onclick="LoadAsync" disabled="@IsLoading">Actualizar</button>
+        <section class="sqlops-hero">
+            <div>
+                <span class="sqlops-eyebrow">Mantenimiento / SQL</span>
+                <h1>Consultas Lentas</h1>
+                <p>Consulta el top de queries por duración promedio usando DMVs disponibles.</p>
+            </div>
+            <button type="button" class="sqlops-btn-primary" @onclick="LoadAsync" disabled="@IsLoading">Actualizar</button>
         </section>
-        <section class="sqlops-card">
-            <div class="sqlops-table">
-                <div class="sqlops-row head">
-                    <span>Ejecuciones</span>
-                    <span>Avg duración ms</span>
-                    <span>Avg CPU ms</span>
-                    <span>Avg reads</span>
-                    <span>Total ms</span>
-                    <span>Última ejecución</span>
-                    <span>SQL</span>
-                </div>
-                @if (Queries.Count == 0)
-                {
-                    <div class="empty">No se encontraron registros.</div>
-                }
-                else
-                {
-                    @foreach (var item in Queries)
+
+        <section class="sqlops-kpi-grid">
+            <div class="sqlops-kpi blue"><span>Consultas top</span><strong>@Queries.Count.ToString("N0")</strong></div>
+            <div class="sqlops-kpi danger"><span>Mayor promedio ms</span><strong>@(Queries.Count == 0 ? "0" : Queries.Max(x => x.AvgDurationMs).ToString("N2"))</strong></div>
+            <div class="sqlops-kpi warn"><span>CPU promedio ms</span><strong>@(Queries.Count == 0 ? "0" : Queries.Average(x => x.AvgCpuMs).ToString("N2"))</strong></div>
+            <div class="sqlops-kpi ok"><span>Ejecuciones</span><strong>@Queries.Sum(x => x.ExecutionCount).ToString("N0")</strong></div>
+        </section>
+
+        <section class="sqlops-toolbar">
+            <div>
+                <strong>Resultados</strong>
+                <span>@FilteredRowsCount.ToString("N0") registros mostrados</span>
+            </div>
+            <input class="sqlops-search" placeholder="Buscar..." @bind="SearchText" @bind:event="oninput" />
+        </section>
+
+        @if (FilteredRowsCount == 0)
+        {
+            <section class="sqlops-empty-card">
+                <strong>No hay consultas disponibles</strong>
+                <span>No se encontraron registros en sys.dm_exec_query_stats.</span>
+            </section>
+        }
+        else
+        {
+            <section class="sqlops-table-card">
+                <div class="sqlops-table">
+                    <div class="sqlops-row head slow-grid">
+                        <span>Ejecuciones</span>
+                        <span>Avg duración ms</span>
+                        <span>Avg CPU ms</span>
+                        <span>Avg reads</span>
+                        <span>Total ms</span>
+                        <span>Última ejecución</span>
+                        <span>SQL</span>
+                    </div>
+
+                    @foreach (var item in FilteredRows)
                     {
-                        <div class="sqlops-row">
-                            <span>@item.ExecutionCount.ToString("N0")</span>
-                            <span>@item.AvgDurationMs.ToString("N2")</span>
-                            <span>@item.AvgCpuMs.ToString("N2")</span>
-                            <span>@item.AvgReads.ToString("N2")</span>
-                            <span>@item.TotalDurationMs.ToString("N2")</span>
-                            <span>@item.LastExecutionTime</span>
-                            <span class="sqltext">@item.SqlText</span>
+                        <div class="sqlops-row slow-grid">
+                            <span class="sqlops-cell">@item.ExecutionCount.ToString("N0")</span>
+                            <span class="sqlops-cell">@item.AvgDurationMs.ToString("N2")</span>
+                            <span class="sqlops-cell">@item.AvgCpuMs.ToString("N2")</span>
+                            <span class="sqlops-cell">@item.AvgReads.ToString("N2")</span>
+                            <span class="sqlops-cell">@item.TotalDurationMs.ToString("N2")</span>
+                            <span class="sqlops-cell">@item.LastExecutionTime</span>
+                            <span class="sqlops-cell sql">@item.SqlText</span>
                         </div>
                     }
-                }
-            </div>
+                </div>
+            </section>
+        }
+
+        <section class="sqlops-info-card">
+            <strong>Nota operativa</strong>
+            <p>Las métricas pueden reiniciarse cuando cambia el plan cache o se reinicia el servicio.</p>
         </section>
     }
 </div>

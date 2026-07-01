@@ -1,50 +1,86 @@
 @using ITQS.SupportOperationsCenter.Models.Maintenance.SqlOperations
-<div class="sqlops-page">
+
+<div class="sqlops-enterprise">
     @if (IsLoading)
     {
-        <section class="sqlops-card">Cargando Jobs SQL...</section>
+        <section class="sqlops-empty-card">
+            <strong>Cargando Jobs SQL...</strong>
+            <span>Consultando información SQL.</span>
+        </section>
     }
     else if (!CanAccess)
     {
-        <section class="sqlops-card denied"><h3>Acceso denegado</h3><p>Este módulo solo está disponible para administradores.</p></section>
+        <section class="sqlops-denied">
+            <h3>Acceso denegado</h3>
+            <p>Este módulo solo está disponible para administradores.</p>
+        </section>
     }
     else
     {
-        <section class="sqlops-header">
-            <div><span>SQL</span><h2>Jobs SQL</h2><p>Consulta trabajos SQL disponibles y sus últimas ejecuciones.</p></div>
-            <button type="button" @onclick="LoadAsync" disabled="@IsLoading">Actualizar</button>
+        <section class="sqlops-hero">
+            <div>
+                <span class="sqlops-eyebrow">Mantenimiento / SQL</span>
+                <h1>Jobs SQL</h1>
+                <p>Consulta jobs, estado de última ejecución y próxima programación.</p>
+            </div>
+            <button type="button" class="sqlops-btn-primary" @onclick="LoadAsync" disabled="@IsLoading">Actualizar</button>
         </section>
-        <section class="sqlops-card">
-            <div class="sqlops-table">
-                <div class="sqlops-row head">
-                    <span>Job</span>
-                    <span>Habilitado</span>
-                    <span>Último estado</span>
-                    <span>Última ejecución</span>
-                    <span>Duración</span>
-                    <span>Próxima ejecución</span>
-                    <span>Mensaje</span>
-                </div>
-                @if (Jobs.Count == 0)
-                {
-                    <div class="empty">No se encontraron registros.</div>
-                }
-                else
-                {
-                    @foreach (var item in Jobs)
+
+        <section class="sqlops-kpi-grid">
+            <div class="sqlops-kpi blue"><span>Total Jobs</span><strong>@Jobs.Count.ToString("N0")</strong></div>
+            <div class="sqlops-kpi ok"><span>Habilitados</span><strong>@Jobs.Count(x => x.Enabled == "Sí").ToString("N0")</strong></div>
+            <div class="sqlops-kpi danger"><span>Con Error</span><strong>@Jobs.Count(x => x.LastRunStatus.Contains("Failed", StringComparison.OrdinalIgnoreCase)).ToString("N0")</strong></div>
+            <div class="sqlops-kpi warn"><span>Sin SQL Agent</span><strong>@Jobs.Count(x => x.JobName.Contains("no disponible", StringComparison.OrdinalIgnoreCase)).ToString("N0")</strong></div>
+        </section>
+
+        <section class="sqlops-toolbar">
+            <div>
+                <strong>Resultados</strong>
+                <span>@FilteredRowsCount.ToString("N0") registros mostrados</span>
+            </div>
+            <input class="sqlops-search" placeholder="Buscar..." @bind="SearchText" @bind:event="oninput" />
+        </section>
+
+        @if (FilteredRowsCount == 0)
+        {
+            <section class="sqlops-empty-card">
+                <strong>No hay jobs disponibles</strong>
+                <span>En Azure SQL Database no existe SQL Agent tradicional.</span>
+            </section>
+        }
+        else
+        {
+            <section class="sqlops-table-card">
+                <div class="sqlops-table">
+                    <div class="sqlops-row head jobs-grid">
+                        <span>Job</span>
+                        <span>Habilitado</span>
+                        <span>Último estado</span>
+                        <span>Última ejecución</span>
+                        <span>Duración</span>
+                        <span>Próxima ejecución</span>
+                        <span>Mensaje</span>
+                    </div>
+
+                    @foreach (var item in FilteredRows)
                     {
-                        <div class="sqlops-row">
-                            <span>@item.JobName</span>
-                            <span>@item.Enabled</span>
-                            <span>@item.LastRunStatus</span>
-                            <span>@item.LastRunDateTime</span>
-                            <span>@item.LastRunDuration</span>
-                            <span>@item.NextRunDateTime</span>
-                            <span>@item.LastMessage</span>
+                        <div class="sqlops-row jobs-grid">
+                            <span class="sqlops-cell"><strong>@item.JobName</strong></span>
+                            <span class="sqlops-cell"><span class="sqlops-badge @(item.Enabled == "Sí" ? "ok" : "neutral")">@item.Enabled</span></span>
+                            <span class="sqlops-cell"><span class="sqlops-badge @(item.LastRunStatus.Contains("Failed", StringComparison.OrdinalIgnoreCase) ? "danger" : "ok")">@item.LastRunStatus</span></span>
+                            <span class="sqlops-cell">@item.LastRunDateTime</span>
+                            <span class="sqlops-cell">@item.LastRunDuration</span>
+                            <span class="sqlops-cell">@item.NextRunDateTime</span>
+                            <span class="sqlops-cell">@item.LastMessage</span>
                         </div>
                     }
-                }
-            </div>
+                </div>
+            </section>
+        }
+
+        <section class="sqlops-info-card">
+            <strong>Nota operativa</strong>
+            <p>Este módulo queda preparado para SQL Server/Managed Instance. En Azure SQL Database muestra la limitación de SQL Agent.</p>
         </section>
     }
 </div>

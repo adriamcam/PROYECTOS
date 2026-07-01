@@ -1,50 +1,86 @@
 @using ITQS.SupportOperationsCenter.Models.Maintenance.SqlOperations
-<div class="sqlops-page">
+
+<div class="sqlops-enterprise">
     @if (IsLoading)
     {
-        <section class="sqlops-card">Cargando Sesiones Activas...</section>
+        <section class="sqlops-empty-card">
+            <strong>Cargando Sesiones Activas...</strong>
+            <span>Consultando información SQL.</span>
+        </section>
     }
     else if (!CanAccess)
     {
-        <section class="sqlops-card denied"><h3>Acceso denegado</h3><p>Este módulo solo está disponible para administradores.</p></section>
+        <section class="sqlops-denied">
+            <h3>Acceso denegado</h3>
+            <p>Este módulo solo está disponible para administradores.</p>
+        </section>
     }
     else
     {
-        <section class="sqlops-header">
-            <div><span>SQL</span><h2>Sesiones Activas</h2><p>Muestra sesiones activas, CPU, lecturas, escrituras y SQL en ejecución.</p></div>
-            <button type="button" @onclick="LoadAsync" disabled="@IsLoading">Actualizar</button>
+        <section class="sqlops-hero">
+            <div>
+                <span class="sqlops-eyebrow">Mantenimiento / SQL</span>
+                <h1>Sesiones Activas</h1>
+                <p>Visualiza sesiones SQL activas, CPU, lecturas, escrituras y SQL en ejecución.</p>
+            </div>
+            <button type="button" class="sqlops-btn-primary" @onclick="LoadAsync" disabled="@IsLoading">Actualizar</button>
         </section>
-        <section class="sqlops-card">
-            <div class="sqlops-table">
-                <div class="sqlops-row head">
-                    <span>SPID</span>
-                    <span>Usuario</span>
-                    <span>Host</span>
-                    <span>Estado</span>
-                    <span>CPU ms</span>
-                    <span>Reads</span>
-                    <span>SQL</span>
-                </div>
-                @if (Sessions.Count == 0)
-                {
-                    <div class="empty">No se encontraron registros.</div>
-                }
-                else
-                {
-                    @foreach (var item in Sessions)
+
+        <section class="sqlops-kpi-grid">
+            <div class="sqlops-kpi blue"><span>Total sesiones</span><strong>@Sessions.Count.ToString("N0")</strong></div>
+            <div class="sqlops-kpi ok"><span>Running</span><strong>@Sessions.Count(x => x.Status.Contains("running", StringComparison.OrdinalIgnoreCase)).ToString("N0")</strong></div>
+            <div class="sqlops-kpi warn"><span>Sleeping</span><strong>@Sessions.Count(x => x.Status.Contains("sleeping", StringComparison.OrdinalIgnoreCase)).ToString("N0")</strong></div>
+            <div class="sqlops-kpi danger"><span>CPU total ms</span><strong>@Sessions.Sum(x => x.CpuTimeMs).ToString("N0")</strong></div>
+        </section>
+
+        <section class="sqlops-toolbar">
+            <div>
+                <strong>Resultados</strong>
+                <span>@FilteredRowsCount.ToString("N0") registros mostrados</span>
+            </div>
+            <input class="sqlops-search" placeholder="Buscar..." @bind="SearchText" @bind:event="oninput" />
+        </section>
+
+        @if (FilteredRowsCount == 0)
+        {
+            <section class="sqlops-empty-card">
+                <strong>No hay sesiones activas</strong>
+                <span>No se encontraron sesiones de usuario activas en este momento.</span>
+            </section>
+        }
+        else
+        {
+            <section class="sqlops-table-card">
+                <div class="sqlops-table">
+                    <div class="sqlops-row head sessions-grid">
+                        <span>SPID</span>
+                        <span>Usuario</span>
+                        <span>Host</span>
+                        <span>Estado</span>
+                        <span>CPU ms</span>
+                        <span>Reads</span>
+                        <span>SQL</span>
+                    </div>
+
+                    @foreach (var item in FilteredRows)
                     {
-                        <div class="sqlops-row">
-                            <span>@item.SessionId</span>
-                            <span>@item.LoginName</span>
-                            <span>@item.HostName</span>
-                            <span>@item.Status</span>
-                            <span>@item.CpuTimeMs.ToString("N0")</span>
-                            <span>@item.Reads.ToString("N0")</span>
-                            <span class="sqltext">@item.SqlText</span>
+                        <div class="sqlops-row sessions-grid">
+                            <span class="sqlops-cell">@item.SessionId</span>
+                            <span class="sqlops-cell">@item.LoginName</span>
+                            <span class="sqlops-cell">@item.HostName</span>
+                            <span class="sqlops-cell"><span class="sqlops-badge @(item.Status.Contains("running", StringComparison.OrdinalIgnoreCase) ? "ok" : "neutral")">@item.Status</span></span>
+                            <span class="sqlops-cell">@item.CpuTimeMs.ToString("N0")</span>
+                            <span class="sqlops-cell">@item.Reads.ToString("N0")</span>
+                            <span class="sqlops-cell sql">@item.SqlText</span>
                         </div>
                     }
-                }
-            </div>
+                </div>
+            </section>
+        }
+
+        <section class="sqlops-info-card">
+            <strong>Nota operativa</strong>
+            <p>Las sesiones sleeping pueden ser normales. Revisa CPU, reads y writes para identificar consumo anormal.</p>
         </section>
     }
 </div>
