@@ -32,9 +32,17 @@ public partial class CustomerAdmin : ComponentBase
     protected CustomerAdminSaveRequestModel Editor { get; set; } = new();
 
     protected List<CustomerAdminModel> FilteredCustomers => Customers.ToList();
+
     protected int TotalPages => Math.Max(1, (int)Math.Ceiling(FilteredCustomers.Count / (double)PageSize));
-    protected List<CustomerAdminModel> PagedCustomers => FilteredCustomers.Skip((PageNumber - 1) * PageSize).Take(PageSize).ToList();
+
+    protected List<CustomerAdminModel> PagedCustomers =>
+        FilteredCustomers
+            .Skip((PageNumber - 1) * PageSize)
+            .Take(PageSize)
+            .ToList();
+
     protected int FirstItemNumber => FilteredCustomers.Count == 0 ? 0 : ((PageNumber - 1) * PageSize) + 1;
+
     protected int LastItemNumber => Math.Min(PageNumber * PageSize, FilteredCustomers.Count);
 
     protected IEnumerable<int> VisiblePages
@@ -44,6 +52,7 @@ public partial class CustomerAdmin : ComponentBase
             var start = Math.Max(1, PageNumber - 2);
             var end = Math.Min(TotalPages, start + 4);
             start = Math.Max(1, end - 4);
+
             return Enumerable.Range(start, end - start + 1);
         }
     }
@@ -72,6 +81,7 @@ public partial class CustomerAdmin : ComponentBase
     protected async Task RefreshAsync()
     {
         IsLoading = true;
+
         try
         {
             Dashboard = await CustomerAdminService.GetDashboardAsync();
@@ -108,7 +118,13 @@ public partial class CustomerAdmin : ComponentBase
         Message = string.Empty;
         IsEditMode = false;
         TenantIdText = string.Empty;
-        Editor = new CustomerAdminSaveRequestModel { IsActive = true, Source = "SupportCloud" };
+
+        Editor = new CustomerAdminSaveRequestModel
+        {
+            IsActive = true,
+            Source = "SupportCloud"
+        };
+
         ShowEditor = true;
     }
 
@@ -117,6 +133,7 @@ public partial class CustomerAdmin : ComponentBase
         Message = string.Empty;
         IsEditMode = true;
         TenantIdText = customer.TenantId.ToString();
+
         Editor = new CustomerAdminSaveRequestModel
         {
             TenantId = customer.TenantId,
@@ -128,10 +145,14 @@ public partial class CustomerAdmin : ComponentBase
             Source = string.IsNullOrWhiteSpace(customer.Source) ? "SupportCloud" : customer.Source,
             Notes = customer.Notes
         };
+
         ShowEditor = true;
     }
 
-    protected void CloseEditor() => ShowEditor = false;
+    protected void CloseEditor()
+    {
+        ShowEditor = false;
+    }
 
     protected async Task SaveAsync()
     {
@@ -144,7 +165,9 @@ public partial class CustomerAdmin : ComponentBase
             Editor.UpdatedBy = UserEmail;
 
             await CustomerAdminService.SaveCustomerAsync(Editor);
+
             SetOk("Cliente guardado correctamente.");
+
             ShowEditor = false;
             await RefreshAsync();
         }
@@ -162,13 +185,21 @@ public partial class CustomerAdmin : ComponentBase
 
     protected async Task PreviousPageAsync()
     {
-        if (PageNumber > 1) PageNumber--;
+        if (PageNumber > 1)
+        {
+            PageNumber--;
+        }
+
         await Task.CompletedTask;
     }
 
     protected async Task NextPageAsync()
     {
-        if (PageNumber < TotalPages) PageNumber++;
+        if (PageNumber < TotalPages)
+        {
+            PageNumber++;
+        }
+
         await Task.CompletedTask;
     }
 
@@ -179,15 +210,34 @@ public partial class CustomerAdmin : ComponentBase
         await Task.CompletedTask;
     }
 
-    protected static string DisplayEmpty(string value) => string.IsNullOrWhiteSpace(value) ? "-" : value;
-    protected static string FormatDate(DateTime? value) => value.HasValue ? value.Value.ToString("dd/MM/yyyy HH:mm") : "-";
+    protected static string DisplayEmpty(string value)
+        => string.IsNullOrWhiteSpace(value) ? "-" : value;
+
+    protected static string FormatDate(DateTime? value)
+        => value.HasValue ? value.Value.ToString("dd/MM/yyyy HH:mm") : "-";
 
     private void EnsureValidPage()
     {
-        if (PageNumber > TotalPages) PageNumber = TotalPages;
-        if (PageNumber < 1) PageNumber = 1;
+        if (PageNumber > TotalPages)
+        {
+            PageNumber = TotalPages;
+        }
+
+        if (PageNumber < 1)
+        {
+            PageNumber = 1;
+        }
     }
 
-    private void SetOk(string message) { Message = message; MessageCss = "customer-message ok"; }
-    private void SetError(string message) { Message = message; MessageCss = "customer-message error"; }
+    private void SetOk(string message)
+    {
+        Message = message;
+        MessageCss = "customer-message ok";
+    }
+
+    private void SetError(string message)
+    {
+        Message = message;
+        MessageCss = "customer-message error";
+    }
 }
