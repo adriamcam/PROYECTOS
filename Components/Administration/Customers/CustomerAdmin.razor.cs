@@ -12,6 +12,8 @@ public partial class CustomerAdmin : ComponentBase
     // ========================= SECCIÓN 01: DEPENDENCIAS =========================
     [Inject] private ICustomerAdminService CustomerAdminService { get; set; } = default!;
     [Inject] private AuthenticationStateProvider AuthenticationStateProvider { get; set; } = default!;
+	[Inject] private ICustomerConnectionRunbookService CustomerConnectionRunbookService { get; set; } = default!;
+
 
     // ========================== SECCIÓN 02: ESTADO BASE =========================
     protected bool IsLoading { get; set; } = true;
@@ -29,6 +31,8 @@ public partial class CustomerAdmin : ComponentBase
     protected CustomerAdminDashboardModel Dashboard { get; set; } = new();
     protected List<CustomerAdminModel> Customers { get; set; } = new();
     protected CustomerAdminSaveRequestModel Editor { get; set; } = new();
+	
+	protected bool IsRunningConnectionTest { get; set; }
 
     // ========================== SECCIÓN 03: PAGINACIÓN ==========================
     protected int PageNumber { get; set; } = 1;
@@ -229,35 +233,78 @@ public partial class CustomerAdmin : ComponentBase
         ShowConnectionTest = false;
     }
 
-    protected Task RunConnectionTest()
+   protected async Task RunConnectionTest()
+{
+    if (IsRunningConnectionTest)
+        return;
+
+    IsRunningConnectionTest = true;
+
+    try
     {
+        if (!Guid.TryParse(ConnectionTenantId, out var tenantId))
+            throw new InvalidOperationException("TenantId inválido.");
+
         ConnectionResult =
-            "Validación preparada correctamente." +
+            "Iniciando runbook en Azure Automation..." +
             Environment.NewLine +
-            Environment.NewLine +
-            "Estos son los valores que se enviarían al proceso de validación:" +
+            $"Runbook: ITQS-SOC-VALIDATE-CONNECTIONS-CLIENTES" +
             Environment.NewLine +
             $"Cliente: {ConnectionCustomerName}" +
             Environment.NewLine +
-            $"TenantId: {ConnectionTenantId}" +
-            Environment.NewLine +
-            $"ClientId: {ConnectionClientId}" +
-            Environment.NewLine +
-            $"SecretName: {ConnectionSecretName}" +
-            Environment.NewLine +
-            "TestMode: true" +
-            Environment.NewLine +
-            "RunPALAdmin: true" +
-            Environment.NewLine +
-            "RunMFA: true" +
-            Environment.NewLine +
-            "RunAppReg: true" +
-            Environment.NewLine +
-            Environment.NewLine +
-            "Pendiente: conectar con Azure Automation o con cola SQL de runbooks.";
+            $"TenantId: {ConnectionTenantId}";
 
-        return Task.CompletedTask;
+        var result = await CustomerConnectionRunbookService.StartValidationAsync(
+            new CustomerConnectionRunbookRequest
+            {
+                CustomerName = ConnectionCustomerName,
+                TenantId = tenantId,
+                ClientId = ConnectionClientId,
+                SecretName = ConnectionSecretName,
+                RequestedBy = UserEmail
+            });
+
+        if (result.Started)
+        {
+            ConnectionResult =
+                "Runbook iniciado correctamente." +
+                Environment.NewLine +
+                Environment.NewLine +
+                $"Runbook: {result.RunbookName}" +
+                Environment.NewLine +
+                $"JobId: {result.JobId}" +
+                Environment.NewLine +
+                $"Estado: {result.Status}" +
+                Environment.NewLine +
+                Environment.NewLine +
+                result.Message;
+        }
+        else
+        {
+            ConnectionResult =
+                "Error iniciando runbook." +
+                Environment.NewLine +
+                Environment.NewLine +
+                $"Runbook: {result.RunbookName}" +
+                Environment.NewLine +
+                $"Estado: {result.Status}" +
+                Environment.NewLine +
+                $"Detalle: {result.ErrorMessage}";
+        }
     }
+    catch (Exception ex)
+    {
+        ConnectionResult =
+            "Error ejecutando validación." +
+            Environment.NewLine +
+            ex.Message;
+    }
+    finally
+    {
+        IsRunningConnectionTest = false;
+    }
+}
+
 
     // =========================== SECCIÓN 09: PAGINACIÓN =========================
     protected async Task GoToPageAsync(int page)
