@@ -29,7 +29,7 @@ builder.Services.Configure<SqlSettings>(
 builder.Services.Configure<KeyVaultSettings>(
     builder.Configuration.GetSection("KeyVaultSettings"));
 	
-builder.Services.AddSingleton(sp =>
+builder.Services.AddSingleton<SecretClient>(sp =>
 {
     var keyVaultSettings = builder.Configuration
         .GetSection("KeyVaultSettings")
