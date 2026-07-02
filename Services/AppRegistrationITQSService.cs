@@ -55,10 +55,18 @@ public sealed class AppRegistrationITQSService : IAppRegistrationITQSService
                 await _repository.MarkTaskEmailSentAsync(taskId);
                 emailSent = true;
             }
-            catch (Exception emailEx)
-            {
-                _logger.LogError(emailEx, "La tarea {TaskId} fue creada, pero falló el envío del correo.", taskId);
-            }
+           catch (Exception emailEx)
+{
+    _logger.LogError(emailEx, "La tarea {TaskId} fue creada, pero falló el envío del correo.", taskId);
+
+    return new AppRegistrationAssignResult
+    {
+        Success = true,
+        TaskId = taskId,
+        EmailSent = false,
+        Message = $"Tarea {taskId} asignada, pero falló el correo: {emailEx.Message}"
+    };
+}
 
             return new AppRegistrationAssignResult
             {
