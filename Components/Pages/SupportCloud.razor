@@ -23,9 +23,7 @@
 
         <nav class="cloud-menu">
             <div class="menu-group">
-                <button type="button"
-                        class="menu-title menu-button"
-                        @onclick="SelectAlertMonitoring">
+                <button type="button" class="menu-title menu-button" @onclick="SelectAlertMonitoring">
                     🔔 Monitoreo de Alertas
                 </button>
 
@@ -39,56 +37,32 @@
             @if (IsAdmin)
             {
                 <div class="menu-group">
-                    <button type="button"
-                            class="menu-title menu-button"
-                            @onclick="SelectAdministration">
+                    <button type="button" class="menu-title menu-button" @onclick="SelectAdministration">
                         ⚙️ Administración
                     </button>
 
                     <div class="menu-links @(ShowAdministrationMenu ? "show" : "")">
-                        <button type="button"
-                                class="menu-link"
-                                @onclick='() => SelectModule("CustomerAdmin")'>
+                        <button type="button" class="menu-link" @onclick='() => SelectModule("CustomerAdmin")'>
                             Clientes
                         </button>
+
+                        <button type="button" class="menu-link" @onclick='() => SelectModule("AppRegistrationsITQS")'>
+                            App Registrations ITQS
+                        </button>
                     </div>
-					
-					<button type="button"
-        class="menu-link"
-        @onclick='() => SelectModule("AppRegistrationsITQS")'>
-    App Registrations ITQS
-</button>
-
-En el render principal agregar:
-
-else if (CurrentModule == "AppRegistrationsITQS")
-{
-    <AppRegistrationsITQS />
-}
-
-					
-					
-					
-					
-					
-					
                 </div>
             }
 
             @if (IsAdmin)
             {
                 <div class="menu-group">
-                    <button type="button"
-                            class="menu-title menu-button"
-                            @onclick="SelectMaintenance">
+                    <button type="button" class="menu-title menu-button" @onclick="SelectMaintenance">
                         🛠️ Mantenimiento
                     </button>
 
                     <div class="menu-links @(ShowMaintenanceMenu ? "show" : "")">
 
-                        <button type="button"
-                                class="menu-link menu-link-parent"
-                                @onclick="SelectSqlMenu">
+                        <button type="button" class="menu-link menu-link-parent" @onclick="SelectSqlMenu">
                             @(ShowSqlMenu ? "▼ SQL" : "▶ SQL")
                         </button>
 
@@ -96,43 +70,31 @@ else if (CurrentModule == "AppRegistrationsITQS")
                         {
                             <div class="menu-subtitle">Dashboard</div>
 
-                            <button type="button"
-                                    class="menu-link menu-link-child"
-                                    @onclick='() => SelectModule("SqlDashboard")'>
+                            <button type="button" class="menu-link menu-link-child" @onclick='() => SelectModule("SqlDashboard")'>
                                 • Dashboard
                             </button>
 
                             <div class="menu-subtitle">Mantenimiento</div>
 
-                            <button type="button"
-                                    class="menu-link menu-link-child"
-                                    @onclick='() => SelectModule("SqlMaintenance")'>
+                            <button type="button" class="menu-link menu-link-child" @onclick='() => SelectModule("SqlMaintenance")'>
                                 • Mantenimiento
                             </button>
 
                             <div class="menu-subtitle">Monitor</div>
 
-                            <button type="button"
-                                    class="menu-link menu-link-child"
-                                    @onclick='() => SelectModule("SqlJobs")'>
+                            <button type="button" class="menu-link menu-link-child" @onclick='() => SelectModule("SqlJobs")'>
                                 • Jobs SQL
                             </button>
 
-                            <button type="button"
-                                    class="menu-link menu-link-child"
-                                    @onclick='() => SelectModule("SqlBlocking")'>
+                            <button type="button" class="menu-link menu-link-child" @onclick='() => SelectModule("SqlBlocking")'>
                                 • Bloqueos
                             </button>
 
-                            <button type="button"
-                                    class="menu-link menu-link-child"
-                                    @onclick='() => SelectModule("SqlActiveSessions")'>
+                            <button type="button" class="menu-link menu-link-child" @onclick='() => SelectModule("SqlActiveSessions")'>
                                 • Sesiones
                             </button>
 
-                            <button type="button"
-                                    class="menu-link menu-link-child"
-                                    @onclick='() => SelectModule("SqlSlowQueries")'>
+                            <button type="button" class="menu-link menu-link-child" @onclick='() => SelectModule("SqlSlowQueries")'>
                                 • Consultas Lentas
                             </button>
                         }
@@ -185,6 +147,10 @@ else if (CurrentModule == "AppRegistrationsITQS")
             else if (CurrentModule == "CustomerAdmin")
             {
                 <CustomerAdmin />
+            }
+            else if (CurrentModule == "AppRegistrationsITQS")
+            {
+                <AppRegistrationsITQS />
             }
             else if (CurrentModule == "SqlDashboard")
             {
@@ -263,6 +229,7 @@ else if (CurrentModule == "AppRegistrationsITQS")
             "Asignadas" => "Asignadas a mí",
             "AdminManagerView" => "Admin / Manager View",
             "CustomerAdmin" => "Administración / Clientes",
+            "AppRegistrationsITQS" => "Administración / App Registrations ITQS",
 
             "SqlDashboard" => "Mantenimiento / SQL / Dashboard",
             "SqlMaintenance" => "Mantenimiento / SQL / Mantenimiento",
@@ -307,7 +274,7 @@ else if (CurrentModule == "AppRegistrationsITQS")
             user.HasClaim("groups", CloudGroupId) ||
             user.HasClaim("http://schemas.microsoft.com/ws/2008/06/identity/claims/groups", CloudGroupId);
 
-        IsAdmin = true; // Temporal. Luego conectarlo contra dbo.ITQS_AppUsers.
+        IsAdmin = true;
 
         if (!string.IsNullOrWhiteSpace(UserName))
         {
@@ -365,7 +332,8 @@ else if (CurrentModule == "AppRegistrationsITQS")
     {
         CurrentModule = module;
 
-        if (module == "CustomerAdmin")
+        if (module == "CustomerAdmin" ||
+            module == "AppRegistrationsITQS")
         {
             ShowAdministrationMenu = true;
 
