@@ -6,6 +6,7 @@
 @using ITQS.SupportOperationsCenter.Components.Dashboard
 @using ITQS.SupportOperationsCenter.Components.Maintenance
 @using ITQS.SupportOperationsCenter.Components.Maintenance.SqlOperations
+@using ITQS.SupportOperationsCenter.Components.Administration.Customers
 
 @inject AuthenticationStateProvider AuthenticationStateProvider
 
@@ -33,6 +34,25 @@
                     <button type="button" class="menu-link" @onclick='() => SelectModule("AdminManagerView")'>Admin / Manager View</button>
                 </div>
             </div>
+
+            @if (IsAdmin)
+            {
+                <div class="menu-group">
+                    <button type="button"
+                            class="menu-title menu-button"
+                            @onclick="SelectAdministration">
+                        ⚙️ Administración
+                    </button>
+
+                    <div class="menu-links @(ShowAdministrationMenu ? "show" : "")">
+                        <button type="button"
+                                class="menu-link"
+                                @onclick='() => SelectModule("CustomerAdmin")'>
+                            Clientes
+                        </button>
+                    </div>
+                </div>
+            }
 
             @if (IsAdmin)
             {
@@ -141,6 +161,10 @@
             {
                 <AdminManager />
             }
+            else if (CurrentModule == "CustomerAdmin")
+            {
+                <CustomerAdmin />
+            }
             else if (CurrentModule == "SqlDashboard")
             {
                 <SqlOperationsDashboard NavigateModule="SelectModule" />
@@ -199,6 +223,7 @@
     private string CurrentModule = "";
 
     private bool ShowAlertMenu = false;
+    private bool ShowAdministrationMenu = false;
     private bool ShowMaintenanceMenu = false;
     private bool ShowSqlMenu = false;
 
@@ -216,6 +241,7 @@
             "Dashboard" => "Dashboard",
             "Asignadas" => "Asignadas a mí",
             "AdminManagerView" => "Admin / Manager View",
+            "CustomerAdmin" => "Administración / Clientes",
 
             "SqlDashboard" => "Mantenimiento / SQL / Dashboard",
             "SqlMaintenance" => "Mantenimiento / SQL / Mantenimiento",
@@ -273,12 +299,24 @@
         CurrentModule = "Alertas";
 
         ShowAlertMenu = !ShowAlertMenu;
+        ShowAdministrationMenu = false;
+        ShowMaintenanceMenu = false;
+        ShowSqlMenu = false;
+    }
+
+    private void SelectAdministration()
+    {
+        ShowAdministrationMenu = !ShowAdministrationMenu;
+
+        ShowAlertMenu = false;
         ShowMaintenanceMenu = false;
         ShowSqlMenu = false;
     }
 
     private void SelectMaintenance()
     {
+        ShowAdministrationMenu = false;
+
         ShowMaintenanceMenu = !ShowMaintenanceMenu;
         ShowAlertMenu = false;
 
@@ -293,6 +331,7 @@
         ShowSqlMenu = !ShowSqlMenu;
 
         ShowMaintenanceMenu = true;
+        ShowAdministrationMenu = false;
         ShowAlertMenu = false;
 
         if (ShowSqlMenu)
@@ -305,15 +344,27 @@
     {
         CurrentModule = module;
 
-        if (module.StartsWith("Sql", StringComparison.OrdinalIgnoreCase))
+        if (module == "CustomerAdmin")
+        {
+            ShowAdministrationMenu = true;
+
+            ShowAlertMenu = false;
+            ShowMaintenanceMenu = false;
+            ShowSqlMenu = false;
+        }
+        else if (module.StartsWith("Sql", StringComparison.OrdinalIgnoreCase))
         {
             ShowMaintenanceMenu = true;
             ShowSqlMenu = true;
+
             ShowAlertMenu = false;
+            ShowAdministrationMenu = false;
         }
         else
         {
             ShowAlertMenu = true;
+
+            ShowAdministrationMenu = false;
             ShowMaintenanceMenu = false;
             ShowSqlMenu = false;
         }

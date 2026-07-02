@@ -56,6 +56,9 @@ builder.Services.AddScoped<ISqlOperationsRepository, SqlOperationsRepository>();
 builder.Services.AddScoped<ISqlOperationsService, SqlOperationsService>();
 builder.Services.AddScoped<ISqlOperationsDashboardRepository, SqlOperationsDashboardRepository>();
 builder.Services.AddScoped<ISqlOperationsDashboardService, SqlOperationsDashboardService>();
+builder.Services.AddScoped<ICustomerAdminRepository, CustomerAdminRepository>();
+builder.Services.AddScoped<ICustomerAdminService, CustomerAdminService>();
+
 
 
 var app = builder.Build();
