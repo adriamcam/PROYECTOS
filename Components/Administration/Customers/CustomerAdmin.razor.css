@@ -539,3 +539,27 @@
         padding:12px;
     }
 }
+
+.customer-modal,
+.customer-modal *,
+.customer-admin-page,
+.customer-admin-page *{
+    box-sizing:border-box;
+}
+
+.modal-body{
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+    column-gap:22px;
+    row-gap:18px;
+}
+
+.modal-body label{
+    min-width:0;
+}
+
+.customer-modal input,
+.customer-modal select,
+.customer-modal textarea{
+    width:100%;
+    max-width:100%;
+}
