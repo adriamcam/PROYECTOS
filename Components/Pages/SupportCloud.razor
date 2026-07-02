@@ -7,6 +7,7 @@
 @using ITQS.SupportOperationsCenter.Components.Maintenance
 @using ITQS.SupportOperationsCenter.Components.Maintenance.SqlOperations
 @using ITQS.SupportOperationsCenter.Components.Administration.Customers
+@using ITQS.SupportOperationsCenter.Components.Administration.AppRegistrationsITQS
 
 @inject AuthenticationStateProvider AuthenticationStateProvider
 
@@ -51,6 +52,26 @@
                             Clientes
                         </button>
                     </div>
+					
+					<button type="button"
+        class="menu-link"
+        @onclick='() => SelectModule("AppRegistrationsITQS")'>
+    App Registrations ITQS
+</button>
+
+En el render principal agregar:
+
+else if (CurrentModule == "AppRegistrationsITQS")
+{
+    <AppRegistrationsITQS />
+}
+
+					
+					
+					
+					
+					
+					
                 </div>
             }
 

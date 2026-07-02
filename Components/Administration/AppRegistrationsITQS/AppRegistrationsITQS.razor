@@ -1,0 +1,242 @@
+@using ITQS.SupportOperationsCenter.Models.Administration.AppRegistrations
+
+<div class="appreg-page">
+    @if (IsLoading)
+    {
+        <section class="appreg-empty">
+            <strong>Cargando App Registrations ITQS...</strong>
+            <span>Consultando dbo.AppRegistrationExpirations.</span>
+        </section>
+    }
+    else
+    {
+        <section class="appreg-hero">
+            <div>
+                <span>Administración</span>
+                <h1>App Registrations ITQS</h1>
+                <p>Monitoreo de las App Registrations utilizadas por ITQS para conectarse a los clientes.</p>
+            </div>
+
+            <div class="hero-actions">
+                <div class="scan-box">
+                    <span>Último escaneo</span>
+                    <strong>@Dashboard.LastScanText</strong>
+                </div>
+                <button class="btn-primary" type="button" @onclick="RefreshAsync">↻ Actualizar</button>
+            </div>
+        </section>
+
+        <section class="appreg-kpis">
+            <div class="kpi"><span>Clientes</span><strong>@Dashboard.TotalCustomers</strong><small>Activos</small></div>
+            <div class="kpi"><span>App Registrations</span><strong>@Dashboard.TotalAppRegistrations</strong><small>Total</small></div>
+            <div class="kpi"><span>Secrets</span><strong>@Dashboard.TotalSecrets</strong><small>Total</small></div>
+            <div class="kpi"><span>Certificates</span><strong>@Dashboard.TotalCertificates</strong><small>Total</small></div>
+            <div class="kpi ok"><span>Saludables</span><strong>@Dashboard.Healthy</strong><small>@Dashboard.HealthPercent% del total</small></div>
+            <div class="kpi warn"><span>Expiran &lt; 30 días</span><strong>@Dashboard.ExpireIn30Days</strong><small>Atención</small></div>
+            <div class="kpi high"><span>Expiran &lt; 15 días</span><strong>@Dashboard.ExpireIn15Days</strong><small>Prioridad alta</small></div>
+            <div class="kpi danger"><span>Expiradas</span><strong>@Dashboard.Expired</strong><small>Crítico</small></div>
+        </section>
+
+        <section class="appreg-summary-grid">
+            <div class="summary-card">
+                <h3>Salud General</h3>
+                <div class="health-ring">
+                    <strong>@Dashboard.HealthPercent%</strong>
+                </div>
+                <span class="health-label">@(Dashboard.HealthPercent >= 90 ? "HEALTHY" : "ATENCIÓN")</span>
+            </div>
+
+            <div class="summary-card">
+                <h3>Próximas expiraciones</h3>
+                @foreach (var item in UpcomingExpirations)
+                {
+                    <div class="expiration-item">
+                        <strong>@(item.DaysToExpire ?? 0) días</strong>
+                        <span>@item.CustomerName</span>
+                        <small>@item.CredentialType</small>
+                        <b>@FormatDate(item.EndDate)</b>
+                    </div>
+                }
+            </div>
+
+            <div class="summary-card">
+                <h3>Estado de conexión</h3>
+                <div class="connection-line"><span>Azure ARM</span><b>Correcto</b></div>
+                <div class="connection-line"><span>Microsoft Graph</span><b>Correcto</b></div>
+                <div class="connection-line"><span>Key Vault</span><b>Correcto</b></div>
+                <div class="connection-line"><span>Automation</span><b>Correcto</b></div>
+                <div class="connection-line"><span>SQL Database</span><b>Correcto</b></div>
+            </div>
+        </section>
+
+        <section class="appreg-toolbar">
+            <select @bind="Filters.CustomerName" @bind:after="ApplyFiltersAsync">
+                <option value="">Todos los clientes</option>
+                @foreach (var c in CustomerOptions)
+                {
+                    <option value="@c">@c</option>
+                }
+            </select>
+
+            <select @bind="Filters.RiskLevel" @bind:after="ApplyFiltersAsync">
+                <option value="">Todos los estados</option>
+                <option value="Critico">Crítico</option>
+                <option value="Alto">Alto</option>
+                <option value="Medio">Medio</option>
+                <option value="Bajo">Bajo</option>
+                <option value="Saludable">Saludable</option>
+            </select>
+
+            <select @bind="Filters.CredentialType" @bind:after="ApplyFiltersAsync">
+                <option value="">Todos los tipos</option>
+                <option value="Secret">Secret</option>
+                <option value="Certificate">Certificate</option>
+            </select>
+
+            <div class="search-box">
+                <input placeholder="Buscar por App Registration, ClientId o cliente..."
+                       @bind="Filters.Search"
+                       @bind:event="oninput"
+                       @onkeydown="SearchKeyDownAsync" />
+                <button type="button" @onclick="ApplyFiltersAsync">🔎</button>
+            </div>
+        </section>
+
+        @if (!string.IsNullOrWhiteSpace(Message))
+        {
+            <div class="@MessageCss">@Message</div>
+        }
+
+        <section class="appreg-table-card">
+            <div class="appreg-row head">
+                <span>Cliente</span>
+                <span>App Registration</span>
+                <span>Tipo</span>
+                <span>Expira</span>
+                <span>Días</span>
+                <span>Estado</span>
+                <span>Último Scan</span>
+                <span>Salud</span>
+                <span>Acciones</span>
+            </div>
+
+            @foreach (var item in PagedItems)
+            {
+                <div class="appreg-row">
+                    <span><strong>@item.CustomerName</strong><small>@item.SubscriptionName</small></span>
+                    <span><strong>@item.AppName</strong><small>@item.ClientId</small></span>
+                    <span><span class="tag">@item.CredentialType</span></span>
+                    <span>@FormatDate(item.EndDate)</span>
+                    <span class="@DaysCss(item)">@item.DaysToExpire</span>
+                    <span><span class="risk @RiskCss(item.RiskLevel)">@item.RiskLevel</span></span>
+                    <span>@FormatDate(item.ScanDate)</span>
+                    <span><span class="health-dot @HealthCss(item.HealthPercent)"></span>@item.HealthPercent%</span>
+                    <span class="row-actions">
+                        <button type="button" title="Ver detalle" @onclick="() => OpenDetailAsync(item.Id)">👁</button>
+                        <button type="button" title="Asignar usuario" @onclick="() => OpenAssignAsync(item)">👤</button>
+                    </span>
+                </div>
+            }
+
+            <div class="table-footer">
+                <span>Mostrando @FirstItemNumber a @LastItemNumber de @FilteredItems.Count registros</span>
+                <div class="pagination">
+                    <button disabled="@(PageNumber <= 1)" @onclick="PreviousPageAsync">‹</button>
+                    @foreach (var page in VisiblePages)
+                    {
+                        <button class="@(page == PageNumber ? "active" : "")" @onclick="() => GoToPageAsync(page)">page</button>
+                    }
+                    <button disabled="@(PageNumber >= TotalPages)" @onclick="NextPageAsync">›</button>
+                </div>
+                <select @bind="PageSize" @bind:after="PageSizeChangedAsync">
+                    <option value="10">10 por página</option>
+                    <option value="25">25 por página</option>
+                    <option value="50">50 por página</option>
+                </select>
+            </div>
+        </section>
+    }
+
+    @if (ShowDetail && SelectedDetail is not null)
+    {
+        <div class="appreg-modal-backdrop">
+            <div class="appreg-side-panel">
+                <div class="modal-header">
+                    <div>
+                        <h3>Detalle - @SelectedDetail.AppName</h3>
+                        <small>@SelectedDetail.CustomerName</small>
+                    </div>
+                    <button @onclick="CloseDetail">×</button>
+                </div>
+
+                <div class="detail-body">
+                    <h4>Información general</h4>
+                    <div class="detail-line"><span>Cliente</span><b>@SelectedDetail.CustomerName</b></div>
+                    <div class="detail-line"><span>TenantId</span><b>@SelectedDetail.TenantId</b></div>
+                    <div class="detail-line"><span>ClientId</span><b>@SelectedDetail.ClientId</b></div>
+                    <div class="detail-line"><span>Tipo</span><b>@SelectedDetail.CredentialType</b></div>
+                    <div class="detail-line"><span>Subscription</span><b>@SelectedDetail.SubscriptionName</b></div>
+                    <div class="detail-line"><span>Expira</span><b>@FormatDate(SelectedDetail.EndDate)</b></div>
+                    <div class="detail-line"><span>Días restantes</span><b>@SelectedDetail.DaysToExpire</b></div>
+                    <div class="detail-line"><span>Estado</span><b>@SelectedDetail.RiskLevel</b></div>
+
+                    <h4>Acciones rápidas</h4>
+                    <button class="btn-primary full-button" @onclick="() => OpenAssignAsync(SelectedDetail)">Asignar usuario</button>
+                    <button class="btn-secondary full-button" @onclick="CopyClientIdAsync">Copiar ClientId</button>
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (ShowAssign)
+    {
+        <div class="appreg-modal-backdrop">
+            <div class="assign-modal">
+                <div class="modal-header">
+                    <div>
+                        <h3>Asignar generación / renovación</h3>
+                        <small>@AssignRequest.CustomerName - @AssignRequest.AppName</small>
+                    </div>
+                    <button @onclick="CloseAssign">×</button>
+                </div>
+
+                <div class="assign-body">
+                    <label>
+                        Usuario *
+                        <select @bind="SelectedUserEmail">
+                            <option value="">Seleccione un usuario</option>
+                            @foreach (var user in AssignableUsers)
+                            {
+                                <option value="@user.Email">@user.DisplayName - @user.Email (@user.EffectiveRole)</option>
+                            }
+                        </select>
+                    </label>
+
+                    <label>
+                        Prioridad *
+                        <select @bind="AssignRequest.Priority">
+                            <option value="Alta">Alta</option>
+                            <option value="Media">Media</option>
+                            <option value="Baja">Baja</option>
+                        </select>
+                    </label>
+
+                    <label>
+                        Fecha requerida
+                        <input type="date" @bind="RequiredDateText" />
+                    </label>
+
+                    <label class="full">
+                        Observaciones
+                        <textarea @bind="AssignRequest.Notes"></textarea>
+                    </label>
+                </div>
+
+                <div class="modal-actions">
+                    <button class="btn-secondary" @onclick="CloseAssign">Cancelar</button>
+                    <button class="btn-primary" @onclick="AssignEngineerAsync">Asignar y enviar correo</button>
+                </div>
+            </div>
+        </div>
+    }
+</div>

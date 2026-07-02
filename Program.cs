@@ -11,6 +11,8 @@ using ITQS.SupportOperationsCenter.Repositories.Interfaces;
 using ITQS.SupportOperationsCenter.Services;
 using ITQS.SupportOperationsCenter.Services.Interfaces;
 using ITQS.SupportOperationsCenter.Models.Administration.Customers;
+using ITQS.SupportOperationsCenter.Models.Administration.AppRegistrations;
+
 
 
 
@@ -59,11 +61,14 @@ builder.Services.AddScoped<ISqlOperationsDashboardService, SqlOperationsDashboar
 builder.Services.AddScoped<ICustomerAdminRepository, CustomerAdminRepository>();
 builder.Services.AddScoped<ICustomerAdminService, CustomerAdminService>();
 builder.Services.Configure<AutomationRunbookSettings>(
-    builder.Configuration.GetSection("AutomationRunbook"));
-
+builder.Configuration.GetSection("AutomationRunbook"));
 builder.Services.AddHttpClient();
-
 builder.Services.AddScoped<ICustomerConnectionRunbookService, CustomerConnectionRunbookService>();
+builder.Services.Configure<AppRegistrationNotificationSettings>(
+builder.Configuration.GetSection("AppRegistrationNotifications"));
+builder.Services.AddScoped<IAppRegistrationITQSRepository, AppRegistrationITQSRepository>();
+builder.Services.AddScoped<IAppRegistrationITQSService, AppRegistrationITQSService>();
+builder.Services.AddScoped<IAppRegistrationNotificationService, AppRegistrationNotificationService>();
 
 
 var app = builder.Build();
