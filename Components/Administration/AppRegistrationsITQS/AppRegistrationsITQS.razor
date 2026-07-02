@@ -142,9 +142,9 @@
                 <span>Mostrando @FirstItemNumber a @LastItemNumber de @FilteredItems.Count registros</span>
                 <div class="pagination">
                     <button disabled="@(PageNumber <= 1)" @onclick="PreviousPageAsync">‹</button>
-                    @foreach (var page in VisiblePages)
+                    @foreach (var pageItem in VisiblePages)
                     {
-                        <button class="@(page == PageNumber ? "active" : "")" @onclick="() => GoToPageAsync(page)">page</button>
+                        <button class="@(pageItem == PageNumber ? "active" : "")" @onclick="() => GoToPageAsync(pageItem)">@pageItem</button>
                     }
                     <button disabled="@(PageNumber >= TotalPages)" @onclick="NextPageAsync">›</button>
                 </div>
@@ -240,3 +240,5 @@
         </div>
     }
 </div>
+
+
