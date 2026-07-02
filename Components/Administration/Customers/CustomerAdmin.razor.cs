@@ -9,13 +9,10 @@ namespace ITQS.SupportOperationsCenter.Components.Administration.Customers;
 
 public partial class CustomerAdmin : ComponentBase
 {
-    // ========================= SECCIÓN 01: DEPENDENCIAS =========================
     [Inject] private ICustomerAdminService CustomerAdminService { get; set; } = default!;
     [Inject] private AuthenticationStateProvider AuthenticationStateProvider { get; set; } = default!;
-	[Inject] private ICustomerConnectionRunbookService CustomerConnectionRunbookService { get; set; } = default!;
+    [Inject] private ICustomerConnectionRunbookService CustomerConnectionRunbookService { get; set; } = default!;
 
-
-    // ========================== SECCIÓN 02: ESTADO BASE =========================
     protected bool IsLoading { get; set; } = true;
     protected bool CanAccess { get; set; }
     protected bool ShowEditor { get; set; }
@@ -31,10 +28,7 @@ public partial class CustomerAdmin : ComponentBase
     protected CustomerAdminDashboardModel Dashboard { get; set; } = new();
     protected List<CustomerAdminModel> Customers { get; set; } = new();
     protected CustomerAdminSaveRequestModel Editor { get; set; } = new();
-	
-	protected bool IsRunningConnectionTest { get; set; }
 
-    // ========================== SECCIÓN 03: PAGINACIÓN ==========================
     protected int PageNumber { get; set; } = 1;
     protected int PageSize { get; set; } = 10;
 
@@ -64,8 +58,8 @@ public partial class CustomerAdmin : ComponentBase
         }
     }
 
-    // =================== SECCIÓN 04: VALIDAR CONEXIÓN SOLO UI ===================
     protected bool ShowConnectionTest { get; set; }
+    protected bool IsRunningConnectionTest { get; set; }
 
     protected string ConnectionCustomerName { get; set; } = string.Empty;
     protected string ConnectionTenantId { get; set; } = string.Empty;
@@ -75,7 +69,66 @@ public partial class CustomerAdmin : ComponentBase
     protected string ConnectionSource { get; set; } = string.Empty;
     protected string ConnectionResult { get; set; } = "Listo para ejecutar validación.";
 
-    // =========================== SECCIÓN 05: INICIO =============================
+    protected string ConnectionJobId { get; set; } = string.Empty;
+    protected string ConnectionJobStatus { get; set; } = "Ready";
+    protected int ConnectionAttempt { get; set; }
+    protected int ConnectionMaxAttempts { get; set; } = 60;
+
+    protected string ConnectionStatusCss =>
+        ConnectionJobStatus.ToUpperInvariant() switch
+        {
+            "COMPLETED" => "success",
+            "FAILED" => "failed",
+            "STOPPED" => "failed",
+            "SUSPENDED" => "failed",
+            "RUNNING" => "running",
+            "ACTIVATING" => "pending",
+            "NEW" => "pending",
+            "STARTED" => "pending",
+            "READY" => "idle",
+            _ => "pending"
+        };
+
+    protected string ConnectionStatusIcon =>
+        ConnectionStatusCss switch
+        {
+            "success" => "✅",
+            "failed" => "❌",
+            "running" => "🔄",
+            "pending" => "⏳",
+            _ => "🔌"
+        };
+
+    protected string ConnectionStatusTitle =>
+        ConnectionStatusCss switch
+        {
+            "success" => "Validación finalizada correctamente",
+            "failed" => "Validación finalizada con error",
+            "running" => "Validación en ejecución",
+            "pending" => "Azure Automation preparando ejecución",
+            _ => "Listo para validar conexión"
+        };
+
+    protected string ConnectionStatusSubtitle =>
+        ConnectionStatusCss switch
+        {
+            "success" => "El runbook terminó correctamente. Revisa el log técnico para el detalle.",
+            "failed" => "El runbook terminó con error o fue detenido. Revisa el log técnico.",
+            "running" => "El runbook está ejecutando las validaciones del cliente.",
+            "pending" => "La solicitud fue enviada y Azure Automation está preparando el job.",
+            _ => "Presiona Ejecutar prueba para iniciar el runbook."
+        };
+
+    protected int ConnectionProgressPercent =>
+        ConnectionStatusCss switch
+        {
+            "success" => 100,
+            "failed" => 100,
+            "running" => Math.Clamp(35 + (ConnectionAttempt * 2), 35, 85),
+            "pending" => Math.Clamp(10 + ConnectionAttempt, 10, 35),
+            _ => 0
+        };
+
     protected override async Task OnInitializedAsync()
     {
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
@@ -97,7 +150,6 @@ public partial class CustomerAdmin : ComponentBase
         IsLoading = false;
     }
 
-    // ====================== SECCIÓN 06: CARGA Y FILTROS =========================
     protected async Task RefreshAsync()
     {
         IsLoading = true;
@@ -133,7 +185,6 @@ public partial class CustomerAdmin : ComponentBase
         }
     }
 
-    // ======================= SECCIÓN 07: NUEVO / EDITAR =========================
     protected void OpenNewCustomer()
     {
         Message = string.Empty;
@@ -198,7 +249,6 @@ public partial class CustomerAdmin : ComponentBase
         }
     }
 
-    // ==================== SECCIÓN 08: VALIDAR CONEXIÓN UI =======================
     protected void OpenConnectionTest(CustomerAdminModel customer)
     {
         ConnectionCustomerName = customer.CustomerName;
@@ -207,6 +257,11 @@ public partial class CustomerAdmin : ComponentBase
         ConnectionSecretName = customer.SecretName;
         ConnectionStatus = customer.IsActive ? "Activo" : "Inactivo";
         ConnectionSource = string.IsNullOrWhiteSpace(customer.Source) ? "-" : customer.Source;
+
+        ConnectionJobId = string.Empty;
+        ConnectionJobStatus = "Ready";
+        ConnectionAttempt = 0;
+        ConnectionMaxAttempts = 60;
 
         ConnectionResult =
             "Parámetros cargados automáticamente desde dbo.ITQS_Customers." +
@@ -223,7 +278,7 @@ public partial class CustomerAdmin : ComponentBase
             $"Estado: {ConnectionStatus}" +
             Environment.NewLine +
             Environment.NewLine +
-            "Azure Automation: pendiente de integración.";
+            "Listo para ejecutar Azure Automation.";
 
         ShowConnectionTest = true;
     }
@@ -233,141 +288,151 @@ public partial class CustomerAdmin : ComponentBase
         ShowConnectionTest = false;
     }
 
-
-protected async Task RunConnectionTest()
-{
-    if (IsRunningConnectionTest)
-        return;
-
-    IsRunningConnectionTest = true;
-
-    try
+    protected async Task RunConnectionTest()
     {
-        if (!Guid.TryParse(ConnectionTenantId, out var tenantId))
-            throw new InvalidOperationException("TenantId inválido.");
-
-        ConnectionResult =
-            "Iniciando runbook en Azure Automation..." +
-            Environment.NewLine +
-            $"Runbook: ITQS-SOC-VALIDATE-CONNECTIONS-CLIENTES" +
-            Environment.NewLine +
-            $"Cliente: {ConnectionCustomerName}" +
-            Environment.NewLine +
-            $"TenantId: {ConnectionTenantId}";
-
-        await InvokeAsync(StateHasChanged);
-
-        var result = await CustomerConnectionRunbookService.StartValidationAsync(
-            new CustomerConnectionRunbookRequest
-            {
-                CustomerName = ConnectionCustomerName,
-                TenantId = tenantId,
-                ClientId = ConnectionClientId,
-                SecretName = ConnectionSecretName,
-                RequestedBy = UserEmail
-            });
-
-        if (!result.Started)
-        {
-            ConnectionResult =
-                "Error iniciando runbook." +
-                Environment.NewLine +
-                Environment.NewLine +
-                $"Runbook: {result.RunbookName}" +
-                Environment.NewLine +
-                $"Estado: {result.Status}" +
-                Environment.NewLine +
-                $"Detalle: {result.ErrorMessage}";
-
+        if (IsRunningConnectionTest)
             return;
-        }
 
-        ConnectionResult =
-            "Runbook iniciado correctamente." +
-            Environment.NewLine +
-            Environment.NewLine +
-            $"Runbook: {result.RunbookName}" +
-            Environment.NewLine +
-            $"JobId: {result.JobId}" +
-            Environment.NewLine +
-            "Estado: Started" +
-            Environment.NewLine +
-            Environment.NewLine +
-            "Consultando estado del job...";
+        IsRunningConnectionTest = true;
+        ConnectionAttempt = 0;
+        ConnectionJobStatus = "Starting";
 
-        await InvokeAsync(StateHasChanged);
-
-        var maxAttempts = 60;
-        var delaySeconds = 3;
-
-        for (var attempt = 1; attempt <= maxAttempts; attempt++)
+        try
         {
-            await Task.Delay(TimeSpan.FromSeconds(delaySeconds));
-
-            var status = await CustomerConnectionRunbookService.GetJobStatusAsync(result.JobId);
+            if (!Guid.TryParse(ConnectionTenantId, out var tenantId))
+                throw new InvalidOperationException("TenantId inválido.");
 
             ConnectionResult =
-                "Monitoreo de ejecución del runbook" +
+                "Iniciando runbook en Azure Automation..." +
                 Environment.NewLine +
+                $"Runbook: ITQS-SOC-VALIDATE-CONNECTIONS-CLIENTES" +
                 Environment.NewLine +
                 $"Cliente: {ConnectionCustomerName}" +
+                Environment.NewLine +
+                $"TenantId: {ConnectionTenantId}";
+
+            await InvokeAsync(StateHasChanged);
+
+            var result = await CustomerConnectionRunbookService.StartValidationAsync(
+                new CustomerConnectionRunbookRequest
+                {
+                    CustomerName = ConnectionCustomerName,
+                    TenantId = tenantId,
+                    ClientId = ConnectionClientId,
+                    SecretName = ConnectionSecretName,
+                    RequestedBy = UserEmail
+                });
+
+            ConnectionJobId = result.JobId;
+            ConnectionJobStatus = result.Status;
+
+            if (!result.Started)
+            {
+                ConnectionResult =
+                    "Error iniciando runbook." +
+                    Environment.NewLine +
+                    Environment.NewLine +
+                    $"Runbook: {result.RunbookName}" +
+                    Environment.NewLine +
+                    $"Estado: {result.Status}" +
+                    Environment.NewLine +
+                    $"Detalle: {result.ErrorMessage}";
+
+                return;
+            }
+
+            ConnectionResult =
+                "Runbook iniciado correctamente." +
+                Environment.NewLine +
                 Environment.NewLine +
                 $"Runbook: {result.RunbookName}" +
                 Environment.NewLine +
                 $"JobId: {result.JobId}" +
                 Environment.NewLine +
-                $"Estado: {status.Status}" +
-                Environment.NewLine +
-                $"Detalle: {status.StatusDetails}" +
-                Environment.NewLine +
-                $"Intento: {attempt}/{maxAttempts}" +
-                Environment.NewLine +
-                $"Inicio: {(status.StartTime?.ToLocalTime().ToString("dd/MM/yyyy HH:mm:ss") ?? "-")}" +
-                Environment.NewLine +
-                $"Fin: {(status.EndTime?.ToLocalTime().ToString("dd/MM/yyyy HH:mm:ss") ?? "-")}" +
+                "Estado: Started" +
                 Environment.NewLine +
                 Environment.NewLine +
-                status.Message;
-
-            if (!string.IsNullOrWhiteSpace(status.ErrorMessage))
-            {
-                ConnectionResult +=
-                    Environment.NewLine +
-                    Environment.NewLine +
-                    "Error:" +
-                    Environment.NewLine +
-                    status.ErrorMessage;
-            }
+                "Consultando estado del job...";
 
             await InvokeAsync(StateHasChanged);
 
-            if (status.IsFinal)
-            {
-                ConnectionResult +=
-                    Environment.NewLine +
-                    Environment.NewLine +
-                    "Validación finalizada.";
+            ConnectionMaxAttempts = 60;
+            var delaySeconds = 3;
 
-                break;
+            for (var attempt = 1; attempt <= ConnectionMaxAttempts; attempt++)
+            {
+                ConnectionAttempt = attempt;
+
+                await Task.Delay(TimeSpan.FromSeconds(delaySeconds));
+
+                var status = await CustomerConnectionRunbookService.GetJobStatusAsync(result.JobId);
+
+                ConnectionJobStatus = string.IsNullOrWhiteSpace(status.Status)
+                    ? "Unknown"
+                    : status.Status;
+
+                ConnectionResult =
+                    "Monitoreo de ejecución del runbook" +
+                    Environment.NewLine +
+                    Environment.NewLine +
+                    $"Cliente: {ConnectionCustomerName}" +
+                    Environment.NewLine +
+                    $"Runbook: {result.RunbookName}" +
+                    Environment.NewLine +
+                    $"JobId: {result.JobId}" +
+                    Environment.NewLine +
+                    $"Estado: {status.Status}" +
+                    Environment.NewLine +
+                    $"Detalle: {status.StatusDetails}" +
+                    Environment.NewLine +
+                    $"Intento: {attempt}/{ConnectionMaxAttempts}" +
+                    Environment.NewLine +
+                    $"Inicio: {(status.StartTime?.ToLocalTime().ToString("dd/MM/yyyy HH:mm:ss") ?? "-")}" +
+                    Environment.NewLine +
+                    $"Fin: {(status.EndTime?.ToLocalTime().ToString("dd/MM/yyyy HH:mm:ss") ?? "-")}" +
+                    Environment.NewLine +
+                    Environment.NewLine +
+                    status.Message;
+
+                if (!string.IsNullOrWhiteSpace(status.ErrorMessage))
+                {
+                    ConnectionResult +=
+                        Environment.NewLine +
+                        Environment.NewLine +
+                        "Error:" +
+                        Environment.NewLine +
+                        status.ErrorMessage;
+                }
+
+                await InvokeAsync(StateHasChanged);
+
+                if (status.IsFinal)
+                {
+                    ConnectionResult +=
+                        Environment.NewLine +
+                        Environment.NewLine +
+                        "Validación finalizada.";
+
+                    break;
+                }
             }
         }
-    }
-    catch (Exception ex)
-    {
-        ConnectionResult =
-            "Error ejecutando validación." +
-            Environment.NewLine +
-            ex.Message;
-    }
-    finally
-    {
-        IsRunningConnectionTest = false;
-        await InvokeAsync(StateHasChanged);
-    }
-}
+        catch (Exception ex)
+        {
+            ConnectionJobStatus = "Failed";
 
+            ConnectionResult =
+                "Error ejecutando validación." +
+                Environment.NewLine +
+                ex.Message;
+        }
+        finally
+        {
+            IsRunningConnectionTest = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
 
-    // =========================== SECCIÓN 09: PAGINACIÓN =========================
     protected async Task GoToPageAsync(int page)
     {
         PageNumber = Math.Clamp(page, 1, TotalPages);
@@ -414,7 +479,6 @@ protected async Task RunConnectionTest()
         }
     }
 
-    // ============================= SECCIÓN 10: HELPERS ==========================
     protected static string DisplayEmpty(string value)
         => string.IsNullOrWhiteSpace(value) ? "-" : value;
 

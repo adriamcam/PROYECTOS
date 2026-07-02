@@ -12,4 +12,152 @@
 .customer-info-grid{display:grid;grid-template-columns:1fr}.info-card{padding:18px 20px}.info-card strong{display:block;margin-bottom:8px;color:#1e3a8a}.info-card p{margin:0;color:#334155}
 .customer-modal-backdrop{position:fixed;inset:0;background:rgba(15,23,42,.42);display:flex;align-items:center;justify-content:center;z-index:4000;padding:24px}.customer-modal{width:min(880px,calc(100vw - 48px));max-height:calc(100vh - 48px);background:#fff;border:1px solid #dbe3ef;border-radius:18px;box-shadow:0 30px 90px rgba(15,23,42,.28);overflow:hidden;display:flex;flex-direction:column}.connection-preview-modal{width:min(920px,calc(100vw - 48px))}.modal-header{padding:20px 24px;display:flex;justify-content:space-between;align-items:flex-start;border-bottom:1px solid #e2e8f0}.modal-header h3{margin:0;font-size:22px;font-weight:950}.modal-header small{display:block;margin-top:6px;color:#64748b}.modal-close{border:none;background:transparent;font-size:28px;line-height:1;cursor:pointer;color:#0f172a}.modal-body{padding:24px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:22px;row-gap:18px;overflow:auto}.modal-body label{display:flex;flex-direction:column;gap:8px;color:#334155;font-size:13px;font-weight:900;min-width:0}.modal-body .full{grid-column:1 / -1}.modal-body textarea{min-height:140px;resize:vertical}.toggle-line{grid-column:1 / -1;flex-direction:row!important;align-items:center;justify-content:space-between;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:12px 14px}.toggle-line input{width:auto!important}.modal-actions{padding:18px 24px;border-top:1px solid #e2e8f0;display:flex;justify-content:flex-end;gap:12px}
 .customer-denied{min-height:520px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}.denied-icon{width:100px;height:100px;border-radius:24px;background:#fee2e2;color:#b91c1c;display:flex;align-items:center;justify-content:center;font-size:48px;margin-bottom:20px}.customer-empty{padding:24px}.customer-empty span{display:block;color:#64748b;margin-top:6px}
+/* ===================================================================== */
+/* MONITOR VISUAL DE RUNBOOK - AGREGAR AL FINAL DE CustomerAdmin.razor.css */
+/* ===================================================================== */
+
+.connection-modal-grid{
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+}
+
+.connection-status-card{
+    border-radius:18px;
+    padding:20px;
+    border:1px solid #dbe3ef;
+    background:#f8fafc;
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+}
+
+.connection-status-card.full{
+    grid-column:1 / -1;
+}
+
+.connection-status-header{
+    display:flex;
+    gap:16px;
+    align-items:flex-start;
+}
+
+.connection-status-icon{
+    width:58px;
+    height:58px;
+    border-radius:16px;
+    background:#fff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:30px;
+    flex:0 0 auto;
+}
+
+.connection-status-label{
+    display:block;
+    color:#64748b;
+    font-size:12px;
+    font-weight:950;
+    text-transform:uppercase;
+    margin-bottom:6px;
+}
+
+.connection-status-card h4{
+    margin:0;
+    font-size:22px;
+    font-weight:950;
+    color:#0f172a;
+}
+
+.connection-status-card p{
+    margin:8px 0 0;
+    color:#475569;
+    font-weight:700;
+}
+
+.connection-progress{
+    height:14px;
+    background:#e2e8f0;
+    border-radius:999px;
+    overflow:hidden;
+}
+
+.connection-progress-bar{
+    height:100%;
+    border-radius:999px;
+    transition:width .35s ease;
+}
+
+.connection-status-meta{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px 18px;
+    color:#334155;
+    font-size:13px;
+    font-family:Consolas,monospace;
+    word-break:break-word;
+}
+
+.connection-status-card.idle{
+    background:#f8fafc;
+    border-color:#dbe3ef;
+}
+
+.connection-status-card.idle .connection-progress-bar{
+    background:#94a3b8;
+}
+
+.connection-status-card.pending{
+    background:#fffbeb;
+    border-color:#fde68a;
+}
+
+.connection-status-card.pending .connection-progress-bar{
+    background:#f59e0b;
+}
+
+.connection-status-card.running{
+    background:#eff6ff;
+    border-color:#bfdbfe;
+}
+
+.connection-status-card.running .connection-progress-bar{
+    background:#2563eb;
+}
+
+.connection-status-card.success{
+    background:#ecfdf5;
+    border-color:#bbf7d0;
+}
+
+.connection-status-card.success .connection-progress-bar{
+    background:#16a34a;
+}
+
+.connection-status-card.failed{
+    background:#fef2f2;
+    border-color:#fecaca;
+}
+
+.connection-status-card.failed .connection-progress-bar{
+    background:#dc2626;
+}
+
+.technical-log textarea{
+    min-height:170px;
+    font-family:Consolas,monospace;
+    font-size:12px;
+    line-height:1.45;
+}
+
+.modal-actions .btn-primary:disabled{
+    opacity:.65;
+    cursor:not-allowed;
+}
+
+@media(max-width:760px){
+    .connection-status-meta{
+        grid-template-columns:1fr;
+    }
+}
+
 @media(max-width:1150px){.customer-kpis{grid-template-columns:1fr 1fr}.customer-toolbar{grid-template-columns:1fr}.table-footer{grid-template-columns:1fr;justify-items:start}}@media(max-width:760px){.customer-admin-page{padding:14px}.hero-title{align-items:flex-start}.customer-kpis,.modal-body{grid-template-columns:1fr}.customer-modal{width:calc(100vw - 24px);max-height:calc(100vh - 24px)}.customer-modal-backdrop{padding:12px}}

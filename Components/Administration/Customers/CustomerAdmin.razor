@@ -2,8 +2,7 @@
 
 <!-- ===================================================================== -->
 <!-- COMPONENTE: CustomerAdmin                                             -->
-<!-- DESCRIPCIÓN: Administración de clientes + botón UI Validar conexión    -->
-<!-- NOTA: Esta versión NO conecta todavía con Azure Automation.            -->
+<!-- DESCRIPCIÓN: Administración de clientes + monitor visual de runbook    -->
 <!-- ===================================================================== -->
 
 <div class="customer-admin-page">
@@ -17,7 +16,6 @@
     }
     else
     {
-   
         <!-- ===================== 03.1: ENCABEZADO ============================ -->
         <section class="customer-hero">
             <div class="hero-title">
@@ -129,7 +127,6 @@
                             <span>@DisplayEmpty(item.Source)</span>
                             <span>@FormatDate(item.UpdatedAt)</span>
 
-                            <!-- ============== 03.5.1: ACCIONES ============== -->
                             <span class="row-actions">
                                 <button type="button"
                                         title="Editar cliente"
@@ -283,7 +280,7 @@
                     <button type="button" class="modal-close" @onclick="CloseConnectionTest">×</button>
                 </div>
 
-                <div class="modal-body">
+                <div class="modal-body connection-modal-grid">
                     <label>
                         Cliente
                         <input value="@ConnectionCustomerName" disabled />
@@ -314,6 +311,28 @@
                         <input value="@ConnectionSource" disabled />
                     </label>
 
+                    <section class="connection-status-card full @ConnectionStatusCss">
+                        <div class="connection-status-header">
+                            <div class="connection-status-icon">@ConnectionStatusIcon</div>
+                            <div>
+                                <span class="connection-status-label">Estado del Runbook</span>
+                                <h4>@ConnectionStatusTitle</h4>
+                                <p>@ConnectionStatusSubtitle</p>
+                            </div>
+                        </div>
+
+                        <div class="connection-progress">
+                            <div class="connection-progress-bar" style="width:@ConnectionProgressPercent%"></div>
+                        </div>
+
+                        <div class="connection-status-meta">
+                            <span><b>Runbook:</b> ITQS-SOC-VALIDATE-CONNECTIONS-CLIENTES</span>
+                            <span><b>JobId:</b> @DisplayEmpty(ConnectionJobId)</span>
+                            <span><b>Estado:</b> @DisplayEmpty(ConnectionJobStatus)</span>
+                            <span><b>Intento:</b> @ConnectionAttempt / @ConnectionMaxAttempts</span>
+                        </div>
+                    </section>
+
                     <label class="toggle-line">
                         <span>TestMode</span>
                         <input type="checkbox" checked disabled />
@@ -334,8 +353,8 @@
                         <input type="checkbox" checked disabled />
                     </label>
 
-                    <label class="full">
-                        Resultado
+                    <label class="full technical-log">
+                        Log técnico
                         <textarea value="@ConnectionResult" disabled></textarea>
                     </label>
                 </div>
@@ -345,8 +364,11 @@
                         Cerrar
                     </button>
 
-                    <button type="button" class="btn-primary" @onclick="RunConnectionTest">
-                        Ejecutar prueba
+                    <button type="button"
+                            class="btn-primary"
+                            disabled="@IsRunningConnectionTest"
+                            @onclick="RunConnectionTest">
+                        @(IsRunningConnectionTest ? "Ejecutando..." : "Ejecutar prueba")
                     </button>
                 </div>
             </div>
