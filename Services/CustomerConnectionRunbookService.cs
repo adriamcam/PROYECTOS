@@ -1,5 +1,6 @@
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Text.Json;
 using Azure.Core;
 using Azure.Identity;
 using ITQS.SupportOperationsCenter.Models.Administration.Customers;
@@ -35,19 +36,9 @@ public sealed class CustomerConnectionRunbookService : ICustomerConnectionRunboo
 
             var jobId = Guid.NewGuid().ToString();
 
-            var credential = new DefaultAzureCredential();
-            var token = await credential.GetTokenAsync(
-                new TokenRequestContext(new[] { "https://management.azure.com/.default" }),
-                cancellationToken);
+            var client = await CreateAuthorizedClientAsync(cancellationToken);
 
-            var client = _httpClientFactory.CreateClient();
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.Token);
-
-            var url =
-                $"https://management.azure.com/subscriptions/{_settings.SubscriptionId}" +
-                $"/resourceGroups/{_settings.ResourceGroupName}" +
-                $"/providers/Microsoft.Automation/automationAccounts/{_settings.AutomationAccountName}" +
-                $"/jobs/{jobId}?api-version={_settings.ApiVersion}";
+            var url = BuildJobUrl(jobId);
 
             var body = new
             {
@@ -109,5 +100,110 @@ public sealed class CustomerConnectionRunbookService : ICustomerConnectionRunboo
                 ErrorMessage = ex.Message
             };
         }
+    }
+
+    public async Task<CustomerConnectionJobStatusResult> GetJobStatusAsync(
+        string jobId,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(jobId))
+                throw new InvalidOperationException("JobId inválido.");
+
+            var client = await CreateAuthorizedClientAsync(cancellationToken);
+            var response = await client.GetAsync(BuildJobUrl(jobId), cancellationToken);
+            var responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return new CustomerConnectionJobStatusResult
+                {
+                    Found = false,
+                    JobId = jobId,
+                    RunbookName = _settings.ValidateConnectionsRunbookName,
+                    Status = "Error",
+                    ErrorMessage = $"HTTP {(int)response.StatusCode}: {responseBody}",
+                    Message = "No fue posible consultar el estado del job."
+                };
+            }
+
+            using var json = JsonDocument.Parse(responseBody);
+            var root = json.RootElement;
+            var properties = root.GetProperty("properties");
+
+            var result = new CustomerConnectionJobStatusResult
+            {
+                Found = true,
+                JobId = jobId,
+                RunbookName = _settings.ValidateConnectionsRunbookName,
+                Status = GetString(properties, "status"),
+                StatusDetails = GetString(properties, "statusDetails"),
+                CreationTime = GetDate(properties, "creationTime"),
+                StartTime = GetDate(properties, "startTime"),
+                EndTime = GetDate(properties, "endTime"),
+                LastModifiedTime = GetDate(properties, "lastModifiedTime")
+            };
+
+            result.Message = result.IsFinal
+                ? $"Estado final del job: {result.Status}"
+                : $"Estado actual del job: {result.Status}";
+
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error consultando estado del job {JobId}", jobId);
+
+            return new CustomerConnectionJobStatusResult
+            {
+                Found = false,
+                JobId = jobId,
+                RunbookName = _settings.ValidateConnectionsRunbookName,
+                Status = "Error",
+                ErrorMessage = ex.Message,
+                Message = "Error consultando estado del job."
+            };
+        }
+    }
+
+    private async Task<HttpClient> CreateAuthorizedClientAsync(CancellationToken cancellationToken)
+    {
+        var credential = new DefaultAzureCredential();
+
+        var token = await credential.GetTokenAsync(
+            new TokenRequestContext(new[] { "https://management.azure.com/.default" }),
+            cancellationToken);
+
+        var client = _httpClientFactory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.Token);
+
+        return client;
+    }
+
+    private string BuildJobUrl(string jobId)
+    {
+        return
+            $"https://management.azure.com/subscriptions/{_settings.SubscriptionId}" +
+            $"/resourceGroups/{_settings.ResourceGroupName}" +
+            $"/providers/Microsoft.Automation/automationAccounts/{_settings.AutomationAccountName}" +
+            $"/jobs/{jobId}?api-version={_settings.ApiVersion}";
+    }
+
+    private static string GetString(JsonElement element, string propertyName)
+    {
+        return element.TryGetProperty(propertyName, out var value) && value.ValueKind != JsonValueKind.Null
+            ? value.ToString()
+            : string.Empty;
+    }
+
+    private static DateTimeOffset? GetDate(JsonElement element, string propertyName)
+    {
+        if (!element.TryGetProperty(propertyName, out var value) || value.ValueKind == JsonValueKind.Null)
+            return null;
+
+        return DateTimeOffset.TryParse(value.ToString(), out var parsed)
+            ? parsed
+            : null;
     }
 }

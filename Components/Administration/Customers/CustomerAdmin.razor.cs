@@ -233,7 +233,8 @@ public partial class CustomerAdmin : ComponentBase
         ShowConnectionTest = false;
     }
 
-   protected async Task RunConnectionTest()
+
+protected async Task RunConnectionTest()
 {
     if (IsRunningConnectionTest)
         return;
@@ -254,6 +255,8 @@ public partial class CustomerAdmin : ComponentBase
             Environment.NewLine +
             $"TenantId: {ConnectionTenantId}";
 
+        await InvokeAsync(StateHasChanged);
+
         var result = await CustomerConnectionRunbookService.StartValidationAsync(
             new CustomerConnectionRunbookRequest
             {
@@ -264,22 +267,7 @@ public partial class CustomerAdmin : ComponentBase
                 RequestedBy = UserEmail
             });
 
-        if (result.Started)
-        {
-            ConnectionResult =
-                "Runbook iniciado correctamente." +
-                Environment.NewLine +
-                Environment.NewLine +
-                $"Runbook: {result.RunbookName}" +
-                Environment.NewLine +
-                $"JobId: {result.JobId}" +
-                Environment.NewLine +
-                $"Estado: {result.Status}" +
-                Environment.NewLine +
-                Environment.NewLine +
-                result.Message;
-        }
-        else
+        if (!result.Started)
         {
             ConnectionResult =
                 "Error iniciando runbook." +
@@ -290,6 +278,78 @@ public partial class CustomerAdmin : ComponentBase
                 $"Estado: {result.Status}" +
                 Environment.NewLine +
                 $"Detalle: {result.ErrorMessage}";
+
+            return;
+        }
+
+        ConnectionResult =
+            "Runbook iniciado correctamente." +
+            Environment.NewLine +
+            Environment.NewLine +
+            $"Runbook: {result.RunbookName}" +
+            Environment.NewLine +
+            $"JobId: {result.JobId}" +
+            Environment.NewLine +
+            "Estado: Started" +
+            Environment.NewLine +
+            Environment.NewLine +
+            "Consultando estado del job...";
+
+        await InvokeAsync(StateHasChanged);
+
+        var maxAttempts = 60;
+        var delaySeconds = 3;
+
+        for (var attempt = 1; attempt <= maxAttempts; attempt++)
+        {
+            await Task.Delay(TimeSpan.FromSeconds(delaySeconds));
+
+            var status = await CustomerConnectionRunbookService.GetJobStatusAsync(result.JobId);
+
+            ConnectionResult =
+                "Monitoreo de ejecución del runbook" +
+                Environment.NewLine +
+                Environment.NewLine +
+                $"Cliente: {ConnectionCustomerName}" +
+                Environment.NewLine +
+                $"Runbook: {result.RunbookName}" +
+                Environment.NewLine +
+                $"JobId: {result.JobId}" +
+                Environment.NewLine +
+                $"Estado: {status.Status}" +
+                Environment.NewLine +
+                $"Detalle: {status.StatusDetails}" +
+                Environment.NewLine +
+                $"Intento: {attempt}/{maxAttempts}" +
+                Environment.NewLine +
+                $"Inicio: {(status.StartTime?.ToLocalTime().ToString("dd/MM/yyyy HH:mm:ss") ?? "-")}" +
+                Environment.NewLine +
+                $"Fin: {(status.EndTime?.ToLocalTime().ToString("dd/MM/yyyy HH:mm:ss") ?? "-")}" +
+                Environment.NewLine +
+                Environment.NewLine +
+                status.Message;
+
+            if (!string.IsNullOrWhiteSpace(status.ErrorMessage))
+            {
+                ConnectionResult +=
+                    Environment.NewLine +
+                    Environment.NewLine +
+                    "Error:" +
+                    Environment.NewLine +
+                    status.ErrorMessage;
+            }
+
+            await InvokeAsync(StateHasChanged);
+
+            if (status.IsFinal)
+            {
+                ConnectionResult +=
+                    Environment.NewLine +
+                    Environment.NewLine +
+                    "Validación finalizada.";
+
+                break;
+            }
         }
     }
     catch (Exception ex)
@@ -302,6 +362,7 @@ public partial class CustomerAdmin : ComponentBase
     finally
     {
         IsRunningConnectionTest = false;
+        await InvokeAsync(StateHasChanged);
     }
 }
 

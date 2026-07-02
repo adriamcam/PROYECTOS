@@ -7,4 +7,8 @@ public interface ICustomerConnectionRunbookService
     Task<CustomerConnectionRunbookResult> StartValidationAsync(
         CustomerConnectionRunbookRequest request,
         CancellationToken cancellationToken = default);
+
+    Task<CustomerConnectionJobStatusResult> GetJobStatusAsync(
+        string jobId,
+        CancellationToken cancellationToken = default);
 }
