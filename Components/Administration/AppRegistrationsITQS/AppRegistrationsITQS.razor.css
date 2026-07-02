@@ -12,3 +12,35 @@
 .appreg-modal-backdrop{position:fixed;inset:0;background:rgba(15,23,42,.42);z-index:5000;display:flex;justify-content:flex-end;align-items:stretch}.appreg-side-panel{width:min(440px,100vw);background:#fff;box-shadow:-18px 0 48px rgba(15,23,42,.18);display:flex;flex-direction:column}.assign-modal{width:min(560px,calc(100vw - 48px));margin:auto;background:#fff;border-radius:18px;box-shadow:0 30px 90px rgba(15,23,42,.28);overflow:hidden}.modal-header{padding:20px 24px;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between}.modal-header h3{margin:0}.modal-header small{display:block;color:#64748b;margin-top:4px}.modal-header button{border:none;background:transparent;font-size:28px;cursor:pointer}.detail-body,.assign-body{padding:22px;display:flex;flex-direction:column;gap:14px}.detail-body h4{margin:14px 0 6px}.detail-line{display:flex;justify-content:space-between;gap:16px;border-bottom:1px solid #e2e8f0;padding:10px 0}.detail-line span{color:#64748b}.detail-line b{text-align:right;word-break:break-word}.full-button{width:100%;margin-top:8px}.assign-body label{display:flex;flex-direction:column;gap:8px;font-weight:900;color:#334155}.assign-body textarea{min-height:110px}.modal-actions{padding:18px 24px;border-top:1px solid #e2e8f0;display:flex;justify-content:flex-end;gap:12px}
 .appreg-empty{padding:24px}.appreg-empty span{display:block;color:#64748b;margin-top:6px}
 @media(max-width:1150px){.appreg-kpis{grid-template-columns:1fr 1fr}.appreg-summary-grid{grid-template-columns:1fr}.appreg-toolbar{grid-template-columns:1fr}.table-footer{grid-template-columns:1fr;justify-items:start}}
+
+/* ==========================================================
+   FIX LAYOUT SOC - App Registrations ITQS
+   Evita que el módulo quede comprimido dentro del menú lateral
+   ========================================================== */
+
+.appreg-page {
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    flex: 1 1 auto !important;
+    padding: 24px 28px !important;
+    margin: 0 !important;
+}
+
+.appreg-hero,
+.appreg-kpis,
+.appreg-summary-grid,
+.appreg-toolbar,
+.appreg-table-card {
+    width: 100% !important;
+    max-width: none !important;
+}
+
+.appreg-table-card {
+    overflow-x: auto !important;
+}
+
+.appreg-row {
+    width: 100% !important;
+}
+
