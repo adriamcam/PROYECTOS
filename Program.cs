@@ -12,7 +12,8 @@ using ITQS.SupportOperationsCenter.Services;
 using ITQS.SupportOperationsCenter.Services.Interfaces;
 using ITQS.SupportOperationsCenter.Models.Administration.Customers;
 using ITQS.SupportOperationsCenter.Models.Administration.AppRegistrations;
-
+using Azure.Identity;
+using Azure.Security.KeyVault.Secrets;
 
 
 
@@ -27,6 +28,20 @@ builder.Services.Configure<SqlSettings>(
 
 builder.Services.Configure<KeyVaultSettings>(
     builder.Configuration.GetSection("KeyVaultSettings"));
+	
+builder.Services.AddSingleton(sp =>
+{
+    var keyVaultSettings = builder.Configuration
+        .GetSection("KeyVaultSettings")
+        .Get<KeyVaultSettings>();
+
+    if (keyVaultSettings == null || string.IsNullOrWhiteSpace(keyVaultSettings.VaultName))
+        throw new InvalidOperationException("KeyVaultSettings:VaultName no está configurado.");
+
+    var vaultUri = new Uri($"https://{keyVaultSettings.VaultName}.vault.azure.net/");
+
+    return new SecretClient(vaultUri, new DefaultAzureCredential());
+});
 
 builder.Services.AddAuthorization(options =>
 {
