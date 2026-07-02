@@ -1,6 +1,14 @@
 @using ITQS.SupportOperationsCenter.Models.Administration.Customers
 
+<!-- ===================================================================== -->
+<!-- COMPONENTE: CustomerAdmin                                             -->
+<!-- DESCRIPCIÓN: Administración de clientes + botón UI Validar conexión    -->
+<!-- NOTA: Esta versión NO conecta todavía con Azure Automation.            -->
+<!-- ===================================================================== -->
+
 <div class="customer-admin-page">
+
+    <!-- ========================== SECCIÓN 01: CARGA ========================== -->
     @if (IsLoading)
     {
         <section class="customer-empty">
@@ -8,6 +16,8 @@
             <span>Consultando información de dbo.ITQS_Customers.</span>
         </section>
     }
+
+    <!-- ==================== SECCIÓN 02: ACCESO DENEGADO ====================== -->
     else if (!CanAccess)
     {
         <section class="customer-denied">
@@ -16,8 +26,11 @@
             <p>Tu usuario no posee permisos para administrar clientes.</p>
         </section>
     }
+
+    <!-- ===================== SECCIÓN 03: CONTENIDO =========================== -->
     else
     {
+        <!-- ===================== 03.1: ENCABEZADO ============================ -->
         <section class="customer-hero">
             <div class="hero-title">
                 <div class="hero-icon">👥</div>
@@ -30,6 +43,7 @@
             </div>
         </section>
 
+        <!-- ========================= 03.2: KPIs ============================== -->
         <section class="customer-kpis">
             <div class="kpi-card blue">
                 <span>Total clientes</span>
@@ -56,6 +70,7 @@
             </div>
         </section>
 
+        <!-- ===================== 03.3: FILTROS Y BÚSQUEDA ==================== -->
         <section class="customer-toolbar">
             <select class="customer-select" @bind="SelectedStatus" @bind:after="ApplyFiltersAsync">
                 <option value="All">Todos los clientes</option>
@@ -81,11 +96,13 @@
             ℹ Puedes buscar por nombre, TenantId, ClientId o SecretName. Presiona Enter para buscar.
         </div>
 
+        <!-- ========================= 03.4: MENSAJES ========================== -->
         @if (!string.IsNullOrWhiteSpace(Message))
         {
             <div class="@MessageCss">@Message</div>
         }
 
+        <!-- ====================== 03.5: TABLA CLIENTES ======================= -->
         <section class="customer-table-card">
             <div class="customer-table">
                 <div class="customer-row head">
@@ -102,7 +119,9 @@
 
                 @if (PagedCustomers.Count == 0)
                 {
-                    <div class="customer-empty-row">No se encontraron clientes con los filtros seleccionados.</div>
+                    <div class="customer-empty-row">
+                        No se encontraron clientes con los filtros seleccionados.
+                    </div>
                 }
                 else
                 {
@@ -121,21 +140,38 @@
                             </span>
                             <span>@DisplayEmpty(item.Source)</span>
                             <span>@FormatDate(item.UpdatedAt)</span>
+
+                            <!-- ============== 03.5.1: ACCIONES ============== -->
                             <span class="row-actions">
-                                <button type="button" title="Editar cliente" @onclick="() => OpenEditCustomer(item)">✏️</button>
+                                <button type="button"
+                                        title="Editar cliente"
+                                        @onclick="() => OpenEditCustomer(item)">
+                                    ✏️
+                                </button>
+
+                                <button type="button"
+                                        title="Validar conexión"
+                                        @onclick="() => OpenConnectionTest(item)">
+                                    🔌
+                                </button>
                             </span>
                         </div>
                     }
                 }
             </div>
 
+            <!-- ====================== 03.5.2: PAGINACIÓN ===================== -->
             <div class="table-footer">
                 <span>
                     Mostrando <b>@FirstItemNumber</b> a <b>@LastItemNumber</b> de <b>@FilteredCustomers.Count</b> resultados
                 </span>
 
                 <div class="pagination">
-                    <button type="button" disabled="@(PageNumber <= 1)" @onclick="PreviousPageAsync">‹</button>
+                    <button type="button"
+                            disabled="@(PageNumber <= 1)"
+                            @onclick="PreviousPageAsync">
+                        ‹
+                    </button>
 
                     @foreach (var pageItem in VisiblePages)
                     {
@@ -146,7 +182,11 @@
                         </button>
                     }
 
-                    <button type="button" disabled="@(PageNumber >= TotalPages)" @onclick="NextPageAsync">›</button>
+                    <button type="button"
+                            disabled="@(PageNumber >= TotalPages)"
+                            @onclick="NextPageAsync">
+                        ›
+                    </button>
                 </div>
 
                 <div class="page-size">
@@ -160,6 +200,7 @@
             </div>
         </section>
 
+        <!-- ================== 03.6: INFORMACIÓN OPERATIVA =================== -->
         <section class="customer-info-grid">
             <div class="info-card">
                 <strong>Información operativa</strong>
@@ -171,6 +212,7 @@
         </section>
     }
 
+    <!-- =================== SECCIÓN 04: MODAL NUEVO / EDITAR ================== -->
     @if (ShowEditor)
     {
         <div class="customer-modal-backdrop">
@@ -238,4 +280,89 @@
             </div>
         </div>
     }
+
+    <!-- ================== SECCIÓN 05: MODAL VALIDAR CONEXIÓN ================= -->
+    @if (ShowConnectionTest)
+    {
+        <div class="customer-modal-backdrop">
+            <div class="customer-modal connection-preview-modal">
+                <div class="modal-header">
+                    <div>
+                        <h3>Validar conexión</h3>
+                        <small>@ConnectionCustomerName</small>
+                    </div>
+
+                    <button type="button" class="modal-close" @onclick="CloseConnectionTest">×</button>
+                </div>
+
+                <div class="modal-body">
+                    <label>
+                        Cliente
+                        <input value="@ConnectionCustomerName" disabled />
+                    </label>
+
+                    <label>
+                        TenantId
+                        <input value="@ConnectionTenantId" disabled />
+                    </label>
+
+                    <label>
+                        ClientId
+                        <input value="@ConnectionClientId" disabled />
+                    </label>
+
+                    <label>
+                        SecretName
+                        <input value="@ConnectionSecretName" disabled />
+                    </label>
+
+                    <label>
+                        Estado
+                        <input value="@ConnectionStatus" disabled />
+                    </label>
+
+                    <label>
+                        Origen
+                        <input value="@ConnectionSource" disabled />
+                    </label>
+
+                    <label class="toggle-line">
+                        <span>TestMode</span>
+                        <input type="checkbox" checked disabled />
+                    </label>
+
+                    <label class="toggle-line">
+                        <span>Run PAL Admin</span>
+                        <input type="checkbox" checked disabled />
+                    </label>
+
+                    <label class="toggle-line">
+                        <span>Run MFA</span>
+                        <input type="checkbox" checked disabled />
+                    </label>
+
+                    <label class="toggle-line">
+                        <span>Run App Registration</span>
+                        <input type="checkbox" checked disabled />
+                    </label>
+
+                    <label class="full">
+                        Resultado
+                        <textarea value="@ConnectionResult" disabled></textarea>
+                    </label>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" @onclick="CloseConnectionTest">
+                        Cerrar
+                    </button>
+
+                    <button type="button" class="btn-primary" @onclick="RunConnectionTest">
+                        Ejecutar prueba
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+
 </div>

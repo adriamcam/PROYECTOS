@@ -9,9 +9,11 @@ namespace ITQS.SupportOperationsCenter.Components.Administration.Customers;
 
 public partial class CustomerAdmin : ComponentBase
 {
+    // ========================= SECCIÓN 01: DEPENDENCIAS =========================
     [Inject] private ICustomerAdminService CustomerAdminService { get; set; } = default!;
     [Inject] private AuthenticationStateProvider AuthenticationStateProvider { get; set; } = default!;
 
+    // ========================== SECCIÓN 02: ESTADO BASE =========================
     protected bool IsLoading { get; set; } = true;
     protected bool CanAccess { get; set; }
     protected bool ShowEditor { get; set; }
@@ -24,12 +26,13 @@ public partial class CustomerAdmin : ComponentBase
     protected string MessageCss { get; set; } = "customer-message ok";
     protected string TenantIdText { get; set; } = string.Empty;
 
-    protected int PageNumber { get; set; } = 1;
-    protected int PageSize { get; set; } = 10;
-
     protected CustomerAdminDashboardModel Dashboard { get; set; } = new();
     protected List<CustomerAdminModel> Customers { get; set; } = new();
     protected CustomerAdminSaveRequestModel Editor { get; set; } = new();
+
+    // ========================== SECCIÓN 03: PAGINACIÓN ==========================
+    protected int PageNumber { get; set; } = 1;
+    protected int PageSize { get; set; } = 10;
 
     protected List<CustomerAdminModel> FilteredCustomers => Customers.ToList();
 
@@ -57,6 +60,18 @@ public partial class CustomerAdmin : ComponentBase
         }
     }
 
+    // =================== SECCIÓN 04: VALIDAR CONEXIÓN SOLO UI ===================
+    protected bool ShowConnectionTest { get; set; }
+
+    protected string ConnectionCustomerName { get; set; } = string.Empty;
+    protected string ConnectionTenantId { get; set; } = string.Empty;
+    protected string ConnectionClientId { get; set; } = string.Empty;
+    protected string ConnectionSecretName { get; set; } = string.Empty;
+    protected string ConnectionStatus { get; set; } = string.Empty;
+    protected string ConnectionSource { get; set; } = string.Empty;
+    protected string ConnectionResult { get; set; } = "Listo para ejecutar validación.";
+
+    // =========================== SECCIÓN 05: INICIO =============================
     protected override async Task OnInitializedAsync()
     {
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
@@ -78,6 +93,7 @@ public partial class CustomerAdmin : ComponentBase
         IsLoading = false;
     }
 
+    // ====================== SECCIÓN 06: CARGA Y FILTROS =========================
     protected async Task RefreshAsync()
     {
         IsLoading = true;
@@ -113,6 +129,7 @@ public partial class CustomerAdmin : ComponentBase
         }
     }
 
+    // ======================= SECCIÓN 07: NUEVO / EDITAR =========================
     protected void OpenNewCustomer()
     {
         Message = string.Empty;
@@ -177,6 +194,72 @@ public partial class CustomerAdmin : ComponentBase
         }
     }
 
+    // ==================== SECCIÓN 08: VALIDAR CONEXIÓN UI =======================
+    protected void OpenConnectionTest(CustomerAdminModel customer)
+    {
+        ConnectionCustomerName = customer.CustomerName;
+        ConnectionTenantId = customer.TenantId.ToString();
+        ConnectionClientId = customer.ClientId;
+        ConnectionSecretName = customer.SecretName;
+        ConnectionStatus = customer.IsActive ? "Activo" : "Inactivo";
+        ConnectionSource = string.IsNullOrWhiteSpace(customer.Source) ? "-" : customer.Source;
+
+        ConnectionResult =
+            "Parámetros cargados automáticamente desde dbo.ITQS_Customers." +
+            Environment.NewLine +
+            Environment.NewLine +
+            $"Cliente: {ConnectionCustomerName}" +
+            Environment.NewLine +
+            $"TenantId: {ConnectionTenantId}" +
+            Environment.NewLine +
+            $"ClientId: {ConnectionClientId}" +
+            Environment.NewLine +
+            $"SecretName: {ConnectionSecretName}" +
+            Environment.NewLine +
+            $"Estado: {ConnectionStatus}" +
+            Environment.NewLine +
+            Environment.NewLine +
+            "Azure Automation: pendiente de integración.";
+
+        ShowConnectionTest = true;
+    }
+
+    protected void CloseConnectionTest()
+    {
+        ShowConnectionTest = false;
+    }
+
+    protected Task RunConnectionTest()
+    {
+        ConnectionResult =
+            "Validación preparada correctamente." +
+            Environment.NewLine +
+            Environment.NewLine +
+            "Estos son los valores que se enviarían al proceso de validación:" +
+            Environment.NewLine +
+            $"Cliente: {ConnectionCustomerName}" +
+            Environment.NewLine +
+            $"TenantId: {ConnectionTenantId}" +
+            Environment.NewLine +
+            $"ClientId: {ConnectionClientId}" +
+            Environment.NewLine +
+            $"SecretName: {ConnectionSecretName}" +
+            Environment.NewLine +
+            "TestMode: true" +
+            Environment.NewLine +
+            "RunPALAdmin: true" +
+            Environment.NewLine +
+            "RunMFA: true" +
+            Environment.NewLine +
+            "RunAppReg: true" +
+            Environment.NewLine +
+            Environment.NewLine +
+            "Pendiente: conectar con Azure Automation o con cola SQL de runbooks.";
+
+        return Task.CompletedTask;
+    }
+
+    // =========================== SECCIÓN 09: PAGINACIÓN =========================
     protected async Task GoToPageAsync(int page)
     {
         PageNumber = Math.Clamp(page, 1, TotalPages);
@@ -210,12 +293,6 @@ public partial class CustomerAdmin : ComponentBase
         await Task.CompletedTask;
     }
 
-    protected static string DisplayEmpty(string value)
-        => string.IsNullOrWhiteSpace(value) ? "-" : value;
-
-    protected static string FormatDate(DateTime? value)
-        => value.HasValue ? value.Value.ToString("dd/MM/yyyy HH:mm") : "-";
-
     private void EnsureValidPage()
     {
         if (PageNumber > TotalPages)
@@ -228,6 +305,13 @@ public partial class CustomerAdmin : ComponentBase
             PageNumber = 1;
         }
     }
+
+    // ============================= SECCIÓN 10: HELPERS ==========================
+    protected static string DisplayEmpty(string value)
+        => string.IsNullOrWhiteSpace(value) ? "-" : value;
+
+    protected static string FormatDate(DateTime? value)
+        => value.HasValue ? value.Value.ToString("dd/MM/yyyy HH:mm") : "-";
 
     private void SetOk(string message)
     {
