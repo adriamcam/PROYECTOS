@@ -8,7 +8,6 @@
 
 <div class="customer-admin-page">
 
-    <!-- ========================== SECCIÓN 01: CARGA ========================== -->
     @if (IsLoading)
     {
         <section class="customer-empty">
@@ -16,20 +15,9 @@
             <span>Consultando información de dbo.ITQS_Customers.</span>
         </section>
     }
-
-    <!-- ==================== SECCIÓN 02: ACCESO DENEGADO ====================== -->
-    else if (!CanAccess)
-    {
-        <section class="customer-denied">
-            <div class="denied-icon">🔒</div>
-            <h1>Acceso denegado</h1>
-            <p>Tu usuario no posee permisos para administrar clientes.</p>
-        </section>
-    }
-
-    <!-- ===================== SECCIÓN 03: CONTENIDO =========================== -->
     else
     {
+   
         <!-- ===================== 03.1: ENCABEZADO ============================ -->
         <section class="customer-hero">
             <div class="hero-title">
