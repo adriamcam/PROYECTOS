@@ -10,7 +10,7 @@ using ITQS.SupportOperationsCenter.Repositories;
 using ITQS.SupportOperationsCenter.Repositories.Interfaces;
 using ITQS.SupportOperationsCenter.Services;
 using ITQS.SupportOperationsCenter.Services.Interfaces;
-
+using ITQS.SupportOperationsCenter.Models.Administration.Customers;
 
 
 
@@ -58,7 +58,12 @@ builder.Services.AddScoped<ISqlOperationsDashboardRepository, SqlOperationsDashb
 builder.Services.AddScoped<ISqlOperationsDashboardService, SqlOperationsDashboardService>();
 builder.Services.AddScoped<ICustomerAdminRepository, CustomerAdminRepository>();
 builder.Services.AddScoped<ICustomerAdminService, CustomerAdminService>();
+builder.Services.Configure<AutomationRunbookSettings>(
+    builder.Configuration.GetSection("AutomationRunbook"));
 
+builder.Services.AddHttpClient();
+
+builder.Services.AddScoped<ICustomerConnectionRunbookService, CustomerConnectionRunbookService>();
 
 
 var app = builder.Build();
