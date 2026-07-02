@@ -19,3 +19,4 @@ public class AppRegistrationListItem
     public string RiskLevel { get; set; } = string.Empty;
     public int HealthPercent { get; set; }
 }
+

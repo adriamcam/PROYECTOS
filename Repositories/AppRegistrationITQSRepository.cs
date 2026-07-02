@@ -228,3 +228,4 @@ public sealed class AppRegistrationITQSRepository : IAppRegistrationITQSReposito
     private static DateTime? GetNullableDate(SqlDataReader r, string name) => r[name] == DBNull.Value ? null : Convert.ToDateTime(r[name]);
     private static bool GetBool(SqlDataReader r, string name) => r[name] != DBNull.Value && Convert.ToBoolean(r[name]);
 }
+
