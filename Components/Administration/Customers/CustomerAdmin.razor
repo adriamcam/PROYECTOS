@@ -11,71 +11,81 @@
     }
     else
     {
-        <section class="customer-hero">
-            <div><span class="customer-eyebrow">Administración</span><h1>Administración de Clientes</h1><p>Administra la información y el estado general de los clientes registrados en <b>dbo.ITQS_Customers</b>.</p></div>
-            <button type="button" class="btn-primary" @onclick="OpenNewCustomer">+ Nuevo Cliente</button>
+        <section class="customer-shell">
+            <section class="customer-main-panel">
+                <section class="customer-hero">
+                    <div class="hero-title"><div class="hero-icon">👥</div><div><span class="customer-eyebrow">Administración</span><h1>Clientes</h1><p>Administra los clientes y sus credenciales base para automatizaciones.</p></div></div>
+                </section>
+
+                <section class="customer-kpis">
+                    <div class="kpi-card blue"><span>Total clientes</span><strong>@Dashboard.TotalCustomers.ToString("N0")</strong><small>Clientes registrados</small></div>
+                    <div class="kpi-card ok"><span>Activos</span><strong>@Dashboard.ActiveCustomers.ToString("N0")</strong><small>Habilitados</small></div>
+                    <div class="kpi-card danger"><span>Inactivos</span><strong>@Dashboard.InactiveCustomers.ToString("N0")</strong><small>Deshabilitados</small></div>
+                    <div class="kpi-card purple"><span>Última actualización</span><strong>@Dashboard.LastUpdateText</strong><small>Último cambio registrado</small></div>
+                </section>
+
+                <section class="customer-toolbar">
+                    <select class="customer-select" @bind="SelectedStatus" @bind:after="ApplyFiltersAsync">
+                        <option value="All">Todos los clientes</option><option value="Active">Clientes activos</option><option value="Inactive">Clientes inactivos</option>
+                    </select>
+                    <div class="search-box">
+                        <input placeholder="Buscar por cliente, tenantid, clientid o secretname..." @bind="SearchText" @bind:event="oninput" @onkeydown="SearchKeyDownAsync" />
+                        <button type="button" title="Buscar" @onclick="ApplyFiltersAsync">🔎</button>
+                    </div>
+                    <button type="button" class="btn-primary" @onclick="OpenNewCustomer">+ Nuevo Cliente</button>
+                </section>
+
+                <div class="customer-helper">ℹ Puedes buscar por nombre, TenantId, ClientId o SecretName. Presiona Enter para buscar.</div>
+
+                @if (!string.IsNullOrWhiteSpace(Message)) { <div class="@MessageCss">@Message</div> }
+
+                <section class="customer-table-card">
+                    <div class="customer-table">
+                        <div class="customer-row head"><span>Cliente</span><span>Nombre Portal</span><span>TenantId</span><span>ClientId</span><span>SecretName</span><span>Estado</span><span>Origen</span><span>Actualizado</span><span>Acciones</span></div>
+                        @if (PagedCustomers.Count == 0)
+                        {
+                            <div class="customer-empty-row">No se encontraron clientes con los filtros seleccionados.</div>
+                        }
+                        else
+                        {
+                            @foreach (var item in PagedCustomers)
+                            {
+                                <div class="customer-row">
+                                    <span><strong>@item.CustomerName</strong></span><span>@item.CustomerNamePortal</span><span class="mono">@item.TenantId</span><span class="mono">@item.ClientId</span><span class="secret">@item.SecretName</span>
+                                    <span><span class="status-badge @(item.IsActive ? "active" : "inactive")">@(item.IsActive ? "Activo" : "Inactivo")</span></span>
+                                    <span>@DisplayEmpty(item.Source)</span><span>@FormatDate(item.UpdatedAt)</span><span class="row-actions"><button type="button" title="Editar" @onclick="() => OpenEditCustomer(item)">✏️</button></span>
+                                </div>
+                            }
+                        }
+                    </div>
+                    <div class="table-footer">
+                        <span>Mostrando <b>@FirstItemNumber</b> a <b>@LastItemNumber</b> de <b>@FilteredCustomers.Count</b> resultados</span>
+                        <div class="pagination"><button type="button" disabled="@(PageNumber <= 1)" @onclick="PreviousPageAsync">‹</button>@foreach (var pageItem in VisiblePages){<button type="button" class="@(pageItem == PageNumber ? "active" : "")" @onclick="() => GoToPageAsync(pageItem)">@pageItem</button>}<button type="button" disabled="@(PageNumber >= TotalPages)" @onclick="NextPageAsync">›</button></div>
+                        <div class="page-size"><select @bind="PageSize" @bind:after="PageSizeChangedAsync"><option value="10">10</option><option value="25">25</option><option value="50">50</option></select><span>por página</span></div>
+                    </div>
+                </section>
+
+                <section class="customer-info-grid"><div class="info-card"><strong>Información operativa</strong><p>El estado configurado aquí controla el estado general del cliente en <b>dbo.ITQS_Customers</b>. Los runbooks consultan esta tabla antes de ejecutar.</p></div></section>
+            </section>
+
+            @if (ShowEditor)
+            {
+                <aside class="customer-editor-panel">
+                    <div class="editor-header"><div><h3>@(IsEditMode ? "Editar Cliente" : "Nuevo Cliente")</h3><small>Información base para automatizaciones.</small></div><button type="button" class="editor-close" @onclick="CloseEditor">×</button></div>
+                    <div class="editor-body">
+                        <label>TenantId *<input @bind="TenantIdText" disabled="@IsEditMode" placeholder="UUID del Tenant" /></label>
+                        <label>Cliente *<input @bind="Editor.CustomerName" placeholder="Nombre del cliente" /></label>
+                        <label>Nombre Portal<input @bind="Editor.CustomerNamePortal" placeholder="Nombre visible en el portal" /></label>
+                        <label>ClientId *<input @bind="Editor.ClientId" placeholder="ClientId de la aplicación" /></label>
+                        <label>SecretName *<input @bind="Editor.SecretName" placeholder="Ej: SEC-CLIENTE" /></label>
+                        <label>Origen<select @bind="Editor.Source"><option value="SupportCloud">SupportCloud</option><option value="PowerApps">PowerApps</option><option value="SQL">SQL</option><option value="ManualSQL">ManualSQL</option></select></label>
+                        <label class="toggle-line"><span>Activo</span><input type="checkbox" @bind="Editor.IsActive" /></label>
+                        <label class="full">Notas<textarea @bind="Editor.Notes" placeholder="Motivo del cambio u observaciones..."></textarea></label>
+                    </div>
+                    <div class="editor-actions"><button type="button" class="btn-secondary" @onclick="CloseEditor">Cancelar</button><button type="button" class="btn-primary" @onclick="SaveAsync">Guardar</button></div>
+                </aside>
+            }
         </section>
-
-        <section class="customer-kpis">
-            <div class="kpi-card"><span>Total clientes</span><strong>@Dashboard.TotalCustomers.ToString("N0")</strong><small>Clientes registrados</small></div>
-            <div class="kpi-card ok"><span>Clientes activos</span><strong>@Dashboard.ActiveCustomers.ToString("N0")</strong><small>Habilitados para automatizaciones</small></div>
-            <div class="kpi-card danger"><span>Clientes inactivos</span><strong>@Dashboard.InactiveCustomers.ToString("N0")</strong><small>No ejecutan automatizaciones</small></div>
-            <div class="kpi-card blue"><span>Última actualización</span><strong>@Dashboard.LastUpdateText</strong><small>Último cambio registrado</small></div>
-        </section>
-
-        <section class="customer-toolbar">
-            <div class="search-box"><input placeholder="Buscar por cliente, tenant, tenantId, clientId o secret..." @bind="SearchText" @bind:event="oninput" /><button type="button" @onclick="LoadCustomersAsync">🔎</button></div>
-            <select @bind="SelectedStatus" @bind:after="LoadCustomersAsync"><option value="All">Todos</option><option value="Active">Activos</option><option value="Inactive">Inactivos</option></select>
-            <button type="button" class="btn-secondary" @onclick="RefreshAsync">Actualizar</button>
-        </section>
-
-        @if (!string.IsNullOrWhiteSpace(Message)) { <div class="@MessageCss">@Message</div> }
-
-        <section class="customer-table-card">
-            <div class="customer-table">
-                <div class="customer-row head"><span>Cliente</span><span>Nombre Portal</span><span>TenantId</span><span>ClientId</span><span>SecretName</span><span>Estado</span><span>Última modificación</span><span>Modificado por</span><span>Origen</span><span>Acciones</span></div>
-                @if (Customers.Count == 0)
-                {
-                    <div class="customer-empty-row">No se encontraron clientes con los filtros seleccionados.</div>
-                }
-                else
-                {
-                    @foreach (var item in Customers)
-                    {
-                        <div class="customer-row">
-                            <span><strong>@item.CustomerName</strong></span><span>@item.CustomerNamePortal</span><span class="mono">@item.TenantId</span><span class="mono">@item.ClientId</span><span class="secret">@item.SecretName</span>
-                            <span><span class="status-badge @(item.IsActive ? "active" : "inactive")">@(item.IsActive ? "Activo" : "Inactivo")</span></span>
-                            <span>@FormatDate(item.UpdatedAt)</span><span>@DisplayEmpty(item.UpdatedBy)</span><span>@DisplayEmpty(item.Source)</span>
-                            <span class="row-actions"><button type="button" title="Editar" @onclick="() => OpenEditCustomer(item)">✏️</button></span>
-                        </div>
-                    }
-                }
-            </div>
-        </section>
-
-        <section class="customer-info-grid">
-            <div class="info-card"><strong>Información operativa</strong><p>El estado configurado aquí controla el estado general del cliente en <b>dbo.ITQS_Customers</b>. Los runbooks consultan esta tabla antes de ejecutar.</p></div>
-            <div class="info-card warning"><strong>Importante</strong><p>Este módulo todavía no administra habilitación granular por runbook. Esa funcionalidad se agregará luego en una tabla separada.</p></div>
-        </section>
-    }
-
-    @if (ShowEditor)
-    {
-        <div class="customer-modal-backdrop">
-            <div class="customer-modal">
-                <div class="modal-header"><div><h3>@(IsEditMode ? "Editar Cliente" : "Nuevo Cliente")</h3><small>Información base para automatizaciones.</small></div><button type="button" class="modal-close" @onclick="CloseEditor">×</button></div>
-                <div class="modal-body">
-                    <label>TenantId *<input @bind="TenantIdText" disabled="@IsEditMode" /></label>
-                    <label>Cliente *<input @bind="Editor.CustomerName" /></label>
-                    <label>Nombre Portal<input @bind="Editor.CustomerNamePortal" /></label>
-                    <label>ClientId *<input @bind="Editor.ClientId" /></label>
-                    <label>SecretName *<input @bind="Editor.SecretName" placeholder="SEC-CLIENTE" /></label>
-                    <label>Origen<select @bind="Editor.Source"><option value="SupportCloud">SupportCloud</option><option value="PowerApps">PowerApps</option><option value="SQL">SQL</option><option value="ManualSQL">ManualSQL</option></select></label>
-                    <label class="toggle-line"><span>Activo</span><input type="checkbox" @bind="Editor.IsActive" /></label>
-                    <label class="full">Notas<textarea @bind="Editor.Notes" placeholder="Motivo del cambio u observaciones..."></textarea></label>
-                </div>
-                <div class="modal-actions"><button type="button" class="btn-secondary" @onclick="CloseEditor">Cancelar</button><button type="button" class="btn-primary" @onclick="SaveAsync">Guardar</button></div>
-            </div>
-        </div>
     }
 </div>
+
