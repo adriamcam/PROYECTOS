@@ -750,3 +750,9 @@
     background: #ef4444;
 }
 
+
+.gdap-hero h1,
+.gdap-hero-title,
+.hero-title {
+    color: #ffffff !important;
+}
