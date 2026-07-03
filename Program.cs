@@ -12,6 +12,7 @@ using ITQS.SupportOperationsCenter.Services;
 using ITQS.SupportOperationsCenter.Services.Interfaces;
 using ITQS.SupportOperationsCenter.Models.Administration.Customers;
 using ITQS.SupportOperationsCenter.Models.Administration.AppRegistrations;
+using ITQS.SupportOperationsCenter.Models.Administration.GdapAdminLinks;
 using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
 
@@ -112,4 +113,5 @@ app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
 app.Run();
+
 
