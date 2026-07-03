@@ -27,6 +27,8 @@ public partial class GdapAdminLinks : ComponentBase
     protected List<GdapAdminLinksCustomerModel> Items { get; set; } = new();
     protected List<GdapAdminLinksCustomerModel> PendingEmailItems { get; set; } = new();
     protected List<GdapAdminLinksCustomerModel> ExpiringItems { get; set; } = new();
+    protected List<GdapAdminLinksReportModel> PartnerReports { get; set; } = new();
+    protected List<GdapAdminLinksAuditEventModel> AuditEvents { get; set; } = new();
 
     protected bool ShowDetail { get; set; }
     protected GdapAdminLinksCustomerModel? SelectedDetail { get; set; }
@@ -38,6 +40,14 @@ public partial class GdapAdminLinks : ComponentBase
     protected bool ShowAutomationConfirm { get; set; }
     protected bool IsAutomationRunning { get; set; }
     protected GdapAdminLinksCustomerModel? AutomationCustomer { get; set; }
+
+    protected bool ShowMailPreview { get; set; }
+    protected bool IsSendingMail { get; set; }
+    protected int SelectedTemplateId { get; set; }
+    protected GdapMailPreviewModel? MailPreview { get; set; }
+    protected List<GdapMailTemplateModel> MailTemplates { get; set; } = new();
+    protected GdapMailTemplateModel TemplateEditor { get; set; } = new();
+    protected bool ShowTemplateEditor { get; set; }
 
     protected int PageNumber { get; set; } = 1;
     protected int PageSize { get; set; } = 10;
@@ -95,6 +105,9 @@ public partial class GdapAdminLinks : ComponentBase
             await LoadItemsAsync();
             await LoadPendingEmailsAsync();
             await LoadExpiringAsync();
+            await LoadTemplatesAsync();
+            await LoadReportsAsync();
+            await LoadAuditAsync();
         }
         catch (Exception ex)
         {
@@ -114,6 +127,14 @@ public partial class GdapAdminLinks : ComponentBase
             await LoadPendingEmailsAsync();
         else if (tab == "Expiring")
             await LoadExpiringAsync();
+        else if (tab == "Templates")
+            await LoadTemplatesAsync();
+        else if (tab == "Reports")
+            await LoadReportsAsync();
+        else if (tab == "Audit")
+            await LoadAuditAsync();
+            await LoadReportsAsync();
+            await LoadAuditAsync();
     }
 
     protected async Task LoadItemsAsync()
@@ -130,6 +151,31 @@ public partial class GdapAdminLinks : ComponentBase
     protected async Task LoadExpiringAsync()
     {
         ExpiringItems = (await GdapService.GetExpiringSoonAsync()).ToList();
+    }
+
+    protected async Task LoadTemplatesAsync()
+    {
+        MailTemplates = (await GdapService.GetMailTemplatesAsync()).ToList();
+        if (SelectedTemplateId <= 0)
+            SelectedTemplateId = MailTemplates.FirstOrDefault(x => x.IsDefault)?.Id ?? MailTemplates.FirstOrDefault()?.Id ?? 0;
+    }
+
+
+    protected async Task LoadReportsAsync()
+    {
+        PartnerReports = (await GdapService.GetReportByPartnerAsync()).ToList();
+    }
+
+    protected async Task LoadAuditAsync()
+    {
+        AuditEvents = (await GdapService.GetAuditEventsAsync()).ToList();
+    }
+
+    protected async Task ExportCustomersCsvAsync()
+    {
+        var export = await GdapService.ExportCustomersCsvAsync(Filters);
+        await JsRuntime.InvokeVoidAsync("eval", $"const a=document.createElement('a');a.href='data:{export.ContentType};base64,{export.Base64Content}';a.download='{export.FileName}';a.click();");
+        SetOk($"Exportación generada: {export.TotalRows} registros.");
     }
 
     protected async Task ApplyFiltersAsync()
@@ -301,6 +347,197 @@ public partial class GdapAdminLinks : ComponentBase
 
         await JsRuntime.InvokeVoidAsync("navigator.clipboard.writeText", item.ApprovalPendingLink);
         SetOk("Approval URL copiado al portapapeles.");
+    }
+
+
+
+    protected async Task OpenMailPreviewAsync(GdapAdminLinksCustomerModel item)
+    {
+        try
+        {
+            if (SelectedTemplateId <= 0)
+                await LoadTemplatesAsync();
+            await LoadReportsAsync();
+            await LoadAuditAsync();
+
+            MailPreview = await GdapService.PreviewEmailAsync(item.Id, SelectedTemplateId);
+            ShowMailPreview = true;
+        }
+        catch (Exception ex)
+        {
+            SetError(ex.Message);
+        }
+    }
+
+    protected void CloseMailPreview()
+    {
+        ShowMailPreview = false;
+        MailPreview = null;
+    }
+
+    protected void OpenMailTo()
+    {
+        if (MailPreview is null || string.IsNullOrWhiteSpace(MailPreview.MailToUrl))
+        {
+            SetError("No hay vista previa de correo disponible.");
+            return;
+        }
+
+        NavigationManager.NavigateTo(MailPreview.MailToUrl, forceLoad: true);
+    }
+
+    protected async Task SendPreviewEmailAsync()
+    {
+        if (MailPreview is null)
+        {
+            SetError("No hay vista previa de correo disponible.");
+            return;
+        }
+
+        IsSendingMail = true;
+
+        try
+        {
+            var result = await GdapService.SendEmailAsync(new GdapMailSendRequest
+            {
+                CustomerId = MailPreview.CustomerId,
+                TemplateId = MailPreview.TemplateId,
+                SentBy = UserEmail
+            });
+
+            if (result.Success)
+            {
+                SetOk(result.Message);
+                ShowMailPreview = false;
+                await RefreshAsync();
+            }
+            else
+            {
+                SetError(result.ErrorMessage);
+            }
+        }
+        finally
+        {
+            IsSendingMail = false;
+        }
+    }
+
+    protected async Task SendMailDirectAsync(GdapAdminLinksCustomerModel item)
+    {
+        IsSendingMail = true;
+
+        try
+        {
+            if (SelectedTemplateId <= 0)
+                await LoadTemplatesAsync();
+            await LoadReportsAsync();
+            await LoadAuditAsync();
+
+            var result = await GdapService.SendEmailAsync(new GdapMailSendRequest
+            {
+                CustomerId = item.Id,
+                TemplateId = SelectedTemplateId,
+                SentBy = UserEmail
+            });
+
+            if (result.Success)
+            {
+                SetOk(result.Message);
+                await RefreshAsync();
+            }
+            else
+            {
+                SetError(result.ErrorMessage);
+            }
+        }
+        finally
+        {
+            IsSendingMail = false;
+        }
+    }
+
+    protected async Task SendExpirationReminderBatchAsync(int daysToExpire)
+    {
+        IsSendingMail = true;
+
+        try
+        {
+            if (SelectedTemplateId <= 0)
+                await LoadTemplatesAsync();
+
+            var result = await GdapService.SendExpirationReminderEmailsAsync(daysToExpire, SelectedTemplateId, UserEmail);
+
+            if (result.Success)
+            {
+                SetOk(result.Message);
+                await RefreshAsync();
+            }
+            else
+            {
+                SetError(string.IsNullOrWhiteSpace(result.ErrorMessage) ? result.Message : result.ErrorMessage);
+            }
+        }
+        finally
+        {
+            IsSendingMail = false;
+        }
+    }
+
+
+    protected void EditTemplate(GdapMailTemplateModel template)
+    {
+        TemplateEditor = new GdapMailTemplateModel
+        {
+            Id = template.Id,
+            TemplateKey = template.TemplateKey,
+            Name = template.Name,
+            Subject = template.Subject,
+            HtmlBody = template.HtmlBody,
+            IsDefault = template.IsDefault,
+            IsActive = template.IsActive,
+            CreatedBy = template.CreatedBy,
+            UpdatedBy = UserEmail
+        };
+        ShowTemplateEditor = true;
+    }
+
+    protected void NewTemplate()
+    {
+        TemplateEditor = new GdapMailTemplateModel
+        {
+            TemplateKey = "GDAP_APPROVAL_RENEWAL",
+            Name = "Renovación GDAP",
+            Subject = "Renovación de permisos GDAP - {{CustomerName}}",
+            HtmlBody = "<p>Estimado(a) {{PrimaryContactName}},</p><p>Favor aprobar la relación GDAP desde el siguiente enlace:</p><p><a href=\"{{ApprovalUrl}}\">{{ApprovalUrl}}</a></p>",
+            IsActive = true,
+            IsDefault = false,
+            CreatedBy = UserEmail,
+            UpdatedBy = UserEmail
+        };
+        ShowTemplateEditor = true;
+    }
+
+    protected void CloseTemplateEditor()
+    {
+        ShowTemplateEditor = false;
+    }
+
+    protected async Task SaveTemplateAsync()
+    {
+        var result = await GdapService.SaveMailTemplateAsync(TemplateEditor, UserEmail);
+
+        if (result.Success)
+        {
+            SetOk(result.Message);
+            ShowTemplateEditor = false;
+            await LoadTemplatesAsync();
+            await LoadReportsAsync();
+            await LoadAuditAsync();
+        }
+        else
+        {
+            SetError(result.ErrorMessage);
+        }
     }
 
     protected async Task GoToPageAsync(int page)

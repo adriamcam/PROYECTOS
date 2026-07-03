@@ -7,10 +7,18 @@ public interface IGdapAdminLinksService
     Task<GdapAdminLinksDashboardModel> GetDashboardAsync();
     Task<IReadOnlyList<GdapAdminLinksCustomerModel>> GetCustomersAsync(GdapAdminLinksFilterModel filters);
     Task<GdapAdminLinksCustomerModel?> GetCustomerAsync(int id);
+    Task<IReadOnlyList<GdapAdminLinksAuditEventModel>> GetAuditEventsAsync(int? customerId = null);
+    Task<IReadOnlyList<GdapAdminLinksReportModel>> GetReportByPartnerAsync();
+    Task<GdapAdminLinksExportResult> ExportCustomersCsvAsync(GdapAdminLinksFilterModel filters);
     Task<IReadOnlyList<GdapAdminLinksCustomerModel>> GetPendingEmailsAsync();
     Task<IReadOnlyList<GdapAdminLinksCustomerModel>> GetExpiringSoonAsync();
+    Task<GdapAdminLinksActionResult> SendExpirationReminderEmailsAsync(int daysToExpire, int templateId, string sentBy);
     Task<GdapAdminLinksActionResult> UpdateCustomerAsync(GdapAdminLinksSaveCustomerRequest request);
     Task<GdapAdminLinksActionResult> DisableCustomerAsync(int id, string updatedBy, string reason);
     Task<GdapAdminLinksActionResult> EnableCustomerAsync(int id, string updatedBy);
     Task<GdapAdminLinksActionResult> ExecuteAutomationAsync(int id, string requestedBy);
+    Task<IReadOnlyList<GdapMailTemplateModel>> GetMailTemplatesAsync();
+    Task<GdapMailPreviewModel> PreviewEmailAsync(int customerId, int templateId);
+    Task<GdapAdminLinksActionResult> SendEmailAsync(GdapMailSendRequest request);
+    Task<GdapAdminLinksActionResult> SaveMailTemplateAsync(GdapMailTemplateModel template, string updatedBy);
 }

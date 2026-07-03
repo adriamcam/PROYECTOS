@@ -31,6 +31,9 @@
             <button class="@(ActiveTab == "Customers" ? "active" : "")" @onclick='() => ChangeTabAsync("Customers")'>Clientes GDAP</button>
             <button class="@(ActiveTab == "Mail" ? "active" : "")" @onclick='() => ChangeTabAsync("Mail")'>Centro de Correos</button>
             <button class="@(ActiveTab == "Expiring" ? "active" : "")" @onclick='() => ChangeTabAsync("Expiring")'>Vencimientos</button>
+            <button class="@(ActiveTab == "Templates" ? "active" : "")" @onclick='() => ChangeTabAsync("Templates")'>Plantillas</button>
+            <button class="@(ActiveTab == "Reports" ? "active" : "")" @onclick='() => ChangeTabAsync("Reports")'>Reportes</button>
+            <button class="@(ActiveTab == "Audit" ? "active" : "")" @onclick='() => ChangeTabAsync("Audit")'>Auditoría</button>
         </section>
 
         @if (!string.IsNullOrWhiteSpace(Message))
@@ -47,7 +50,7 @@
                 <div class="kpi danger"><span>Sin GDAP</span><strong>@Dashboard.WithoutGdap</strong><small>Atención</small></div>
                 <div class="kpi warn"><span>Vencen &lt; 30 días</span><strong>@Dashboard.ExpiringIn30Days</strong><small>Preventivo</small></div>
                 <div class="kpi high"><span>Vencen &lt; 15 días</span><strong>@Dashboard.ExpiringIn15Days</strong><small>Prioridad alta</small></div>
-                <div class="kpi danger"><span>Vencen &lt; 5 días</span><strong>@Dashboard.ExpiringIn5Days</strong><small>Crítico</small></div>
+                <div class="kpi danger"><span>Vencen &lt; 7 días</span><strong>@Dashboard.ExpiringIn7Days</strong><small>Crítico</small></div>
                 <div class="kpi"><span>Correos pendientes</span><strong>@Dashboard.PendingEmails</strong><small>Listos para enviar</small></div>
                 <div class="kpi muted"><span>Desactivados</span><strong>@Dashboard.DisabledCustomers</strong><small>No procesar</small></div>
                 <div class="kpi danger"><span>Errores</span><strong>@Dashboard.AutomationErrors</strong><small>Últimas ejecuciones</small></div>
@@ -195,9 +198,20 @@
                 <div class="section-header">
                     <div>
                         <h3>Centro de Correos</h3>
-                        <p>Clientes con approvalPending, Approval URL generado y correo configurado.</p>
+                        <p>Clientes con approvalPending, Approval URL generado y correo configurado. También permite enviar recordatorios preventivos a 30, 15 y 7 días.</p>
                     </div>
-                    <button class="btn-primary" @onclick="LoadPendingEmailsAsync">↻ Refrescar correos</button>
+                    <div class="template-selector">
+                        <select @bind="SelectedTemplateId">
+                            @foreach (var template in MailTemplates.Where(x => x.IsActive))
+                            {
+                                <option value="@template.Id">@template.Name</option>
+                            }
+                        </select>
+                        <button class="btn-secondary" disabled="@IsSendingMail" @onclick="() => SendExpirationReminderBatchAsync(30)">📧 30 días</button>
+                        <button class="btn-secondary" disabled="@IsSendingMail" @onclick="() => SendExpirationReminderBatchAsync(15)">📧 15 días</button>
+                        <button class="btn-secondary" disabled="@IsSendingMail" @onclick="() => SendExpirationReminderBatchAsync(7)">📧 7 días</button>
+                        <button class="btn-primary" @onclick="LoadPendingEmailsAsync">↻ Refrescar correos</button>
+                    </div>
                 </div>
 
                 <div class="gdap-row mail-head">
@@ -219,20 +233,67 @@
                         <span>@item.CCEmails</span>
                         <span><button class="link-button" @onclick="() => OpenApprovalUrl(item)">Abrir link</button></span>
                         <span>@FormatDateTime(item.LastEmailSentAt)</span>
-                        <span class="row-actions"><button title="Vista previa">👁</button><button title="Enviar correo">📧</button></span>
+                        <span class="row-actions">
+                            <button title="Vista previa" @onclick="() => OpenMailPreviewAsync(item)">👁</button>
+                            <button title="Enviar correo" disabled="@IsSendingMail" @onclick="() => SendMailDirectAsync(item)">📧</button>
+                        </span>
                     </div>
                 }
             </section>
         }
+
+        else if (ActiveTab == "Templates")
+        {
+            <section class="gdap-table-card">
+                <div class="section-header">
+                    <div>
+                        <h3>Plantillas de Correo</h3>
+                        <p>Administra el HTML utilizado para enviar los Approval Links GDAP.</p>
+                    </div>
+                    <button class="btn-primary" @onclick="NewTemplate">+ Nueva plantilla</button>
+                </div>
+
+                <div class="template-variable-box">
+                    Variables disponibles: <code>{{CustomerName}}</code>, <code>{{PartnerTenant}}</code>, <code>{{ApprovalUrl}}</code>, <code>{{PrimaryContactName}}</code>, <code>{{ExecutionDate}}</code>, <code>{{ExpirationDate}}</code>, <code>{{SupportEmail}}</code>, <code>{{SupportPhone}}</code>
+                </div>
+
+                <div class="gdap-row template-head">
+                    <span>Nombre</span>
+                    <span>Asunto</span>
+                    <span>Default</span>
+                    <span>Activa</span>
+                    <span>Actualizado</span>
+                    <span>Acciones</span>
+                </div>
+
+                @foreach (var template in MailTemplates)
+                {
+                    <div class="gdap-row template-head">
+                        <span><strong>@template.Name</strong><small>@template.TemplateKey</small></span>
+                        <span>@template.Subject</span>
+                        <span><span class="active-pill @(template.IsDefault ? "yes" : "no")">@(template.IsDefault ? "Sí" : "No")</span></span>
+                        <span><span class="active-pill @(template.IsActive ? "yes" : "no")">@(template.IsActive ? "Sí" : "No")</span></span>
+                        <span>@FormatDateTime(template.UpdatedAt)</span>
+                        <span class="row-actions"><button @onclick="() => EditTemplate(template)">✏</button></span>
+                    </div>
+                }
+            </section>
+        }
+
         else if (ActiveTab == "Expiring")
         {
             <section class="gdap-table-card">
                 <div class="section-header">
                     <div>
                         <h3>Próximos vencimientos</h3>
-                        <p>Clientes con GDAP por vencer en 30, 15 o 5 días.</p>
+                        <p>Clientes con GDAP por vencer en 30, 15 o 7 días. El correo solo se envía si ya existe Approval URL, estado approvalPending, cliente activo y correo configurado.</p>
                     </div>
-                    <button class="btn-primary" @onclick="LoadExpiringAsync">↻ Refrescar vencimientos</button>
+                    <div class="template-selector">
+                        <button class="btn-secondary" disabled="@IsSendingMail" @onclick="() => SendExpirationReminderBatchAsync(30)">📧 Enviar 30 días</button>
+                        <button class="btn-secondary" disabled="@IsSendingMail" @onclick="() => SendExpirationReminderBatchAsync(15)">📧 Enviar 15 días</button>
+                        <button class="btn-secondary" disabled="@IsSendingMail" @onclick="() => SendExpirationReminderBatchAsync(7)">📧 Enviar 7 días</button>
+                        <button class="btn-primary" @onclick="LoadExpiringAsync">↻ Refrescar vencimientos</button>
+                    </div>
                 </div>
 
                 <div class="gdap-row exp-head">
@@ -332,6 +393,75 @@
                 <div class="modal-actions">
                     <button class="btn-secondary" @onclick="CloseEdit">Cancelar</button>
                     <button class="btn-primary" @onclick="SaveCustomerAsync">Guardar cambios</button>
+                </div>
+            </div>
+        </div>
+    }
+
+
+
+    @if (ShowMailPreview && MailPreview is not null)
+    {
+        <div class="gdap-modal-backdrop">
+            <div class="gdap-mail-preview-modal">
+                <div class="modal-header">
+                    <div>
+                        <h3>Vista previa correo GDAP</h3>
+                        <small>@MailPreview.To</small>
+                    </div>
+                    <button disabled="@IsSendingMail" @onclick="CloseMailPreview">×</button>
+                </div>
+
+                <div class="mail-preview-meta">
+                    <div class="detail-line"><span>Para</span><b>@MailPreview.To</b></div>
+                    <div class="detail-line"><span>CC</span><b>@MailPreview.Cc</b></div>
+                    <div class="detail-line"><span>Asunto</span><b>@MailPreview.Subject</b></div>
+                </div>
+
+                <div class="mail-preview-body">@((MarkupString)MailPreview.HtmlBody)</div>
+
+                <div class="modal-actions">
+                    <button class="btn-secondary" disabled="@IsSendingMail" @onclick="OpenMailTo">Abrir en Outlook</button>
+                    <button class="btn-secondary" disabled="@IsSendingMail" @onclick="CloseMailPreview">Cancelar</button>
+                    <button class="btn-primary" disabled="@IsSendingMail" @onclick="SendPreviewEmailAsync">@(IsSendingMail ? "Enviando..." : "Enviar automáticamente")</button>
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (ShowTemplateEditor)
+    {
+        <div class="gdap-modal-backdrop">
+            <div class="gdap-template-modal">
+                <div class="modal-header">
+                    <div>
+                        <h3>Plantilla de correo GDAP</h3>
+                        <small>@TemplateEditor.TemplateKey</small>
+                    </div>
+                    <button @onclick="CloseTemplateEditor">×</button>
+                </div>
+
+                <div class="template-edit-body">
+                    <label>Nombre
+                        <input @bind="TemplateEditor.Name" />
+                    </label>
+                    <label>Asunto
+                        <input @bind="TemplateEditor.Subject" />
+                    </label>
+                    <label class="checkbox-line">
+                        <input type="checkbox" @bind="TemplateEditor.IsDefault" /> Plantilla predeterminada
+                    </label>
+                    <label class="checkbox-line">
+                        <input type="checkbox" @bind="TemplateEditor.IsActive" /> Plantilla activa
+                    </label>
+                    <label class="full">HTML del correo
+                        <textarea class="html-editor" @bind="TemplateEditor.HtmlBody"></textarea>
+                    </label>
+                </div>
+
+                <div class="modal-actions">
+                    <button class="btn-secondary" @onclick="CloseTemplateEditor">Cancelar</button>
+                    <button class="btn-primary" @onclick="SaveTemplateAsync">Guardar plantilla</button>
                 </div>
             </div>
         </div>

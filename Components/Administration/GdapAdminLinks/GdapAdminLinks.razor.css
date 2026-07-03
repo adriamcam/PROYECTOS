@@ -598,3 +598,111 @@
     opacity: .45;
     cursor: not-allowed;
 }
+
+/* ===============================
+   FASE 3 - Centro de Correos / Plantillas
+   =============================== */
+.template-selector {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.template-selector select {
+    min-width: 260px;
+}
+
+.template-variable-box {
+    margin: 12px 0 18px;
+    padding: 12px 14px;
+    border: 1px solid rgba(148, 163, 184, .24);
+    border-radius: 14px;
+    background: rgba(15, 23, 42, .42);
+    color: #cbd5e1;
+    font-size: 13px;
+}
+
+.template-variable-box code {
+    color: #93c5fd;
+    background: rgba(59, 130, 246, .12);
+    padding: 2px 6px;
+    border-radius: 6px;
+}
+
+.gdap-row.template-head {
+    grid-template-columns: 1.2fr 1.8fr .6fr .6fr .8fr .5fr;
+}
+
+.gdap-mail-preview-modal,
+.gdap-template-modal {
+    width: min(980px, calc(100vw - 48px));
+    max-height: calc(100vh - 48px);
+    overflow: auto;
+    background: #0f172a;
+    border: 1px solid rgba(148, 163, 184, .24);
+    border-radius: 22px;
+    box-shadow: 0 24px 80px rgba(0,0,0,.42);
+}
+
+.mail-preview-meta {
+    padding: 18px 22px 0;
+}
+
+.mail-preview-body {
+    margin: 18px 22px;
+    padding: 24px;
+    border-radius: 18px;
+    background: #ffffff;
+    color: #111827;
+    line-height: 1.55;
+    font-size: 14px;
+}
+
+.mail-preview-body a {
+    color: #2563eb;
+}
+
+.template-edit-body {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    padding: 20px 22px;
+}
+
+.template-edit-body label {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    color: #cbd5e1;
+    font-size: 13px;
+}
+
+.template-edit-body .full {
+    grid-column: 1 / -1;
+}
+
+.html-editor {
+    min-height: 360px;
+    font-family: Consolas, Monaco, monospace;
+    line-height: 1.45;
+    resize: vertical;
+}
+
+/* ==========================================================
+   FASE 4 - Reportes y auditoría
+   ========================================================== */
+.gdap-row.report-head,
+.gdap-row.report-row {
+    grid-template-columns: 1.4fr .7fr .7fr .8fr .8fr .8fr .8fr .7fr;
+}
+
+.gdap-row.audit-head,
+.gdap-row.audit-row {
+    grid-template-columns: 1fr 1fr 1.5fr 1fr 1.2fr 2fr;
+}
+
+.gdap-row.audit-row small {
+    display: block;
+    color: #7c8798;
+    margin-top: 2px;
+}

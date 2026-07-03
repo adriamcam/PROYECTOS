@@ -8,6 +8,7 @@ public sealed class GdapAdminLinksDashboardModel
     public int ApprovalPending { get; set; }
     public int ExpiringIn30Days { get; set; }
     public int ExpiringIn15Days { get; set; }
+    public int ExpiringIn7Days { get; set; }
     public int ExpiringIn5Days { get; set; }
     public int DisabledCustomers { get; set; }
     public int PendingEmails { get; set; }
