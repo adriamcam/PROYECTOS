@@ -161,3 +161,81 @@
 }
 
 @media(max-width:1150px){.customer-kpis{grid-template-columns:1fr 1fr}.customer-toolbar{grid-template-columns:1fr}.table-footer{grid-template-columns:1fr;justify-items:start}}@media(max-width:760px){.customer-admin-page{padding:14px}.hero-title{align-items:flex-start}.customer-kpis,.modal-body{grid-template-columns:1fr}.customer-modal{width:calc(100vw - 24px);max-height:calc(100vh - 24px)}.customer-modal-backdrop{padding:12px}}
+
+/* ===================================================================== */
+/* ELIMINAR CLIENTE - CustomerAdmin                                      */
+/* ===================================================================== */
+.row-actions .delete-action{
+    background:#fef2f2!important;
+    color:#b91c1c!important;
+}
+
+.row-actions .delete-action:hover{
+    background:#fee2e2!important;
+}
+
+.btn-danger{
+    border-radius:10px;
+    padding:11px 18px;
+    font-weight:900;
+    cursor:pointer;
+    white-space:nowrap;
+    background:#dc2626;
+    color:#fff;
+    border:1px solid #dc2626;
+    box-shadow:0 8px 20px rgba(220,38,38,.18);
+}
+
+.btn-danger:hover{
+    background:#b91c1c;
+    border-color:#b91c1c;
+}
+
+.delete-modal{
+    width:min(720px,calc(100vw - 48px));
+}
+
+.delete-header{
+    background:#fff7ed;
+    border-bottom-color:#fed7aa;
+}
+
+.delete-body{
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+}
+
+.delete-warning{
+    display:flex;
+    align-items:flex-start;
+    gap:14px;
+    background:#fff7ed;
+    border:1px solid #fed7aa;
+    color:#9a3412;
+    border-radius:14px;
+    padding:16px;
+}
+
+.delete-warning strong{
+    display:block;
+    font-size:16px;
+    font-weight:950;
+    color:#9a3412;
+}
+
+.delete-warning p{
+    margin:6px 0 0;
+    color:#7c2d12;
+    font-weight:700;
+}
+
+.delete-icon{
+    width:42px;
+    height:42px;
+    border-radius:12px;
+    background:#ffedd5;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:24px;
+    flex:0 0 auto;
+}

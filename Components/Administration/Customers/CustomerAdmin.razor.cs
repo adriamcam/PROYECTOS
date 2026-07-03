@@ -17,6 +17,9 @@ public partial class CustomerAdmin : ComponentBase
     protected bool CanAccess { get; set; }
     protected bool ShowEditor { get; set; }
     protected bool IsEditMode { get; set; }
+    protected bool ShowDeleteCustomerModal { get; set; }
+
+    protected CustomerAdminModel? CustomerToDelete { get; set; }
 
     protected string UserEmail { get; set; } = string.Empty;
     protected string SearchText { get; set; } = string.Empty;
@@ -24,6 +27,7 @@ public partial class CustomerAdmin : ComponentBase
     protected string Message { get; set; } = string.Empty;
     protected string MessageCss { get; set; } = "customer-message ok";
     protected string TenantIdText { get; set; } = string.Empty;
+    protected string OriginalTenantIdText { get; set; } = string.Empty;
 
     protected CustomerAdminDashboardModel Dashboard { get; set; } = new();
     protected List<CustomerAdminModel> Customers { get; set; } = new();
@@ -190,6 +194,7 @@ public partial class CustomerAdmin : ComponentBase
         Message = string.Empty;
         IsEditMode = false;
         TenantIdText = string.Empty;
+        OriginalTenantIdText = string.Empty;
 
         Editor = new CustomerAdminSaveRequestModel
         {
@@ -205,6 +210,7 @@ public partial class CustomerAdmin : ComponentBase
         Message = string.Empty;
         IsEditMode = true;
         TenantIdText = customer.TenantId.ToString();
+        OriginalTenantIdText = customer.TenantId.ToString();
 
         Editor = new CustomerAdminSaveRequestModel
         {
@@ -224,6 +230,7 @@ public partial class CustomerAdmin : ComponentBase
     protected void CloseEditor()
     {
         ShowEditor = false;
+        OriginalTenantIdText = string.Empty;
     }
 
     protected async Task SaveAsync()
@@ -236,11 +243,53 @@ public partial class CustomerAdmin : ComponentBase
             Editor.TenantId = tenantId;
             Editor.UpdatedBy = UserEmail;
 
-            await CustomerAdminService.SaveCustomerAsync(Editor);
+            Guid? originalTenantId = null;
+
+            if (IsEditMode && Guid.TryParse(OriginalTenantIdText, out var parsedOriginalTenantId))
+            {
+                originalTenantId = parsedOriginalTenantId;
+            }
+
+            await CustomerAdminService.SaveCustomerAsync(Editor, originalTenantId);
 
             SetOk("Cliente guardado correctamente.");
 
             ShowEditor = false;
+            await RefreshAsync();
+        }
+        catch (Exception ex)
+        {
+            SetError(ex.Message);
+        }
+    }
+
+    protected void OpenDeleteCustomer(CustomerAdminModel customer)
+    {
+        Message = string.Empty;
+        CustomerToDelete = customer;
+        ShowDeleteCustomerModal = true;
+    }
+
+    protected void CloseDeleteCustomer()
+    {
+        ShowDeleteCustomerModal = false;
+        CustomerToDelete = null;
+    }
+
+    protected async Task DeleteCustomerAsync()
+    {
+        if (CustomerToDelete is null)
+            return;
+
+        try
+        {
+            await CustomerAdminService.DeleteCustomerAsync(CustomerToDelete.TenantId, UserEmail);
+
+            SetOk($"Cliente '{CustomerToDelete.CustomerName}' eliminado correctamente.");
+
+            ShowDeleteCustomerModal = false;
+            CustomerToDelete = null;
+
             await RefreshAsync();
         }
         catch (Exception ex)

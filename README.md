@@ -1,32 +1,38 @@
-# ITQS Support Operations Center - Login Entra ID
+# CustomerAdmin - TenantId editable + eliminación lógica
 
-Proyecto Blazor Web App .NET 8 con pantalla inicial limpia y autenticación Microsoft Entra ID.
+## Cambios incluidos
 
-## Rutas
+- TenantId editable en el popup de Editar Cliente.
+- Botón 🗑️ Eliminar en acciones.
+- Popup de confirmación antes de eliminar.
+- Eliminación lógica: `IsActive = 0`.
+- Se agrega nota de auditoría con usuario y fecha UTC.
+- Service y Repository actualizados.
 
-- `/` Pantalla de bienvenida pública con botón Ingresar.
-- `/home` Página protegida, solo visible después de autenticarse.
+## Archivos para reemplazar
 
-## Configuración requerida en Entra ID
+Copiar estos archivos en sus rutas correspondientes:
 
-Crear App Registration:
+```text
+Components/Administration/Customers/CustomerAdmin.razor
+Components/Administration/Customers/CustomerAdmin.razor.cs
+Components/Administration/Customers/CustomerAdmin.razor.css
+Services/Interfaces/ICustomerAdminService.cs
+Services/CustomerAdminService.cs
+Repositories/Interfaces/ICustomerAdminRepository.cs
+Repositories/CustomerAdminRepository.cs
+```
 
-- Platform: Web
-- Redirect URI local: `https://localhost:5001/signin-oidc`
-- Redirect URI Azure: `https://TU-APP.azurewebsites.net/signin-oidc`
-- Front-channel logout URL: `https://TU-APP.azurewebsites.net/signout-oidc`
+## SQL requerido
 
-Luego configurar `appsettings.json` o variables de entorno en Azure App Service:
+Ejecutar antes de probar edición de TenantId:
 
-- `AzureAd:TenantId`
-- `AzureAd:ClientId`
-- `AzureAd:Domain`
+```text
+SQL/01_Update_CustomerAdmin_SaveCustomer.sql
+```
 
-## Publicación
+## Compilar
 
 ```powershell
 dotnet build
-git add .
-git commit -m "Login Entra ID only"
-git push origin main
 ```

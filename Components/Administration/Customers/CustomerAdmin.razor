@@ -139,6 +139,13 @@
                                         @onclick="() => OpenConnectionTest(item)">
                                     🔌
                                 </button>
+
+                                <button type="button"
+                                        class="delete-action"
+                                        title="Eliminar cliente"
+                                        @onclick="() => OpenDeleteCustomer(item)">
+                                    🗑️
+                                </button>
                             </span>
                         </div>
                     }
@@ -214,7 +221,7 @@
                 <div class="modal-body">
                     <label>
                         TenantId *
-                        <input @bind="TenantIdText" disabled="@IsEditMode" placeholder="UUID del Tenant" />
+                        <input @bind="TenantIdText" placeholder="UUID del Tenant" />
                     </label>
 
                     <label>
@@ -370,6 +377,59 @@
                             @onclick="RunConnectionTest">
                         @(IsRunningConnectionTest ? "Ejecutando..." : "Ejecutar prueba")
                     </button>
+                </div>
+            </div>
+        </div>
+    }
+
+
+    <!-- ================== SECCIÓN 06: MODAL ELIMINAR CLIENTE ================= -->
+    @if (ShowDeleteCustomerModal && CustomerToDelete is not null)
+    {
+        <div class="customer-modal-backdrop">
+            <div class="customer-modal delete-modal">
+                <div class="modal-header delete-header">
+                    <div>
+                        <h3>Eliminar cliente</h3>
+                        <small>Esta acción deshabilitará el cliente para las automatizaciones.</small>
+                    </div>
+
+                    <button type="button" class="modal-close" @onclick="CloseDeleteCustomer">×</button>
+                </div>
+
+                <div class="modal-body delete-body">
+                    <section class="delete-warning full">
+                        <div class="delete-icon">⚠️</div>
+                        <div>
+                            <strong>¿Está seguro de eliminar este cliente?</strong>
+                            <p>No se borrará físicamente. Se marcará como inactivo en <b>dbo.ITQS_Customers</b>.</p>
+                        </div>
+                    </section>
+
+                    <label>
+                        Cliente
+                        <input value="@CustomerToDelete.CustomerName" disabled />
+                    </label>
+
+                    <label>
+                        TenantId
+                        <input value="@CustomerToDelete.TenantId" disabled />
+                    </label>
+
+                    <label>
+                        ClientId
+                        <input value="@CustomerToDelete.ClientId" disabled />
+                    </label>
+
+                    <label>
+                        SecretName
+                        <input value="@CustomerToDelete.SecretName" disabled />
+                    </label>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" @onclick="CloseDeleteCustomer">Cancelar</button>
+                    <button type="button" class="btn-danger" @onclick="DeleteCustomerAsync">Eliminar</button>
                 </div>
             </div>
         </div>

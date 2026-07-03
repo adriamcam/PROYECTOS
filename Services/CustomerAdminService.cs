@@ -33,7 +33,7 @@ public sealed class CustomerAdminService : ICustomerAdminService
         catch (Exception ex) { _logger.LogError(ex, "Error loading customers."); return Array.Empty<CustomerAdminModel>(); }
     }
 
-    public async Task<CustomerAdminModel> SaveCustomerAsync(CustomerAdminSaveRequestModel request, CancellationToken cancellationToken = default)
+    public async Task<CustomerAdminModel> SaveCustomerAsync(CustomerAdminSaveRequestModel request, Guid? originalTenantId = null, CancellationToken cancellationToken = default)
     {
         request.CustomerName = request.CustomerName?.Trim() ?? string.Empty;
         request.CustomerNamePortal = request.CustomerNamePortal?.Trim() ?? string.Empty;
@@ -57,6 +57,17 @@ public sealed class CustomerAdminService : ICustomerAdminService
         if (string.IsNullOrWhiteSpace(request.SecretName))
             throw new InvalidOperationException("El SecretName es requerido.");
 
-        return await _repository.SaveCustomerAsync(request, cancellationToken);
+        return await _repository.SaveCustomerAsync(request, originalTenantId, cancellationToken);
+    }
+
+    public async Task DeleteCustomerAsync(Guid tenantId, string userEmail, CancellationToken cancellationToken = default)
+    {
+        if (tenantId == Guid.Empty)
+            throw new InvalidOperationException("TenantId inválido.");
+
+        if (string.IsNullOrWhiteSpace(userEmail))
+            throw new InvalidOperationException("No se pudo identificar el usuario que elimina el cliente.");
+
+        await _repository.DeleteCustomerAsync(tenantId, userEmail.Trim(), cancellationToken);
     }
 }

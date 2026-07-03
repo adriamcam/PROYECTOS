@@ -69,11 +69,12 @@ WHERE LOWER(LTRIM(RTRIM(UserEmail))) = LOWER(LTRIM(RTRIM(@UserEmail)));";
         return rows.ToList();
     }
 
-    public async Task<CustomerAdminModel> SaveCustomerAsync(CustomerAdminSaveRequestModel request, CancellationToken cancellationToken = default)
+    public async Task<CustomerAdminModel> SaveCustomerAsync(CustomerAdminSaveRequestModel request, Guid? originalTenantId = null, CancellationToken cancellationToken = default)
     {
         using var connection = _connectionFactory.CreateConnection();
 
         var p = new DynamicParameters();
+        p.Add("@OriginalTenantId", originalTenantId);
         p.Add("@TenantId", request.TenantId);
         p.Add("@CustomerName", request.CustomerName?.Trim());
         p.Add("@CustomerNamePortal", request.CustomerNamePortal?.Trim());
@@ -91,4 +92,33 @@ WHERE LOWER(LTRIM(RTRIM(UserEmail))) = LOWER(LTRIM(RTRIM(@UserEmail)));";
                 commandTimeout: 180,
                 cancellationToken: cancellationToken));
     }
+
+    public async Task DeleteCustomerAsync(Guid tenantId, string userEmail, CancellationToken cancellationToken = default)
+    {
+        using var connection = _connectionFactory.CreateConnection();
+
+        const string sql = @"
+UPDATE dbo.ITQS_Customers
+SET
+    IsActive = 0,
+    Notes = CASE
+        WHEN NULLIF(LTRIM(RTRIM(ISNULL(Notes,''))), '') IS NULL
+            THEN CONCAT('Eliminado desde Support Cloud por ', @UserEmail, ' el ', CONVERT(varchar(19), SYSUTCDATETIME(), 120), ' UTC')
+        ELSE CONCAT(Notes, CHAR(13), CHAR(10), 'Eliminado desde Support Cloud por ', @UserEmail, ' el ', CONVERT(varchar(19), SYSUTCDATETIME(), 120), ' UTC')
+    END,
+    UpdatedAt = SYSUTCDATETIME()
+WHERE TenantId = @TenantId;
+
+SELECT @@ROWCOUNT;";
+
+        var affected = await connection.ExecuteScalarAsync<int>(
+            new CommandDefinition(sql,
+                new { TenantId = tenantId, UserEmail = userEmail },
+                commandTimeout: 120,
+                cancellationToken: cancellationToken));
+
+        if (affected <= 0)
+            throw new InvalidOperationException("No se encontró el cliente para eliminar.");
+    }
+
 }
