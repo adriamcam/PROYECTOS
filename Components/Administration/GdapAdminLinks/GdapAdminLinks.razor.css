@@ -1,0 +1,561 @@
+/* =========================================================
+   Admin Links GDAP - ITQS SOC
+   Fase 1: Dashboard, clientes, correos pendientes, vencimientos
+   ========================================================= */
+
+.gdap-page {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    color: #172033;
+}
+
+.gdap-empty {
+    background: #ffffff;
+    border: 1px solid #e7ecf3;
+    border-radius: 20px;
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    box-shadow: 0 12px 30px rgba(15, 23, 42, .06);
+}
+
+.gdap-hero {
+    display: flex;
+    align-items: stretch;
+    justify-content: space-between;
+    gap: 20px;
+    background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 55%, #2563eb 100%);
+    color: #ffffff;
+    border-radius: 24px;
+    padding: 26px;
+    box-shadow: 0 18px 42px rgba(15, 23, 42, .18);
+}
+
+.gdap-hero span {
+    text-transform: uppercase;
+    font-size: 12px;
+    letter-spacing: .14em;
+    color: #bfdbfe;
+    font-weight: 700;
+}
+
+.gdap-hero h1 {
+    margin: 6px 0;
+    font-size: 34px;
+    letter-spacing: -0.03em;
+}
+
+.gdap-hero p {
+    margin: 0;
+    color: #dbeafe;
+    max-width: 760px;
+}
+
+.hero-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.scan-box {
+    background: rgba(255, 255, 255, .12);
+    border: 1px solid rgba(255, 255, 255, .20);
+    border-radius: 18px;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    min-width: 170px;
+}
+
+.scan-box strong {
+    font-size: 15px;
+}
+
+.btn-primary,
+.btn-secondary {
+    border: 0;
+    border-radius: 14px;
+    padding: 11px 16px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.btn-primary {
+    background: #2563eb;
+    color: #ffffff;
+}
+
+.btn-primary:disabled,
+.btn-secondary:disabled,
+.row-actions button:disabled {
+    opacity: .45;
+    cursor: not-allowed;
+}
+
+.btn-secondary {
+    background: #eef2ff;
+    color: #1e3a8a;
+}
+
+.full-button {
+    width: 100%;
+    margin-top: 10px;
+}
+
+.gdap-tabs {
+    display: flex;
+    gap: 8px;
+    background: #ffffff;
+    border: 1px solid #e7ecf3;
+    border-radius: 18px;
+    padding: 8px;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, .05);
+}
+
+.gdap-tabs button {
+    border: 0;
+    border-radius: 12px;
+    background: transparent;
+    color: #475569;
+    padding: 10px 14px;
+    cursor: pointer;
+    font-weight: 800;
+}
+
+.gdap-tabs button.active {
+    background: #eff6ff;
+    color: #1d4ed8;
+}
+
+.gdap-message {
+    border-radius: 14px;
+    padding: 12px 14px;
+    font-weight: 700;
+}
+
+.gdap-message.ok {
+    background: #ecfdf5;
+    color: #047857;
+    border: 1px solid #bbf7d0;
+}
+
+.gdap-message.error {
+    background: #fef2f2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+}
+
+.gdap-kpis {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.kpi {
+    background: #ffffff;
+    border: 1px solid #e7ecf3;
+    border-radius: 18px;
+    padding: 16px;
+    box-shadow: 0 12px 26px rgba(15, 23, 42, .05);
+}
+
+.kpi span {
+    display: block;
+    color: #64748b;
+    font-size: 12px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+}
+
+.kpi strong {
+    display: block;
+    margin-top: 8px;
+    font-size: 30px;
+    color: #0f172a;
+}
+
+.kpi small {
+    color: #64748b;
+}
+
+.kpi.ok { border-left: 5px solid #10b981; }
+.kpi.warn { border-left: 5px solid #f59e0b; }
+.kpi.high { border-left: 5px solid #f97316; }
+.kpi.danger { border-left: 5px solid #ef4444; }
+.kpi.muted { border-left: 5px solid #94a3b8; }
+
+.gdap-summary-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.3fr 1fr;
+    gap: 14px;
+}
+
+.summary-card,
+.gdap-table-card {
+    background: #ffffff;
+    border: 1px solid #e7ecf3;
+    border-radius: 20px;
+    padding: 18px;
+    box-shadow: 0 12px 30px rgba(15, 23, 42, .05);
+}
+
+.summary-card h3,
+.section-header h3 {
+    margin: 0 0 12px;
+    color: #0f172a;
+}
+
+.health-ring {
+    width: 122px;
+    height: 122px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 10px auto;
+    background: radial-gradient(circle at center, #ffffff 48%, transparent 49%), conic-gradient(#2563eb 0 70%, #e2e8f0 70%);
+}
+
+.health-ring strong {
+    font-size: 28px;
+}
+
+.health-label {
+    display: block;
+    text-align: center;
+    font-weight: 900;
+    color: #2563eb;
+}
+
+.gdap-mini-item,
+.connection-line {
+    display: flex;
+    justify-content: space-between;
+    gap: 14px;
+    align-items: center;
+    border-bottom: 1px solid #eef2f7;
+    padding: 10px 0;
+}
+
+.gdap-mini-item span,
+.connection-line span {
+    flex: 1;
+    color: #334155;
+}
+
+.gdap-mini-item small {
+    color: #64748b;
+}
+
+.muted-text {
+    color: #64748b;
+}
+
+.gdap-toolbar {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr 2fr;
+    gap: 10px;
+}
+
+.gdap-toolbar select,
+.gdap-toolbar input,
+.edit-body input,
+.edit-body textarea {
+    width: 100%;
+    border: 1px solid #dbe4ef;
+    border-radius: 14px;
+    padding: 10px 12px;
+    background: #ffffff;
+    outline: none;
+}
+
+.search-box {
+    display: flex;
+    gap: 8px;
+}
+
+.search-box button {
+    border: 0;
+    border-radius: 14px;
+    padding: 0 14px;
+    background: #0f172a;
+    color: #ffffff;
+    cursor: pointer;
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 14px;
+}
+
+.section-header p {
+    margin: 0;
+    color: #64748b;
+}
+
+.gdap-row {
+    display: grid;
+    grid-template-columns: 1fr 2fr 1.1fr .9fr .6fr .8fr .9fr .6fr 1.1fr;
+    gap: 10px;
+    align-items: center;
+    padding: 13px 10px;
+    border-bottom: 1px solid #eef2f7;
+    font-size: 14px;
+}
+
+.gdap-row.mail-head {
+    grid-template-columns: 1.5fr 1fr 1.4fr 1.2fr 1fr .9fr .9fr;
+}
+
+.gdap-row.exp-head {
+    grid-template-columns: 1fr 2fr 1fr 1fr .7fr .8fr;
+}
+
+.gdap-row.head,
+.gdap-row.mail-head:first-of-type,
+.gdap-row.exp-head:first-of-type {
+    background: #f8fafc;
+    border-radius: 14px;
+    color: #475569;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    font-weight: 900;
+}
+
+.gdap-row strong {
+    display: block;
+    color: #0f172a;
+}
+
+.gdap-row small {
+    display: block;
+    color: #64748b;
+    overflow-wrap: anywhere;
+}
+
+.status,
+.mail-state,
+.active-pill {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 5px 9px;
+    font-weight: 900;
+    font-size: 12px;
+}
+
+.status.active { background: #ecfdf5; color: #047857; }
+.status.pending { background: #eff6ff; color: #1d4ed8; }
+.status.danger { background: #fef2f2; color: #b91c1c; }
+.status.disabled { background: #f1f5f9; color: #64748b; }
+.status.neutral { background: #f8fafc; color: #334155; }
+
+.mail-state.ready { background: #ecfdf5; color: #047857; }
+.mail-state.missing { background: #fef2f2; color: #b91c1c; }
+.active-pill.yes { background: #dcfce7; color: #166534; }
+.active-pill.no { background: #f1f5f9; color: #64748b; }
+
+.days-danger { color: #dc2626; font-weight: 900; }
+.days-high { color: #ea580c; font-weight: 900; }
+.days-warning { color: #d97706; font-weight: 900; }
+.days-ok { color: #059669; font-weight: 900; }
+.days-neutral { color: #64748b; font-weight: 900; }
+
+.row-actions {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.row-actions button,
+.link-button {
+    border: 1px solid #dbe4ef;
+    background: #ffffff;
+    border-radius: 10px;
+    min-width: 34px;
+    min-height: 32px;
+    cursor: pointer;
+    font-weight: 800;
+    color: #1d4ed8;
+}
+
+.table-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding-top: 14px;
+    color: #64748b;
+}
+
+.pagination {
+    display: flex;
+    gap: 6px;
+}
+
+.pagination button {
+    border: 1px solid #dbe4ef;
+    background: #ffffff;
+    border-radius: 10px;
+    min-width: 34px;
+    height: 32px;
+    cursor: pointer;
+}
+
+.pagination button.active {
+    background: #2563eb;
+    color: #ffffff;
+    border-color: #2563eb;
+}
+
+.table-footer select {
+    border: 1px solid #dbe4ef;
+    border-radius: 12px;
+    padding: 8px;
+}
+
+.gdap-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, .48);
+    display: flex;
+    justify-content: flex-end;
+    z-index: 1200;
+}
+
+.gdap-side-panel,
+.gdap-edit-modal {
+    background: #ffffff;
+    height: 100%;
+    width: min(560px, 96vw);
+    box-shadow: -20px 0 50px rgba(15, 23, 42, .20);
+    overflow-y: auto;
+}
+
+.gdap-edit-modal {
+    height: auto;
+    align-self: center;
+    margin: 20px auto;
+    border-radius: 22px;
+}
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 20px;
+    border-bottom: 1px solid #eef2f7;
+}
+
+.modal-header h3 {
+    margin: 0;
+}
+
+.modal-header small {
+    color: #64748b;
+}
+
+.modal-header button {
+    border: 0;
+    background: #f1f5f9;
+    border-radius: 12px;
+    width: 36px;
+    height: 36px;
+    cursor: pointer;
+    font-size: 22px;
+}
+
+.detail-body,
+.edit-body {
+    padding: 20px;
+}
+
+.detail-body h4 {
+    margin: 18px 0 8px;
+    color: #0f172a;
+}
+
+.detail-line {
+    display: flex;
+    justify-content: space-between;
+    gap: 14px;
+    border-bottom: 1px solid #eef2f7;
+    padding: 11px 0;
+}
+
+.detail-line span {
+    color: #64748b;
+}
+
+.detail-line b {
+    text-align: right;
+    overflow-wrap: anywhere;
+}
+
+.approval-box {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 12px;
+    overflow-wrap: anywhere;
+    color: #334155;
+}
+
+.edit-body {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+}
+
+.edit-body label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    color: #334155;
+    font-weight: 800;
+}
+
+.edit-body .full,
+.edit-body .checkbox-line {
+    grid-column: 1 / -1;
+}
+
+.checkbox-line {
+    flex-direction: row !important;
+    align-items: center;
+}
+
+.checkbox-line input {
+    width: auto;
+}
+
+.edit-body textarea {
+    min-height: 90px;
+    resize: vertical;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 18px 20px;
+    border-top: 1px solid #eef2f7;
+}
+
+@media (max-width: 1200px) {
+    .gdap-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .gdap-summary-grid { grid-template-columns: 1fr; }
+    .gdap-toolbar { grid-template-columns: 1fr 1fr; }
+    .gdap-row,
+    .gdap-row.mail-head,
+    .gdap-row.exp-head { grid-template-columns: 1fr; }
+    .gdap-row.head { display: none; }
+}

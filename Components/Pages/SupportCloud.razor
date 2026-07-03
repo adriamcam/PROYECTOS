@@ -8,6 +8,7 @@
 @using ITQS.SupportOperationsCenter.Components.Maintenance.SqlOperations
 @using ITQS.SupportOperationsCenter.Components.Administration.Customers
 @using ITQS.SupportOperationsCenter.Components.Administration.AppRegistrationsITQS
+@using ITQS.SupportOperationsCenter.Components.Administration.GdapAdminLinks
 
 @inject AuthenticationStateProvider AuthenticationStateProvider
 
@@ -48,6 +49,10 @@
 
                         <button type="button" class="menu-link" @onclick='() => SelectModule("AppRegistrationsITQS")'>
                             App Registrations ITQS
+                        </button>
+
+                        <button type="button" class="menu-link" @onclick='() => SelectModule("GdapAdminLinks")'>
+                            Admin Links GDAP
                         </button>
                     </div>
                 </div>
@@ -152,6 +157,10 @@
             {
                 <AppRegistrationsITQS />
             }
+            else if (CurrentModule == "GdapAdminLinks")
+            {
+                <GdapAdminLinks />
+            }
             else if (CurrentModule == "SqlDashboard")
             {
                 <SqlOperationsDashboard NavigateModule="SelectModule" />
@@ -230,6 +239,7 @@
             "AdminManagerView" => "Admin / Manager View",
             "CustomerAdmin" => "Administración / Clientes",
             "AppRegistrationsITQS" => "Administración / App Registrations ITQS",
+            "GdapAdminLinks" => "Administración / Admin Links GDAP",
 
             "SqlDashboard" => "Mantenimiento / SQL / Dashboard",
             "SqlMaintenance" => "Mantenimiento / SQL / Mantenimiento",
@@ -333,7 +343,8 @@
         CurrentModule = module;
 
         if (module == "CustomerAdmin" ||
-            module == "AppRegistrationsITQS")
+            module == "AppRegistrationsITQS" ||
+            module == "GdapAdminLinks")
         {
             ShowAdministrationMenu = true;
 
