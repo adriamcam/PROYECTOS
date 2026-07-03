@@ -3,9 +3,311 @@
 <div class="gdap-page">
     @if (IsLoading)
     {
+        <section class="gdap-empty">
+            <strong>Cargando Admin Links GDAP...</strong>
+            <span>Consultando vistas GDAP en SQL Server.</span>
+        </section>
+    }
+    else
+    {
+        <section class="gdap-hero">
+            <div>
+                <span>Administración</span>
+                <h1>Admin Links GDAP</h1>
+                <p>Gestión operativa de relaciones GDAP, enlaces de aprobación, vencimientos y correos a clientes.</p>
+            </div>
+
+            <div class="hero-actions">
+                <div class="scan-box">
+                    <span>Última ejecución</span>
+                    <strong>@Dashboard.LastExecutionText</strong>
+                </div>
+                <button class="btn-primary" type="button" @onclick="RefreshAsync">↻ Actualizar</button>
+            </div>
+        </section>
+
+        <section class="gdap-tabs">
+            <button class="@(ActiveTab == "Dashboard" ? "active" : "")" @onclick='() => ChangeTabAsync("Dashboard")'>Dashboard</button>
+            <button class="@(ActiveTab == "Customers" ? "active" : "")" @onclick='() => ChangeTabAsync("Customers")'>Clientes GDAP</button>
+            <button class="@(ActiveTab == "Mail" ? "active" : "")" @onclick='() => ChangeTabAsync("Mail")'>Centro de Correos</button>
+            <button class="@(ActiveTab == "Expiring" ? "active" : "")" @onclick='() => ChangeTabAsync("Expiring")'>Vencimientos</button>
+            <button class="@(ActiveTab == "Templates" ? "active" : "")" @onclick='() => ChangeTabAsync("Templates")'>Plantillas</button>
+            <button class="@(ActiveTab == "Reports" ? "active" : "")" @onclick='() => ChangeTabAsync("Reports")'>Reportes</button>
+            <button class="@(ActiveTab == "Audit" ? "active" : "")" @onclick='() => ChangeTabAsync("Audit")'>Auditoría</button>
+        </section>
+
+        @if (!string.IsNullOrWhiteSpace(Message))
+        {
+            <div class="@MessageCss">@Message</div>
+        }
+
+        @if (ActiveTab == "Dashboard")
+        {
+            <section class="gdap-kpis">
+                <div class="kpi"><span>Total clientes</span><strong>@Dashboard.TotalCustomers</strong><small>Partner Center</small></div>
+                <div class="kpi ok"><span>GDAP activos</span><strong>@Dashboard.ActiveGdap</strong><small>Vigentes</small></div>
+                <div class="kpi warn"><span>Approval Pending</span><strong>@Dashboard.ApprovalPending</strong><small>Requieren aprobación</small></div>
+                <div class="kpi danger"><span>Sin GDAP</span><strong>@Dashboard.WithoutGdap</strong><small>Atención</small></div>
+                <div class="kpi warn"><span>Vencen &lt; 30 días</span><strong>@Dashboard.ExpiringIn30Days</strong><small>Preventivo</small></div>
+                <div class="kpi high"><span>Vencen &lt; 15 días</span><strong>@Dashboard.ExpiringIn15Days</strong><small>Prioridad alta</small></div>
+                <div class="kpi danger"><span>Vencen &lt; 7 días</span><strong>@Dashboard.ExpiringIn7Days</strong><small>Crítico</small></div>
+                <div class="kpi"><span>Correos pendientes</span><strong>@Dashboard.PendingEmails</strong><small>Listos para enviar</small></div>
+                <div class="kpi muted"><span>Desactivados</span><strong>@Dashboard.DisabledCustomers</strong><small>No procesar</small></div>
+                <div class="kpi danger"><span>Errores</span><strong>@Dashboard.AutomationErrors</strong><small>Últimas ejecuciones</small></div>
+            </section>
+
+            <section class="gdap-summary-grid">
+                <div class="summary-card">
+                    <h3>Salud GDAP</h3>
+                    <div class="health-ring"><strong>@HealthPercent%</strong></div>
+                    <span class="health-label">@(HealthPercent >= 90 ? "HEALTHY" : "ATENCIÓN")</span>
+                </div>
+
+                <div class="summary-card">
+                    <h3>Próximos vencimientos</h3>
+                    @if (!ExpiringItems.Any())
+                    {
+                        <p class="muted-text">No hay vencimientos cargados.</p>
+                    }
+                    else
+                    {
+                        @foreach (var item in ExpiringItems.Take(5))
+                        {
+                            <div class="gdap-mini-item">
+                                <strong>@(item.DaysToExpire?.ToString() ?? "-") días</strong>
+                                <span>@item.CustomerName</span>
+                                <small>@item.PartnerTenant</small>
+                            </div>
+                        }
+                    }
+                </div>
+
+                <div class="summary-card">
+                    <h3>Correo GDAP</h3>
+                    <div class="connection-line"><span>Listos para enviar</span><b>@Dashboard.PendingEmails</b></div>
+                    <div class="connection-line"><span>Approval Pending</span><b>@Dashboard.ApprovalPending</b></div>
+                    <div class="connection-line"><span>Envío automático</span><b>Preparado</b></div>
+                    <button class="btn-primary full-button" @onclick='() => ChangeTabAsync("Mail")'>Ir al Centro de Correos</button>
+                </div>
+            </section>
         }
         else if (ActiveTab == "Customers")
         {
+            <section class="gdap-toolbar">
+                <select @bind="Filters.PartnerTenant" @bind:after="ApplyFiltersAsync">
+                    <option value="">Todos los partners</option>
+                    @foreach (var item in PartnerOptions)
+                    {
+                        <option value="@item">@item</option>
+                    }
+                </select>
+
+                <select @bind="Filters.StatusFound" @bind:after="ApplyFiltersAsync">
+                    <option value="">Todos los estados</option>
+                    <option value="active">Active</option>
+                    <option value="approvalPending">Approval Pending</option>
+                    <option value="Sin GDAP">Sin GDAP</option>
+                    <option value="expired">Expired</option>
+                    <option value="terminated">Terminated</option>
+                </select>
+
+                <select @bind="Filters.ActiveFilter" @bind:after="ApplyFiltersAsync">
+                    <option value="">Todos EnableGDAP</option>
+                    <option value="Active">EnableGDAP ON</option>
+                    <option value="Inactive">EnableGDAP OFF</option>
+                </select>
+
+                <div class="search-box">
+                    <input placeholder="Buscar cliente, tenant o partner..."
+                           @bind="Filters.Search"
+                           @bind:event="oninput"
+                           @onkeydown="SearchKeyDownAsync" />
+                    <button type="button" @onclick="ApplyFiltersAsync">🔎</button>
+                </div>
+            </section>
+
+            <section class="gdap-table-card">
+                <div class="gdap-row head">
+                    <span>Partner</span>
+                    <span>Cliente</span>
+                    <span>Estado</span>
+                    <span>Vence</span>
+                    <span>Días</span>
+                    <span>EnableGDAP</span>
+                    <span>Acciones</span>
+                </div>
+
+                @foreach (var item in PagedItems)
+                {
+                    <div class="gdap-row">
+                        <span><strong>@item.PartnerTenant</strong></span>
+                        <span><strong>@item.CustomerName</strong><small>@item.CustomerTenantId</small></span>
+                        <span><span class="status @StatusCss(item)">@StatusText(item)</span></span>
+                        <span>@FormatDate(item.ActiveEndDate)</span>
+                        <span class="@DaysCss(item)">@(item.DaysToExpire?.ToString() ?? "-")</span>
+                        <span>
+    <button type="button"
+            class="gdap-switch @(item.EnableGDAPAutomation ? "on" : "off")"
+            title="@(item.EnableGDAPAutomation ? "Deshabilitar GDAP Automation" : "Habilitar GDAP Automation")"
+            @onclick="() => ToggleGdapAutomationAsync(item)">
+        <span class="switch-dot"></span>
+        <b>@(item.EnableGDAPAutomation ? "ON" : "OFF")</b>
+    </button>
+</span>
+                        <span class="row-actions">
+                            <button type="button" title="Ver detalle" @onclick="() => OpenDetailAsync(item.Id)">👁</button>
+                            <button type="button" title="Ejecutar Automation" disabled="@(!item.EnableGDAPAutomation)" @onclick="() => OpenAutomationConfirm(item)">▶</button>
+                            <button type="button" title="Sincronizar cliente GDAP" @onclick="() => OpenSyncConfirm(item)">🔄</button>
+                            <button type="button" title="Editar cliente" @onclick="() => OpenEditAsync(item)">✏</button>
+                            <button type="button" title="Abrir Approval URL" disabled="@string.IsNullOrWhiteSpace(item.ApprovalPendingLink)" @onclick="() => OpenApprovalUrl(item)">🔗</button>
+                            <button type="button" title="Copiar Approval URL" disabled="@string.IsNullOrWhiteSpace(item.ApprovalPendingLink)" @onclick="() => CopyApprovalUrlAsync(item)">📋</button>
+                        </span>
+                    </div>
+                }
+
+                <div class="table-footer">
+                    <span>Mostrando @FirstItemNumber a @LastItemNumber de @FilteredItems.Count registros</span>
+                    <div class="pagination">
+                        <button disabled="@(PageNumber <= 1)" @onclick="PreviousPageAsync">‹</button>
+                        @foreach (var pageItem in VisiblePages)
+                        {
+                            <button class="@(pageItem == PageNumber ? "active" : "")" @onclick="() => GoToPageAsync(pageItem)">@pageItem</button>
+                        }
+                        <button disabled="@(PageNumber >= TotalPages)" @onclick="NextPageAsync">›</button>
+                    </div>
+                    <select @bind="PageSize" @bind:after="PageSizeChangedAsync">
+                        <option value="10">10 por página</option>
+                        <option value="25">25 por página</option>
+                        <option value="50">50 por página</option>
+                    </select>
+                </div>
+            </section>
+        }
+        else if (ActiveTab == "Mail")
+        {
+            <section class="gdap-table-card">
+                <div class="section-header">
+                    <div>
+                        <h3>Centro de Correos</h3>
+                        <p>Clientes con approvalPending, Approval URL generado y correo configurado. También permite enviar recordatorios preventivos a 30, 15 y 7 días.</p>
+                    </div>
+                    <div class="template-selector">
+                        <select @bind="SelectedTemplateId">
+                            @foreach (var template in MailTemplates.Where(x => x.IsActive))
+                            {
+                                <option value="@template.Id">@template.Name</option>
+                            }
+                        </select>
+                        <button class="btn-secondary" disabled="@IsSendingMail" @onclick="() => SendExpirationReminderBatchAsync(30)">📧 30 días</button>
+                        <button class="btn-secondary" disabled="@IsSendingMail" @onclick="() => SendExpirationReminderBatchAsync(15)">📧 15 días</button>
+                        <button class="btn-secondary" disabled="@IsSendingMail" @onclick="() => SendExpirationReminderBatchAsync(7)">📧 7 días</button>
+                        <button class="btn-primary" @onclick="LoadPendingEmailsAsync">↻ Refrescar correos</button>
+                    </div>
+                </div>
+
+                <div class="gdap-row mail-head">
+                    <span>Cliente</span>
+                    <span>Contacto</span>
+                    <span>Correo</span>
+                    <span>CC</span>
+                    <span>Approval URL</span>
+                    <span>Último envío</span>
+                    <span>Acciones</span>
+                </div>
+
+                @foreach (var item in PendingEmailItems)
+                {
+                    <div class="gdap-row mail-head">
+                        <span><strong>@item.CustomerName</strong><small>@item.PartnerTenant</small></span>
+                        <span>@item.PrimaryContactName</span>
+                        <span>@item.PrimaryEmail</span>
+                        <span>@item.CCEmails</span>
+                        <span><button class="link-button" @onclick="() => OpenApprovalUrl(item)">Abrir link</button></span>
+                        <span>@FormatDateTime(item.LastEmailSentAt)</span>
+                        <span class="row-actions">
+                            <button title="Vista previa" @onclick="() => OpenMailPreviewAsync(item)">👁</button>
+                            <button title="Enviar correo" disabled="@IsSendingMail" @onclick="() => SendMailDirectAsync(item)">📧</button>
+                        </span>
+                    </div>
+                }
+            </section>
+        }
+
+        else if (ActiveTab == "Templates")
+        {
+            <section class="gdap-table-card">
+                <div class="section-header">
+                    <div>
+                        <h3>Plantillas de Correo</h3>
+                        <p>Administra el HTML utilizado para enviar los Approval Links GDAP.</p>
+                    </div>
+                    <button class="btn-primary" @onclick="NewTemplate">+ Nueva plantilla</button>
+                </div>
+
+                <div class="template-variable-box">
+                    Variables disponibles: <code>{{CustomerName}}</code>, <code>{{PartnerTenant}}</code>, <code>{{ApprovalUrl}}</code>, <code>{{PrimaryContactName}}</code>, <code>{{ExecutionDate}}</code>, <code>{{ExpirationDate}}</code>, <code>{{SupportEmail}}</code>, <code>{{SupportPhone}}</code>
+                </div>
+
+                <div class="gdap-row template-head">
+                    <span>Nombre</span>
+                    <span>Asunto</span>
+                    <span>Default</span>
+                    <span>Activa</span>
+                    <span>Actualizado</span>
+                    <span>Acciones</span>
+                </div>
+
+                @foreach (var template in MailTemplates)
+                {
+                    <div class="gdap-row template-head">
+                        <span><strong>@template.Name</strong><small>@template.TemplateKey</small></span>
+                        <span>@template.Subject</span>
+                        <span><span class="active-pill @(template.IsDefault ? "yes" : "no")">@(template.IsDefault ? "Sí" : "No")</span></span>
+                        <span><span class="active-pill @(template.IsActive ? "yes" : "no")">@(template.IsActive ? "Sí" : "No")</span></span>
+                        <span>@FormatDateTime(template.UpdatedAt)</span>
+                        <span class="row-actions"><button @onclick="() => EditTemplate(template)">✏</button></span>
+                    </div>
+                }
+            </section>
+        }
+
+        else if (ActiveTab == "Expiring")
+        {
+            <section class="gdap-table-card">
+                <div class="section-header">
+                    <div>
+                        <h3>Próximos vencimientos</h3>
+                        <p>Clientes con GDAP por vencer en 30, 15 o 7 días. El correo solo se envía si ya existe Approval URL, estado approvalPending, cliente activo y correo configurado.</p>
+                    </div>
+                    <div class="template-selector">
+                        <button class="btn-secondary" disabled="@IsSendingMail" @onclick="() => SendExpirationReminderBatchAsync(30)">📧 Enviar 30 días</button>
+                        <button class="btn-secondary" disabled="@IsSendingMail" @onclick="() => SendExpirationReminderBatchAsync(15)">📧 Enviar 15 días</button>
+                        <button class="btn-secondary" disabled="@IsSendingMail" @onclick="() => SendExpirationReminderBatchAsync(7)">📧 Enviar 7 días</button>
+                        <button class="btn-primary" @onclick="LoadExpiringAsync">↻ Refrescar vencimientos</button>
+                    </div>
+                </div>
+
+                <div class="gdap-row exp-head">
+                    <span>Partner</span>
+                    <span>Cliente</span>
+                    <span>Estado</span>
+                    <span>Fecha vencimiento</span>
+                    <span>Días</span>
+                    <span>Acciones</span>
+                </div>
+
+                @foreach (var item in ExpiringItems)
+                {
+                    <div class="gdap-row exp-head">
+                        <span>@item.PartnerTenant</span>
+                        <span><strong>@item.CustomerName</strong><small>@item.CustomerTenantId</small></span>
+                        <span><span class="status @StatusCss(item)">@StatusText(item)</span></span>
+                        <span>@FormatDate(item.ActiveEndDate)</span>
+                        <span class="@DaysCss(item)">@(item.DaysToExpire?.ToString() ?? "-")</span>
+                        <span class="row-actions"><button @onclick="() => OpenDetailAsync(item.Id)">👁</button><button disabled="@(!item.EnableGDAPAutomation)" @onclick="() => OpenAutomationConfirm(item)">▶</button></span>
+                    </div>
+                }
+            </section>
         }
     }
 
@@ -226,9 +528,6 @@
     }
 
 </div>
-
-
-
 
 
 
