@@ -1,3 +1,4 @@
+@using ITQS.SupportOperationsCenter.Components.Shared
 @using System.Security.Claims
 @using System.Text
 @using Microsoft.AspNetCore.Components.Authorization
@@ -66,20 +67,13 @@
     return;
 }
 
-<button class="primary-btn config-button" type="button" @onclick="OpenUserConfigAsync">⚙ Configuración</button>
-
-<div class="module-info-banner">
-    <div class="info-icon">ℹ</div>
-    <div>
-        <h3>Información operativa</h3>
-        <p>
-            Este módulo administra las asignaciones del SOC utilizando
-            <strong>dbo.AlertsManagement</strong>, <strong>dbo.AlertasBackup</strong>,
-            <strong>dbo.AlertUpdatesHistory</strong> y <strong>dbo.ITQS_AppUsers</strong>.
-        </p>
-    </div>
+<div class="module-title-row">
+    <button class="primary-btn config-button" type="button" @onclick="OpenUserConfigAsync">⚙ Configuración</button>
+    <OperationalInfoButton
+        Title="Admin / Manager View"
+        Description="Este módulo permite administrar asignaciones, carga de ingenieros, cierres masivos, historial operativo y configuración de usuarios del SOC."
+        Tables="dbo.AlertsManagement, dbo.AlertasBackup, dbo.AlertUpdatesHistory, dbo.ITQS_AppUsers, dbo.AzureAlertCloseQueue" />
 </div>
-
 <div class="cloud-divider"></div>
 
 @if (!string.IsNullOrWhiteSpace(Message))
@@ -492,4 +486,8 @@
 
     private string FormatDate(DateTime? value) => value.HasValue ? value.Value.ToString("dd/MM/yyyy HH:mm") : "-";
 }
+
+
+
+
 

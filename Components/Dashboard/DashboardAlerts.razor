@@ -4,20 +4,19 @@
 @inject IAssignedAlertsDashboardService DashboardService
 @implements IDisposable
 
-<h1>Dashboard</h1>
-
-<div class="module-info-banner">
-    <div class="info-icon">ℹ</div>
-    <div>
-        <h3>Información operativa</h3>
-        <p>
-            Este módulo muestra las alertas activas del SOC obtenidas desde
-            <strong>dbo.AlertsManagement</strong> y <strong>dbo.AlertasBackup</strong>.
-            La asignación de ingenieros y el seguimiento se realizan sobre estas tablas.
-        </p>
-    </div>
+<div class="module-title-row"><div class="module-title-row">
+    <div class="module-title-row">
+    <h1>Dashboard</h1>
+    <OperationalInfoButton
+        Title="Dashboard"
+        Description="Este módulo muestra las alertas activas del SOC, permite visualizar el estado general, filtrar clientes y asignar incidentes operativos."
+        Tables="dbo.AlertsManagement, dbo.AlertasBackup" />
 </div>
-
+    <OperationalInfoButton
+        Title="Dashboard"
+        Description="Este módulo muestra las alertas activas del SOC, permite visualizar el estado general, filtrar clientes y asignar incidentes operativos."
+        Tables="dbo.AlertsManagement, dbo.AlertasBackup" />
+</div></div>
 <div class="cloud-divider"></div>
 
 <div class="kpi-row">
@@ -669,3 +668,9 @@
         RefreshCts?.Dispose();
     }
 }
+
+
+
+
+
+

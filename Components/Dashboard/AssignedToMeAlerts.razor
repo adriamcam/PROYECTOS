@@ -1,3 +1,4 @@
+@using ITQS.SupportOperationsCenter.Components.Shared
 @using System.Security.Claims
 @using System.Text
 @using Microsoft.AspNetCore.Components.Authorization
@@ -11,7 +12,19 @@
 
 @implements IDisposable
 
-<h1>Asignadas a mí</h1>
+<div class="module-title-row"><div class="module-title-row">
+    <div class="module-title-row">
+    <h1>Asignadas a mí</h1>
+    <OperationalInfoButton
+        Title="Asignadas a mí"
+        Description="Este módulo muestra únicamente las alertas asignadas al usuario autenticado para seguimiento, comentarios y cierre operativo."
+        Tables="dbo.AlertsManagement, dbo.AlertasBackup, dbo.AlertUpdatesHistory, dbo.AzureAlertCloseQueue" />
+</div>
+    <OperationalInfoButton
+        Title="Asignadas a mí"
+        Description="Este módulo muestra únicamente las alertas asignadas al usuario autenticado para seguimiento, comentarios y cierre operativo."
+        Tables="dbo.AlertsManagement, dbo.AlertasBackup, dbo.AlertUpdatesHistory, dbo.AzureAlertCloseQueue" />
+</div></div>
 <p>Alertas asignadas al usuario conectado para seguimiento, comentarios y cierre.</p>
 
 <div class="cloud-divider"></div>
@@ -939,4 +952,10 @@
         RefreshCts?.Dispose();
     }
 }
+
+
+
+
+
+
 

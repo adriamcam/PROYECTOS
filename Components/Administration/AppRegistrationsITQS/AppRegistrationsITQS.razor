@@ -1,3 +1,4 @@
+@using ITQS.SupportOperationsCenter.Components.Shared
 @using ITQS.SupportOperationsCenter.Models.Administration.AppRegistrations
 
 <div class="appreg-page">
@@ -13,7 +14,13 @@
         <section class="appreg-hero">
             <div>
                 <span>Administración</span>
-                <h1>App Registrations ITQS</h1>
+                <div class="module-title-row">
+    <h1>App Registrations ITQS</h1>
+    <OperationalInfoButton
+        Title="App Registrations ITQS"
+        Description="Este módulo monitorea las App Registrations utilizadas por ITQS para conectarse a clientes. Permite revisar expiraciones, asignar ingenieros y generar seguimiento operativo."
+        Tables="dbo.AppRegistrationExpirations, dbo.AppRegistrationTasks, dbo.ITQS_AppUsers" />
+</div>
                 <p>Monitoreo de las App Registrations utilizadas por ITQS para conectarse a los clientes.</p>
             </div>
 
@@ -240,6 +247,10 @@
         </div>
     }
 </div>
+
+
+
+
 
 
 

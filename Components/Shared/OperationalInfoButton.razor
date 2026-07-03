@@ -1,0 +1,44 @@
+<div class="operational-info-wrapper">
+    <button type="button"
+            class="module-info-btn"
+            title="Información operativa"
+            @onclick="Open">
+        ℹ
+    </button>
+
+    @if (IsOpen)
+    {
+        <div class="operational-info-backdrop" @onclick="Close">
+            <div class="operational-info-modal" @onclick:stopPropagation="true">
+                <div class="operational-info-header">
+                    <h3>Información operativa</h3>
+                    <button type="button" @onclick="Close">×</button>
+                </div>
+
+                <div class="operational-info-body">
+                    <h4>@Title</h4>
+                    <p>@Description</p>
+
+                    @if (!string.IsNullOrWhiteSpace(Tables))
+                    {
+                        <div class="operational-info-tables">
+                            <strong>Tablas principales:</strong>
+                            <span>@Tables</span>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public string Title { get; set; } = "";
+    [Parameter] public string Description { get; set; } = "";
+    [Parameter] public string Tables { get; set; } = "";
+
+    private bool IsOpen { get; set; }
+
+    private void Open() => IsOpen = true;
+    private void Close() => IsOpen = false;
+}

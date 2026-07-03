@@ -1,3 +1,4 @@
+@using ITQS.SupportOperationsCenter.Components.Shared
 @using ITQS.SupportOperationsCenter.Models.Administration.Customers
 
 <!-- ===================================================================== -->
@@ -23,25 +24,19 @@
 
                 <div>
                     <span class="customer-eyebrow">Administración</span>
-                    <h1>Clientes</h1>
+                    <div class="module-title-row">
+    <h1>Clientes</h1>
+    <OperationalInfoButton
+        Title="Administración de Clientes"
+        Description="Este módulo administra la información base de clientes. El estado configurado aquí controla si los runbooks y automatizaciones de ITQS pueden utilizar el cliente durante su ejecución."
+        Tables="dbo.ITQS_Customers" />
+</div>
                     <p>Administra los clientes y sus credenciales base para automatizaciones.</p>
                 </div>
             </div>
         </section>
 
         <!-- ========================= 03.2: KPIs ============================== -->
-        <div class="module-info-banner">
-    <div class="info-icon">ℹ</div>
-    <div>
-        <h3>Información operativa</h3>
-        <p>
-            Este módulo administra la información base de los clientes almacenada en
-            <strong>dbo.ITQS_Customers</strong>. El estado configurado aquí determina si los runbooks
-            y automatizaciones de ITQS pueden utilizar el cliente durante su ejecución.
-        </p>
-    </div>
-</div>
-
 <section class="customer-kpis">
             <div class="kpi-card blue">
                 <span>Total clientes</span>
@@ -448,5 +443,9 @@
     }
 
 </div>
+
+
+
+
 
 
