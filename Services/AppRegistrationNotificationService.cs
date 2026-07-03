@@ -44,7 +44,26 @@ public sealed class AppRegistrationNotificationService : IAppRegistrationNotific
         if (string.IsNullOrWhiteSpace(_settings.FromUser))
             throw new InvalidOperationException("AppRegistrationNotifications:FromUser no está configurado.");
 
-        var secret = await _secretClient.GetSecretAsync(_settings.ClientSecretName);
+      AccessToken token;
+
+try
+{
+    var secret = await _secretClient.GetSecretAsync(_settings.ClientSecretName);
+
+    var credential = new ClientSecretCredential(
+        _settings.TenantId,
+        _settings.ClientId,
+        secret.Value.Value);
+
+    token = await credential.GetTokenAsync(
+        new TokenRequestContext(new[] { "https://graph.microsoft.com/.default" }));
+}
+catch (Exception ex)
+{
+    throw new InvalidOperationException(
+        "Error autenticando con la App Registration configurada para notificaciones Graph. " +
+        ex.ToString());
+}
 
         var credential = new ClientSecretCredential(
             _settings.TenantId,
