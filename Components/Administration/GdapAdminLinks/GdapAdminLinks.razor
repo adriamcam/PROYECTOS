@@ -155,10 +155,10 @@
     </button>
 </span>
                         <span class="row-actions">
-                            <button type="button" title="Ver detalle" @onclick="() => OpenDetailAsync(item.Id)">👁</button>
+                            
                             <button type="button" title="Ejecutar Automation" disabled="@(!item.EnableGDAPAutomation)" @onclick="() => OpenAutomationConfirm(item)">▶</button>
                             <button type="button" title="Sincronizar cliente GDAP" @onclick="() => OpenSyncConfirm(item)">🔄</button>
-                            <button type="button" title="Editar cliente" @onclick="() => OpenEditAsync(item)">✏</button>
+                            
                             <button type="button" title="Abrir Approval URL" disabled="@string.IsNullOrWhiteSpace(item.ApprovalPendingLink)" @onclick="() => OpenApprovalUrl(item)">🔗</button>
                             <button type="button" title="Copiar Approval URL" disabled="@string.IsNullOrWhiteSpace(item.ApprovalPendingLink)" @onclick="() => CopyApprovalUrlAsync(item)">📋</button>
                         </span>
@@ -304,7 +304,7 @@
                         <span><span class="status @StatusCss(item)">@StatusText(item)</span></span>
                         <span>@FormatDate(item.ActiveEndDate)</span>
                         <span class="@DaysCss(item)">@(item.DaysToExpire?.ToString() ?? "-")</span>
-                        <span class="row-actions"><button @onclick="() => OpenDetailAsync(item.Id)">👁</button><button disabled="@(!item.EnableGDAPAutomation)" @onclick="() => OpenAutomationConfirm(item)">▶</button></span>
+                        <span class="row-actions"><button disabled="@(!item.EnableGDAPAutomation)" @onclick="() => OpenAutomationConfirm(item)">▶</button></span>
                     </div>
                 }
             </section>
@@ -528,6 +528,8 @@
     }
 
 </div>
+
+
 
 
 
