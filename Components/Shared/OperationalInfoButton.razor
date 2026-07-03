@@ -1,44 +1,76 @@
-<div class="operational-info-wrapper">
-    <button type="button"
-            class="module-info-btn"
-            title="Información operativa"
-            @onclick="Open">
-        ℹ
+<div class="operational-info">
+
+    <button class="info-button" @onclick="Open" title="Información Operativa">
+        <span>i</span>
     </button>
 
     @if (IsOpen)
     {
-        <div class="operational-info-backdrop" @onclick="Close">
-            <div class="operational-info-modal" @onclick:stopPropagation="true">
-                <div class="operational-info-header">
-                    <h3>Información operativa</h3>
-                    <button type="button" @onclick="Close">×</button>
+        <div class="soc-modal-overlay" @onclick="Close">
+
+            <div class="soc-modal" @onclick:stopPropagation="true">
+
+                <div class="soc-modal-header">
+
+                    <h2>ℹ Información Operativa</h2>
+
+                    <button class="soc-close" @onclick="Close">
+                        ✕
+                    </button>
+
                 </div>
 
-                <div class="operational-info-body">
-                    <h4>@Title</h4>
+                <div class="soc-modal-body">
+
+                    <h3>@Title</h3>
+
                     <p>@Description</p>
 
                     @if (!string.IsNullOrWhiteSpace(Tables))
                     {
-                        <div class="operational-info-tables">
-                            <strong>Tablas principales:</strong>
-                            <span>@Tables</span>
+                        <div class="tables-box">
+
+                            <strong>Tablas utilizadas</strong>
+
+                            <ul>
+
+                                @foreach (var t in Tables.Split(','))
+                                {
+                                    <li>@t.Trim()</li>
+                                }
+
+                            </ul>
+
                         </div>
                     }
+
                 </div>
+
+                <div class="soc-modal-footer">
+
+                    <button class="primary-btn" @onclick="Close">
+                        Cerrar
+                    </button>
+
+                </div>
+
             </div>
+
         </div>
     }
+
 </div>
 
 @code {
+
     [Parameter] public string Title { get; set; } = "";
     [Parameter] public string Description { get; set; } = "";
     [Parameter] public string Tables { get; set; } = "";
 
-    private bool IsOpen { get; set; }
+    bool IsOpen;
 
-    private void Open() => IsOpen = true;
-    private void Close() => IsOpen = false;
+    void Open() => IsOpen = true;
+
+    void Close() => IsOpen = false;
+
 }
