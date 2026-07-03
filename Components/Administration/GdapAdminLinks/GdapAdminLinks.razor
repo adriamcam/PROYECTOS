@@ -112,15 +112,9 @@
                 </select>
 
                 <select @bind="Filters.ActiveFilter" @bind:after="ApplyFiltersAsync">
-                    <option value="">Activos e inactivos</option>
-                    <option value="Active">Solo activos</option>
-                    <option value="Inactive">Solo desactivados</option>
-                </select>
-
-                <select @bind="Filters.EmailFilter" @bind:after="ApplyFiltersAsync">
-                    <option value="">Todos los correos</option>
-                    <option value="Ready">Correo listo</option>
-                    <option value="Missing">Sin correo</option>
+                    <option value="">Todos EnableGDAP</option>
+                    <option value="Active">EnableGDAP ON</option>
+                    <option value="Inactive">EnableGDAP OFF</option>
                 </select>
 
                 <div class="search-box">
@@ -500,6 +494,8 @@
     }
 
 </div>
+
+
 
 
 

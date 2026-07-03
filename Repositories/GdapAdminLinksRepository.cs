@@ -85,7 +85,7 @@ WHERE
     (@Search IS NULL OR @Search = '' OR CustomerName LIKE '%' + @Search + '%' OR CustomerTenantId LIKE '%' + @Search + '%' OR PartnerTenant LIKE '%' + @Search + '%')
     AND (@PartnerTenant IS NULL OR @PartnerTenant = '' OR PartnerTenant = @PartnerTenant)
     AND (@StatusFound IS NULL OR @StatusFound = '' OR StatusFound LIKE '%' + @StatusFound + '%')
-    AND (@ActiveFilter IS NULL OR @ActiveFilter = '' OR (@ActiveFilter = 'Active' AND ISNULL(IsActive,1) = 1) OR (@ActiveFilter = 'Inactive' AND ISNULL(IsActive,1) = 0))
+    AND (@ActiveFilter IS NULL OR @ActiveFilter = '' OR (@ActiveFilter = 'Active' AND ISNULL(EnableGDAPAutomation,1) = 1) OR (@ActiveFilter = 'Inactive' AND ISNULL(EnableGDAPAutomation,1) = 0))
     AND (@EmailFilter IS NULL OR @EmailFilter = '' OR (@EmailFilter = 'Ready' AND ISNULL(PrimaryEmail,'') <> '' AND ISNULL(ApprovalPendingLink,'') <> '') OR (@EmailFilter = 'Missing' AND ISNULL(PrimaryEmail,'') = ''))
 ORDER BY
     CASE WHEN LOWER(ISNULL(StatusFound,'')) LIKE '%approvalpending%' THEN 0 ELSE 1 END,
@@ -698,6 +698,7 @@ VALUES
     private static DateTime? GetNullableDate(SqlDataReader r, string name) => !HasColumn(r, name) || r[name] == DBNull.Value ? null : Convert.ToDateTime(r[name]);
     private static bool GetBool(SqlDataReader r, string name) => HasColumn(r, name) && r[name] != DBNull.Value && Convert.ToBoolean(r[name]);
 }
+
 
 
 
