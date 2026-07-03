@@ -1,6 +1,7 @@
 using System.Net.Http.Headers;
 using Azure.Core;
 using Azure.Identity;
+using Azure.Security.KeyVault.Secrets;
 using ITQS.SupportOperationsCenter.Models.Administration.AppRegistrations;
 using ITQS.SupportOperationsCenter.Services.Interfaces;
 using Microsoft.Extensions.Options;
@@ -10,15 +11,18 @@ namespace ITQS.SupportOperationsCenter.Services;
 public sealed class AppRegistrationNotificationService : IAppRegistrationNotificationService
 {
     private readonly IHttpClientFactory _httpClientFactory;
+    private readonly SecretClient _secretClient;
     private readonly AppRegistrationNotificationSettings _settings;
     private readonly ILogger<AppRegistrationNotificationService> _logger;
 
     public AppRegistrationNotificationService(
         IHttpClientFactory httpClientFactory,
+        SecretClient secretClient,
         IOptions<AppRegistrationNotificationSettings> options,
         ILogger<AppRegistrationNotificationService> logger)
     {
         _httpClientFactory = httpClientFactory;
+        _secretClient = secretClient;
         _settings = options.Value;
         _logger = logger;
     }
@@ -26,15 +30,26 @@ public sealed class AppRegistrationNotificationService : IAppRegistrationNotific
     public async Task SendAssignmentEmailAsync(AppRegistrationAssignRequest request, long taskId)
     {
         if (!_settings.Enabled)
-        {
-            _logger.LogInformation("Notificaciones deshabilitadas. TaskId {TaskId}", taskId);
             return;
-        }
+
+        if (string.IsNullOrWhiteSpace(_settings.TenantId))
+            throw new InvalidOperationException("AppRegistrationNotifications:TenantId no está configurado.");
+
+        if (string.IsNullOrWhiteSpace(_settings.ClientId))
+            throw new InvalidOperationException("AppRegistrationNotifications:ClientId no está configurado.");
+
+        if (string.IsNullOrWhiteSpace(_settings.ClientSecretName))
+            throw new InvalidOperationException("AppRegistrationNotifications:ClientSecretName no está configurado.");
 
         if (string.IsNullOrWhiteSpace(_settings.FromUser))
             throw new InvalidOperationException("AppRegistrationNotifications:FromUser no está configurado.");
 
-        var credential = new DefaultAzureCredential();
+        var secret = await _secretClient.GetSecretAsync(_settings.ClientSecretName);
+
+        var credential = new ClientSecretCredential(
+            _settings.TenantId,
+            _settings.ClientId,
+            secret.Value.Value);
 
         var token = await credential.GetTokenAsync(
             new TokenRequestContext(new[] { "https://graph.microsoft.com/.default" }));
