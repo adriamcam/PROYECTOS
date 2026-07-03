@@ -149,7 +149,44 @@ public sealed class GdapAdminLinksService : IGdapAdminLinksService
         }
     }
 
-    public async Task<GdapAdminLinksActionResult> ExecuteAutomationAsync(int id, string requestedBy)
+    public async Task<GdapAdminLinksActionResult> SetGdapAutomationStatusAsync(int id, bool enabled, string updatedBy, string reason)
+{
+    try
+    {
+        await _repository.SetGdapAutomationStatusAsync(id, enabled, updatedBy, reason);
+
+        await _repository.RegisterHistoryAsync(
+            id,
+            enabled
+                ? "Automation GDAP habilitada"
+                : "Automation GDAP deshabilitada",
+            enabled
+                ? "Cliente habilitado para generar GDAP."
+                : reason,
+            updatedBy);
+
+        return new GdapAdminLinksActionResult
+        {
+            Success = true,
+            Message = enabled
+                ? "Automation GDAP habilitada."
+                : "Automation GDAP deshabilitada."
+        };
+    }
+    catch(Exception ex)
+    {
+        _logger.LogError(ex,"Error actualizando EnableGDAPAutomation");
+
+        return new GdapAdminLinksActionResult
+        {
+            Success=false,
+            ErrorMessage=ex.Message,
+            Message="No fue posible actualizar el cliente."
+        };
+    }
+}
+
+public async Task<GdapAdminLinksActionResult> ExecuteAutomationAsync(int id, string requestedBy)
     {
         try
         {
@@ -455,3 +492,4 @@ public sealed class GdapAdminLinksService : IGdapAdminLinksService
     }
 
 }
+

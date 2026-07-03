@@ -23,4 +23,7 @@ public interface IGdapAdminLinksRepository
     Task<int> SaveMailTemplateAsync(GdapMailTemplateModel template);
     Task MarkEmailSentAsync(int customerId, string sentBy);
     Task MarkEmailFailedAsync(int customerId, string sentBy, string errorMessage);
+
+Task SetGdapAutomationStatusAsync(int id, bool enabled, string updatedBy, string reason);
 }
+

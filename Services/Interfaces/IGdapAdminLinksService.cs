@@ -21,4 +21,7 @@ public interface IGdapAdminLinksService
     Task<GdapMailPreviewModel> PreviewEmailAsync(int customerId, int templateId);
     Task<GdapAdminLinksActionResult> SendEmailAsync(GdapMailSendRequest request);
     Task<GdapAdminLinksActionResult> SaveMailTemplateAsync(GdapMailTemplateModel template, string updatedBy);
+
+Task<GdapAdminLinksActionResult> SetGdapAutomationStatusAsync(int id, bool enabled, string updatedBy, string reason);
 }
+

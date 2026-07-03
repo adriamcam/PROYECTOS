@@ -343,6 +343,30 @@ WHERE Id = @Id;";
         await cmd.ExecuteNonQueryAsync();
     }
 
+
+    public async Task SetGdapAutomationStatusAsync(int id, bool enabled, string updatedBy, string reason)
+    {
+        await using var conn = await OpenConnectionAsync();
+        await using var cmd = conn.CreateCommand();
+
+        cmd.CommandType = CommandType.Text;
+        cmd.CommandTimeout = 120;
+        cmd.CommandText = @"
+UPDATE dbo.PartnerCenterCustomers
+SET
+    EnableGDAPAutomation = @Enabled,
+    GDAPAutomationReason = CASE WHEN @Enabled = 1 THEN NULL ELSE NULLIF(@Reason,'') END,
+    UpdatedBy = @UpdatedBy,
+    LastUpdated = GETDATE()
+WHERE Id = @Id;";
+
+        AddParam(cmd, "@Id", id);
+        AddParam(cmd, "@Enabled", enabled);
+        AddParam(cmd, "@UpdatedBy", updatedBy);
+        AddParam(cmd, "@Reason", reason);
+
+        await cmd.ExecuteNonQueryAsync();
+    }
     public async Task RegisterHistoryAsync(int id, string eventType, string description, string executedBy, string? approvalUrl = null)
     {
         await using var conn = await OpenConnectionAsync();
@@ -672,3 +696,4 @@ VALUES
     private static DateTime? GetNullableDate(SqlDataReader r, string name) => !HasColumn(r, name) || r[name] == DBNull.Value ? null : Convert.ToDateTime(r[name]);
     private static bool GetBool(SqlDataReader r, string name) => HasColumn(r, name) && r[name] != DBNull.Value && Convert.ToBoolean(r[name]);
 }
+

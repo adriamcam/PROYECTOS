@@ -28,9 +28,13 @@ public sealed class GdapAdminLinksCustomerModel
     public string UpdatedBy { get; set; } = string.Empty;
     public int? DaysToExpire { get; set; }
 
+public bool EnableGDAPAutomation { get; set; } = true;
+public string GDAPAutomationReason { get; set; } = string.Empty;
+
     public bool CanSendEmail =>
         IsActive &&
         !string.IsNullOrWhiteSpace(PrimaryEmail) &&
         !string.IsNullOrWhiteSpace(ApprovalPendingLink) &&
         StatusFound.Contains("approvalPending", StringComparison.OrdinalIgnoreCase);
 }
+
