@@ -77,8 +77,12 @@ public partial class GdapAdminLinks : ComponentBase
         }
     }
 
-    protected IEnumerable<string> PartnerOptions =>
-        Items.Select(x => x.PartnerTenant).Where(x => !string.IsNullOrWhiteSpace(x)).Distinct().OrderBy(x => x);
+    protected List<string> PartnerOptions { get; } =
+[
+    "Costa Rica",
+    "Guatemala",
+    "Panama"
+];
 
     protected override async Task OnInitializedAsync()
     {
@@ -669,6 +673,7 @@ public partial class GdapAdminLinks : ComponentBase
         MessageCss = "gdap-message error";
     }
 }
+
 
 
 
