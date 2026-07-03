@@ -12,4 +12,5 @@ public interface IGdapAdminLinksService
     Task<GdapAdminLinksActionResult> UpdateCustomerAsync(GdapAdminLinksSaveCustomerRequest request);
     Task<GdapAdminLinksActionResult> DisableCustomerAsync(int id, string updatedBy, string reason);
     Task<GdapAdminLinksActionResult> EnableCustomerAsync(int id, string updatedBy);
+    Task<GdapAdminLinksActionResult> ExecuteAutomationAsync(int id, string requestedBy);
 }

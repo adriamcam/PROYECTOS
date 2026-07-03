@@ -1,19 +1,26 @@
 using ITQS.SupportOperationsCenter.Models.Administration.GdapAdminLinks;
 using ITQS.SupportOperationsCenter.Repositories.Interfaces;
 using ITQS.SupportOperationsCenter.Services.Interfaces;
+using Microsoft.Extensions.Options;
 
 namespace ITQS.SupportOperationsCenter.Services;
 
 public sealed class GdapAdminLinksService : IGdapAdminLinksService
 {
     private readonly IGdapAdminLinksRepository _repository;
+    private readonly IGdapAutomationRunnerService _automationRunner;
+    private readonly GdapAutomationSettings _automationSettings;
     private readonly ILogger<GdapAdminLinksService> _logger;
 
     public GdapAdminLinksService(
         IGdapAdminLinksRepository repository,
+        IGdapAutomationRunnerService automationRunner,
+        IOptions<GdapAutomationSettings> automationOptions,
         ILogger<GdapAdminLinksService> logger)
     {
         _repository = repository;
+        _automationRunner = automationRunner;
+        _automationSettings = automationOptions.Value;
         _logger = logger;
     }
 
@@ -43,6 +50,7 @@ public sealed class GdapAdminLinksService : IGdapAdminLinksService
                 throw new InvalidOperationException("El correo principal no tiene un formato válido.");
 
             await _repository.UpdateCustomerAsync(request);
+            await _repository.RegisterHistoryAsync(request.Id, "Cliente actualizado", "Se actualizaron los datos de contacto/configuración del cliente.", request.UpdatedBy);
 
             return new GdapAdminLinksActionResult
             {
@@ -67,6 +75,7 @@ public sealed class GdapAdminLinksService : IGdapAdminLinksService
         try
         {
             await _repository.SetCustomerActiveAsync(id, false, updatedBy, reason);
+            await _repository.RegisterHistoryAsync(id, "Cliente desactivado", reason, updatedBy);
             return new GdapAdminLinksActionResult { Success = true, Message = "Cliente desactivado correctamente." };
         }
         catch (Exception ex)
@@ -81,12 +90,72 @@ public sealed class GdapAdminLinksService : IGdapAdminLinksService
         try
         {
             await _repository.SetCustomerActiveAsync(id, true, updatedBy, string.Empty);
+            await _repository.RegisterHistoryAsync(id, "Cliente reactivado", "Cliente habilitado nuevamente para procesamiento GDAP.", updatedBy);
             return new GdapAdminLinksActionResult { Success = true, Message = "Cliente reactivado correctamente." };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error reactivando cliente GDAP {Id}", id);
             return new GdapAdminLinksActionResult { Success = false, ErrorMessage = ex.Message, Message = "No fue posible reactivar el cliente." };
+        }
+    }
+
+    public async Task<GdapAdminLinksActionResult> ExecuteAutomationAsync(int id, string requestedBy)
+    {
+        try
+        {
+            var customer = await _repository.GetCustomerAsync(id);
+            if (customer is null)
+                throw new InvalidOperationException("No se encontró el cliente seleccionado.");
+
+            if (!customer.IsActive)
+                throw new InvalidOperationException("El cliente está desactivado. Reactívelo antes de ejecutar la Automation.");
+
+            if (string.IsNullOrWhiteSpace(customer.CustomerTenantId))
+                throw new InvalidOperationException("El cliente no tiene CustomerTenantId configurado.");
+
+            if (string.IsNullOrWhiteSpace(customer.PartnerTenant))
+                throw new InvalidOperationException("El cliente no tiene PartnerTenant configurado.");
+
+            var request = new GdapAdminLinksAutomationRequest
+            {
+                CustomerId = customer.Id,
+                PartnerTenant = customer.PartnerTenant,
+                CustomerName = customer.CustomerName,
+                CustomerTenantId = customer.CustomerTenantId,
+                DaysThreshold = _automationSettings.DefaultDaysThreshold <= 0 ? 30 : _automationSettings.DefaultDaysThreshold,
+                RequestedBy = requestedBy
+            };
+
+            await _repository.MarkAutomationStartedAsync(request, string.Empty);
+            var result = await _automationRunner.StartRunbookForCustomerAsync(request);
+            await _repository.MarkAutomationFinishedAsync(request, result);
+
+            if (!result.Success)
+            {
+                return new GdapAdminLinksActionResult
+                {
+                    Success = false,
+                    ErrorMessage = result.ErrorMessage,
+                    Message = result.Message
+                };
+            }
+
+            return new GdapAdminLinksActionResult
+            {
+                Success = true,
+                Message = result.Message
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error ejecutando Automation GDAP para cliente {Id}", id);
+            return new GdapAdminLinksActionResult
+            {
+                Success = false,
+                ErrorMessage = ex.Message,
+                Message = "No fue posible ejecutar la Automation GDAP."
+            };
         }
     }
 }

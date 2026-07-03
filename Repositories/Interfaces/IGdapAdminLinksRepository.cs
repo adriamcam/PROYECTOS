@@ -11,4 +11,7 @@ public interface IGdapAdminLinksRepository
     Task<IReadOnlyList<GdapAdminLinksCustomerModel>> GetExpiringSoonAsync();
     Task UpdateCustomerAsync(GdapAdminLinksSaveCustomerRequest request);
     Task SetCustomerActiveAsync(int id, bool isActive, string updatedBy, string reason);
+    Task RegisterHistoryAsync(int id, string eventType, string description, string executedBy, string? approvalUrl = null);
+    Task MarkAutomationStartedAsync(GdapAdminLinksAutomationRequest request, string jobId);
+    Task MarkAutomationFinishedAsync(GdapAdminLinksAutomationRequest request, GdapAdminLinksAutomationResult result);
 }

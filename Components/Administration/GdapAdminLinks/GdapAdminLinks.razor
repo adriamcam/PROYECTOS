@@ -155,8 +155,10 @@
                         <span><span class="active-pill @(item.IsActive ? "yes" : "no")">@(item.IsActive ? "Sí" : "No")</span></span>
                         <span class="row-actions">
                             <button type="button" title="Ver detalle" @onclick="() => OpenDetailAsync(item.Id)">👁</button>
+                            <button type="button" title="Ejecutar Automation" disabled="@(!item.IsActive)" @onclick="() => OpenAutomationConfirm(item)">▶</button>
                             <button type="button" title="Editar cliente" @onclick="() => OpenEditAsync(item)">✏</button>
                             <button type="button" title="Abrir Approval URL" disabled="@string.IsNullOrWhiteSpace(item.ApprovalPendingLink)" @onclick="() => OpenApprovalUrl(item)">🔗</button>
+                            <button type="button" title="Copiar Approval URL" disabled="@string.IsNullOrWhiteSpace(item.ApprovalPendingLink)" @onclick="() => CopyApprovalUrlAsync(item)">📋</button>
                             @if (item.IsActive)
                             {
                                 <button type="button" title="Desactivar" @onclick="() => DisableAsync(item)">🚫</button>
@@ -250,7 +252,7 @@
                         <span><span class="status @StatusCss(item)">@StatusText(item)</span></span>
                         <span>@FormatDate(item.ActiveEndDate)</span>
                         <span class="@DaysCss(item)">@(item.DaysToExpire?.ToString() ?? "-")</span>
-                        <span class="row-actions"><button @onclick="() => OpenDetailAsync(item.Id)">👁</button></span>
+                        <span class="row-actions"><button @onclick="() => OpenDetailAsync(item.Id)">👁</button><button disabled="@(!item.IsActive)" @onclick="() => OpenAutomationConfirm(item)">▶</button></span>
                     </div>
                 }
             </section>
@@ -285,7 +287,9 @@
 
                     <h4>Approval URL</h4>
                     <div class="approval-box">@(string.IsNullOrWhiteSpace(SelectedDetail.ApprovalPendingLink) ? "Sin link generado" : SelectedDetail.ApprovalPendingLink)</div>
-                    <button class="btn-primary full-button" disabled="@string.IsNullOrWhiteSpace(SelectedDetail.ApprovalPendingLink)" @onclick="() => OpenApprovalUrl(SelectedDetail)">Abrir Approval URL</button>
+                    <button class="btn-primary full-button" disabled="@(!SelectedDetail.IsActive)" @onclick="() => OpenAutomationConfirm(SelectedDetail)">Ejecutar Automation para este cliente</button>
+                    <button class="btn-secondary full-button" disabled="@string.IsNullOrWhiteSpace(SelectedDetail.ApprovalPendingLink)" @onclick="() => OpenApprovalUrl(SelectedDetail)">Abrir Approval URL</button>
+                    <button class="btn-secondary full-button" disabled="@string.IsNullOrWhiteSpace(SelectedDetail.ApprovalPendingLink)" @onclick="() => CopyApprovalUrlAsync(SelectedDetail)">Copiar Approval URL</button>
                     <button class="btn-secondary full-button" @onclick="() => OpenEditAsync(SelectedDetail)">Editar datos del cliente</button>
                 </div>
             </div>
@@ -332,4 +336,41 @@
             </div>
         </div>
     }
+
+    @if (ShowAutomationConfirm && AutomationCustomer is not null)
+    {
+        <div class="gdap-modal-backdrop">
+            <div class="gdap-confirm-modal">
+                <div class="modal-header">
+                    <div>
+                        <h3>Ejecutar Automation GDAP</h3>
+                        <small>ITQS-SOC-GENERA-GDAP-PC-CLIENTES</small>
+                    </div>
+                    <button disabled="@IsAutomationRunning" @onclick="CloseAutomationConfirm">×</button>
+                </div>
+
+                <div class="confirm-body">
+                    <p>Se ejecutará la Automation únicamente para este cliente.</p>
+
+                    <div class="detail-line"><span>Cliente</span><b>@AutomationCustomer.CustomerName</b></div>
+                    <div class="detail-line"><span>Partner Tenant</span><b>@AutomationCustomer.PartnerTenant</b></div>
+                    <div class="detail-line"><span>Customer TenantId</span><b>@AutomationCustomer.CustomerTenantId</b></div>
+                    <div class="detail-line"><span>Modo</span><b>Producción / TestMode = false</b></div>
+
+                    <div class="automation-note">
+                        La ejecución solicitará generación/renovación GDAP y, si aplica, generará el Approval URL.
+                        Después de iniciar el Job, use Actualizar para refrescar el estado cuando la Automation termine.
+                    </div>
+                </div>
+
+                <div class="modal-actions">
+                    <button class="btn-secondary" disabled="@IsAutomationRunning" @onclick="CloseAutomationConfirm">Cancelar</button>
+                    <button class="btn-primary" disabled="@IsAutomationRunning" @onclick="ExecuteAutomationAsync">
+                        @(IsAutomationRunning ? "Ejecutando..." : "Ejecutar Automation")
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+
 </div>

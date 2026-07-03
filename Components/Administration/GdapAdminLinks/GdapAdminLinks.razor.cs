@@ -4,6 +4,7 @@ using ITQS.SupportOperationsCenter.Services.Interfaces;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
+using Microsoft.JSInterop;
 
 namespace ITQS.SupportOperationsCenter.Components.Administration.GdapAdminLinks;
 
@@ -12,6 +13,7 @@ public partial class GdapAdminLinks : ComponentBase
     [Inject] private IGdapAdminLinksService GdapService { get; set; } = default!;
     [Inject] private AuthenticationStateProvider AuthenticationStateProvider { get; set; } = default!;
     [Inject] private NavigationManager NavigationManager { get; set; } = default!;
+    [Inject] private IJSRuntime JsRuntime { get; set; } = default!;
 
     protected bool IsLoading { get; set; } = true;
     protected string UserEmail { get; set; } = string.Empty;
@@ -32,6 +34,10 @@ public partial class GdapAdminLinks : ComponentBase
     protected bool ShowEdit { get; set; }
     protected string EditCustomerName { get; set; } = string.Empty;
     protected GdapAdminLinksSaveCustomerRequest EditRequest { get; set; } = new();
+
+    protected bool ShowAutomationConfirm { get; set; }
+    protected bool IsAutomationRunning { get; set; }
+    protected GdapAdminLinksCustomerModel? AutomationCustomer { get; set; }
 
     protected int PageNumber { get; set; } = 1;
     protected int PageSize { get; set; } = 10;
@@ -229,6 +235,72 @@ public partial class GdapAdminLinks : ComponentBase
         }
 
         NavigationManager.NavigateTo(item.ApprovalPendingLink, forceLoad: true);
+    }
+
+
+    protected void OpenAutomationConfirm(GdapAdminLinksCustomerModel item)
+    {
+        if (!item.IsActive)
+        {
+            SetError("El cliente está desactivado. Reactívelo antes de ejecutar la Automation.");
+            return;
+        }
+
+        AutomationCustomer = item;
+        ShowAutomationConfirm = true;
+    }
+
+    protected void CloseAutomationConfirm()
+    {
+        if (IsAutomationRunning)
+            return;
+
+        ShowAutomationConfirm = false;
+        AutomationCustomer = null;
+    }
+
+    protected async Task ExecuteAutomationAsync()
+    {
+        if (AutomationCustomer is null)
+        {
+            SetError("Debe seleccionar un cliente.");
+            return;
+        }
+
+        IsAutomationRunning = true;
+
+        try
+        {
+            var result = await GdapService.ExecuteAutomationAsync(AutomationCustomer.Id, UserEmail);
+
+            if (result.Success)
+            {
+                SetOk(result.Message);
+                ShowAutomationConfirm = false;
+                AutomationCustomer = null;
+                await RefreshAsync();
+            }
+            else
+            {
+                SetError(string.IsNullOrWhiteSpace(result.ErrorMessage) ? result.Message : result.ErrorMessage);
+            }
+        }
+        finally
+        {
+            IsAutomationRunning = false;
+        }
+    }
+
+    protected async Task CopyApprovalUrlAsync(GdapAdminLinksCustomerModel item)
+    {
+        if (string.IsNullOrWhiteSpace(item.ApprovalPendingLink))
+        {
+            SetError("El cliente no tiene Approval URL generado.");
+            return;
+        }
+
+        await JsRuntime.InvokeVoidAsync("navigator.clipboard.writeText", item.ApprovalPendingLink);
+        SetOk("Approval URL copiado al portapapeles.");
     }
 
     protected async Task GoToPageAsync(int page)

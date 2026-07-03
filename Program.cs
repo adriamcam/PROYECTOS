@@ -15,8 +15,6 @@ using ITQS.SupportOperationsCenter.Models.Administration.AppRegistrations;
 using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
 
-
-
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services
@@ -28,7 +26,7 @@ builder.Services.Configure<SqlSettings>(
 
 builder.Services.Configure<KeyVaultSettings>(
     builder.Configuration.GetSection("KeyVaultSettings"));
-	
+
 builder.Services.AddSingleton<SecretClient>(sp =>
 {
     var keyVaultSettings = builder.Configuration
@@ -76,15 +74,18 @@ builder.Services.AddScoped<ISqlOperationsDashboardService, SqlOperationsDashboar
 builder.Services.AddScoped<ICustomerAdminRepository, CustomerAdminRepository>();
 builder.Services.AddScoped<ICustomerAdminService, CustomerAdminService>();
 builder.Services.Configure<AutomationRunbookSettings>(
-builder.Configuration.GetSection("AutomationRunbook"));
+    builder.Configuration.GetSection("AutomationRunbook"));
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<ICustomerConnectionRunbookService, CustomerConnectionRunbookService>();
 builder.Services.Configure<AppRegistrationNotificationSettings>(
-builder.Configuration.GetSection("AppRegistrationNotifications"));
+    builder.Configuration.GetSection("AppRegistrationNotifications"));
 builder.Services.AddScoped<IAppRegistrationITQSRepository, AppRegistrationITQSRepository>();
 builder.Services.AddScoped<IAppRegistrationITQSService, AppRegistrationITQSService>();
 builder.Services.AddScoped<IAppRegistrationNotificationService, AppRegistrationNotificationService>();
 
+// Admin Links GDAP
+builder.Services.AddScoped<IGdapAdminLinksRepository, GdapAdminLinksRepository>();
+builder.Services.AddScoped<IGdapAdminLinksService, GdapAdminLinksService>();
 
 var app = builder.Build();
 

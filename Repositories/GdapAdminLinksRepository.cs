@@ -41,10 +41,10 @@ SELECT
     ExpiringIn5Days = SUM(CASE WHEN ISNULL(IsActive,1) = 1 AND ActiveEndDate IS NOT NULL AND DATEDIFF(DAY, GETDATE(), ActiveEndDate) BETWEEN 0 AND 5 THEN 1 ELSE 0 END),
     DisabledCustomers = SUM(CASE WHEN ISNULL(IsActive,1) = 0 THEN 1 ELSE 0 END),
     PendingEmails = SUM(CASE WHEN ISNULL(IsActive,1) = 1 AND LOWER(ISNULL(StatusFound,'')) LIKE '%approvalpending%' AND ISNULL(ApprovalPendingLink,'') <> '' AND ISNULL(PrimaryEmail,'') <> '' THEN 1 ELSE 0 END),
-    AutomationErrors = SUM(CASE WHEN LOWER(ISNULL(LastAutomationStatus,'')) LIKE '%fail%' OR LOWER(ISNULL(LastAutomationStatus,'')) LIKE '%error%' THEN 1 ELSE 0 END),
+    AutomationErrors = SUM(CASE WHEN LOWER(ISNULL(LastAutomationStatus,'')) IN ('failed','error') THEN 1 ELSE 0 END),
     LastExecutionDate = MAX(ExecutionDate),
     LastUpdated = MAX(LastUpdated)
-FROM dbo.vw_GDAP_AllCustomers;";
+FROM dbo.PartnerCenterCustomers;";
 
         await using var reader = await cmd.ExecuteReaderAsync();
         if (!await reader.ReadAsync())
@@ -214,6 +214,153 @@ WHERE Id = @Id;";
         await cmd.ExecuteNonQueryAsync();
     }
 
+    public async Task RegisterHistoryAsync(int id, string eventType, string description, string executedBy, string? approvalUrl = null)
+    {
+        await using var conn = await OpenConnectionAsync();
+        await using var cmd = conn.CreateCommand();
+        cmd.CommandType = CommandType.Text;
+        cmd.CommandTimeout = 120;
+        cmd.CommandText = @"
+INSERT INTO dbo.PartnerCenterCustomerHistory
+(
+    CustomerTenantId,
+    PartnerTenant,
+    CustomerName,
+    EventDate,
+    EventType,
+    Description,
+    ExecutedBy,
+    ApprovalUrl
+)
+SELECT
+    CustomerTenantId,
+    PartnerTenant,
+    CustomerName,
+    GETDATE(),
+    @EventType,
+    @Description,
+    @ExecutedBy,
+    COALESCE(NULLIF(@ApprovalUrl,''), ApprovalPendingLink)
+FROM dbo.PartnerCenterCustomers
+WHERE Id = @Id;";
+
+        AddParam(cmd, "@Id", id);
+        AddParam(cmd, "@EventType", eventType);
+        AddParam(cmd, "@Description", description);
+        AddParam(cmd, "@ExecutedBy", executedBy);
+        AddParam(cmd, "@ApprovalUrl", approvalUrl ?? string.Empty);
+
+        await cmd.ExecuteNonQueryAsync();
+    }
+
+    public async Task MarkAutomationStartedAsync(GdapAdminLinksAutomationRequest request, string jobId)
+    {
+        await using var conn = await OpenConnectionAsync();
+        await using var tx = (SqlTransaction)await conn.BeginTransactionAsync();
+
+        try
+        {
+            await using (var updateCmd = conn.CreateCommand())
+            {
+                updateCmd.Transaction = tx;
+                updateCmd.CommandType = CommandType.Text;
+                updateCmd.CommandTimeout = 120;
+                updateCmd.CommandText = @"
+UPDATE dbo.PartnerCenterCustomers
+SET
+    LastAutomationStatus = 'Starting',
+    LastAutomationMessage = CONCAT('Automation solicitada por ', @RequestedBy),
+    UpdatedBy = @RequestedBy,
+    LastUpdated = GETDATE()
+WHERE Id = @CustomerId;";
+                AddParam(updateCmd, "@CustomerId", request.CustomerId);
+                AddParam(updateCmd, "@RequestedBy", request.RequestedBy);
+                await updateCmd.ExecuteNonQueryAsync();
+            }
+
+            await using (var historyCmd = conn.CreateCommand())
+            {
+                historyCmd.Transaction = tx;
+                historyCmd.CommandType = CommandType.Text;
+                historyCmd.CommandTimeout = 120;
+                historyCmd.CommandText = @"
+INSERT INTO dbo.PartnerCenterCustomerHistory
+(CustomerTenantId, PartnerTenant, CustomerName, EventDate, EventType, Description, ExecutedBy, ApprovalUrl)
+VALUES
+(@CustomerTenantId, @PartnerTenant, @CustomerName, GETDATE(), 'Automation solicitada', CONCAT('Se solicitó ejecución individual de ', @RunbookName, '. JobId inicial: ', @JobId), @RequestedBy, NULL);";
+                AddParam(historyCmd, "@CustomerTenantId", request.CustomerTenantId);
+                AddParam(historyCmd, "@PartnerTenant", request.PartnerTenant);
+                AddParam(historyCmd, "@CustomerName", request.CustomerName);
+                AddParam(historyCmd, "@RequestedBy", request.RequestedBy);
+                AddParam(historyCmd, "@JobId", jobId);
+                AddParam(historyCmd, "@RunbookName", "ITQS-SOC-GENERA-GDAP-PC-CLIENTES");
+                await historyCmd.ExecuteNonQueryAsync();
+            }
+
+            await tx.CommitAsync();
+        }
+        catch
+        {
+            await tx.RollbackAsync();
+            throw;
+        }
+    }
+
+    public async Task MarkAutomationFinishedAsync(GdapAdminLinksAutomationRequest request, GdapAdminLinksAutomationResult result)
+    {
+        await using var conn = await OpenConnectionAsync();
+        await using var tx = (SqlTransaction)await conn.BeginTransactionAsync();
+
+        try
+        {
+            await using (var updateCmd = conn.CreateCommand())
+            {
+                updateCmd.Transaction = tx;
+                updateCmd.CommandType = CommandType.Text;
+                updateCmd.CommandTimeout = 120;
+                updateCmd.CommandText = @"
+UPDATE dbo.PartnerCenterCustomers
+SET
+    LastAutomationStatus = @Status,
+    LastAutomationMessage = @Message,
+    UpdatedBy = @RequestedBy,
+    LastUpdated = GETDATE()
+WHERE Id = @CustomerId;";
+                AddParam(updateCmd, "@CustomerId", request.CustomerId);
+                AddParam(updateCmd, "@Status", result.Success ? "Started" : "Failed");
+                AddParam(updateCmd, "@Message", result.Success ? result.Message : result.ErrorMessage);
+                AddParam(updateCmd, "@RequestedBy", request.RequestedBy);
+                await updateCmd.ExecuteNonQueryAsync();
+            }
+
+            await using (var historyCmd = conn.CreateCommand())
+            {
+                historyCmd.Transaction = tx;
+                historyCmd.CommandType = CommandType.Text;
+                historyCmd.CommandTimeout = 120;
+                historyCmd.CommandText = @"
+INSERT INTO dbo.PartnerCenterCustomerHistory
+(CustomerTenantId, PartnerTenant, CustomerName, EventDate, EventType, Description, ExecutedBy, ApprovalUrl)
+VALUES
+(@CustomerTenantId, @PartnerTenant, @CustomerName, GETDATE(), @EventType, @Description, @RequestedBy, NULL);";
+                AddParam(historyCmd, "@CustomerTenantId", request.CustomerTenantId);
+                AddParam(historyCmd, "@PartnerTenant", request.PartnerTenant);
+                AddParam(historyCmd, "@CustomerName", request.CustomerName);
+                AddParam(historyCmd, "@EventType", result.Success ? "Automation iniciada" : "Automation error");
+                AddParam(historyCmd, "@Description", result.Success ? result.Message : result.ErrorMessage);
+                AddParam(historyCmd, "@RequestedBy", request.RequestedBy);
+                await historyCmd.ExecuteNonQueryAsync();
+            }
+
+            await tx.CommitAsync();
+        }
+        catch
+        {
+            await tx.RollbackAsync();
+            throw;
+        }
+    }
+
     private async Task<SqlConnection> OpenConnectionAsync()
     {
         var sqlUser = await _secretClient.GetSecretAsync(_keyVaultSettings.SqlUserSecret);
@@ -232,7 +379,9 @@ WHERE Id = @Id;";
     }
 
     private static void AddParam(SqlCommand cmd, string name, object? value)
-        => cmd.Parameters.AddWithValue(name, value ?? DBNull.Value);
+    {
+        cmd.Parameters.AddWithValue(name, value ?? DBNull.Value);
+    }
 
     private static GdapAdminLinksCustomerModel MapCustomer(SqlDataReader reader)
     {
@@ -249,11 +398,11 @@ WHERE Id = @Id;";
             ActiveEndDate = GetNullableDate(reader, "ActiveEndDate"),
             LastUpdated = GetNullableDate(reader, "LastUpdated"),
             ApprovalPendingLink = GetString(reader, "ApprovalPendingLink"),
-            IsActive = GetBool(reader, "IsActive", true),
+            IsActive = !HasColumn(reader, "IsActive") || GetBool(reader, "IsActive"),
             PrimaryContactName = GetString(reader, "PrimaryContactName"),
             PrimaryEmail = GetString(reader, "PrimaryEmail"),
             CCEmails = GetString(reader, "CCEmails"),
-            AutoSendEmail = GetBool(reader, "AutoSendEmail", false),
+            AutoSendEmail = GetBool(reader, "AutoSendEmail"),
             ExcludeReason = GetString(reader, "ExcludeReason"),
             LastEmailSentAt = GetNullableDate(reader, "LastEmailSentAt"),
             LastEmailSentBy = GetString(reader, "LastEmailSentBy"),
@@ -266,31 +415,21 @@ WHERE Id = @Id;";
         };
     }
 
-    private static bool HasColumn(SqlDataReader r, string name)
+    private static bool HasColumn(SqlDataReader reader, string columnName)
     {
-        for (var i = 0; i < r.FieldCount; i++)
+        for (var i = 0; i < reader.FieldCount; i++)
         {
-            if (r.GetName(i).Equals(name, StringComparison.OrdinalIgnoreCase))
+            if (reader.GetName(i).Equals(columnName, StringComparison.OrdinalIgnoreCase))
                 return true;
         }
+
         return false;
     }
 
-    private static string GetString(SqlDataReader r, string name)
-        => !HasColumn(r, name) || r[name] == DBNull.Value ? string.Empty : Convert.ToString(r[name]) ?? string.Empty;
-
-    private static int GetInt(SqlDataReader r, string name)
-        => !HasColumn(r, name) || r[name] == DBNull.Value ? 0 : Convert.ToInt32(r[name]);
-
-    private static int? GetNullableInt(SqlDataReader r, string name)
-        => !HasColumn(r, name) || r[name] == DBNull.Value ? null : Convert.ToInt32(r[name]);
-
-    private static DateTime GetDate(SqlDataReader r, string name)
-        => !HasColumn(r, name) || r[name] == DBNull.Value ? DateTime.MinValue : Convert.ToDateTime(r[name]);
-
-    private static DateTime? GetNullableDate(SqlDataReader r, string name)
-        => !HasColumn(r, name) || r[name] == DBNull.Value ? null : Convert.ToDateTime(r[name]);
-
-    private static bool GetBool(SqlDataReader r, string name, bool defaultValue)
-        => !HasColumn(r, name) || r[name] == DBNull.Value ? defaultValue : Convert.ToBoolean(r[name]);
+    private static string GetString(SqlDataReader r, string name) => !HasColumn(r, name) || r[name] == DBNull.Value ? string.Empty : Convert.ToString(r[name]) ?? string.Empty;
+    private static int GetInt(SqlDataReader r, string name) => !HasColumn(r, name) || r[name] == DBNull.Value ? 0 : Convert.ToInt32(r[name]);
+    private static int? GetNullableInt(SqlDataReader r, string name) => !HasColumn(r, name) || r[name] == DBNull.Value ? null : Convert.ToInt32(r[name]);
+    private static DateTime GetDate(SqlDataReader r, string name) => !HasColumn(r, name) || r[name] == DBNull.Value ? DateTime.MinValue : Convert.ToDateTime(r[name]);
+    private static DateTime? GetNullableDate(SqlDataReader r, string name) => !HasColumn(r, name) || r[name] == DBNull.Value ? null : Convert.ToDateTime(r[name]);
+    private static bool GetBool(SqlDataReader r, string name) => HasColumn(r, name) && r[name] != DBNull.Value && Convert.ToBoolean(r[name]);
 }
