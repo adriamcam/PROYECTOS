@@ -44,37 +44,29 @@ public sealed class AppRegistrationNotificationService : IAppRegistrationNotific
         if (string.IsNullOrWhiteSpace(_settings.FromUser))
             throw new InvalidOperationException("AppRegistrationNotifications:FromUser no está configurado.");
 
-      AccessToken token;
+        AccessToken graphToken;
 
-try
-{
-    var secret = await _secretClient.GetSecretAsync(_settings.ClientSecretName);
+        try
+        {
+            var keyVaultSecret = await _secretClient.GetSecretAsync(_settings.ClientSecretName);
 
-    var credential = new ClientSecretCredential(
-        _settings.TenantId,
-        _settings.ClientId,
-        secret.Value.Value);
+            var graphCredential = new ClientSecretCredential(
+                _settings.TenantId,
+                _settings.ClientId,
+                keyVaultSecret.Value.Value);
 
-    token = await credential.GetTokenAsync(
-        new TokenRequestContext(new[] { "https://graph.microsoft.com/.default" }));
-}
-catch (Exception ex)
-{
-    throw new InvalidOperationException(
-        "Error autenticando con la App Registration configurada para notificaciones Graph. " +
-        ex.ToString());
-}
-
-        var credential = new ClientSecretCredential(
-            _settings.TenantId,
-            _settings.ClientId,
-            secret.Value.Value);
-
-        var token = await credential.GetTokenAsync(
-            new TokenRequestContext(new[] { "https://graph.microsoft.com/.default" }));
+            graphToken = await graphCredential.GetTokenAsync(
+                new TokenRequestContext(new[] { "https://graph.microsoft.com/.default" }));
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException(
+                "Error autenticando con la App Registration configurada para notificaciones Graph. " +
+                ex.ToString());
+        }
 
         var client = _httpClientFactory.CreateClient();
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.Token);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", graphToken.Token);
 
         var payload = new
         {
