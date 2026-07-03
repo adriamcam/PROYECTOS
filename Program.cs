@@ -87,6 +87,7 @@ builder.Services.Configure<GdapAutomationSettings>(
     builder.Configuration.GetSection("GdapAutomation"));
 
 builder.Services.AddScoped<IGdapAutomationRunnerService, GdapAutomationRunnerService>();
+builder.Services.AddScoped<IGdapMailSenderService, GdapMailSenderService>();
 
 // Admin Links GDAP
 builder.Services.AddScoped<IGdapAdminLinksRepository, GdapAdminLinksRepository>();
@@ -113,5 +114,6 @@ app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
 app.Run();
+
 
 
