@@ -98,15 +98,7 @@ WHERE LOWER(LTRIM(RTRIM(UserEmail))) = LOWER(LTRIM(RTRIM(@UserEmail)));";
         using var connection = _connectionFactory.CreateConnection();
 
         const string sql = @"
-UPDATE dbo.ITQS_Customers
-SET
-    IsActive = 0,
-    Notes = CASE
-        WHEN NULLIF(LTRIM(RTRIM(ISNULL(Notes,''))), '') IS NULL
-            THEN CONCAT('Eliminado desde Support Cloud por ', @UserEmail, ' el ', CONVERT(varchar(19), SYSUTCDATETIME(), 120), ' UTC')
-        ELSE CONCAT(Notes, CHAR(13), CHAR(10), 'Eliminado desde Support Cloud por ', @UserEmail, ' el ', CONVERT(varchar(19), SYSUTCDATETIME(), 120), ' UTC')
-    END,
-    UpdatedAt = SYSUTCDATETIME()
+DELETE FROM dbo.ITQS_Customers
 WHERE TenantId = @TenantId;
 
 SELECT @@ROWCOUNT;";
@@ -122,4 +114,5 @@ SELECT @@ROWCOUNT;";
     }
 
 }
+
 
