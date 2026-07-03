@@ -40,7 +40,7 @@ SELECT
     ExpiringIn15Days = SUM(CASE WHEN ISNULL(IsActive,1) = 1 AND ActiveEndDate IS NOT NULL AND DATEDIFF(DAY, GETDATE(), ActiveEndDate) BETWEEN 0 AND 15 THEN 1 ELSE 0 END),
     ExpiringIn7Days = SUM(CASE WHEN ISNULL(IsActive,1) = 1 AND ActiveEndDate IS NOT NULL AND DATEDIFF(DAY, GETDATE(), ActiveEndDate) BETWEEN 0 AND 7 THEN 1 ELSE 0 END),
     ExpiringIn5Days = SUM(CASE WHEN ISNULL(IsActive,1) = 1 AND ActiveEndDate IS NOT NULL AND DATEDIFF(DAY, GETDATE(), ActiveEndDate) BETWEEN 0 AND 5 THEN 1 ELSE 0 END),
-    DisabledCustomers = SUM(CASE WHEN ISNULL(IsActive,1) = 0 THEN 1 ELSE 0 END),
+    DisabledCustomers = SUM(CASE WHEN ISNULL(EnableGDAPAutomation,1) = 0 THEN 1 ELSE 0 END),
     PendingEmails = SUM(CASE WHEN ISNULL(IsActive,1) = 1 AND LOWER(ISNULL(StatusFound,'')) LIKE '%approvalpending%' AND ISNULL(ApprovalPendingLink,'') <> '' AND ISNULL(PrimaryEmail,'') <> '' THEN 1 ELSE 0 END),
     AutomationErrors = SUM(CASE WHEN LOWER(ISNULL(LastAutomationStatus,'')) IN ('failed','error') THEN 1 ELSE 0 END),
     LastExecutionDate = MAX(ExecutionDate),
@@ -264,7 +264,7 @@ SELECT
     ApprovalPending = SUM(CASE WHEN ISNULL(IsActive,1) = 1 AND LOWER(ISNULL(StatusFound,'')) LIKE '%approvalpending%' THEN 1 ELSE 0 END),
     WithoutGdap = SUM(CASE WHEN ISNULL(IsActive,1) = 1 AND (LOWER(ISNULL(StatusFound,'')) LIKE '%sin gdap%' OR LOWER(ISNULL(HasGdap,'')) IN ('no','false','0')) THEN 1 ELSE 0 END),
     ExpiringIn30Days = SUM(CASE WHEN ISNULL(IsActive,1) = 1 AND ActiveEndDate IS NOT NULL AND DATEDIFF(DAY, GETDATE(), ActiveEndDate) BETWEEN 0 AND 30 THEN 1 ELSE 0 END),
-    DisabledCustomers = SUM(CASE WHEN ISNULL(IsActive,1) = 0 THEN 1 ELSE 0 END),
+    DisabledCustomers = SUM(CASE WHEN ISNULL(EnableGDAPAutomation,1) = 0 THEN 1 ELSE 0 END),
     PendingEmails = SUM(CASE WHEN ISNULL(IsActive,1) = 1 AND LOWER(ISNULL(StatusFound,'')) LIKE '%approvalpending%' AND ISNULL(ApprovalPendingLink,'') <> '' AND ISNULL(PrimaryEmail,'') <> '' THEN 1 ELSE 0 END),
     AutomationErrors = SUM(CASE WHEN LOWER(ISNULL(LastAutomationStatus,'')) IN ('failed','error') THEN 1 ELSE 0 END)
 FROM dbo.vw_GDAP_AllCustomers
@@ -698,6 +698,7 @@ VALUES
     private static DateTime? GetNullableDate(SqlDataReader r, string name) => !HasColumn(r, name) || r[name] == DBNull.Value ? null : Convert.ToDateTime(r[name]);
     private static bool GetBool(SqlDataReader r, string name) => HasColumn(r, name) && r[name] != DBNull.Value && Convert.ToBoolean(r[name]);
 }
+
 
 
 
