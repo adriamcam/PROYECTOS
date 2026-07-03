@@ -706,3 +706,47 @@
     color: #7c8798;
     margin-top: 2px;
 }
+
+.gdap-switch {
+    border: 1px solid #d7e3f7;
+    border-radius: 999px;
+    min-width: 70px;
+    height: 30px;
+    padding: 3px 9px;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 800;
+    background: #f8fafc;
+}
+
+.gdap-switch .switch-dot {
+    width: 18px;
+    height: 18px;
+    border-radius: 999px;
+    display: inline-block;
+    background: #94a3b8;
+}
+
+.gdap-switch.on {
+    color: #047857;
+    background: #ecfdf5;
+    border-color: #bbf7d0;
+}
+
+.gdap-switch.on .switch-dot {
+    background: #22c55e;
+}
+
+.gdap-switch.off {
+    color: #b91c1c;
+    background: #fef2f2;
+    border-color: #fecaca;
+}
+
+.gdap-switch.off .switch-dot {
+    background: #ef4444;
+}
+

@@ -141,7 +141,7 @@
                     <span>Días</span>
                     <span>Correo</span>
                     <span>Último correo</span>
-                    <span>Procesar GDAP</span>
+                    <span>EnableGDAP</span>
                     <span>Acciones</span>
                 </div>
 
@@ -155,10 +155,18 @@
                         <span class="@DaysCss(item)">@(item.DaysToExpire?.ToString() ?? "-")</span>
                         <span><span class="mail-state @(item.CanSendEmail ? "ready" : "missing")">@(item.CanSendEmail ? "Listo" : "No listo")</span></span>
                         <span>@FormatDateTime(item.LastEmailSentAt)</span>
-                        <span><span class="active-pill @(item.EnableGDAPAutomation ? "yes" : "no")">@(item.EnableGDAPAutomation ? "Sí" : "No")</span></span>
+                        <span>
+    <button type="button"
+            class="gdap-switch @(item.EnableGDAPAutomation ? "on" : "off")"
+            title="@(item.EnableGDAPAutomation ? "Deshabilitar GDAP Automation" : "Habilitar GDAP Automation")"
+            @onclick="() => ToggleGdapAutomationAsync(item)">
+        <span class="switch-dot"></span>
+        <b>@(item.EnableGDAPAutomation ? "ON" : "OFF")</b>
+    </button>
+</span>
                         <span class="row-actions">
                             <button type="button" title="Ver detalle" @onclick="() => OpenDetailAsync(item.Id)">👁</button>
-                            <button type="button" title="Ejecutar Automation" disabled="@(!item.IsActive)" @onclick="() => OpenAutomationConfirm(item)">▶</button>
+                            <button type="button" title="Ejecutar Automation" disabled="@(!item.EnableGDAPAutomation)" @onclick="() => OpenAutomationConfirm(item)">▶</button>
                             <button type="button" title="Editar cliente" @onclick="() => OpenEditAsync(item)">✏</button>
                             <button type="button" title="Abrir Approval URL" disabled="@string.IsNullOrWhiteSpace(item.ApprovalPendingLink)" @onclick="() => OpenApprovalUrl(item)">🔗</button>
                             <button type="button" title="Copiar Approval URL" disabled="@string.IsNullOrWhiteSpace(item.ApprovalPendingLink)" @onclick="() => CopyApprovalUrlAsync(item)">📋</button>
@@ -313,7 +321,7 @@
                         <span><span class="status @StatusCss(item)">@StatusText(item)</span></span>
                         <span>@FormatDate(item.ActiveEndDate)</span>
                         <span class="@DaysCss(item)">@(item.DaysToExpire?.ToString() ?? "-")</span>
-                        <span class="row-actions"><button @onclick="() => OpenDetailAsync(item.Id)">👁</button><button disabled="@(!item.IsActive)" @onclick="() => OpenAutomationConfirm(item)">▶</button></span>
+                        <span class="row-actions"><button @onclick="() => OpenDetailAsync(item.Id)">👁</button><button disabled="@(!item.EnableGDAPAutomation)" @onclick="() => OpenAutomationConfirm(item)">▶</button></span>
                     </div>
                 }
             </section>
@@ -339,7 +347,7 @@
                     <div class="detail-line"><span>Relaciones</span><b>@SelectedDetail.RelationshipQty</b></div>
                     <div class="detail-line"><span>Fecha vencimiento</span><b>@FormatDate(SelectedDetail.ActiveEndDate)</b></div>
                     <div class="detail-line"><span>Días restantes</span><b>@(SelectedDetail.DaysToExpire?.ToString() ?? "-")</b></div>
-                    <div class="detail-line"><span>Procesar GDAP</span><b>@(SelectedDetail.IsActive ? "Sí" : "No")</b></div>
+                    <div class="detail-line"><span>EnableGDAP</span><b>@(SelectedDetail.EnableGDAPAutomation ? "Sí" : "No")</b></div>
 
                     <h4>Contacto</h4>
                     <div class="detail-line"><span>Contacto</span><b>@SelectedDetail.PrimaryContactName</b></div>
@@ -348,7 +356,7 @@
 
                     <h4>Approval URL</h4>
                     <div class="approval-box">@(string.IsNullOrWhiteSpace(SelectedDetail.ApprovalPendingLink) ? "Sin link generado" : SelectedDetail.ApprovalPendingLink)</div>
-                    <button class="btn-primary full-button" disabled="@(!SelectedDetail.IsActive)" @onclick="() => OpenAutomationConfirm(SelectedDetail)">Ejecutar Automation para este cliente</button>
+                    <button class="btn-primary full-button" disabled="@(!SelectedDetail.EnableGDAPAutomation)" @onclick="() => OpenAutomationConfirm(SelectedDetail)">Ejecutar Automation para este cliente</button>
                     <button class="btn-secondary full-button" disabled="@string.IsNullOrWhiteSpace(SelectedDetail.ApprovalPendingLink)" @onclick="() => OpenApprovalUrl(SelectedDetail)">Abrir Approval URL</button>
                     <button class="btn-secondary full-button" disabled="@string.IsNullOrWhiteSpace(SelectedDetail.ApprovalPendingLink)" @onclick="() => CopyApprovalUrlAsync(SelectedDetail)">Copiar Approval URL</button>
                     <button class="btn-secondary full-button" @onclick="() => OpenEditAsync(SelectedDetail)">Editar datos del cliente</button>
@@ -504,6 +512,8 @@
     }
 
 </div>
+
+
 
 
 
