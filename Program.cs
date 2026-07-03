@@ -82,6 +82,10 @@ builder.Services.Configure<AppRegistrationNotificationSettings>(
 builder.Services.AddScoped<IAppRegistrationITQSRepository, AppRegistrationITQSRepository>();
 builder.Services.AddScoped<IAppRegistrationITQSService, AppRegistrationITQSService>();
 builder.Services.AddScoped<IAppRegistrationNotificationService, AppRegistrationNotificationService>();
+builder.Services.Configure<GdapAutomationSettings>(
+    builder.Configuration.GetSection("GdapAutomation"));
+
+builder.Services.AddScoped<IGdapAutomationRunnerService, GdapAutomationRunnerService>();
 
 // Admin Links GDAP
 builder.Services.AddScoped<IGdapAdminLinksRepository, GdapAdminLinksRepository>();
@@ -108,3 +112,4 @@ app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
 app.Run();
+
