@@ -30,7 +30,19 @@
         </section>
 
         <!-- ========================= 03.2: KPIs ============================== -->
-        <section class="customer-kpis">
+        <div class="module-info-banner">
+    <div class="info-icon">ℹ</div>
+    <div>
+        <h3>Información operativa</h3>
+        <p>
+            Este módulo administra la información base de los clientes almacenada en
+            <strong>dbo.ITQS_Customers</strong>. El estado configurado aquí determina si los runbooks
+            y automatizaciones de ITQS pueden utilizar el cliente durante su ejecución.
+        </p>
+    </div>
+</div>
+
+<section class="customer-kpis">
             <div class="kpi-card blue">
                 <span>Total clientes</span>
                 <strong>@Dashboard.TotalCustomers.ToString("N0")</strong>
@@ -436,4 +448,5 @@
     }
 
 </div>
+
 
