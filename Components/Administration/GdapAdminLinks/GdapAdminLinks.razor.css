@@ -756,3 +756,87 @@
 .hero-title {
     color: #ffffff !important;
 }
+
+.partner-health-card {
+    min-height: 220px;
+}
+
+.partner-health-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.partner-health-row {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr auto;
+    gap: 16px;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #e5edf7;
+}
+
+.partner-health-main strong {
+    display: block;
+    color: #0f172a;
+}
+
+.partner-health-main small {
+    color: #64748b;
+    font-size: 12px;
+}
+
+.partner-health-progress {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.partner-health-bar {
+    width: 140px;
+    height: 8px;
+    border-radius: 999px;
+    background: #e5e7eb;
+    overflow: hidden;
+}
+
+.partner-health-bar span {
+    display: block;
+    height: 100%;
+    border-radius: 999px;
+}
+
+.partner-health-status {
+    font-size: 12px;
+    font-weight: 800;
+    border-radius: 999px;
+    padding: 6px 10px;
+}
+
+.partner-health-status.healthy,
+.partner-health-progress b.healthy {
+    color: #059669;
+}
+
+.partner-health-bar span.healthy {
+    background: #10b981;
+}
+
+.partner-health-status.warning,
+.partner-health-progress b.warning {
+    color: #f97316;
+}
+
+.partner-health-bar span.warning {
+    background: #f97316;
+}
+
+.partner-health-status.critical,
+.partner-health-progress b.critical {
+    color: #ef4444;
+}
+
+.partner-health-bar span.critical {
+    background: #ef4444;
+}
+

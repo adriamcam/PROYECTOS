@@ -61,6 +61,42 @@
                     <span class="health-label">@(HealthPercent >= 90 ? "HEALTHY" : "ATENCIÓN")</span>
                 </div>
 
+                <div class="summary-card partner-health-card">
+                    <h3>Salud GDAP por Partner Center</h3>
+
+                    @if (!PartnerReports.Any())
+                    {
+                        <p class="muted-text">No hay datos por partner.</p>
+                    }
+                    else
+                    {
+                        <div class="partner-health-list">
+                            @foreach (var partner in PartnerReports)
+                            {
+                                var administrados = partner.TotalCustomers - partner.DisabledCustomers;
+                                var salud = administrados <= 0 ? 0 : Convert.ToInt32(Math.Round((partner.ActiveGdap * 100.0) / administrados));
+                                var statusClass = salud >= 75 ? "healthy" : salud >= 50 ? "warning" : "critical";
+                                var statusText = salud >= 75 ? "Saludable" : salud >= 50 ? "Atención" : "Crítico";
+
+                                <div class="partner-health-row">
+                                    <div class="partner-health-main">
+                                        <strong>@partner.PartnerTenant</strong>
+                                        <small>Total: @partner.TotalCustomers | ON: @administrados | Activos: @partner.ActiveGdap</small>
+                                    </div>
+
+                                    <div class="partner-health-progress">
+                                        <div class="partner-health-bar">
+                                            <span class="@statusClass" style="width:@salud%"></span>
+                                        </div>
+                                        <b class="@statusClass">@salud%</b>
+                                    </div>
+
+                                    <span class="partner-health-status @statusClass">@statusText</span>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
                 <div class="summary-card">
                     <h3>Próximos vencimientos</h3>
                     @if (!ExpiringItems.Any())
@@ -561,6 +597,7 @@
     }
 
 </div>
+
 
 
 
