@@ -272,6 +272,43 @@ public partial class GdapAdminLinks : ComponentBase
         }
     }
 
+    protected async Task DisableGdapAutomationAsync(GdapAdminLinksCustomerModel item)
+    {
+        var result = await GdapService.SetGdapAutomationStatusAsync(
+            item.Id,
+            false,
+            UserEmail,
+            "Cliente sin servicios activos con ITQS.");
+
+        if (result.Success)
+        {
+            SetOk(result.Message);
+            await RefreshAsync();
+        }
+        else
+        {
+            SetError(result.ErrorMessage);
+        }
+    }
+
+    protected async Task EnableGdapAutomationAsync(GdapAdminLinksCustomerModel item)
+    {
+        var result = await GdapService.SetGdapAutomationStatusAsync(
+            item.Id,
+            true,
+            UserEmail,
+            string.Empty);
+
+        if (result.Success)
+        {
+            SetOk(result.Message);
+            await RefreshAsync();
+        }
+        else
+        {
+            SetError(result.ErrorMessage);
+        }
+    }
     protected void OpenApprovalUrl(GdapAdminLinksCustomerModel item)
     {
         if (string.IsNullOrWhiteSpace(item.ApprovalPendingLink))
@@ -612,3 +649,4 @@ public partial class GdapAdminLinks : ComponentBase
         MessageCss = "gdap-message error";
     }
 }
+
