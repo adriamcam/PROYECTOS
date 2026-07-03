@@ -4,19 +4,13 @@
 @inject IAssignedAlertsDashboardService DashboardService
 @implements IDisposable
 
-<div class="module-title-row"><div class="module-title-row">
-    <div class="module-title-row">
+<div class="module-title-row">
     <h1>Dashboard</h1>
     <OperationalInfoButton
         Title="Dashboard"
         Description="Este módulo muestra las alertas activas del SOC, permite visualizar el estado general, filtrar clientes y asignar incidentes operativos."
         Tables="dbo.AlertsManagement, dbo.AlertasBackup" />
 </div>
-    <OperationalInfoButton
-        Title="Dashboard"
-        Description="Este módulo muestra las alertas activas del SOC, permite visualizar el estado general, filtrar clientes y asignar incidentes operativos."
-        Tables="dbo.AlertsManagement, dbo.AlertasBackup" />
-</div></div>
 <div class="cloud-divider"></div>
 
 <div class="kpi-row">
@@ -668,6 +662,7 @@
         RefreshCts?.Dispose();
     }
 }
+
 
 
 
