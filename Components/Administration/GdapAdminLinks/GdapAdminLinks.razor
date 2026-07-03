@@ -456,7 +456,42 @@
         </div>
     }
 
-    @if (ShowSyncConfirm && SyncCustomer is not null)
+    @if (ShowDisableGdapConfirm && DisableGdapCustomer is not null)
+{
+    <div class="gdap-modal-backdrop">
+        <div class="gdap-confirm-modal">
+            <div class="modal-header">
+                <div>
+                    <h3>Deshabilitar EnableGDAP</h3>
+                    <small>Se requiere justificación</small>
+                </div>
+                <button disabled="@IsDisableGdapSaving" @onclick="CloseDisableGdapConfirm">×</button>
+            </div>
+
+            <div class="confirm-body">
+                <p>Este cliente será ignorado por la Automation GDAP.</p>
+
+                <div class="detail-line"><span>Cliente</span><b>@DisableGdapCustomer.CustomerName</b></div>
+                <div class="detail-line"><span>Partner Tenant</span><b>@DisableGdapCustomer.PartnerTenant</b></div>
+                <div class="detail-line"><span>Customer TenantId</span><b>@DisableGdapCustomer.CustomerTenantId</b></div>
+
+                <label class="field-label">Justificación</label>
+                <textarea class="form-control"
+                          rows="4"
+                          @bind="DisableGdapReason"
+                          placeholder="Ejemplo: Cliente sin servicios activos con ITQS."></textarea>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn-secondary" disabled="@IsDisableGdapSaving" @onclick="CloseDisableGdapConfirm">Cancelar</button>
+                <button class="btn-primary" disabled="@IsDisableGdapSaving" @onclick="ConfirmDisableGdapAsync">
+                    @(IsDisableGdapSaving ? "Guardando..." : "Deshabilitar")
+                </button>
+            </div>
+        </div>
+    </div>
+}
+@if (ShowSyncConfirm && SyncCustomer is not null)
 {
     <div class="gdap-modal-backdrop">
         <div class="gdap-confirm-modal">
@@ -526,6 +561,7 @@
     }
 
 </div>
+
 
 
 

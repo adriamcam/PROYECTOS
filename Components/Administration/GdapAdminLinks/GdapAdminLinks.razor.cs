@@ -45,6 +45,11 @@ public partial class GdapAdminLinks : ComponentBase
     protected bool IsSyncRunning { get; set; }
     protected GdapAdminLinksCustomerModel? SyncCustomer { get; set; }
 
+    protected bool ShowDisableGdapConfirm { get; set; }
+    protected bool IsDisableGdapSaving { get; set; }
+    protected GdapAdminLinksCustomerModel? DisableGdapCustomer { get; set; }
+    protected string DisableGdapReason { get; set; } = string.Empty;
+
     protected bool ShowMailPreview { get; set; }
     protected bool IsSendingMail { get; set; }
     protected int SelectedTemplateId { get; set; }
@@ -319,22 +324,81 @@ public partial class GdapAdminLinks : ComponentBase
     }
     protected async Task ToggleGdapAutomationAsync(GdapAdminLinksCustomerModel item)
     {
-        var enable = !item.EnableGDAPAutomation;
+        if (item.EnableGDAPAutomation)
+        {
+            DisableGdapCustomer = item;
+            DisableGdapReason = string.Empty;
+            ShowDisableGdapConfirm = true;
+            return;
+        }
 
         var result = await GdapService.SetGdapAutomationStatusAsync(
             item.Id,
-            enable,
+            true,
             UserEmail,
-            enable ? string.Empty : "Cliente sin servicios activos con ITQS.");
+            string.Empty);
 
         if (result.Success)
         {
-            SetOk(result.Message);
+            SetOk("Cliente habilitado para GDAP.");
             await RefreshAsync();
         }
         else
         {
-            SetError(result.ErrorMessage);
+            SetError(string.IsNullOrWhiteSpace(result.ErrorMessage) ? result.Message : result.ErrorMessage);
+        }
+    }
+
+    protected void CloseDisableGdapConfirm()
+    {
+        if (IsDisableGdapSaving)
+            return;
+
+        ShowDisableGdapConfirm = false;
+        DisableGdapCustomer = null;
+        DisableGdapReason = string.Empty;
+    }
+
+    protected async Task ConfirmDisableGdapAsync()
+    {
+        if (DisableGdapCustomer is null)
+        {
+            SetError("Debe seleccionar un cliente.");
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(DisableGdapReason))
+        {
+            SetError("Debe indicar una justificación para deshabilitar GDAP.");
+            return;
+        }
+
+        IsDisableGdapSaving = true;
+
+        try
+        {
+            var result = await GdapService.SetGdapAutomationStatusAsync(
+                DisableGdapCustomer.Id,
+                false,
+                UserEmail,
+                DisableGdapReason.Trim());
+
+            if (result.Success)
+            {
+                SetOk("Cliente deshabilitado para GDAP.");
+                ShowDisableGdapConfirm = false;
+                DisableGdapCustomer = null;
+                DisableGdapReason = string.Empty;
+                await RefreshAsync();
+            }
+            else
+            {
+                SetError(string.IsNullOrWhiteSpace(result.ErrorMessage) ? result.Message : result.ErrorMessage);
+            }
+        }
+        finally
+        {
+            IsDisableGdapSaving = false;
         }
     }
     protected void OpenApprovalUrl(GdapAdminLinksCustomerModel item)
@@ -737,6 +801,8 @@ public partial class GdapAdminLinks : ComponentBase
         MessageCss = "gdap-message error";
     }
 }
+
+
 
 
 
