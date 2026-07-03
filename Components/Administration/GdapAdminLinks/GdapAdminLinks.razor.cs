@@ -41,6 +41,10 @@ public partial class GdapAdminLinks : ComponentBase
     protected bool IsAutomationRunning { get; set; }
     protected GdapAdminLinksCustomerModel? AutomationCustomer { get; set; }
 
+    protected bool ShowSyncConfirm { get; set; }
+    protected bool IsSyncRunning { get; set; }
+    protected GdapAdminLinksCustomerModel? SyncCustomer { get; set; }
+
     protected bool ShowMailPreview { get; set; }
     protected bool IsSendingMail { get; set; }
     protected int SelectedTemplateId { get; set; }
@@ -357,6 +361,52 @@ public partial class GdapAdminLinks : ComponentBase
         else
         {
             SetError(string.IsNullOrWhiteSpace(result.ErrorMessage) ? result.Message : result.ErrorMessage);
+        }
+    }
+    protected void OpenSyncConfirm(GdapAdminLinksCustomerModel item)
+    {
+        SyncCustomer = item;
+        ShowSyncConfirm = true;
+    }
+
+    protected void CloseSyncConfirm()
+    {
+        if (IsSyncRunning)
+            return;
+
+        ShowSyncConfirm = false;
+        SyncCustomer = null;
+    }
+
+    protected async Task ExecuteSyncCustomerAsync()
+    {
+        if (SyncCustomer is null)
+        {
+            SetError("Debe seleccionar un cliente.");
+            return;
+        }
+
+        IsSyncRunning = true;
+
+        try
+        {
+            var result = await GdapService.SyncCustomerAsync(SyncCustomer.Id, UserEmail);
+
+            if (result.Success)
+            {
+                SetOk(result.Message);
+                ShowSyncConfirm = false;
+                SyncCustomer = null;
+                await RefreshAsync();
+            }
+            else
+            {
+                SetError(string.IsNullOrWhiteSpace(result.ErrorMessage) ? result.Message : result.ErrorMessage);
+            }
+        }
+        finally
+        {
+            IsSyncRunning = false;
         }
     }
     protected void OpenAutomationConfirm(GdapAdminLinksCustomerModel item)
@@ -687,6 +737,8 @@ public partial class GdapAdminLinks : ComponentBase
         MessageCss = "gdap-message error";
     }
 }
+
+
 
 
 
