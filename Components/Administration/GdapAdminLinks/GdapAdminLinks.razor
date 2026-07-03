@@ -139,8 +139,6 @@
                     <span>Estado</span>
                     <span>Vence</span>
                     <span>Días</span>
-                    <span>Correo</span>
-                    <span>Último correo</span>
                     <span>EnableGDAP</span>
                     <span>Acciones</span>
                 </div>
@@ -153,8 +151,6 @@
                         <span><span class="status @StatusCss(item)">@StatusText(item)</span></span>
                         <span>@FormatDate(item.ActiveEndDate)</span>
                         <span class="@DaysCss(item)">@(item.DaysToExpire?.ToString() ?? "-")</span>
-                        <span><span class="mail-state @(item.CanSendEmail ? "ready" : "missing")">@(item.CanSendEmail ? "Listo" : "No listo")</span></span>
-                        <span>@FormatDateTime(item.LastEmailSentAt)</span>
                         <span>
     <button type="button"
             class="gdap-switch @(item.EnableGDAPAutomation ? "on" : "off")"
@@ -170,14 +166,6 @@
                             <button type="button" title="Editar cliente" @onclick="() => OpenEditAsync(item)">✏</button>
                             <button type="button" title="Abrir Approval URL" disabled="@string.IsNullOrWhiteSpace(item.ApprovalPendingLink)" @onclick="() => OpenApprovalUrl(item)">🔗</button>
                             <button type="button" title="Copiar Approval URL" disabled="@string.IsNullOrWhiteSpace(item.ApprovalPendingLink)" @onclick="() => CopyApprovalUrlAsync(item)">📋</button>
-                            @if (item.EnableGDAPAutomation)
-                            {
-                                <button type="button" title="Deshabilitar Automation GDAP" @onclick="() => DisableGdapAutomationAsync(item)">🚫</button>
-                            }
-                            else
-                            {
-                                <button type="button" title="Habilitar Automation GDAP" @onclick="() => EnableGdapAutomationAsync(item)">✔</button>
-                            }
                         </span>
                     </div>
                 }
@@ -512,6 +500,8 @@
     }
 
 </div>
+
+
 
 
 
