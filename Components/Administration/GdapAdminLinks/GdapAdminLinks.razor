@@ -458,7 +458,40 @@
         </div>
     }
 
-    @if (ShowAutomationConfirm && AutomationCustomer is not null)
+    @if (ShowSyncConfirm && SyncCustomer is not null)
+{
+    <div class="gdap-modal-backdrop">
+        <div class="gdap-confirm-modal">
+            <div class="modal-header">
+                <div>
+                    <h3>Sincronizar Cliente GDAP</h3>
+                    <small>ITQS-SOC-GDAP-CUSTOMER-SYNC</small>
+                </div>
+                <button disabled="@IsSyncRunning" @onclick="CloseSyncConfirm">×</button>
+            </div>
+
+            <div class="confirm-body">
+                <p>Se sincronizará únicamente este cliente desde Partner Center.</p>
+
+                <div class="detail-line"><span>Cliente</span><b>@SyncCustomer.CustomerName</b></div>
+                <div class="detail-line"><span>Partner Tenant</span><b>@SyncCustomer.PartnerTenant</b></div>
+                <div class="detail-line"><span>Customer TenantId</span><b>@SyncCustomer.CustomerTenantId</b></div>
+
+                <div class="info-box">
+                    Esta acción actualizará el estado GDAP, Approval URL, vencimiento y relaciones del cliente.
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn-secondary" disabled="@IsSyncRunning" @onclick="CloseSyncConfirm">Cancelar</button>
+                <button class="btn-primary" disabled="@IsSyncRunning" @onclick="ExecuteSyncCustomerAsync">
+                    @(IsSyncRunning ? "Sincronizando..." : "Sincronizar Cliente")
+                </button>
+            </div>
+        </div>
+    </div>
+}
+@if (ShowAutomationConfirm && AutomationCustomer is not null)
     {
         <div class="gdap-modal-backdrop">
             <div class="gdap-confirm-modal">
@@ -495,6 +528,7 @@
     }
 
 </div>
+
 
 
 
