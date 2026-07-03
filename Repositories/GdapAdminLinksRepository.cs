@@ -653,7 +653,9 @@ VALUES
             LastAutomationStatus = GetString(reader, "LastAutomationStatus"),
             LastAutomationMessage = GetString(reader, "LastAutomationMessage"),
             UpdatedBy = GetString(reader, "UpdatedBy"),
-            DaysToExpire = GetNullableInt(reader, "DaysToExpire")
+            DaysToExpire = GetNullableInt(reader, "DaysToExpire"),
+            EnableGDAPAutomation = !HasColumn(reader, "EnableGDAPAutomation") || GetBool(reader, "EnableGDAPAutomation"),
+            GDAPAutomationReason = GetString(reader, "GDAPAutomationReason")
         };
     }
 
@@ -696,4 +698,7 @@ VALUES
     private static DateTime? GetNullableDate(SqlDataReader r, string name) => !HasColumn(r, name) || r[name] == DBNull.Value ? null : Convert.ToDateTime(r[name]);
     private static bool GetBool(SqlDataReader r, string name) => HasColumn(r, name) && r[name] != DBNull.Value && Convert.ToBoolean(r[name]);
 }
+
+
+
 
