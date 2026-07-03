@@ -491,5 +491,51 @@ public async Task<GdapAdminLinksActionResult> ExecuteAutomationAsync(int id, str
         return WebUtility.HtmlDecode(text).Trim();
     }
 
+
+    public async Task<GdapAdminLinksActionResult> SyncCustomerAsync(int id, string requestedBy)
+    {
+        try
+        {
+            var customer = await _repository.GetCustomerAsync(id);
+            if (customer is null)
+                throw new InvalidOperationException("No se encontró el cliente seleccionado.");
+
+            var request = new GdapAdminLinksAutomationRequest
+            {
+                CustomerId = customer.Id,
+                PartnerTenant = customer.PartnerTenant,
+                CustomerName = customer.CustomerName,
+                CustomerTenantId = customer.CustomerTenantId,
+                RequestedBy = requestedBy
+            };
+
+            var result = await _automationRunner.StartCustomerSyncForCustomerAsync(request);
+
+            await _repository.RegisterHistoryAsync(
+                id,
+                "Sincronización cliente GDAP",
+                result.Success ? result.Message : result.ErrorMessage,
+                requestedBy);
+
+            return new GdapAdminLinksActionResult
+            {
+                Success = result.Success,
+                Message = result.Message,
+                ErrorMessage = result.ErrorMessage
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error sincronizando cliente GDAP {Id}", id);
+
+            return new GdapAdminLinksActionResult
+            {
+                Success = false,
+                ErrorMessage = ex.Message,
+                Message = "No fue posible sincronizar el cliente."
+            };
+        }
+    }
 }
+
 

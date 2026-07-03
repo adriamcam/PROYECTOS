@@ -157,6 +157,7 @@
                         <span class="row-actions">
                             <button type="button" title="Ver detalle" @onclick="() => OpenDetailAsync(item.Id)">👁</button>
                             <button type="button" title="Ejecutar Automation" disabled="@(!item.EnableGDAPAutomation)" @onclick="() => OpenAutomationConfirm(item)">▶</button>
+                            <button type="button" title="Sincronizar cliente GDAP" @onclick="() => SyncCustomerAsync(item)">🔄</button>
                             <button type="button" title="Editar cliente" @onclick="() => OpenEditAsync(item)">✏</button>
                             <button type="button" title="Abrir Approval URL" disabled="@string.IsNullOrWhiteSpace(item.ApprovalPendingLink)" @onclick="() => OpenApprovalUrl(item)">🔗</button>
                             <button type="button" title="Copiar Approval URL" disabled="@string.IsNullOrWhiteSpace(item.ApprovalPendingLink)" @onclick="() => CopyApprovalUrlAsync(item)">📋</button>
@@ -494,6 +495,7 @@
     }
 
 </div>
+
 
 
 

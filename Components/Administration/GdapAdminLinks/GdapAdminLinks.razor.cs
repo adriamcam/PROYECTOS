@@ -345,6 +345,20 @@ public partial class GdapAdminLinks : ComponentBase
     }
 
 
+    protected async Task SyncCustomerAsync(GdapAdminLinksCustomerModel item)
+    {
+        var result = await GdapService.SyncCustomerAsync(item.Id, UserEmail);
+
+        if (result.Success)
+        {
+            SetOk(result.Message);
+            await RefreshAsync();
+        }
+        else
+        {
+            SetError(string.IsNullOrWhiteSpace(result.ErrorMessage) ? result.Message : result.ErrorMessage);
+        }
+    }
     protected void OpenAutomationConfirm(GdapAdminLinksCustomerModel item)
     {
         if (!item.IsActive)
@@ -673,6 +687,7 @@ public partial class GdapAdminLinks : ComponentBase
         MessageCss = "gdap-message error";
     }
 }
+
 
 
 
