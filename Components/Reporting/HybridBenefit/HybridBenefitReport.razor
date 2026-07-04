@@ -1,182 +1,242 @@
 @namespace ITQS.SupportOperationsCenter.Components.Reporting.HybridBenefit
 
+@using ITQS.SupportOperationsCenter.Services
+@using ITQS.SupportOperationsCenter.Components.Reporting.HybridBenefit.Models
+@using ITQS.SupportOperationsCenter.Components.Reporting.HybridBenefit.Components
+
+@inject IHybridBenefitService HybridBenefitService
+
 <section class="hb-page">
 
-    <div class="hb-hero">
-        <div>
-            <span class="hb-eyebrow">Reportería</span>
-            <h1>Reporte Beneficio Híbrido</h1>
-            <p>Monitoreo y análisis del uso de Azure Hybrid Benefit por cliente, suscripción y recurso.</p>
-
-            <div class="hb-meta">
-                <span>Última ejecución</span>
-                <strong>03/07/2026 10:15</strong>
-            </div>
-        </div>
-
-        <div class="hb-actions">
-            
-            <button type="button" class="hb-btn hb-btn-primary">Actualizar</button>
-        </div>
-    </div>
-
-    <div class="hb-tabs">
-        <button class="active">Dashboard</button>
-        <button>Clientes</button>
-        <button>Suscripciones</button>
-        <button>Recursos AHUB</button>
-        <button>Cambios recientes</button>
-        <button>Auditoría</button>
-    </div>
-
-    <div class="hb-kpi-grid">
-        <div class="hb-kpi"><span>Total Recursos</span><strong>128</strong><small>Recursos con AHUB activo</small></div>
-        <div class="hb-kpi"><span>Clientes</span><strong>24</strong><small>Clientes con beneficio híbrido</small></div>
-        <div class="hb-kpi"><span>Suscripciones</span><strong>39</strong><small>Suscripciones detectadas</small></div>
-        <div class="hb-kpi"><span>Cambios 7 días</span><strong>8</strong><small>Activaciones o desactivaciones</small></div>
-        <div class="hb-kpi"><span>Windows</span><strong>91</strong><small>AHUB Windows Server</small></div>
-        <div class="hb-kpi"><span>SQL</span><strong>27</strong><small>AHUB SQL Server</small></div>
-        <div class="hb-kpi"><span>Tags</span><strong>10</strong><small>Detectados por tag</small></div>
-    </div>
-
-    <div class="hb-filter-panel">
-        <div>
-            <label>Cliente</label>
-            <input placeholder="Buscar cliente..." />
-        </div>
-
-        <div>
-            <label>Suscripción</label>
-            <input placeholder="Buscar suscripción..." />
-        </div>
-
-        <div>
-            <label>Tipo AHUB</label>
-            <select>
-                <option>Todos</option>
-                <option>Azure Hybrid Benefit</option>
-                <option>Azure Hybrid Benefit SQL</option>
-                <option>Azure Hybrid Benefit Tag</option>
-            </select>
-        </div>
-
-        <div>
-            <label>Recurso</label>
-            <input placeholder="Buscar recurso..." />
-        </div>
-    </div>
-
-    <div class="hb-dashboard-grid">
-        <section class="hb-card hb-card-large">
-            <div class="hb-card-header">
-                <div>
-                    <h3>Top clientes con AHUB</h3>
-                    <p>Clientes con mayor cantidad de recursos usando beneficio híbrido.</p>
-                </div>
-            </div>
-
-            <div class="hb-bars">
-                <div><span>Almacenes el Rey</span><strong style="width:90%">42</strong></div>
-                <div><span>Cuestamoras Salud</span><strong style="width:70%">31</strong></div>
-                <div><span>Grand Bay Holding</span><strong style="width:48%">22</strong></div>
-                <div><span>Vision Mundial</span><strong style="width:35%">15</strong></div>
-                <div><span>Castro Carazo</span><strong style="width:22%">9</strong></div>
-            </div>
-        </section>
-
+    @if (IsLoading)
+    {
         <section class="hb-card">
-            <div class="hb-card-header">
-                <div>
-                    <h3>Distribución AHUB</h3>
-                    <p>Clasificación por origen del beneficio.</p>
-                </div>
-            </div>
-
-            <div class="hb-donut-wrap">
-                <div class="hb-donut"></div>
-
-                <div class="hb-legend">
-                    <span><i></i> Windows</span>
-                    <span><i></i> SQL</span>
-                    <span><i></i> Tag</span>
-                </div>
-            </div>
+            <strong>Cargando Reporte Beneficio Híbrido...</strong>
         </section>
-
+    }
+    else if (!string.IsNullOrWhiteSpace(ErrorMessage))
+    {
         <section class="hb-card">
-            <div class="hb-card-header">
-                <div>
-                    <h3>Cambios recientes</h3>
-                    <p>Activaciones y desactivaciones detectadas.</p>
-                </div>
-            </div>
-
-            <div class="hb-change-list">
-                <div><strong>Activated_OS</strong><span>4</span></div>
-                <div><strong>Activated_SQL</strong><span>2</span></div>
-                <div><strong>Deactivated_OS</strong><span>1</span></div>
-                <div><strong>Other</strong><span>1</span></div>
-            </div>
+            <strong>Error cargando datos</strong>
+            <p>@ErrorMessage</p>
         </section>
-    </div>
-
-    <section class="hb-card hb-table-card">
-        <div class="hb-card-header">
+    }
+    else
+    {
+        <div class="hb-hero">
             <div>
-                <h3>Recursos con Azure Hybrid Benefit</h3>
-                <p>Vista preliminar de recursos detectados por el reporte.</p>
+                <span class="hb-eyebrow">Reportería</span>
+                <h1>Reporte Beneficio Híbrido</h1>
+                <p>Monitoreo y análisis del uso de Azure Hybrid Benefit por cliente, suscripción y recurso.</p>
+
+                <div class="hb-meta">
+                    <span>Última ejecución</span>
+                    <strong>@Dashboard.Kpis.LastScanDate.ToString("dd/MM/yyyy HH:mm")</strong>
+                </div>
+            </div>
+
+            <div class="hb-actions">
+                <button type="button" class="hb-btn hb-btn-primary" @onclick="LoadDashboardAsync">
+                    Actualizar
+                </button>
             </div>
         </div>
 
-        <div class="hb-table-wrap">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Cliente</th>
-                        <th>Suscripción</th>
-                        <th>Resource Group</th>
-                        <th>Recurso</th>
-                        <th>Beneficio</th>
-                        <th>License Type</th>
-                        <th>SQL License</th>
-                        <th>Última detección</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>Almacenes el Rey</td>
-                        <td>Azure Almacenes el Rey CSP</td>
-                        <td>rg-produccion</td>
-                        <td>vm-sql-prod-01</td>
-                        <td><span class="hb-pill success">Azure Hybrid Benefit</span></td>
-                        <td>Windows_Server</td>
-                        <td></td>
-                        <td>03/07/2026</td>
-                    </tr>
-                    <tr>
-                        <td>Cuestamoras Salud</td>
-                        <td>Cuestamoras Salud</td>
-                        <td>rg-sql</td>
-                        <td>sqlvm-core-01</td>
-                        <td><span class="hb-pill info">Azure Hybrid Benefit SQL</span></td>
-                        <td></td>
-                        <td>AHUB</td>
-                        <td>03/07/2026</td>
-                    </tr>
-                    <tr>
-                        <td>Grand Bay Holding</td>
-                        <td>Grand Bay Holding GT</td>
-                        <td>rg-apps</td>
-                        <td>vm-app-02</td>
-                        <td><span class="hb-pill warning">Azure Hybrid Benefit Tag</span></td>
-                        <td></td>
-                        <td></td>
-                        <td>03/07/2026</td>
-                    </tr>
-                </tbody>
-            </table>
+        <div class="hb-tabs">
+            <button class="active">Dashboard</button>
+            <button>Clientes</button>
+            <button>Suscripciones</button>
+            <button>Recursos AHUB</button>
+            <button>Cambios recientes</button>
+            <button>Auditoría</button>
         </div>
-    </section>
+
+        <HBKpis Dashboard="Dashboard" />
+
+        <div class="hb-filter-panel">
+            <div>
+                <label>Cliente</label>
+                <input placeholder="Buscar cliente..." />
+            </div>
+
+            <div>
+                <label>Suscripción</label>
+                <input placeholder="Buscar suscripción..." />
+            </div>
+
+            <div>
+                <label>Tipo AHUB</label>
+                <select>
+                    <option>Todos</option>
+                    <option>Azure Hybrid Benefit</option>
+                    <option>Azure Hybrid Benefit SQL</option>
+                    <option>Azure Hybrid Benefit Tag</option>
+                </select>
+            </div>
+
+            <div>
+                <label>Recurso</label>
+                <input placeholder="Buscar recurso..." />
+            </div>
+        </div>
+
+        <div class="hb-dashboard-grid">
+            <section class="hb-card hb-card-large">
+                <div class="hb-card-header">
+                    <div>
+                        <h3>Top clientes con AHUB</h3>
+                        <p>Clientes con mayor cantidad de recursos usando beneficio híbrido.</p>
+                    </div>
+                </div>
+
+                <div class="hb-bars">
+                    @foreach (var item in Dashboard.TopCustomers.Take(5))
+                    {
+                        var max = Dashboard.TopCustomers.Any() ? Dashboard.TopCustomers.Max(x => x.TotalResources) : 1;
+                        var width = Math.Max(12, (int)Math.Round((item.TotalResources * 100.0) / max));
+
+                        <div>
+                            <span>@item.Customer</span>
+                            <strong style="width:@width%">@item.TotalResources</strong>
+                        </div>
+                    }
+                </div>
+            </section>
+
+            <section class="hb-card">
+                <div class="hb-card-header">
+                    <div>
+                        <h3>Distribución AHUB</h3>
+                        <p>Clasificación por origen del beneficio.</p>
+                    </div>
+                </div>
+
+                <div class="hb-change-list">
+                    @foreach (var item in Dashboard.Distribution)
+                    {
+                        <div>
+                            <strong>@item.BenefitType</strong>
+                            <span>@item.Total</span>
+                        </div>
+                    }
+                </div>
+            </section>
+
+            <section class="hb-card">
+                <div class="hb-card-header">
+                    <div>
+                        <h3>Cambios recientes</h3>
+                        <p>Activaciones y desactivaciones detectadas.</p>
+                    </div>
+                </div>
+
+                <div class="hb-change-list">
+                    @if (Dashboard.Changes.Any())
+                    {
+                        @foreach (var item in Dashboard.Changes.Take(5))
+                        {
+                            <div>
+                                <strong>@(item.AHUB_Status ?? item.ChangeType ?? "Cambio")</strong>
+                                <span>@item.ResourceName</span>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div>
+                            <strong>Sin cambios recientes</strong>
+                            <span>0</span>
+                        </div>
+                    }
+                </div>
+            </section>
+        </div>
+
+        <section class="hb-card hb-table-card">
+            <div class="hb-card-header">
+                <div>
+                    <h3>Recursos con Azure Hybrid Benefit</h3>
+                    <p>Vista de recursos detectados por el reporte.</p>
+                </div>
+            </div>
+
+            <div class="hb-table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Cliente</th>
+                            <th>Suscripción</th>
+                            <th>Resource Group</th>
+                            <th>Recurso</th>
+                            <th>Beneficio</th>
+                            <th>License Type</th>
+                            <th>SQL License</th>
+                            <th>Última detección</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Dashboard.Resources.Take(100))
+                        {
+                            <tr>
+                                <td>@item.Customer</td>
+                                <td>@item.Subscription</td>
+                                <td>@item.ResourceGroup</td>
+                                <td>@item.ResourceName</td>
+                                <td><span class="@GetBenefitPillClass(item.HybridBenefit)">@item.HybridBenefit</span></td>
+                                <td>@item.LicenseType</td>
+                                <td>@item.SQLLicenseType</td>
+                                <td>@item.ScanDate.ToString("dd/MM/yyyy HH:mm")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    }
 
 </section>
 
+@code {
+    private HybridBenefitDashboard Dashboard { get; set; } = new();
+    private bool IsLoading { get; set; } = true;
+    private string? ErrorMessage { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDashboardAsync();
+    }
+
+    private async Task LoadDashboardAsync()
+    {
+        try
+        {
+            IsLoading = true;
+            ErrorMessage = null;
+
+            Dashboard = await HybridBenefitService.GetDashboardAsync();
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = ex.Message;
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private static string GetBenefitPillClass(string benefit)
+    {
+        if (benefit.Contains("SQL", StringComparison.OrdinalIgnoreCase))
+        {
+            return "hb-pill info";
+        }
+
+        if (benefit.Contains("Tag", StringComparison.OrdinalIgnoreCase))
+        {
+            return "hb-pill warning";
+        }
+
+        return "hb-pill success";
+    }
+}

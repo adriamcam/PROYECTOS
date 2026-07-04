@@ -1,0 +1,50 @@
+@using ITQS.SupportOperationsCenter.Components.Reporting.HybridBenefit.Models
+
+<div class="hb-kpi-grid">
+    <div class="hb-kpi">
+        <span>Total Recursos</span>
+        <strong>@Dashboard.Kpis.TotalResources</strong>
+        <small>Recursos con AHUB activo</small>
+    </div>
+
+    <div class="hb-kpi">
+        <span>Clientes</span>
+        <strong>@Dashboard.Kpis.TotalCustomers</strong>
+        <small>Clientes con beneficio híbrido</small>
+    </div>
+
+    <div class="hb-kpi">
+        <span>Suscripciones</span>
+        <strong>@Dashboard.Kpis.TotalSubscriptions</strong>
+        <small>Suscripciones detectadas</small>
+    </div>
+
+    <div class="hb-kpi">
+        <span>Cambios</span>
+        <strong>@Dashboard.Kpis.ChangeCount</strong>
+        <small>Activaciones o desactivaciones</small>
+    </div>
+
+    <div class="hb-kpi">
+        <span>Windows</span>
+        <strong>@Dashboard.Kpis.WindowsCount</strong>
+        <small>AHUB Windows Server / Client</small>
+    </div>
+
+    <div class="hb-kpi">
+        <span>SQL</span>
+        <strong>@Dashboard.Kpis.SqlCount</strong>
+        <small>AHUB SQL Server</small>
+    </div>
+
+    <div class="hb-kpi">
+        <span>Tags</span>
+        <strong>@Dashboard.Kpis.TagCount</strong>
+        <small>Detectados por tag</small>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public HybridBenefitDashboard Dashboard { get; set; } = new();
+}
