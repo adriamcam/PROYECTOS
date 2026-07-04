@@ -216,20 +216,9 @@
                 <div class="section-header">
                     <div>
                         <h3>Centro de Correos</h3>
-                        <p>Clientes con approvalPending, Approval URL generado y correo configurado. También permite enviar recordatorios preventivos a 30, 15 y 7 días.</p>
+                        <p>Clientes con estado approvalPending y Approval URL generado.</p>
                     </div>
-                    <div class="template-selector">
-                        <select @bind="SelectedTemplateId">
-                            @foreach (var template in MailTemplates.Where(x => x.IsActive))
-                            {
-                                <option value="@template.Id">@template.Name</option>
-                            }
-                        </select>
-                        <button class="btn-secondary" disabled="@IsSendingMail" @onclick="() => SendExpirationReminderBatchAsync(30)">📧 30 días</button>
-                        <button class="btn-secondary" disabled="@IsSendingMail" @onclick="() => SendExpirationReminderBatchAsync(15)">📧 15 días</button>
-                        <button class="btn-secondary" disabled="@IsSendingMail" @onclick="() => SendExpirationReminderBatchAsync(7)">📧 7 días</button>
-                        <button class="btn-primary" @onclick="LoadPendingEmailsAsync">↻ Refrescar correos</button>
-                    </div>
+                    <button class="btn-primary" @onclick="LoadPendingEmailsAsync">↻ Refrescar correos</button>
                 </div>
 
                 <div class="gdap-row mail-head">
@@ -586,6 +575,10 @@
     }
 
 </div>
+
+
+
+
 
 
 
