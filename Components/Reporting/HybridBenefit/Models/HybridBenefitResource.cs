@@ -6,9 +6,9 @@ public class HybridBenefitResource
 
     public string Customer { get; set; } = "";
 
-    public Guid TenantId { get; set; }
+    public string TenantId { get; set; } = "";
 
-    public Guid SubscriptionId { get; set; }
+    public string SubscriptionId { get; set; } = "";
 
     public string Subscription { get; set; } = "";
 
@@ -36,3 +36,4 @@ public class HybridBenefitResource
 
     public DateTime ScanDate { get; set; }
 }
+
