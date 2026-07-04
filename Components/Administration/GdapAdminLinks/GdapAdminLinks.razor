@@ -240,6 +240,7 @@
                         <span>
                             <strong>@(string.IsNullOrWhiteSpace(item.PrimaryContactName) ? "-" : item.PrimaryContactName)</strong>
                             <small>@item.PrimaryEmail</small>
+                            <button type="button" class="link-button" title="Editar contacto" @onclick="() => OpenEditCrmContactPopup(item)">✏ Editar</button>
                         </span>
                         <span>@item.LastEmailSentBy</span>
                         <span>@item.SendMailAttempts</span>
@@ -596,6 +597,9 @@
     }
 
 </div>
+
+
+
 
 
 

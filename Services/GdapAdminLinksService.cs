@@ -536,6 +536,32 @@ public async Task<GdapAdminLinksActionResult> ExecuteAutomationAsync(int id, str
             };
         }
     }
+
+    public async Task<GdapAdminLinksActionResult> UpdateCrmContactAsync(string customerTenantId, string primaryContact, string primaryContactEmail)
+    {
+        try
+        {
+            await _repository.UpdateCrmContactAsync(customerTenantId, primaryContact, primaryContactEmail);
+
+            return new GdapAdminLinksActionResult
+            {
+                Success = true,
+                Message = "Contacto CRM actualizado correctamente."
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error actualizando contacto CRM");
+
+            return new GdapAdminLinksActionResult
+            {
+                Success = false,
+                ErrorMessage = ex.Message,
+                Message = "No se pudo actualizar el contacto CRM."
+            };
+        }
+    }
 }
+
 
 

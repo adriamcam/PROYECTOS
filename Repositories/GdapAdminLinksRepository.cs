@@ -704,7 +704,24 @@ VALUES
     private static DateTime GetDate(SqlDataReader r, string name) => !HasColumn(r, name) || r[name] == DBNull.Value ? DateTime.MinValue : Convert.ToDateTime(r[name]);
     private static DateTime? GetNullableDate(SqlDataReader r, string name) => !HasColumn(r, name) || r[name] == DBNull.Value ? null : Convert.ToDateTime(r[name]);
     private static bool GetBool(SqlDataReader r, string name) => HasColumn(r, name) && r[name] != DBNull.Value && Convert.ToBoolean(r[name]);
+
+    public async Task UpdateCrmContactAsync(string customerTenantId, string primaryContact, string primaryContactEmail)
+    {
+        await using var conn = await OpenConnectionAsync();
+        await using var cmd = conn.CreateCommand();
+
+        cmd.CommandType = CommandType.StoredProcedure;
+        cmd.CommandText = "dbo.usp_GDAP_UpdateCRMContact";
+
+        cmd.Parameters.AddWithValue("@CustomerTenantId", customerTenantId ?? string.Empty);
+        cmd.Parameters.AddWithValue("@PrimaryContact", primaryContact ?? string.Empty);
+        cmd.Parameters.AddWithValue("@PrimaryContactEmail", primaryContactEmail ?? string.Empty);
+
+        await cmd.ExecuteNonQueryAsync();
+    }
 }
+
+
 
 
 

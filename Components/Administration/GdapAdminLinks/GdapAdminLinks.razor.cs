@@ -64,6 +64,10 @@ public partial class GdapAdminLinks : ComponentBase
 
     protected bool ShowMailPreview { get; set; }
     protected bool IsSendingMail { get; set; }
+    protected bool ShowEditCrmContactPopup { get; set; }
+    protected GdapAdminLinksCustomerModel? EditCrmContactCustomer { get; set; }
+    protected string EditCrmContactName { get; set; } = string.Empty;
+    protected string EditCrmContactEmail { get; set; } = string.Empty;
     protected int SelectedTemplateId { get; set; }
     protected GdapMailPreviewModel? MailPreview { get; set; }
     protected List<GdapMailTemplateModel> MailTemplates { get; set; } = new();
@@ -623,7 +627,48 @@ public partial class GdapAdminLinks : ComponentBase
         }
     }
 
-    protected async Task SendMailDirectAsync(GdapAdminLinksCustomerModel item)
+    
+    protected void OpenEditCrmContactPopup(GdapAdminLinksCustomerModel item)
+    {
+        EditCrmContactCustomer = item;
+        EditCrmContactName = item.PrimaryContactName ?? string.Empty;
+        EditCrmContactEmail = item.PrimaryEmail ?? string.Empty;
+        ShowEditCrmContactPopup = true;
+    }
+
+    protected void CloseEditCrmContactPopup()
+    {
+        ShowEditCrmContactPopup = false;
+        EditCrmContactCustomer = null;
+        EditCrmContactName = string.Empty;
+        EditCrmContactEmail = string.Empty;
+    }
+
+    protected async Task SaveCrmContactAsync()
+    {
+        if (EditCrmContactCustomer is null)
+        {
+            SetError("Debe seleccionar un cliente.");
+            return;
+        }
+
+        var result = await GdapService.UpdateCrmContactAsync(
+            EditCrmContactCustomer.CustomerTenantId,
+            EditCrmContactName,
+            EditCrmContactEmail);
+
+        if (result.Success)
+        {
+            SetOk(result.Message);
+            CloseEditCrmContactPopup();
+            await RefreshAsync();
+        }
+        else
+        {
+            SetError(string.IsNullOrWhiteSpace(result.ErrorMessage) ? result.Message : result.ErrorMessage);
+        }
+    }
+protected async Task SendMailDirectAsync(GdapAdminLinksCustomerModel item)
     {
         var to = item.PrimaryEmail ?? string.Empty;
         var subject = Uri.EscapeDataString("Renovación de Permisos GDAP – Acción Requerida");
@@ -814,6 +859,10 @@ Para ello, sigue estos pasos: abre un navegador como Chrome o Edge, preferibleme
         MessageCss = "gdap-message error";
     }
 }
+
+
+
+
 
 
 
