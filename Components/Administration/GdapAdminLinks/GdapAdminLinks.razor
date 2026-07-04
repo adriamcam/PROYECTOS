@@ -598,7 +598,39 @@
         </div>
     }
 
+@if (ShowEditCrmContactPopup && EditCrmContactCustomer is not null)
+{
+    <div class="gdap-modal-backdrop">
+        <div class="gdap-confirm-modal">
+            <div class="modal-header">
+                <div>
+                    <h3>Editar contacto CRM</h3>
+                    <small>@EditCrmContactCustomer.CustomerName</small>
+                </div>
+                <button @onclick="CloseEditCrmContactPopup">×</button>
+            </div>
+
+            <div class="confirm-body">
+                <div class="detail-line"><span>Cliente</span><b>@EditCrmContactCustomer.CustomerName</b></div>
+
+                <label class="full">Nombre del contacto
+                    <input @bind="EditCrmContactName" placeholder="Nombre del contacto" />
+                </label>
+
+                <label class="full">Correo del contacto
+                    <input @bind="EditCrmContactEmail" placeholder="correo@cliente.com" />
+                </label>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn-secondary" @onclick="CloseEditCrmContactPopup">Cancelar</button>
+                <button class="btn-primary" @onclick="SaveCrmContactAsync">Guardar contacto</button>
+            </div>
+        </div>
+    </div>
+}
 </div>
+
 
 
 
