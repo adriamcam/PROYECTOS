@@ -224,7 +224,6 @@
                 <div class="gdap-row mail-head">
                     <span>Cliente</span>
                     <span>Status</span>
-                    <span>Approval URL</span>
                     <span>Último envío</span>
                     <span>Acciones</span>
                 </div>
@@ -234,7 +233,6 @@
                     <div class="gdap-row mail-head">
                         <span><strong>@item.CustomerName</strong><small>@item.PartnerTenant</small></span>
                         <span><span class="status @StatusCss(item)">@item.StatusFound</span></span>
-                        <span><button class="link-button" @onclick="() => OpenApprovalUrl(item)">Abrir link</button></span>
                         <span>@FormatDateTime(item.LastEmailSentAt)</span>
                         <span class="row-actions">
                             <button title="Vista previa" @onclick="() => OpenMailPreviewAsync(item)">👁</button>
@@ -575,6 +573,8 @@
     }
 
 </div>
+
+
 
 
 
