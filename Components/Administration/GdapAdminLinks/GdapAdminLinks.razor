@@ -228,7 +228,7 @@
                     <span>Acciones</span>
                 </div>
 
-                @foreach (var item in PendingEmailItems)
+                @foreach (var item in PagedPendingEmailItems)
                 {
                     <div class="gdap-row mail-head">
                         <span><strong>@item.CustomerName</strong><small>@item.PartnerTenant</small></span>
@@ -240,6 +240,21 @@
                         </span>
                     </div>
                 }
+
+                <div class="table-footer">
+                    <span>Mostrando @PagedPendingEmailItems.Count de @PendingEmailItems.Count registros</span>
+                    <div class="pagination">
+                        <button disabled="@(MailPageNumber <= 1)" @onclick="() => MailPageNumber--">‹</button>
+
+                        @for (var pageItem = 1; pageItem <= MailTotalPages; pageItem++)
+                        {
+                            var currentPage = pageItem;
+                            <button class="@(currentPage == MailPageNumber ? "active" : "")" @onclick="() => MailPageNumber = currentPage">@currentPage</button>
+                        }
+
+                        <button disabled="@(MailPageNumber >= MailTotalPages)" @onclick="() => MailPageNumber++">›</button>
+                    </div>
+                </div>
             </section>
         }
 
@@ -573,6 +588,7 @@
     }
 
 </div>
+
 
 
 
