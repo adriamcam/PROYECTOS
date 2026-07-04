@@ -234,9 +234,7 @@
 
                 <div class="gdap-row mail-head">
                     <span>Cliente</span>
-                    <span>Contacto</span>
-                    <span>Correo</span>
-                    <span>CC</span>
+                    <span>Status</span>
                     <span>Approval URL</span>
                     <span>Último envío</span>
                     <span>Acciones</span>
@@ -246,9 +244,7 @@
                 {
                     <div class="gdap-row mail-head">
                         <span><strong>@item.CustomerName</strong><small>@item.PartnerTenant</small></span>
-                        <span>@item.PrimaryContactName</span>
-                        <span>@item.PrimaryEmail</span>
-                        <span>@item.CCEmails</span>
+                        <span><span class="status @StatusCss(item)">@item.StatusFound</span></span>
                         <span><button class="link-button" @onclick="() => OpenApprovalUrl(item)">Abrir link</button></span>
                         <span>@FormatDateTime(item.LastEmailSentAt)</span>
                         <span class="row-actions">
