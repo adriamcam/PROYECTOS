@@ -124,47 +124,6 @@
                 </div>
             </section>
         </div>
-
-        <section class="hb-card hb-table-card">
-            <div class="hb-card-header">
-                <div>
-                    <h3>Recursos con Azure Hybrid Benefit</h3>
-                    <p>Vista de recursos detectados por el reporte.</p>
-                </div>
-            </div>
-
-            <div class="hb-table-wrap">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Cliente</th>
-                            <th>Suscripción</th>
-                            <th>Resource Group</th>
-                            <th>Recurso</th>
-                            <th>Beneficio</th>
-                            <th>License Type</th>
-                            <th>SQL License</th>
-                            <th>Última detección</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var item in Dashboard.Resources.Take(100))
-                        {
-                            <tr>
-                                <td>@item.Customer</td>
-                                <td>@item.Subscription</td>
-                                <td>@item.ResourceGroup</td>
-                                <td>@item.ResourceName</td>
-                                <td><span class="@GetBenefitPillClass(item.HybridBenefit)">@item.HybridBenefit</span></td>
-                                <td>@item.LicenseType</td>
-                                <td>@item.SQLLicenseType</td>
-                                <td>@item.ScanDate.ToString("dd/MM/yyyy HH:mm")</td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-        </section>
     }
 
 </section>
@@ -213,6 +172,7 @@
         return "hb-pill success";
     }
 }
+
 
 
 
