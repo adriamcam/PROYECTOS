@@ -26,6 +26,18 @@ public partial class GdapAdminLinks : ComponentBase
 
     protected List<GdapAdminLinksCustomerModel> Items { get; set; } = new();
     protected List<GdapAdminLinksCustomerModel> PendingEmailItems { get; set; } = new();
+
+    protected int MailPageNumber { get; set; } = 1;
+    protected int MailPageSize { get; set; } = 10;
+
+    protected int MailTotalPages =>
+        PendingEmailItems.Count <= 0 ? 1 : (int)Math.Ceiling(PendingEmailItems.Count / (double)MailPageSize);
+
+    protected IReadOnlyList<GdapAdminLinksCustomerModel> PagedPendingEmailItems =>
+        PendingEmailItems
+            .Skip((MailPageNumber - 1) * MailPageSize)
+            .Take(MailPageSize)
+            .ToList();
     protected List<GdapAdminLinksCustomerModel> ExpiringItems { get; set; } = new();
     protected List<GdapAdminLinksReportModel> PartnerReports { get; set; } = new();
     protected List<GdapAdminLinksAuditEventModel> AuditEvents { get; set; } = new();
@@ -801,6 +813,7 @@ public partial class GdapAdminLinks : ComponentBase
         MessageCss = "gdap-message error";
     }
 }
+
 
 
 
