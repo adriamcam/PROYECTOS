@@ -1,0 +1,36 @@
+.hb-kpi-grid{
+    display:grid;
+    grid-template-columns:repeat(7,minmax(150px,1fr));
+    gap:18px;
+    margin-bottom:24px;
+}
+
+.hb-kpi{
+    background:#ffffff;
+    border:1px solid #e2e8f0;
+    border-radius:18px;
+    padding:22px;
+    box-shadow:0 10px 26px rgba(15,23,42,.06);
+}
+
+.hb-kpi span{
+    display:block;
+    color:#64748b;
+    font-size:13px;
+    font-weight:800;
+}
+
+.hb-kpi strong{
+    display:block;
+    margin-top:10px;
+    color:#2563eb;
+    font-size:36px;
+    font-weight:900;
+}
+
+.hb-kpi small{
+    display:block;
+    margin-top:8px;
+    color:#475569;
+    font-size:13px;
+}
