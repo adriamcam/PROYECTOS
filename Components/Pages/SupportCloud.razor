@@ -9,6 +9,7 @@
 @using ITQS.SupportOperationsCenter.Components.Administration.Customers
 @using ITQS.SupportOperationsCenter.Components.Administration.AppRegistrationsITQS
 @using ITQS.SupportOperationsCenter.Components.Administration.GdapAdminLinks
+@using ITQS.SupportOperationsCenter.Components.Reporting.HybridBenefit
 
 @inject AuthenticationStateProvider AuthenticationStateProvider
 
@@ -186,8 +187,7 @@
             }
             else if (CurrentModule == "ReporteBeneficioHibrido")
             {
-                <h2>Reporte Beneficio Híbrido</h2>
-                <p>Módulo en construcción.</p>
+                <HybridBenefitReport />
             }
             else if (CurrentModule == "ReporteInstanciasReservadas")
             {
@@ -199,6 +199,8 @@
                 <h2>Reporte PALM</h2>
                 <p>Módulo en construcción.</p>
             }
+                <p>Módulo en construcción.</p>
+            }
             else if (CurrentModule == "SqlDashboard")
             {
                 <SqlOperationsDashboard NavigateModule="SelectModule" />
@@ -207,21 +209,6 @@
             {
                 <SqlMaintenance />
             }
-            else if (CurrentModule == "SqlJobs")
-            {
-                <SqlJobs />
-            }
-            else if (CurrentModule == "SqlBlocking")
-            {
-                <SqlBlocking />
-            }
-            else if (CurrentModule == "SqlActiveSessions")
-            {
-                <SqlActiveSessions />
-            }
-            else if (CurrentModule == "SqlSlowQueries")
-            {
-                <SqlSlowQueries />
             }
             else if (CurrentModule == "Todas")
             {
@@ -420,6 +407,14 @@
         }
     }
 }
+
+
+
+
+
+
+
+
 
 
 
