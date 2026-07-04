@@ -14,7 +14,12 @@ public class HybridBenefitKpi
 
     public int TagCount { get; set; }
 
+    public int MissingAhubTagCount { get; set; }
+
+    public int MissingSqlAhubTagCount { get; set; }
+
     public int ChangeCount { get; set; }
 
     public DateTime LastScanDate { get; set; }
 }
+

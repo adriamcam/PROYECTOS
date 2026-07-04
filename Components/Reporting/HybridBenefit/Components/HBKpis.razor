@@ -8,9 +8,9 @@
     </div>
 
     <div class="hb-kpi">
-        <span>Clientes</span>
+        <span>Clientes con AHUB</span>
         <strong>@Dashboard.Kpis.TotalCustomers</strong>
-        <small>Clientes con beneficio híbrido</small>
+        <small>Clientes que utilizan Azure Hybrid Benefit</small>
     </div>
 
     <div class="hb-kpi">
@@ -42,9 +42,23 @@
         <strong>@Dashboard.Kpis.TagCount</strong>
         <small>Detectados por tag</small>
     </div>
+
+    <div class="hb-kpi">
+        <span>Sin Tag AHUB</span>
+        <strong>@Dashboard.Kpis.MissingAhubTagCount</strong>
+        <small>Recursos AHUB sin TagHB</small>
+    </div>
+
+    <div class="hb-kpi">
+        <span>Sin Tag SQL AHUB</span>
+        <strong>@Dashboard.Kpis.MissingSqlAhubTagCount</strong>
+        <small>Recursos SQL AHUB sin TagHBSQL</small>
+    </div>
 </div>
 
 @code {
     [Parameter, EditorRequired]
     public HybridBenefitDashboard Dashboard { get; set; } = new();
 }
+
+
