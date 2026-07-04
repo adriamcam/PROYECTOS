@@ -23,9 +23,11 @@ public interface IGdapAdminLinksService
     Task<GdapAdminLinksActionResult> SendEmailAsync(GdapMailSendRequest request);
     Task<GdapAdminLinksActionResult> SaveMailTemplateAsync(GdapMailTemplateModel template, string updatedBy);
     Task<GdapAdminLinksActionResult> UpdateCrmContactAsync(string customerTenantId, string primaryContact, string primaryContactEmail);
+    Task RegisterMailSentAsync(int customerId, string sentBy, string sentTo);
 
 Task<GdapAdminLinksActionResult> SetGdapAutomationStatusAsync(int id, bool enabled, string updatedBy, string reason);
 }
+
 
 
 

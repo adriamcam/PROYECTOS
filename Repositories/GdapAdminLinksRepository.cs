@@ -719,7 +719,23 @@ VALUES
 
         await cmd.ExecuteNonQueryAsync();
     }
+
+    public async Task RegisterMailSentAsync(int customerId, string sentBy, string sentTo)
+    {
+        await using var conn = await OpenConnectionAsync();
+        await using var cmd = conn.CreateCommand();
+
+        cmd.CommandType = CommandType.StoredProcedure;
+        cmd.CommandText = "dbo.usp_GDAP_RegisterMailSent";
+
+        cmd.Parameters.AddWithValue("@CustomerId", customerId);
+        cmd.Parameters.AddWithValue("@SentBy", sentBy ?? string.Empty);
+        cmd.Parameters.AddWithValue("@SentTo", sentTo ?? string.Empty);
+
+        await cmd.ExecuteNonQueryAsync();
+    }
 }
+
 
 
 

@@ -561,7 +561,13 @@ public async Task<GdapAdminLinksActionResult> ExecuteAutomationAsync(int id, str
             };
         }
     }
+
+    public async Task RegisterMailSentAsync(int customerId, string sentBy, string sentTo)
+    {
+        await _repository.RegisterMailSentAsync(customerId, sentBy, sentTo);
+    }
 }
+
 
 
 

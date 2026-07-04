@@ -697,6 +697,8 @@ Para ello, sigue estos pasos: abre un navegador como Chrome o Edge, preferibleme
 
 - En situaciones urgentes, la falta de acceso granular puede llevar a compartir credenciales de administrador global, lo que supone un riesgo para la seguridad, frente al acceso controlado y auditable que ofrece GDAP.");
 
+        await GdapService.RegisterMailSentAsync(item.Id, UserEmail, to);
+
         var mailToUrl = $"mailto:{to}?subject={subject}&body={body}";
         NavigationManager.NavigateTo(mailToUrl, forceLoad: true);
 
@@ -859,6 +861,7 @@ Para ello, sigue estos pasos: abre un navegador como Chrome o Edge, preferibleme
         MessageCss = "gdap-message error";
     }
 }
+
 
 
 

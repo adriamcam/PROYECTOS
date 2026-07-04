@@ -8,6 +8,7 @@ public interface IGdapAdminLinksRepository
     Task<IReadOnlyList<GdapAdminLinksCustomerModel>> GetCustomersAsync(GdapAdminLinksFilterModel filters);
     Task<GdapAdminLinksCustomerModel?> GetCustomerAsync(int id);
     Task UpdateCrmContactAsync(string customerTenantId, string primaryContact, string primaryContactEmail);
+    Task RegisterMailSentAsync(int customerId, string sentBy, string sentTo);
     Task<IReadOnlyList<GdapAdminLinksAuditEventModel>> GetAuditEventsAsync(int? customerId = null);
     Task<IReadOnlyList<GdapAdminLinksReportModel>> GetReportByPartnerAsync();
     Task<IReadOnlyList<GdapAdminLinksCustomerModel>> GetPendingEmailsAsync();
@@ -27,5 +28,6 @@ public interface IGdapAdminLinksRepository
 
 Task SetGdapAutomationStatusAsync(int id, bool enabled, string updatedBy, string reason);
 }
+
 
 
