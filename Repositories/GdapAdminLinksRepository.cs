@@ -45,7 +45,7 @@ SELECT
     AutomationErrors = SUM(CASE WHEN LOWER(ISNULL(LastAutomationStatus,'')) IN ('failed','error') THEN 1 ELSE 0 END),
     LastExecutionDate = MAX(ExecutionDate),
     LastUpdated = MAX(LastUpdated)
-FROM dbo.PartnerCenterCustomers;";
+FROM dbo.vw_GDAP_Customers_With_CRMContact;";
 
         await using var reader = await cmd.ExecuteReaderAsync();
         if (!await reader.ReadAsync())
@@ -229,7 +229,7 @@ SELECT TOP (500)
     h.ExecutedBy,
     h.ApprovalUrl
 FROM dbo.PartnerCenterCustomerHistory h
-LEFT JOIN dbo.PartnerCenterCustomers c
+LEFT JOIN dbo.vw_GDAP_Customers_With_CRMContact c
     ON c.CustomerTenantId = h.CustomerTenantId
 WHERE (@CustomerId IS NULL OR c.Id = @CustomerId)
 ORDER BY h.EventDate DESC, h.Id DESC;";
@@ -400,7 +400,7 @@ SELECT
     @Description,
     @ExecutedBy,
     COALESCE(NULLIF(@ApprovalUrl,''), ApprovalPendingLink)
-FROM dbo.PartnerCenterCustomers
+FROM dbo.vw_GDAP_Customers_With_CRMContact
 WHERE Id = @Id;";
 
         AddParam(cmd, "@Id", id);
@@ -704,6 +704,11 @@ VALUES
     private static DateTime? GetNullableDate(SqlDataReader r, string name) => !HasColumn(r, name) || r[name] == DBNull.Value ? null : Convert.ToDateTime(r[name]);
     private static bool GetBool(SqlDataReader r, string name) => HasColumn(r, name) && r[name] != DBNull.Value && Convert.ToBoolean(r[name]);
 }
+
+
+
+
+
 
 
 
