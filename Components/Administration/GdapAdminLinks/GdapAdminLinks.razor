@@ -237,10 +237,12 @@
                         <span><strong>@item.CustomerName</strong><small>@item.PartnerTenant</small></span>
                         <span><span class="status @StatusCss(item)">@item.StatusFound</span></span>
                         <span>@FormatDateTime(item.LastEmailSentAt)</span>
-                        <span>
-                            <strong>@(string.IsNullOrWhiteSpace(item.PrimaryContactName) ? "-" : item.PrimaryContactName)</strong>
-                            <small>@item.PrimaryEmail</small>
-                            <button type="button" class="link-button" title="Editar contacto" @onclick="() => OpenEditCrmContactPopup(item)">✏ Editar</button>
+                        <span class="contact-cell">
+                            <div class="contact-info">
+                                <strong>@(string.IsNullOrWhiteSpace(item.PrimaryContactName) ? "-" : item.PrimaryContactName)</strong>
+                                <small>@item.PrimaryEmail</small>
+                            </div>
+                            <button type="button" class="link-button" title="Editar contacto" @onclick="() => OpenEditCrmContactPopup(item)">✏</button>
                         </span>
                         <span>@item.LastEmailSentBy</span>
                         <span>@item.SendMailAttempts</span>
@@ -597,6 +599,8 @@
     }
 
 </div>
+
+
 
 
 

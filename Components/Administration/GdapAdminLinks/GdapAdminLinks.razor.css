@@ -840,3 +840,15 @@
     background: #ef4444;
 }
 
+
+.contact-cell {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.contact-info {
+    display: flex;
+    flex-direction: column;
+}
