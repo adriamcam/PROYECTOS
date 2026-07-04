@@ -61,6 +61,29 @@
             @if (IsAdmin)
             {
                 <div class="menu-group">
+                    <button type="button" class="menu-title menu-button" @onclick="SelectReporteria">
+                        📊 Reportería
+                    </button>
+
+                    <div class="menu-links @(ShowReporteriaMenu ? "show" : "")">
+                        <button type="button" class="menu-link menu-link-child" @onclick='() => SelectModule("ReporteBeneficioHibrido")'>
+                            • Reporte Beneficio Híbrido
+                        </button>
+
+                        <button type="button" class="menu-link menu-link-child" @onclick='() => SelectModule("ReporteInstanciasReservadas")'>
+                            • Reporte Instancias Reservadas
+                        </button>
+
+                        <button type="button" class="menu-link menu-link-child" @onclick='() => SelectModule("ReportePALM")'>
+                            • Reporte PALM
+                        </button>
+                    </div>
+                </div>
+            }
+
+            @if (IsAdmin)
+            {
+                <div class="menu-group">
                     <button type="button" class="menu-title menu-button" @onclick="SelectMaintenance">
                         🛠️ Mantenimiento
                     </button>
@@ -161,6 +184,21 @@
             {
                 <GdapAdminLinks />
             }
+            else if (CurrentModule == "ReporteBeneficioHibrido")
+            {
+                <h2>Reporte Beneficio Híbrido</h2>
+                <p>Módulo en construcción.</p>
+            }
+            else if (CurrentModule == "ReporteInstanciasReservadas")
+            {
+                <h2>Reporte Instancias Reservadas</h2>
+                <p>Módulo en construcción.</p>
+            }
+            else if (CurrentModule == "ReportePALM")
+            {
+                <h2>Reporte PALM</h2>
+                <p>Módulo en construcción.</p>
+            }
             else if (CurrentModule == "SqlDashboard")
             {
                 <SqlOperationsDashboard NavigateModule="SelectModule" />
@@ -221,6 +259,7 @@
     private bool ShowAlertMenu = false;
     private bool ShowAdministrationMenu = false;
     private bool ShowMaintenanceMenu = false;
+    private bool ShowReporteriaMenu = false;
     private bool ShowSqlMenu = false;
 
     private string UserName = "";
@@ -240,6 +279,10 @@
             "CustomerAdmin" => "Administración / Clientes",
             "AppRegistrationsITQS" => "Administración / App Registrations ITQS",
             "GdapAdminLinks" => "Administración / Admin Links GDAP",
+
+            "ReporteBeneficioHibrido" => "Reportería / Reporte Beneficio Híbrido",
+            "ReporteInstanciasReservadas" => "Reportería / Reporte Instancias Reservadas",
+            "ReportePALM" => "Reportería / Reporte PALM",
 
             "SqlDashboard" => "Mantenimiento / SQL / Dashboard",
             "SqlMaintenance" => "Mantenimiento / SQL / Mantenimiento",
@@ -311,6 +354,13 @@
         ShowSqlMenu = false;
     }
 
+    private void SelectReporteria()
+    {
+        ShowReporteriaMenu = !ShowReporteriaMenu;
+        ShowAlertMenu = false;
+        ShowAdministrationMenu = false;
+        ShowMaintenanceMenu = false;
+    }
     private void SelectMaintenance()
     {
         ShowAdministrationMenu = false;
@@ -370,3 +420,8 @@
         }
     }
 }
+
+
+
+
+
