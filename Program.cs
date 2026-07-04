@@ -93,6 +93,9 @@ builder.Services.AddScoped<IGdapMailSenderService, GdapMailSenderService>();
 builder.Services.AddScoped<IGdapAdminLinksRepository, GdapAdminLinksRepository>();
 builder.Services.AddScoped<IGdapAdminLinksService, GdapAdminLinksService>();
 
+builder.Services.AddScoped<IHybridBenefitRepository, HybridBenefitRepository>();
+builder.Services.AddScoped<IHybridBenefitService, HybridBenefitService>();
+
 var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())
@@ -114,6 +117,7 @@ app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
 app.Run();
+
 
 
 
