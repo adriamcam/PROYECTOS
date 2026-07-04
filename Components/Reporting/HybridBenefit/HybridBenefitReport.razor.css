@@ -31,12 +31,13 @@
     margin: 0;
     font-size: 30px;
     font-weight: 800;
+    color:#ffffff;
 }
 
 .hb-hero p {
     margin: 8px 0 18px;
     max-width: 760px;
-    color: rgba(255,255,255,.86);
+    color:#ffffff;
 }
 
 .hb-meta {
@@ -367,3 +368,5 @@
         grid-template-columns: 1fr;
     }
 }
+
+
