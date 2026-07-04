@@ -241,7 +241,6 @@
                         <span>@item.LastEmailSentBy</span>
                         <span>@item.SendMailAttempts</span>
                         <span class="row-actions">
-                            <button title="Vista previa" @onclick="() => OpenMailPreviewAsync(item)">👁</button>
                             <button title="Enviar correo" disabled="@IsSendingMail" @onclick="() => SendMailDirectAsync(item)">📧</button>
                         </span>
                     </div>
@@ -594,6 +593,7 @@
     }
 
 </div>
+
 
 
 
