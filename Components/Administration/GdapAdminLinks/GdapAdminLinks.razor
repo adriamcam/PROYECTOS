@@ -225,6 +225,8 @@
                     <span>Cliente</span>
                     <span>Status</span>
                     <span>Último envío</span>
+                    <span>Enviado a</span>
+                    <span>Enviado por</span>
                     <span>Envíos</span>
                     <span>Acciones</span>
                 </div>
@@ -235,6 +237,8 @@
                         <span><strong>@item.CustomerName</strong><small>@item.PartnerTenant</small></span>
                         <span><span class="status @StatusCss(item)">@item.StatusFound</span></span>
                         <span>@FormatDateTime(item.LastEmailSentAt)</span>
+                        <span>@item.PrimaryEmail</span>
+                        <span>@item.LastEmailSentBy</span>
                         <span>@item.SendMailAttempts</span>
                         <span class="row-actions">
                             <button title="Vista previa" @onclick="() => OpenMailPreviewAsync(item)">👁</button>
@@ -590,6 +594,8 @@
     }
 
 </div>
+
+
 
 
 
