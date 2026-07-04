@@ -71,9 +71,9 @@ public partial class GdapAdminLinks : ComponentBase
     protected int FirstItemNumber => FilteredItems.Count == 0 ? 0 : ((PageNumber - 1) * PageSize) + 1;
     protected int LastItemNumber => Math.Min(PageNumber * PageSize, FilteredItems.Count);
 
-    protected int HealthPercent => Dashboard.TotalCustomers <= 0
+    protected int HealthPercent => (Dashboard.TotalCustomers - Dashboard.DisabledCustomers) <= 0
         ? 0
-        : (int)Math.Round((Dashboard.ActiveGdap / (double)Dashboard.TotalCustomers) * 100, 0);
+        : (int)Math.Round((Dashboard.ActiveGdap / (double)(Dashboard.TotalCustomers - Dashboard.DisabledCustomers)) * 100, 0);
 
     protected IEnumerable<int> VisiblePages
     {
@@ -801,6 +801,8 @@ public partial class GdapAdminLinks : ComponentBase
         MessageCss = "gdap-message error";
     }
 }
+
+
 
 
 
