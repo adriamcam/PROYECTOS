@@ -21,6 +21,7 @@ public sealed class GdapAdminLinksCustomerModel
     public string ExcludeReason { get; set; } = string.Empty;
     public DateTime? LastEmailSentAt { get; set; }
     public string LastEmailSentBy { get; set; } = string.Empty;
+public string LastEmailSentTo { get; set; } = string.Empty;
     public string SendMailStatus { get; set; } = string.Empty;
     public int SendMailAttempts { get; set; }
     public string LastAutomationStatus { get; set; } = string.Empty;
@@ -37,4 +38,5 @@ public string GDAPAutomationReason { get; set; } = string.Empty;
         !string.IsNullOrWhiteSpace(ApprovalPendingLink) &&
         StatusFound.Contains("approvalPending", StringComparison.OrdinalIgnoreCase);
 }
+
 

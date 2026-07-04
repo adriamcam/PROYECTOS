@@ -654,6 +654,7 @@ VALUES
             ExcludeReason = GetString(reader, "ExcludeReason"),
             LastEmailSentAt = GetNullableDate(reader, "LastEmailSentAt"),
             LastEmailSentBy = GetString(reader, "LastEmailSentBy"),
+            LastEmailSentTo = GetString(reader, "LastEmailSentTo"),
             SendMailStatus = GetString(reader, "SendMailStatus"),
             SendMailAttempts = GetInt(reader, "SendMailAttempts"),
             LastAutomationStatus = GetString(reader, "LastAutomationStatus"),
@@ -704,6 +705,7 @@ VALUES
     private static DateTime? GetNullableDate(SqlDataReader r, string name) => !HasColumn(r, name) || r[name] == DBNull.Value ? null : Convert.ToDateTime(r[name]);
     private static bool GetBool(SqlDataReader r, string name) => HasColumn(r, name) && r[name] != DBNull.Value && Convert.ToBoolean(r[name]);
 }
+
 
 
 
