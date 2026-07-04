@@ -199,8 +199,6 @@
                 <h2>Reporte PALM</h2>
                 <p>Módulo en construcción.</p>
             }
-                <p>Módulo en construcción.</p>
-            }
             else if (CurrentModule == "SqlDashboard")
             {
                 <SqlOperationsDashboard NavigateModule="SelectModule" />
@@ -209,6 +207,21 @@
             {
                 <SqlMaintenance />
             }
+            else if (CurrentModule == "SqlJobs")
+            {
+                <SqlJobs />
+            }
+            else if (CurrentModule == "SqlBlocking")
+            {
+                <SqlBlocking />
+            }
+            else if (CurrentModule == "SqlActiveSessions")
+            {
+                <SqlActiveSessions />
+            }
+            else if (CurrentModule == "SqlSlowQueries")
+            {
+                <SqlSlowQueries />
             }
             else if (CurrentModule == "Todas")
             {
@@ -407,6 +420,7 @@
         }
     }
 }
+
 
 
 
