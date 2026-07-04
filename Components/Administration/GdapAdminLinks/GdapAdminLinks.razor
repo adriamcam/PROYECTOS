@@ -237,7 +237,10 @@
                         <span><strong>@item.CustomerName</strong><small>@item.PartnerTenant</small></span>
                         <span><span class="status @StatusCss(item)">@item.StatusFound</span></span>
                         <span>@FormatDateTime(item.LastEmailSentAt)</span>
-                        <span>@(string.IsNullOrWhiteSpace(item.LastEmailSentTo) ? "-" : item.LastEmailSentTo)</span>
+                        <span>
+                            <strong>@(string.IsNullOrWhiteSpace(item.PrimaryContactName) ? "-" : item.PrimaryContactName)</strong>
+                            <small>@item.PrimaryEmail</small>
+                        </span>
                         <span>@item.LastEmailSentBy</span>
                         <span>@item.SendMailAttempts</span>
                         <span class="row-actions">
@@ -593,6 +596,7 @@
     }
 
 </div>
+
 
 
 
