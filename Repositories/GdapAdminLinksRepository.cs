@@ -151,8 +151,13 @@ ORDER BY CustomerName;";
         cmd.CommandType = CommandType.Text;
         cmd.CommandTimeout = 120;
         cmd.CommandText = @"
-SELECT *, DaysToExpire = CASE WHEN ActiveEndDate IS NULL THEN NULL ELSE DATEDIFF(DAY, GETDATE(), ActiveEndDate) END
-FROM dbo.vw_GDAP_ExpiringSoon
+SELECT TOP (10)
+    *,
+    DaysToExpire = CASE WHEN ActiveEndDate IS NULL THEN NULL ELSE DATEDIFF(DAY, GETDATE(), ActiveEndDate) END
+FROM dbo.vw_GDAP_AllCustomers
+WHERE
+    ISNULL(EnableGDAPAutomation,1) = 1
+    AND ActiveEndDate IS NOT NULL
 ORDER BY ActiveEndDate ASC, CustomerName ASC;";
 
         await using var reader = await cmd.ExecuteReaderAsync();
@@ -193,7 +198,7 @@ WHERE
           AND h.EventType = CONCAT('Correo GDAP ', @DaysToExpire, ' días')
           AND CONVERT(date, h.EventDate) = CONVERT(date, GETDATE())
     )
-ORDER BY ActiveEndDate ASC, CustomerName ASC;";
+ORDER BY ActiveEndDate ASC, CustomerName ASC;";;
         AddParam(cmd, "@DaysToExpire", daysToExpire);
 
         await using var reader = await cmd.ExecuteReaderAsync();
@@ -699,6 +704,8 @@ VALUES
     private static DateTime? GetNullableDate(SqlDataReader r, string name) => !HasColumn(r, name) || r[name] == DBNull.Value ? null : Convert.ToDateTime(r[name]);
     private static bool GetBool(SqlDataReader r, string name) => HasColumn(r, name) && r[name] != DBNull.Value && Convert.ToBoolean(r[name]);
 }
+
+
 
 
 
