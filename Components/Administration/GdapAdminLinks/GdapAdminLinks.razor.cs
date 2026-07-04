@@ -625,36 +625,37 @@ public partial class GdapAdminLinks : ComponentBase
 
     protected async Task SendMailDirectAsync(GdapAdminLinksCustomerModel item)
     {
-        IsSendingMail = true;
+        var to = item.PrimaryEmail ?? string.Empty;
+        var subject = Uri.EscapeDataString("Renovación de Permisos GDAP – Acción Requerida");
 
-        try
-        {
-            if (SelectedTemplateId <= 0)
-                await LoadTemplatesAsync();
-            await LoadReportsAsync();
-            await LoadAuditAsync();
+        var body = Uri.EscapeDataString($@"Quiero compartirte una información importante respecto a la renovación de permisos de nuestra relación de partner, que nos permite continuar brindando soporte y administración de tu entorno de Microsoft de manera segura y eficiente.
 
-            var result = await GdapService.SendEmailAsync(new GdapMailSendRequest
-            {
-                CustomerId = item.Id,
-                TemplateId = SelectedTemplateId,
-                SentBy = UserEmail
-            });
+Como partner, necesitamos ciertos roles para visualizar el tenant y ofrecerte asistencia siempre que lo requieras. Actualmente, los permisos para el tenant con la relación ITQS han caducado.
 
-            if (result.Success)
-            {
-                SetOk(result.Message);
-                await RefreshAsync();
-            }
-            else
-            {
-                SetError(result.ErrorMessage);
-            }
-        }
-        finally
-        {
-            IsSendingMail = false;
-        }
+Para seguir gestionando tu entorno correctamente, es imprescindible que aceptes los permisos GDAP (Granular Delegated Admin Privileges) lo antes posible. Estos permisos nos permiten acceder únicamente a los recursos necesarios, de forma segura, controlada y bajo las políticas de Microsoft, garantizando la confidencialidad de tu información.
+
+Hemos generado un enlace para renovar la relación de administración como tu proveedor de servicios Microsoft (te aseguramos que este acceso No es Global Admin). Te agradecemos tu apoyo para aceptar los permisos y evitar perder el acceso a los roles necesarios.
+
+Para ello, sigue estos pasos: abre un navegador como Chrome o Edge, preferiblemente en modo incógnito y accede al enlace en esa ventana de incógnito (el link se debe abrir con un usuario Global Admin del tenant y aceptar los permisos).
+
+{item.ApprovalPendingLink}
+
+¿Por qué es importante este acceso?
+
+- Sin GDAP, ITQS no podrá entrar a la consola de administración para resolver incidencias técnicas, configurar cuentas o aplicar correcciones de seguridad de forma inmediata.
+
+- Toda la gestión administrativa recaerá en tu equipo interno de TI, ya que no tendremos acceso para ayudar en estas tareas.
+
+- Se pueden generar retrasos en la resolución de incidentes: si sucede alguna caída o problema crítico, ITQS tendría que guiar a tu equipo por videollamada o esperar a que realicen los cambios, lo cual incrementa el tiempo de inactividad.
+
+- El aprovisionamiento de licencias podría verse afectado, ya que no podríamos asignarlas o renovarlas automáticamente y los usuarios podrían quedarse sin servicio si no se gestiona manualmente por parte de tu equipo.
+
+- En situaciones urgentes, la falta de acceso granular puede llevar a compartir credenciales de administrador global, lo que supone un riesgo para la seguridad, frente al acceso controlado y auditable que ofrece GDAP.");
+
+        var mailToUrl = $"mailto:{to}?subject={subject}&body={body}";
+        NavigationManager.NavigateTo(mailToUrl, forceLoad: true);
+
+        await Task.CompletedTask;
     }
 
     protected async Task SendExpirationReminderBatchAsync(int daysToExpire)
@@ -813,6 +814,7 @@ public partial class GdapAdminLinks : ComponentBase
         MessageCss = "gdap-message error";
     }
 }
+
 
 
 
