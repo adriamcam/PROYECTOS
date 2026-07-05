@@ -117,3 +117,34 @@
     background: #fee2e2;
     color: #b91c1c;
 }
+
+.hb-activity-card{
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:4px;
+
+}
+
+.hb-activity-card strong{
+
+    font-size:13px;
+
+}
+
+.hb-activity-card small{
+
+    color:#64748b;
+
+}
+
+.hb-activity.none{
+
+    color:#94a3b8;
+
+    font-style:italic;
+
+}
+

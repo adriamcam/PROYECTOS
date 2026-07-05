@@ -66,7 +66,7 @@
                     <th>Suscripción</th>
                     <th>Resource Group</th>
                     <th>Estado AHUB</th>
-                    <th>Cambio</th>
+                    <th>Actividad</th>
                     <th>Fecha cambio</th>
                     <th>Último scan</th>
                 </tr>
@@ -109,7 +109,28 @@
                                 <span class="hb-badge danger">Falta TagHBSQL</span>
                             }
                         </td>
-                        <td>@(string.IsNullOrWhiteSpace(item.ChangeType) ? "-" : item.ChangeType)</td>
+                        <td>
+
+                            @if(string.IsNullOrWhiteSpace(item.ChangeType))
+                            {
+                                <span class="hb-activity none">
+
+                                    Sin cambios
+
+                                </span>
+                            }
+                            else
+                            {
+                                <div class="hb-activity-card">
+
+                                    <strong>@item.ChangeType</strong>
+
+                                    <small>@item.Severity</small>
+
+                                </div>
+                            }
+
+                        </td>
                         <td>@(item.ChangeDate?.ToString("dd/MM/yyyy HH:mm") ?? "-")</td>
                         <td>@(item.LastScanDate?.ToString("dd/MM/yyyy HH:mm") ?? "-")</td>
                     </tr>
@@ -200,6 +221,7 @@
         };
     }
 }
+
 
 
 
