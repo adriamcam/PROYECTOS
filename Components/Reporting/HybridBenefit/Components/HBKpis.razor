@@ -20,39 +20,39 @@
     </div>
 
     <div class="hb-kpi">
-        <span>Cambios</span>
-        <strong>@Dashboard.Kpis.ChangeCount</strong>
-        <small>Activaciones o desactivaciones</small>
-    </div>
-
-    <div class="hb-kpi">
-        <span>Windows</span>
+        <span>Windows AHUB</span>
         <strong>@Dashboard.Kpis.WindowsCount</strong>
-        <small>AHUB Windows Server / Client</small>
+        <small>Total Windows con beneficio</small>
     </div>
 
     <div class="hb-kpi">
-        <span>SQL</span>
+        <span>Windows con Tag</span>
+        <strong>@Dashboard.Kpis.WindowsWithTag</strong>
+        <small>Windows con TagHB configurado</small>
+    </div>
+
+    <div class="hb-kpi">
+        <span>Windows sin Tag</span>
+        <strong>@Dashboard.Kpis.WindowsMissingTag</strong>
+        <small>Windows que requieren TagHB</small>
+    </div>
+
+    <div class="hb-kpi">
+        <span>SQL AHUB</span>
         <strong>@Dashboard.Kpis.SqlCount</strong>
-        <small>AHUB SQL Server</small>
+        <small>Total SQL con beneficio</small>
     </div>
 
     <div class="hb-kpi">
-        <span>Tags</span>
-        <strong>@Dashboard.Kpis.TagCount</strong>
-        <small>Detectados por tag</small>
+        <span>SQL con Tag</span>
+        <strong>@Dashboard.Kpis.SqlWithTag</strong>
+        <small>SQL con TagHBSQL configurado</small>
     </div>
 
     <div class="hb-kpi">
-        <span>Sin Tag AHUB</span>
-        <strong>@Dashboard.Kpis.MissingAhubTagCount</strong>
-        <small>Recursos AHUB sin TagHB</small>
-    </div>
-
-    <div class="hb-kpi">
-        <span>Sin Tag SQL AHUB</span>
-        <strong>@Dashboard.Kpis.MissingSqlAhubTagCount</strong>
-        <small>Recursos SQL AHUB sin TagHBSQL</small>
+        <span>SQL sin Tag</span>
+        <strong>@Dashboard.Kpis.SqlMissingTag</strong>
+        <small>SQL que requieren TagHBSQL</small>
     </div>
 </div>
 
@@ -60,5 +60,3 @@
     [Parameter, EditorRequired]
     public HybridBenefitDashboard Dashboard { get; set; } = new();
 }
-
-
