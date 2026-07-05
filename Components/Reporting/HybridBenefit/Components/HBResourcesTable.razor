@@ -73,8 +73,10 @@
                     <th>Resource</th>
                     <th>Subscription</th>
                     <th>Resource Group</th>
-                    <th>AHUB</th>
-                    <th>Tags</th>
+                    <th>Windows AHUB</th>
+                    <th>SQL AHUB</th>
+                    <th>Windows Tag</th>
+                    <th>SQL Tag</th>
                     <th>Problem</th>
                     <th>Activity</th>
                     <th>Last Scan</th>
@@ -102,17 +104,24 @@
                         <td>@item.ResourceGroup</td>
 
                         <td>
-                            @if (item.HasWindowsAHUB && item.HasSqlAHUB)
+                            @if (item.HasWindowsAHUB)
                             {
-                                <span class="hb-ahub-pill both">Windows + SQL</span>
+                                <span class="hb-ahub-pill windows">✓ Windows</span>
                             }
-                            else if (item.HasWindowsAHUB)
+                            else
                             {
-                                <span class="hb-ahub-pill windows">Windows</span>
+                                <span class="hb-ahub-pill muted">—</span>
                             }
-                            else if (item.HasSqlAHUB)
+                        </td>
+
+                        <td>
+                            @if (item.HasSqlAHUB)
                             {
-                                <span class="hb-ahub-pill sql">SQL</span>
+                                <span class="hb-ahub-pill sql">✓ SQL</span>
+                            }
+                            else
+                            {
+                                <span class="hb-ahub-pill muted">—</span>
                             }
                         </td>
 
@@ -120,15 +129,25 @@
                             @if (item.HasWindowsAHUB)
                             {
                                 <span class="@(item.HasTagHB ? "hb-tag ok" : "hb-tag bad")">
-                                    @(item.HasTagHB ? "✓ Windows Tag" : "✗ Windows Tag")
+                                    @(item.HasTagHB ? "✓ TagHB" : "✗ Falta TagHB")
                                 </span>
                             }
+                            else
+                            {
+                                <span class="hb-tag muted">—</span>
+                            }
+                        </td>
 
+                        <td>
                             @if (item.HasSqlAHUB)
                             {
                                 <span class="@(item.HasTagHBSQL ? "hb-tag ok" : "hb-tag bad")">
-                                    @(item.HasTagHBSQL ? "✓ SQL Tag" : "✗ SQL Tag")
+                                    @(item.HasTagHBSQL ? "✓ TagHBSQL" : "✗ Falta TagHBSQL")
                                 </span>
+                            }
+                            else
+                            {
+                                <span class="hb-tag muted">—</span>
                             }
                         </td>
 
@@ -447,5 +466,6 @@
         };
     }
 }
+
 
 

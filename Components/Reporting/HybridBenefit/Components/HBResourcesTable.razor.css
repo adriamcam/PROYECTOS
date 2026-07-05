@@ -443,3 +443,32 @@
         grid-template-columns: 1fr;
     }
 }
+.hb-ahub-pill.muted,
+.hb-tag.muted {
+    background: #f1f5f9;
+    color: #94a3b8;
+}
+
+.hb-table-modern thead th:nth-child(5),
+.hb-table-modern tbody td:nth-child(5),
+.hb-table-modern thead th:nth-child(6),
+.hb-table-modern tbody td:nth-child(6),
+.hb-table-modern thead th:nth-child(7),
+.hb-table-modern tbody td:nth-child(7),
+.hb-table-modern thead th:nth-child(8),
+.hb-table-modern tbody td:nth-child(8) {
+    text-align: center;
+    min-width: 130px;
+}
+
+.hb-table-modern thead th:nth-child(2),
+.hb-table-modern tbody td:nth-child(2) {
+    min-width: 230px;
+}
+
+.hb-table-modern thead th:nth-child(3),
+.hb-table-modern tbody td:nth-child(3),
+.hb-table-modern thead th:nth-child(4),
+.hb-table-modern tbody td:nth-child(4) {
+    min-width: 180px;
+}
