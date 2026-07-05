@@ -4,20 +4,34 @@
     <div class="hb-card-header">
         <div>
             <h3>Azure Hybrid Benefit Resources</h3>
-            <p>Inventario operativo de recursos con Azure Hybrid Benefit.</p>
+            <p>Vista operativa de recursos, beneficios, tags y cambios detectados.</p>
         </div>
     </div>
 
     <div class="hb-resource-filters">
-        <input placeholder="Buscar cliente..." @bind="CustomerFilter" @bind:event="oninput" />
-        <input placeholder="Buscar suscripci￳n..." @bind="SubscriptionFilter" @bind:event="oninput" />
-        <input placeholder="Buscar recurso..." @bind="ResourceFilter" @bind:event="oninput" />
+        <input placeholder="Buscar cliente, recurso, suscripción o RG..." @bind="SearchText" @bind:event="oninput" />
 
-        <select @bind="BenefitFilter">
-            <option value="">Todos</option>
-            <option value="Azure Hybrid Benefit">Windows AHUB</option>
-            <option value="Azure Hybrid Benefit (SQL)">SQL AHUB</option>
-            <option value="Azure Hybrid Benefit (Tag)">Tag AHUB</option>
+        <select @bind="StatusFilter">
+            <option value="">Todos los estados</option>
+            <option value="Healthy">Healthy</option>
+            <option value="Missing Windows Tag">Missing Windows Tag</option>
+            <option value="Missing SQL Tag">Missing SQL Tag</option>
+            <option value="New Resource">New Resource</option>
+            <option value="Changed">Changed</option>
+        </select>
+
+        <select @bind="TypeFilter">
+            <option value="">Todos los tipos</option>
+            <option value="Windows">Windows AHUB</option>
+            <option value="SQL">SQL AHUB</option>
+            <option value="Both">Windows + SQL</option>
+        </select>
+
+        <select @bind="SeverityFilter">
+            <option value="">Todas las severidades</option>
+            <option value="Critical">Critical</option>
+            <option value="Warning">Warning</option>
+            <option value="Information">Information</option>
         </select>
     </div>
 
@@ -25,32 +39,36 @@
         <table>
             <thead>
                 <tr>
+                    <th>Estado</th>
                     <th>Cliente</th>
-                    <th>Suscripci￳n</th>
-                    <th>Resource Group</th>
                     <th>Recurso</th>
-                    <th>Beneficio</th>
-                    <th>License Type</th>
-                    <th>SQL License</th>
+                    <th>Suscripción</th>
+                    <th>Resource Group</th>
+                    <th>Windows</th>
+                    <th>SQL</th>
                     <th>TagHB</th>
                     <th>TagHBSQL</th>
-                    <th>ￚltima detecci￳n</th>
+                    <th>Cambio</th>
+                    <th>Fecha cambio</th>
+                    <th>Último scan</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach (var item in PagedResources)
                 {
                     <tr>
+                        <td><span class="@GetStatusClass(item.OperationalStatus)">@item.OperationalStatus</span></td>
                         <td>@item.Customer</td>
+                        <td><strong>@item.ResourceName</strong></td>
                         <td>@item.Subscription</td>
                         <td>@item.ResourceGroup</td>
-                        <td>@item.ResourceName</td>
-                        <td><span class="@GetBenefitPillClass(item.HybridBenefit)">@item.HybridBenefit</span></td>
-                        <td>@item.LicenseType</td>
-                        <td>@item.SQLLicenseType</td>
-                        <td>@item.TagHB</td>
-                        <td>@item.TagHBSQL</td>
-                        <td>@item.ScanDate.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td><span class="@(item.HasWindowsAHUB ? "hb-pill success" : "hb-pill muted")">@(item.HasWindowsAHUB ? "Sí" : "No")</span></td>
+                        <td><span class="@(item.HasSqlAHUB ? "hb-pill info" : "hb-pill muted")">@(item.HasSqlAHUB ? "Sí" : "No")</span></td>
+                        <td><span class="@(item.HasTagHB ? "hb-pill success" : "hb-pill danger")">@(item.HasTagHB ? "OK" : "Falta")</span></td>
+                        <td><span class="@(item.HasTagHBSQL ? "hb-pill success" : "hb-pill danger")">@(item.HasTagHBSQL ? "OK" : "Falta")</span></td>
+                        <td>@(string.IsNullOrWhiteSpace(item.ChangeType) ? "-" : item.ChangeType)</td>
+                        <td>@(item.ChangeDate?.ToString("dd/MM/yyyy HH:mm") ?? "-")</td>
+                        <td>@(item.LastScanDate?.ToString("dd/MM/yyyy HH:mm") ?? "-")</td>
                     </tr>
                 }
             </tbody>
@@ -62,7 +80,7 @@
 
         <div>
             <button disabled="@(CurrentPage <= 1)" @onclick="PreviousPage">Anterior</button>
-            <strong>P￡gina @CurrentPage de @TotalPages</strong>
+            <strong>Página @CurrentPage de @TotalPages</strong>
             <button disabled="@(CurrentPage >= TotalPages)" @onclick="NextPage">Siguiente</button>
         </div>
     </div>
@@ -72,20 +90,34 @@
     [Parameter]
     public List<HybridBenefitResource> Resources { get; set; } = new();
 
-    private string CustomerFilter { get; set; } = "";
-    private string SubscriptionFilter { get; set; } = "";
-    private string ResourceFilter { get; set; } = "";
-    private string BenefitFilter { get; set; } = "";
+    private string SearchText { get; set; } = "";
+    private string StatusFilter { get; set; } = "";
+    private string TypeFilter { get; set; } = "";
+    private string SeverityFilter { get; set; } = "";
 
     private int CurrentPage { get; set; } = 1;
     private int PageSize { get; set; } = 25;
 
     private IEnumerable<HybridBenefitResource> FilteredResources =>
         Resources.Where(x =>
-            (string.IsNullOrWhiteSpace(CustomerFilter) || x.Customer.Contains(CustomerFilter, StringComparison.OrdinalIgnoreCase)) &&
-            (string.IsNullOrWhiteSpace(SubscriptionFilter) || x.Subscription.Contains(SubscriptionFilter, StringComparison.OrdinalIgnoreCase)) &&
-            (string.IsNullOrWhiteSpace(ResourceFilter) || x.ResourceName.Contains(ResourceFilter, StringComparison.OrdinalIgnoreCase)) &&
-            (string.IsNullOrWhiteSpace(BenefitFilter) || x.HybridBenefit.Equals(BenefitFilter, StringComparison.OrdinalIgnoreCase))
+            (string.IsNullOrWhiteSpace(SearchText)
+                || x.Customer.Contains(SearchText, StringComparison.OrdinalIgnoreCase)
+                || x.Subscription.Contains(SearchText, StringComparison.OrdinalIgnoreCase)
+                || x.ResourceGroup.Contains(SearchText, StringComparison.OrdinalIgnoreCase)
+                || x.ResourceName.Contains(SearchText, StringComparison.OrdinalIgnoreCase))
+            &&
+            (string.IsNullOrWhiteSpace(StatusFilter)
+                || x.OperationalStatus.Equals(StatusFilter, StringComparison.OrdinalIgnoreCase))
+            &&
+            (string.IsNullOrWhiteSpace(SeverityFilter)
+                || x.Severity.Equals(SeverityFilter, StringComparison.OrdinalIgnoreCase))
+            &&
+            (
+                string.IsNullOrWhiteSpace(TypeFilter)
+                || (TypeFilter == "Windows" && x.HasWindowsAHUB && !x.HasSqlAHUB)
+                || (TypeFilter == "SQL" && x.HasSqlAHUB && !x.HasWindowsAHUB)
+                || (TypeFilter == "Both" && x.HasWindowsAHUB && x.HasSqlAHUB)
+            )
         );
 
     private IEnumerable<HybridBenefitResource> PagedResources =>
@@ -112,18 +144,16 @@
         }
     }
 
-    private static string GetBenefitPillClass(string benefit)
+    private static string GetStatusClass(string status)
     {
-        if (benefit.Contains("SQL", StringComparison.OrdinalIgnoreCase))
+        return status switch
         {
-            return "hb-pill info";
-        }
-
-        if (benefit.Contains("Tag", StringComparison.OrdinalIgnoreCase))
-        {
-            return "hb-pill warning";
-        }
-
-        return "hb-pill success";
+            "Healthy" => "hb-pill success",
+            "New Resource" => "hb-pill info",
+            "Changed" => "hb-pill warning",
+            "Missing Windows Tag" => "hb-pill danger",
+            "Missing SQL Tag" => "hb-pill danger",
+            _ => "hb-pill muted"
+        };
     }
 }

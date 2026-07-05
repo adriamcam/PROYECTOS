@@ -2,13 +2,9 @@ namespace ITQS.SupportOperationsCenter.Components.Reporting.HybridBenefit.Models
 
 public class HybridBenefitResource
 {
-    public int Id { get; set; }
+    public string ResourceKey { get; set; } = "";
 
     public string Customer { get; set; } = "";
-
-    public string TenantId { get; set; } = "";
-
-    public string SubscriptionId { get; set; } = "";
 
     public string Subscription { get; set; } = "";
 
@@ -16,24 +12,25 @@ public class HybridBenefitResource
 
     public string ResourceName { get; set; } = "";
 
-    public string HybridBenefit { get; set; } = "";
+    public bool HasWindowsAHUB { get; set; }
 
-    public string? LicenseType { get; set; }
+    public bool HasSqlAHUB { get; set; }
 
-    public string? SQLLicenseType { get; set; }
+    public bool HasTagHB { get; set; }
 
-    public string? TagHB { get; set; }
+    public bool HasTagHBSQL { get; set; }
 
-    public string? TagHBSQL { get; set; }
+    public string OperationalStatus { get; set; } = "";
 
-    public string? AHUB_Status { get; set; }
+    public string ChangeType { get; set; } = "";
 
-    public string? ChangeType { get; set; }
+    public string Severity { get; set; } = "";
 
-    public string? ChangedBy { get; set; }
+    public DateTime? ChangeDate { get; set; }
 
-    public DateTime? Time { get; set; }
+    public DateTime? FirstSeenDate { get; set; }
 
-    public DateTime ScanDate { get; set; }
+    public DateTime? LastSeenDate { get; set; }
+
+    public DateTime? LastScanDate { get; set; }
 }
-

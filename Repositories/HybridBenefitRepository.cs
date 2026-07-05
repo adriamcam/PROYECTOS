@@ -68,7 +68,7 @@ public sealed class HybridBenefitRepository : IHybridBenefitRepository
         conn.Open();
 
         var result = await conn.QueryAsync<HybridBenefitResource>(
-            "dbo.sp_HB_GetResources",
+            "dbo.sp_HB_GetResourcesOperational",
             commandType: CommandType.StoredProcedure);
 
         return result.ToList();

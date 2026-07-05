@@ -1,0 +1,23 @@
+ALTER TABLE dbo.ReporteBeneficioHibridoChanges
+ADD
+
+Severity NVARCHAR(20) NULL,
+
+PreviousSnapshotRunId UNIQUEIDENTIFIER NULL,
+
+CurrentSnapshotRunId UNIQUEIDENTIFIER NULL,
+
+IsNewResource BIT NOT NULL DEFAULT 0,
+
+IsDeletedResource BIT NOT NULL DEFAULT 0,
+
+ChangedFields NVARCHAR(500) NULL,
+
+Resolved BIT NOT NULL DEFAULT 0,
+
+ResolvedDate DATETIME2 NULL,
+
+ResolvedBy NVARCHAR(300) NULL,
+
+Comments NVARCHAR(1000) NULL;
+GO
