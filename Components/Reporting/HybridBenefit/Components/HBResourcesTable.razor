@@ -65,10 +65,7 @@
                     <th>Recurso</th>
                     <th>Suscripción</th>
                     <th>Resource Group</th>
-                    <th>Windows</th>
-                    <th>SQL</th>
-                    <th>TagHB</th>
-                    <th>TagHBSQL</th>
+                    <th>Estado AHUB</th>
                     <th>Cambio</th>
                     <th>Fecha cambio</th>
                     <th>Último scan</th>
@@ -83,10 +80,35 @@
                         <td><strong>@item.ResourceName</strong></td>
                         <td>@item.Subscription</td>
                         <td>@item.ResourceGroup</td>
-                        <td><span class="@(item.HasWindowsAHUB ? "hb-pill success" : "hb-pill muted")">@(item.HasWindowsAHUB ? "Sí" : "No")</span></td>
-                        <td><span class="@(item.HasSqlAHUB ? "hb-pill info" : "hb-pill muted")">@(item.HasSqlAHUB ? "Sí" : "No")</span></td>
-                        <td><span class="@(item.HasTagHB ? "hb-pill success" : "hb-pill danger")">@(item.HasTagHB ? "OK" : "Falta")</span></td>
-                        <td><span class="@(item.HasTagHBSQL ? "hb-pill success" : "hb-pill danger")">@(item.HasTagHBSQL ? "OK" : "Falta")</span></td>
+                        <td>
+                            @if (item.HasWindowsAHUB)
+                            {
+                                <span class="hb-badge windows">Windows AHUB</span>
+                            }
+
+                            @if (item.HasSqlAHUB)
+                            {
+                                <span class="hb-badge sql">SQL AHUB</span>
+                            }
+
+                            @if (item.HasTagHB)
+                            {
+                                <span class="hb-badge success">TagHB ✓</span>
+                            }
+                            else if (item.HasWindowsAHUB)
+                            {
+                                <span class="hb-badge danger">Falta TagHB</span>
+                            }
+
+                            @if (item.HasTagHBSQL)
+                            {
+                                <span class="hb-badge success">TagHBSQL ✓</span>
+                            }
+                            else if (item.HasSqlAHUB)
+                            {
+                                <span class="hb-badge danger">Falta TagHBSQL</span>
+                            }
+                        </td>
                         <td>@(string.IsNullOrWhiteSpace(item.ChangeType) ? "-" : item.ChangeType)</td>
                         <td>@(item.ChangeDate?.ToString("dd/MM/yyyy HH:mm") ?? "-")</td>
                         <td>@(item.LastScanDate?.ToString("dd/MM/yyyy HH:mm") ?? "-")</td>
@@ -178,4 +200,6 @@
         };
     }
 }
+
+
 
