@@ -22,7 +22,13 @@
                     <span>Última ejecución</span>
                     <strong>@Dashboard.LastExecutionText</strong>
                 </div>
-                <button class="btn-primary" type="button" @onclick="RefreshAsync">↻ Actualizar</button>
+                <button class="btn-secondary" type="button" @onclick="() => ShowInfoPopup = true">
+    ⓘ Información
+</button>
+
+<button class="btn-primary" type="button" @onclick="RefreshAsync">
+    ↻ Actualizar
+</button>
             </div>
         </section>
 
@@ -598,6 +604,53 @@
         </div>
     }
 
+@if (ShowInfoPopup)
+{
+    <div class="gdap-modal-backdrop">
+        <div class="gdap-confirm-modal" style="max-width:950px">
+            <div class="modal-header">
+                <div>
+                    <h3>Información Técnica</h3>
+                    <small>Objetos utilizados por Admin Links GDAP</small>
+                </div>
+
+                <button class="btn-secondary" @onclick="() => ShowInfoPopup=false">Cerrar</button>
+            </div>
+
+            <div class="info-grid">
+                <div class="info-box">
+                    <h4>Tablas</h4>
+                    <ul>
+                        <li>dbo.PartnerCenterCustomers</li>
+                        <li>dbo.CRM_Customers</li>
+                    </ul>
+                </div>
+
+                <div class="info-box">
+                    <h4>Vistas</h4>
+                    <ul>
+                        <li>dbo.vw_GDAP_Customers_With_CRMContact</li>
+                        <li>dbo.vw_GDAP_PendingEmails</li>
+                    </ul>
+                </div>
+
+                <div class="info-box">
+                    <h4>Procedimientos</h4>
+                    <ul>
+                        <li>dbo.usp_GDAP_UpdateCRMContact</li>
+                        <li>dbo.usp_GDAP_RegisterMailSent</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="automation-note">
+                <strong>Objetivo:</strong><br /><br />
+                Centralizar la administración GDAP, clientes, Approval URL,
+                centro de correos, contactos CRM, envíos y auditoría operativa.
+            </div>
+        </div>
+    </div>
+}
 @if (ShowEditCrmContactPopup && EditCrmContactCustomer is not null)
 {
     <div class="gdap-modal-backdrop">
@@ -630,6 +683,8 @@
     </div>
 }
 </div>
+
+
 
 
 

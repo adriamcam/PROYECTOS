@@ -64,6 +64,7 @@ public partial class GdapAdminLinks : ComponentBase
 
     protected bool ShowMailPreview { get; set; }
     protected bool IsSendingMail { get; set; }
+    protected bool ShowInfoPopup { get; set; }
     protected bool ShowEditCrmContactPopup { get; set; }
     protected GdapAdminLinksCustomerModel? EditCrmContactCustomer { get; set; }
     protected string EditCrmContactName { get; set; } = string.Empty;
@@ -861,6 +862,7 @@ Para ello, sigue estos pasos: abre un navegador como Chrome o Edge, preferibleme
         MessageCss = "gdap-message error";
     }
 }
+
 
 
 
