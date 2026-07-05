@@ -70,15 +70,16 @@
             <thead>
                 <tr>
                     <th>Health</th>
-                    <th>Recurso</th>
+                    <th>Resource</th>
                     <th>AHUB</th>
                     <th>Tags</th>
-                    <th>Problema</th>
-                    <th>Último cambio</th>
-                    <th>Último scan</th>
-                    <th>Acciones</th>
+                    <th>Problem</th>
+                    <th>Activity</th>
+                    <th>Last Scan</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
+
             <tbody>
                 @foreach (var item in PagedResources)
                 {
@@ -90,43 +91,41 @@
                         </td>
 
                         <td>
-                            <div class="hb-resource-main">
-                                <strong>@item.ResourceName</strong>
-                                <span>@item.Customer</span>
-                                <small>@item.Subscription | @item.ResourceGroup</small>
-                            </div>
+                            <div class="hb-resource-name">@item.ResourceName</div>
+                            <div class="hb-resource-detail">@item.Customer</div>
+                            <div class="hb-resource-detail">@item.Subscription</div>
+                            <div class="hb-resource-detail">@item.ResourceGroup</div>
                         </td>
 
                         <td>
-                            <div class="hb-badge-group">
-                                @if (item.HasWindowsAHUB)
-                                {
-                                    <span class="hb-badge windows">Windows</span>
-                                }
-
-                                @if (item.HasSqlAHUB)
-                                {
-                                    <span class="hb-badge sql">SQL</span>
-                                }
-                            </div>
+                            @if (item.HasWindowsAHUB && item.HasSqlAHUB)
+                            {
+                                <span class="hb-ahub-pill both">Windows + SQL</span>
+                            }
+                            else if (item.HasWindowsAHUB)
+                            {
+                                <span class="hb-ahub-pill windows">Windows</span>
+                            }
+                            else if (item.HasSqlAHUB)
+                            {
+                                <span class="hb-ahub-pill sql">SQL</span>
+                            }
                         </td>
 
                         <td>
-                            <div class="hb-badge-group">
-                                @if (item.HasWindowsAHUB)
-                                {
-                                    <span class="@(item.HasTagHB ? "hb-badge success" : "hb-badge danger")">
-                                        @(item.HasTagHB ? "TagHB OK" : "Falta TagHB")
-                                    </span>
-                                }
+                            @if (item.HasWindowsAHUB)
+                            {
+                                <span class="@(item.HasTagHB ? "hb-tag ok" : "hb-tag bad")">
+                                    @(item.HasTagHB ? "✓ Windows Tag" : "✗ Windows Tag")
+                                </span>
+                            }
 
-                                @if (item.HasSqlAHUB)
-                                {
-                                    <span class="@(item.HasTagHBSQL ? "hb-badge success" : "hb-badge danger")">
-                                        @(item.HasTagHBSQL ? "TagSQL OK" : "Falta TagSQL")
-                                    </span>
-                                }
-                            </div>
+                            @if (item.HasSqlAHUB)
+                            {
+                                <span class="@(item.HasTagHBSQL ? "hb-tag ok" : "hb-tag bad")">
+                                    @(item.HasTagHBSQL ? "✓ SQL Tag" : "✗ SQL Tag")
+                                </span>
+                            }
                         </td>
 
                         <td>
@@ -154,7 +153,7 @@
 
                         <td>
                             <button class="hb-history-btn" type="button" @onclick="() => OpenHistoryAsync(item)">
-                                Historial
+                                📜 Historial
                             </button>
                         </td>
                     </tr>
@@ -207,14 +206,14 @@
         else
         {
             <div class="hb-timeline">
-                @foreach (var item in ResourceHistory)
+                @foreach (var history in ResourceHistory)
                 {
                     <div class="hb-timeline-item">
-                        <div class="@GetSeverityDotClass(item.Severity)"></div>
+                        <div class="@GetSeverityDotClass(history.Severity)"></div>
                         <div>
-                            <strong>@item.ChangeType</strong>
-                            <p>@item.ChangedFields | @item.OldValue → @item.NewValue</p>
-                            <span>@item.ChangeDate.ToString("dd/MM/yyyy HH:mm")</span>
+                            <strong>@history.ChangeType</strong>
+                            <p>@history.ChangedFields | @history.OldValue → @history.NewValue</p>
+                            <span>@history.ChangeDate.ToString("dd/MM/yyyy HH:mm")</span>
                         </div>
                     </div>
                 }
@@ -384,10 +383,10 @@
         return item.HealthStatus switch
         {
             "Healthy" => "hb-health healthy",
-            "Action Required" => "hb-health danger",
-            "Changed" => "hb-health warning",
-            "New" => "hb-health info",
-            _ => "hb-health info"
+            "Action Required" => "hb-health action",
+            "Changed" => "hb-health changed",
+            "New" => "hb-health new",
+            _ => "hb-health new"
         };
     }
 
@@ -395,9 +394,9 @@
     {
         return item.HealthStatus switch
         {
-            "Healthy" => "✔ Healthy",
+            "Healthy" => "● Healthy",
             "Action Required" => "⚠ Action",
-            "Changed" => "↻ Changed",
+            "Changed" => "▲ Changed",
             "New" => "★ New",
             _ => "★ New"
         };
