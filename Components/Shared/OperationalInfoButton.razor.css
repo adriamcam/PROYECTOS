@@ -1,11 +1,21 @@
 .info-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-width: 145px;
+    height: 40px;
     border: 1px solid #cbd5e1;
     background: #ffffff;
     color: #1e3a8a;
     border-radius: 10px;
-    padding: 10px 16px;
+    padding: 0 14px;
+    font-size: 14px;
     font-weight: 800;
+    line-height: 1;
     cursor: pointer;
+    white-space: nowrap;
+    box-shadow: 0 4px 12px rgba(15,23,42,.05);
 }
 
 .tech-modal-overlay {
@@ -205,4 +215,11 @@
     .tech-db-grid div {
         border-right: none !important;
     }
+}
+
+
+.operational-info {
+    display: inline-flex;
+    align-items: center;
+    margin-left: 12px;
 }
