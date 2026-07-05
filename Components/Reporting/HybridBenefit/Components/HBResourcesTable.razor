@@ -438,42 +438,65 @@
 
     private async Task OpenLeaderEmailAsync()
     {
-        var leaderEmail = "lider.equipo@itqscr.com";
-
         var actionItems = FilteredResources
             .Where(x => x.RequiresAction)
             .ToList();
 
-        var sb = new StringBuilder();
+        var html = new StringBuilder();
 
-        sb.AppendLine("Hola,");
-        sb.AppendLine();
-        sb.AppendLine("Se detectaron recursos con Azure Hybrid Benefit que requieren revisión de tags.");
-        sb.AppendLine();
-        sb.AppendLine($"Total recursos que requieren acción: {actionItems.Count}");
-        sb.AppendLine();
-        sb.AppendLine("Detalle:");
-        sb.AppendLine("Cliente | Recurso | Suscripción | Resource Group | SKU | vCores | Problema | Recurrencia");
-        sb.AppendLine("------------------------------------------------------------------------------------------------");
+        html.AppendLine("<p>Hola,</p>");
+        html.AppendLine("<p>Se detectaron recursos con Azure Hybrid Benefit que requieren revisión de tags.</p>");
+        html.AppendLine($"<p><strong>Total recursos que requieren acción:</strong> {actionItems.Count}</p>");
+
+        html.AppendLine("<table border='1' cellpadding='6' cellspacing='0' style='border-collapse:collapse;font-family:Segoe UI;font-size:12px;width:100%;'>");
+        html.AppendLine("<thead style='background:#f1f5f9;'>");
+        html.AppendLine("<tr>");
+        html.AppendLine("<th>Cliente</th>");
+        html.AppendLine("<th>Recurso</th>");
+        html.AppendLine("<th>Suscripción</th>");
+        html.AppendLine("<th>Resource Group</th>");
+        html.AppendLine("<th>SKU</th>");
+        html.AppendLine("<th>vCores</th>");
+        html.AppendLine("<th>Problema</th>");
+        html.AppendLine("<th>Recurrencia</th>");
+        html.AppendLine("</tr>");
+        html.AppendLine("</thead>");
+        html.AppendLine("<tbody>");
 
         foreach (var item in actionItems)
         {
-            sb.AppendLine($"{item.Customer} | {item.ResourceName} | {item.Subscription} | {item.ResourceGroup} | {item.SkuDisplay} | {item.vCPUs?.ToString() ?? "-"} | {GetProblemText(item)} | {item.RecurrenceStatus}");
+            html.AppendLine("<tr>");
+            html.AppendLine($"<td>{Html(item.Customer)}</td>");
+            html.AppendLine($"<td><strong>{Html(item.ResourceName)}</strong></td>");
+            html.AppendLine($"<td>{Html(item.Subscription)}</td>");
+            html.AppendLine($"<td>{Html(item.ResourceGroup)}</td>");
+            html.AppendLine($"<td>{Html(item.SkuDisplay)}</td>");
+            html.AppendLine($"<td>{Html(item.vCPUs?.ToString() ?? "-")}</td>");
+            html.AppendLine($"<td style='color:#b91c1c;font-weight:700;'>{Html(GetProblemText(item))}</td>");
+            html.AppendLine($"<td>{Html(item.RecurrenceStatus)}</td>");
+            html.AppendLine("</tr>");
         }
 
-        sb.AppendLine();
-        sb.AppendLine("Favor coordinar con los clientes correspondientes para la corrección.");
-        sb.AppendLine();
-        sb.AppendLine("Generado desde ITQS Support Operations Center.");
+        html.AppendLine("</tbody>");
+        html.AppendLine("</table>");
+        html.AppendLine("<p>Favor coordinar con los clientes correspondientes para la corrección.</p>");
+        html.AppendLine("<p>Generado desde ITQS Support Operations Center.</p>");
+
+        await JS.InvokeVoidAsync("navigator.clipboard.writeText", html.ToString());
 
         var subject = Uri.EscapeDataString("Azure Hybrid Benefit - Recursos que requieren acción");
-        var body = Uri.EscapeDataString(sb.ToString());
-
-        var mailto = $"mailto:{leaderEmail}?subject={subject}&body={body}";
-
-        await JS.InvokeVoidAsync("open", mailto, "_self");
+        await JS.InvokeVoidAsync("open", $"mailto:?subject={subject}", "_self");
     }
 
+    private static string Html(string value)
+    {
+        value ??= "";
+        return value
+            .Replace("&", "&amp;")
+            .Replace("<", "&lt;")
+            .Replace(">", "&gt;")
+            .Replace("\"", "&quot;");
+    }
     private async Task ExportExcelAsync()
     {
         var sb = new StringBuilder();
@@ -639,6 +662,7 @@
         };
     }
 }
+
 
 
 
