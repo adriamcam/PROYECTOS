@@ -442,60 +442,72 @@
             .Where(x => x.RequiresAction)
             .ToList();
 
-        var html = new StringBuilder();
-
-        html.AppendLine("<p>Hola,</p>");
-        html.AppendLine("<p>Se detectaron recursos con Azure Hybrid Benefit que requieren revisión de tags.</p>");
-        html.AppendLine($"<p><strong>Total recursos que requieren acción:</strong> {actionItems.Count}</p>");
-
-        html.AppendLine("<table border='1' cellpadding='6' cellspacing='0' style='border-collapse:collapse;font-family:Segoe UI;font-size:12px;width:100%;'>");
-        html.AppendLine("<thead style='background:#f1f5f9;'>");
-        html.AppendLine("<tr>");
-        html.AppendLine("<th>Cliente</th>");
-        html.AppendLine("<th>Recurso</th>");
-        html.AppendLine("<th>Suscripción</th>");
-        html.AppendLine("<th>Resource Group</th>");
-        html.AppendLine("<th>SKU</th>");
-        html.AppendLine("<th>vCores</th>");
-        html.AppendLine("<th>Problema</th>");
-        html.AppendLine("<th>Recurrencia</th>");
-        html.AppendLine("</tr>");
-        html.AppendLine("</thead>");
-        html.AppendLine("<tbody>");
+        var csv = new StringBuilder();
+        csv.AppendLine("Cliente,Recurso,Suscripcion,ResourceGroup,SKU,vCores,Problema,Recurrencia");
 
         foreach (var item in actionItems)
         {
-            html.AppendLine("<tr>");
-            html.AppendLine($"<td>{Html(item.Customer)}</td>");
-            html.AppendLine($"<td><strong>{Html(item.ResourceName)}</strong></td>");
-            html.AppendLine($"<td>{Html(item.Subscription)}</td>");
-            html.AppendLine($"<td>{Html(item.ResourceGroup)}</td>");
-            html.AppendLine($"<td>{Html(item.SkuDisplay)}</td>");
-            html.AppendLine($"<td>{Html(item.vCPUs?.ToString() ?? "-")}</td>");
-            html.AppendLine($"<td style='color:#b91c1c;font-weight:700;'>{Html(GetProblemText(item))}</td>");
-            html.AppendLine($"<td>{Html(item.RecurrenceStatus)}</td>");
-            html.AppendLine("</tr>");
+            csv.AppendLine(string.Join(",",
+                Csv(item.Customer),
+                Csv(item.ResourceName),
+                Csv(item.Subscription),
+                Csv(item.ResourceGroup),
+                Csv(item.SkuDisplay),
+                Csv(item.vCPUs?.ToString() ?? "-"),
+                Csv(GetProblemText(item)),
+                Csv(item.RecurrenceStatus)
+            ));
         }
 
-        html.AppendLine("</tbody>");
-        html.AppendLine("</table>");
+        var html = new StringBuilder();
+        html.AppendLine("<p>Hola,</p>");
+        html.AppendLine("<p>Se adjunta el reporte de recursos con Azure Hybrid Benefit que requieren revisión de tags.</p>");
+        html.AppendLine($"<p><strong>Total recursos que requieren acción:</strong> {actionItems.Count}</p>");
         html.AppendLine("<p>Favor coordinar con los clientes correspondientes para la corrección.</p>");
         html.AppendLine("<p>Generado desde ITQS Support Operations Center.</p>");
 
-        await JS.InvokeVoidAsync("navigator.clipboard.writeText", html.ToString());
+        var boundary = "----=_ITQS_AHUB_" + Guid.NewGuid().ToString("N");
+        var fileName = $"AHUB-Requieren-Accion-{DateTime.Now:yyyyMMddHHmm}.csv";
 
-        var subject = Uri.EscapeDataString("Azure Hybrid Benefit - Recursos que requieren acción");
-        await JS.InvokeVoidAsync("open", $"mailto:?subject={subject}", "_self");
-    }
+        var htmlBase64 = Convert.ToBase64String(Encoding.UTF8.GetBytes(html.ToString()));
 
-    private static string Html(string value)
-    {
-        value ??= "";
-        return value
-            .Replace("&", "&amp;")
-            .Replace("<", "&lt;")
-            .Replace(">", "&gt;")
-            .Replace("\"", "&quot;");
+        var csvBytes = Encoding.UTF8.GetPreamble()
+            .Concat(Encoding.UTF8.GetBytes(csv.ToString()))
+            .ToArray();
+
+        var csvBase64 = Convert.ToBase64String(csvBytes);
+
+        var eml = new StringBuilder();
+        eml.AppendLine("To:");
+        eml.AppendLine("Subject: Azure Hybrid Benefit - Recursos que requieren acción");
+        eml.AppendLine("MIME-Version: 1.0");
+        eml.AppendLine($"Content-Type: multipart/mixed; boundary=\"{boundary}\"");
+        eml.AppendLine();
+        eml.AppendLine($"--{boundary}");
+        eml.AppendLine("Content-Type: text/html; charset=utf-8");
+        eml.AppendLine("Content-Transfer-Encoding: base64");
+        eml.AppendLine();
+        eml.AppendLine(htmlBase64);
+        eml.AppendLine();
+        eml.AppendLine($"--{boundary}");
+        eml.AppendLine($"Content-Type: text/csv; name=\"{fileName}\"");
+        eml.AppendLine($"Content-Disposition: attachment; filename=\"{fileName}\"");
+        eml.AppendLine("Content-Transfer-Encoding: base64");
+        eml.AppendLine();
+        eml.AppendLine(csvBase64);
+        eml.AppendLine($"--{boundary}--");
+
+        var emlFileName = $"Correo-AHUB-Requieren-Accion-{DateTime.Now:yyyyMMddHHmm}.eml";
+
+        await JS.InvokeVoidAsync("eval", $@"
+            const blob = new Blob([{System.Text.Json.JsonSerializer.Serialize(eml.ToString())}], {{ type: 'message/rfc822' }});
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = '{emlFileName}';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        ");
     }
     private async Task ExportExcelAsync()
     {
@@ -662,6 +674,9 @@
         };
     }
 }
+
+
+
 
 
 
