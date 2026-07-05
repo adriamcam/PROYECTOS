@@ -101,13 +101,16 @@
                     <th><button class="hb-sort" @onclick='() => SortBy("SQL")'>SQL AHUB @GetSortIcon("SQL")</button></th>
                     <th><button class="hb-sort" @onclick='() => SortBy("WindowsTag")'>Windows Tag @GetSortIcon("WindowsTag")</button></th>
                     <th><button class="hb-sort" @onclick='() => SortBy("SqlTag")'>SQL Tag @GetSortIcon("SqlTag")</button></th>
-                    <th><button class="hb-sort" @onclick='() => SortBy("Problem")'>Problem @GetSortIcon("Problem")</button></th>
-                    <th><button class="hb-sort" @onclick='() => SortBy("ChangedBy")'>Cambio por @GetSortIcon("ChangedBy")</button></th>
+
                     @if (StatusFilter == "Action Required")
                     {
                         <th><button class="hb-sort" @onclick='() => SortBy("Sku")'>SKU @GetSortIcon("Sku")</button></th>
                         <th><button class="hb-sort" @onclick='() => SortBy("vCPUs")'>vCores @GetSortIcon("vCPUs")</button></th>
                     }
+
+                    <th><button class="hb-sort" @onclick='() => SortBy("Problem")'>Problem @GetSortIcon("Problem")</button></th>
+                    <th><button class="hb-sort" @onclick='() => SortBy("ChangedBy")'>Cambio por @GetSortIcon("ChangedBy")</button></th>
+
                     @if (StatusFilter == "Action Required")
                     {
                         <th><button class="hb-sort" @onclick='() => SortBy("Recurrence")'>Recurrencia @GetSortIcon("Recurrence")</button></th>
@@ -188,12 +191,6 @@
                             }
                         </td>
 
-                        <td>
-                            <span class="@GetProblemClass(item)">
-                                @GetProblemText(item)
-                            </span>
-                        </td>
-
                         @if (StatusFilter == "Action Required")
                         {
                             <td>
@@ -206,6 +203,12 @@
                         }
 
                         <td>
+                            <span class="@GetProblemClass(item)">
+                                @GetProblemText(item)
+                            </span>
+                        </td>
+
+                        <td>
                             @if (string.IsNullOrWhiteSpace(item.LastChangedBy))
                             {
                                 <span class="hb-muted-text">Sin usuario</span>
@@ -216,34 +219,7 @@
                             }
                         </td>
 
-                        @if (StatusFilter != "Action Required")
-                        {
-                        @if (StatusFilter != "Action Required")
-                        {
-                        <td>
-                            @if (string.IsNullOrWhiteSpace(item.ChangeType))
-                            {
-                                <span class="hb-activity none">Sin cambios</span>
-                            }
-                            else
-                            {
-                                <div class="hb-activity-card">
-                                    <strong>@item.ChangeType</strong>
-                                    <small>@item.Severity</small>
-                                    <span>@(item.ChangeDate?.ToString("dd/MM/yyyy HH:mm") ?? "-")</span>
-                                </div>
-                            }
-                        </td>
-
-                        <td>@(item.LastScanDate?.ToString("dd/MM/yyyy HH:mm") ?? "-")</td>
-
-                        <td>
-                            <button class="hb-history-btn" type="button" @onclick="() => OpenHistoryAsync(item)">
-                                📜 Historial
-                            </button>
-                        </td>
-                        }
-                        else
+                        @if (StatusFilter == "Action Required")
                         {
                             <td>
                                 <span class="@(item.RecurrenceStatus == "Recurrente" ? "hb-recurrence recurrent" : "hb-recurrence new")">
@@ -252,14 +228,29 @@
                                 <small class="hb-recurrence-count">@item.ActionOccurrenceCount sem.</small>
                             </td>
                         }
-                        }
                         else
                         {
                             <td>
-                                <span class="@(item.RecurrenceStatus == "Recurrente" ? "hb-recurrence recurrent" : "hb-recurrence new")">
-                                    @item.RecurrenceStatus
-                                </span>
-                                <small class="hb-recurrence-count">@item.ActionOccurrenceCount sem.</small>
+                                @if (string.IsNullOrWhiteSpace(item.ChangeType))
+                                {
+                                    <span class="hb-activity none">Sin cambios</span>
+                                }
+                                else
+                                {
+                                    <div class="hb-activity-card">
+                                        <strong>@item.ChangeType</strong>
+                                        <small>@item.Severity</small>
+                                        <span>@(item.ChangeDate?.ToString("dd/MM/yyyy HH:mm") ?? "-")</span>
+                                    </div>
+                                }
+                            </td>
+
+                            <td>@(item.LastScanDate?.ToString("dd/MM/yyyy HH:mm") ?? "-")</td>
+
+                            <td>
+                                <button class="hb-history-btn" type="button" @onclick="() => OpenHistoryAsync(item)">
+                                    📜 Historial
+                                </button>
                             </td>
                         }
                     </tr>
@@ -609,6 +600,7 @@
         };
     }
 }
+
 
 
 
