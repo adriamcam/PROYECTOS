@@ -3,28 +3,69 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
+    WITH Base AS
+    (
+        SELECT
+            *,
+            CASE 
+                WHEN HybridBenefit = 'Azure Hybrid Benefit'
+                 AND LicenseType IN ('Windows_Server','Windows_Client')
+                THEN 1 ELSE 0 
+            END AS IsWindowsAhub,
+
+            CASE 
+                WHEN HybridBenefit = 'Azure Hybrid Benefit'
+                 AND LicenseType IN ('Windows_Server','Windows_Client')
+                 AND TagHB IS NOT NULL
+                 AND LTRIM(RTRIM(TagHB)) <> ''
+                THEN 1 ELSE 0 
+            END AS IsWindowsWithTag,
+
+            CASE 
+                WHEN HybridBenefit = 'Azure Hybrid Benefit'
+                 AND LicenseType IN ('Windows_Server','Windows_Client')
+                 AND (TagHB IS NULL OR LTRIM(RTRIM(TagHB)) = '')
+                THEN 1 ELSE 0 
+            END AS IsWindowsMissingTag,
+
+            CASE 
+                WHEN HybridBenefit = 'Azure Hybrid Benefit (SQL)'
+                  OR SQLLicenseType = 'AHUB'
+                THEN 1 ELSE 0 
+            END AS IsSqlAhub,
+
+            CASE 
+                WHEN (HybridBenefit = 'Azure Hybrid Benefit (SQL)' OR SQLLicenseType = 'AHUB')
+                 AND TagHBSQL IS NOT NULL
+                 AND LTRIM(RTRIM(TagHBSQL)) <> ''
+                THEN 1 ELSE 0 
+            END AS IsSqlWithTag,
+
+            CASE 
+                WHEN (HybridBenefit = 'Azure Hybrid Benefit (SQL)' OR SQLLicenseType = 'AHUB')
+                 AND (TagHBSQL IS NULL OR LTRIM(RTRIM(TagHBSQL)) = '')
+                THEN 1 ELSE 0 
+            END AS IsSqlMissingTag
+        FROM dbo.ReporteBeneficioHibrido
+    )
     SELECT
         COUNT(*) AS TotalResources,
         COUNT(DISTINCT Customer) AS TotalCustomers,
         COUNT(DISTINCT SubscriptionId) AS TotalSubscriptions,
-
-        SUM(CASE 
-            WHEN HybridBenefit = 'Azure Hybrid Benefit'
-             AND LicenseType IN ('Windows_Server','Windows_Client')
-            THEN 1 ELSE 0 
-        END) AS WindowsCount,
-
-        SUM(CASE 
-            WHEN HybridBenefit = 'Azure Hybrid Benefit (SQL)'
-              OR SQLLicenseType = 'AHUB'
-            THEN 1 ELSE 0 
-        END) AS SqlCount,
-
-        SUM(CASE 
-            WHEN HybridBenefit = 'Azure Hybrid Benefit (Tag)'
-            THEN 1 ELSE 0 
-        END) AS TagCount,
-
+        SUM(IsWindowsAhub) AS WindowsCount,
+        SUM(IsWindowsWithTag) AS WindowsWithTag,
+        SUM(IsWindowsMissingTag) AS WindowsMissingTag,
+        SUM(IsSqlAhub) AS SqlCount,
+        SUM(IsSqlWithTag) AS SqlWithTag,
+        SUM(IsSqlMissingTag) AS SqlMissingTag,
+        SUM(IsWindowsMissingTag + IsSqlMissingTag) AS TotalMissingTags,
+        SUM(IsWindowsWithTag + IsSqlWithTag) AS TotalWithTags,
+        CAST(
+            CASE 
+                WHEN SUM(IsWindowsAhub + IsSqlAhub) = 0 THEN 100
+                ELSE (SUM(IsWindowsWithTag + IsSqlWithTag) * 100.0) / SUM(IsWindowsAhub + IsSqlAhub)
+            END AS DECIMAL(5,2)
+        ) AS TagCompliancePercent,
         SUM(CASE 
             WHEN ChangeType IS NOT NULL 
               OR AHUB_Status IS NOT NULL 
@@ -32,9 +73,8 @@ BEGIN
               OR Time IS NOT NULL 
             THEN 1 ELSE 0 
         END) AS ChangeCount,
-
         MAX(ScanDate) AS LastScanDate
-    FROM dbo.ReporteBeneficioHibrido;
+    FROM Base;
 END;
 GO
 

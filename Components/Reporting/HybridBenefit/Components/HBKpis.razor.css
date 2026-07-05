@@ -34,3 +34,29 @@
     color:#475569;
     font-size:13px;
 }
+.hb-kpi-health strong {
+    color: #0f766e;
+}
+
+.hb-kpi-health {
+    border-color: #99f6e4;
+    background: linear-gradient(180deg, #ffffff 0%, #f0fdfa 100%);
+}
+
+.hb-kpi-success strong {
+    color: #16a34a;
+}
+
+.hb-kpi-success {
+    border-color: #bbf7d0;
+    background: linear-gradient(180deg, #ffffff 0%, #f0fdf4 100%);
+}
+
+.hb-kpi-danger strong {
+    color: #dc2626;
+}
+
+.hb-kpi-danger {
+    border-color: #fecaca;
+    background: linear-gradient(180deg, #ffffff 0%, #fef2f2 100%);
+}
