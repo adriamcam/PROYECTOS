@@ -43,89 +43,90 @@
         </div>
 
         <div class="hb-tabs">
-            <button class="@(ActiveTab == "Dashboard" ? "active" : "")" @onclick="@(() => ActiveTab = "Dashboard")">Dashboard</button>
-            <button class="@(ActiveTab == "Resources" ? "active" : "")" @onclick="@(() => ActiveTab = "Resources")">Azure Hybrid Benefit Resources</button>
-            <button>Suscripciones</button>
-            <button>Recursos AHUB</button>
-            <button>Cambios recientes</button>
-            <button>Auditoría</button>
+            <button class="@(ActiveTab == "Dashboard" ? "active" : "")" @onclick='() => SetTab("Dashboard")'>
+                Dashboard
+            </button>
+
+            <button class="@(ActiveTab == "Resources" ? "active" : "")" @onclick='() => SetTab("Resources")'>
+                Azure Hybrid Benefit Resources
+            </button>
         </div>
 
         @if (ActiveTab == "Dashboard")
         {
             <HBKpis Dashboard="Dashboard" />
 
-        <div class="hb-dashboard-grid">
-            <section class="hb-card hb-card-large">
-                <div class="hb-card-header">
-                    <div>
-                        <h3>Top clientes con AHUB</h3>
-                        <p>Clientes con mayor cantidad de recursos usando beneficio híbrido.</p>
-                    </div>
-                </div>
-
-                <div class="hb-bars">
-                    @foreach (var item in Dashboard.TopCustomers.Take(5))
-                    {
-                        var max = Dashboard.TopCustomers.Any() ? Dashboard.TopCustomers.Max(x => x.TotalResources) : 1;
-                        var width = Math.Max(12, (int)Math.Round((item.TotalResources * 100.0) / max));
-
+            <div class="hb-dashboard-grid">
+                <section class="hb-card hb-card-large">
+                    <div class="hb-card-header">
                         <div>
-                            <span>@item.Customer</span>
-                            <strong style="width:@width%">@item.TotalResources</strong>
+                            <h3>Top clientes con AHUB</h3>
+                            <p>Clientes con mayor cantidad de recursos usando beneficio híbrido.</p>
                         </div>
-                    }
-                </div>
-            </section>
-
-            <section class="hb-card">
-                <div class="hb-card-header">
-                    <div>
-                        <h3>Distribución AHUB</h3>
-                        <p>Clasificación por origen del beneficio.</p>
                     </div>
-                </div>
 
-                <div class="hb-change-list">
-                    @foreach (var item in Dashboard.Distribution)
-                    {
-                        <div>
-                            <strong>@item.BenefitType</strong>
-                            <span>@item.Total</span>
-                        </div>
-                    }
-                </div>
-            </section>
-
-            <section class="hb-card">
-                <div class="hb-card-header">
-                    <div>
-                        <h3>Cambios recientes</h3>
-                        <p>Activaciones y desactivaciones detectadas.</p>
-                    </div>
-                </div>
-
-                <div class="hb-change-list">
-                    @if (Dashboard.Changes.Any())
-                    {
-                        @foreach (var item in Dashboard.Changes.Take(5))
+                    <div class="hb-bars">
+                        @foreach (var item in Dashboard.TopCustomers.Take(5))
                         {
+                            var max = Dashboard.TopCustomers.Any() ? Dashboard.TopCustomers.Max(x => x.TotalResources) : 1;
+                            var width = Math.Max(12, (int)Math.Round((item.TotalResources * 100.0) / max));
+
                             <div>
-                                <strong>@(item.AHUB_Status ?? item.ChangeType ?? "Cambio")</strong>
-                                <span>@item.ResourceName</span>
+                                <span>@item.Customer</span>
+                                <strong style="width:@width%">@item.TotalResources</strong>
                             </div>
                         }
-                    }
-                    else
-                    {
+                    </div>
+                </section>
+
+                <section class="hb-card">
+                    <div class="hb-card-header">
                         <div>
-                            <strong>Sin cambios recientes</strong>
-                            <span>0</span>
+                            <h3>Distribución AHUB</h3>
+                            <p>Clasificación por origen del beneficio.</p>
                         </div>
-                    }
-                </div>
-            </section>
-        </div>
+                    </div>
+
+                    <div class="hb-change-list">
+                        @foreach (var item in Dashboard.Distribution)
+                        {
+                            <div>
+                                <strong>@item.BenefitType</strong>
+                                <span>@item.Total</span>
+                            </div>
+                        }
+                    </div>
+                </section>
+
+                <section class="hb-card">
+                    <div class="hb-card-header">
+                        <div>
+                            <h3>Cambios recientes</h3>
+                            <p>Activaciones y desactivaciones detectadas.</p>
+                        </div>
+                    </div>
+
+                    <div class="hb-change-list">
+                        @if (Dashboard.Changes.Any())
+                        {
+                            @foreach (var item in Dashboard.Changes.Take(5))
+                            {
+                                <div>
+                                    <strong>@(item.AHUB_Status ?? item.ChangeType ?? "Cambio")</strong>
+                                    <span>@item.ResourceName</span>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <div>
+                                <strong>Sin cambios recientes</strong>
+                                <span>0</span>
+                            </div>
+                        }
+                    </div>
+                </section>
+            </div>
         }
         else if (ActiveTab == "Resources")
         {
@@ -137,13 +138,18 @@
 
 @code {
     private HybridBenefitDashboard Dashboard { get; set; } = new();
-    private string ActiveTab { get; set; } = "Dashboard";
     private bool IsLoading { get; set; } = true;
     private string? ErrorMessage { get; set; }
+    private string ActiveTab { get; set; } = "Dashboard";
 
     protected override async Task OnInitializedAsync()
     {
         await LoadDashboardAsync();
+    }
+
+    private void SetTab(string tab)
+    {
+        ActiveTab = tab;
     }
 
     private async Task LoadDashboardAsync()
@@ -164,26 +170,4 @@
             IsLoading = false;
         }
     }
-
-    private static string GetBenefitPillClass(string benefit)
-    {
-        if (benefit.Contains("SQL", StringComparison.OrdinalIgnoreCase))
-        {
-            return "hb-pill info";
-        }
-
-        if (benefit.Contains("Tag", StringComparison.OrdinalIgnoreCase))
-        {
-            return "hb-pill warning";
-        }
-
-        return "hb-pill success";
-    }
 }
-
-
-
-
-
-
-
