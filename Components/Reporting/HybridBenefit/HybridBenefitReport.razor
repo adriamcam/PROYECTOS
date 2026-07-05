@@ -34,6 +34,10 @@
             </div>
 
             <div class="hb-actions">
+                <button type="button" class="hb-btn hb-btn-secondary" @onclick="() => ShowInfoPopup = true">
+                    ⓘ Información
+                </button>
+
                 <button type="button" class="hb-btn hb-btn-primary" @onclick="LoadDashboardAsync">
                     Actualizar
                 </button>
@@ -222,6 +226,7 @@
 @code {
     private bool ShowInfoPopup = false;
 }
+
 
 
 
