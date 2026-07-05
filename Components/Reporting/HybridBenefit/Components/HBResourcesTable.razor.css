@@ -696,3 +696,56 @@
 
 }
 
+
+.hb-resource-toolbar{
+
+    display:grid;
+
+    grid-template-columns:
+        230px
+        220px
+        180px
+        180px
+        220px
+        90px
+        120px;
+
+    gap:16px;
+
+    align-items:center;
+
+}
+
+.hb-resource-toolbar input{
+
+    width:100%;
+
+    max-width:100%;
+
+    box-sizing:border-box;
+
+}
+
+.hb-resource-toolbar select{
+
+    width:100%;
+
+    max-width:100%;
+
+    box-sizing:border-box;
+
+}
+
+
+.hb-clear-btn{
+
+    margin-left:10px;
+
+}
+
+.hb-export-btn{
+
+    margin-left:6px;
+
+}
+
