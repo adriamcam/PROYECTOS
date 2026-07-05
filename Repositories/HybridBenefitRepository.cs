@@ -74,6 +74,18 @@ public sealed class HybridBenefitRepository : IHybridBenefitRepository
         return result.ToList();
     }
 
+    public async Task<List<HybridBenefitResourceHistory>> GetResourceHistoryAsync(string resourceKey)
+    {
+        using var conn = _connectionFactory.CreateConnection();
+        conn.Open();
+
+        var result = await conn.QueryAsync<HybridBenefitResourceHistory>(
+            "dbo.sp_HB_GetResourceHistory",
+            new { ResourceKey = resourceKey },
+            commandType: CommandType.StoredProcedure);
+
+        return result.ToList();
+    }
     public async Task<List<HybridBenefitChange>> GetChangesAsync()
     {
         using var conn = _connectionFactory.CreateConnection();
@@ -86,3 +98,4 @@ public sealed class HybridBenefitRepository : IHybridBenefitRepository
         return result.ToList();
     }
 }
+

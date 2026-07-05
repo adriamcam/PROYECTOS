@@ -16,4 +16,9 @@ public sealed class HybridBenefitService : IHybridBenefitService
     {
         return _repository.GetDashboardAsync();
     }
+
+    public Task<List<HybridBenefitResourceHistory>> GetResourceHistoryAsync(string resourceKey)
+    {
+        return _repository.GetResourceHistoryAsync(resourceKey);
+    }
 }

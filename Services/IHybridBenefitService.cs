@@ -5,4 +5,6 @@ namespace ITQS.SupportOperationsCenter.Services;
 public interface IHybridBenefitService
 {
     Task<HybridBenefitDashboard> GetDashboardAsync();
+    Task<List<HybridBenefitResourceHistory>> GetResourceHistoryAsync(string resourceKey);
 }
+

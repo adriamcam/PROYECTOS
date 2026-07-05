@@ -10,4 +10,6 @@ public interface IHybridBenefitRepository
     Task<List<HybridBenefitDistribution>> GetDistributionAsync();
     Task<List<HybridBenefitResource>> GetResourcesAsync();
     Task<List<HybridBenefitChange>> GetChangesAsync();
+    Task<List<HybridBenefitResourceHistory>> GetResourceHistoryAsync(string resourceKey);
 }
+
