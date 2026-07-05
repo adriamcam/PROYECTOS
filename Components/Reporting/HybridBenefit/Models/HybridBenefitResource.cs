@@ -40,9 +40,12 @@ public class HybridBenefitResource
 
     public string RecurrenceStatus { get; set; } = "";
 
+    public string LastChangedBy { get; set; } = "";
+
     public bool RequiresAction =>
         (HasWindowsAHUB && !HasTagHB)
         || (HasSqlAHUB && !HasTagHBSQL);
 }
+
 
 
