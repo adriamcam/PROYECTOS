@@ -14,8 +14,32 @@
         </div>
     </div>
 
+    <div class="hb-summary">
+        <div class="hb-summary-card healthy" @onclick='() => StatusFilter = "Healthy"'>
+            <div class="value">@Resources.Count(x => x.HealthStatus == "Healthy")</div>
+            <div class="title">Healthy</div>
+        </div>
+
+        <div class="hb-summary-card warning" @onclick='() => StatusFilter = "New"'>
+            <div class="value">@Resources.Count(x => x.HealthStatus == "New")</div>
+            <div class="title">Nuevos</div>
+        </div>
+
+        <div class="hb-summary-card danger" @onclick='() => StatusFilter = "Action Required"'>
+            <div class="value">@Resources.Count(x => x.RequiresAction)</div>
+            <div class="title">Requieren acción</div>
+        </div>
+
+        <div class="hb-summary-card info" @onclick='() => StatusFilter = "Changed"'>
+            <div class="value">@Resources.Count(x => x.HealthStatus == "Changed")</div>
+            <div class="title">Cambios</div>
+        </div>
+    </div>
+
     <div class="hb-resource-toolbar">
-        <input placeholder="Buscar cliente, recurso, suscripción o RG..." @bind="SearchText" @bind:event="oninput" />
+        <input placeholder="Buscar cliente, recurso o RG..." @bind="SearchText" @bind:event="oninput" />
+
+        <input placeholder="Buscar suscripción..." @bind="SubscriptionSearch" @bind:event="oninput" />
 
         <select @bind="StatusFilter">
             <option value="">Todos los estados</option>
@@ -41,28 +65,6 @@
 
         <button class="hb-clear-btn" type="button" @onclick="ClearFilters">Limpiar</button>
         <button class="hb-export-btn" type="button" @onclick="ExportExcelAsync">Exportar Excel</button>
-    </div>
-
-    <div class="hb-summary">
-        <div class="hb-summary-card healthy" @onclick='() => StatusFilter = "Healthy"'>
-            <div class="value">@Resources.Count(x => x.HealthStatus == "Healthy")</div>
-            <div class="title">Healthy</div>
-        </div>
-
-        <div class="hb-summary-card warning" @onclick='() => StatusFilter = "New"'>
-            <div class="value">@Resources.Count(x => x.HealthStatus == "New")</div>
-            <div class="title">Nuevos</div>
-        </div>
-
-        <div class="hb-summary-card danger" @onclick='() => StatusFilter = "Action Required"'>
-            <div class="value">@Resources.Count(x => x.RequiresAction)</div>
-            <div class="title">Requieren acción</div>
-        </div>
-
-        <div class="hb-summary-card info" @onclick='() => StatusFilter = "Changed"'>
-            <div class="value">@Resources.Count(x => x.HealthStatus == "Changed")</div>
-            <div class="title">Cambios</div>
-        </div>
     </div>
 
     <div class="hb-table-wrap hb-table-modern">
@@ -250,6 +252,7 @@
     public List<HybridBenefitResource> Resources { get; set; } = new();
 
     private string SearchText { get; set; } = "";
+    private string SubscriptionSearch { get; set; } = "";
     private string StatusFilter { get; set; } = "";
     private string TypeFilter { get; set; } = "";
     private string SeverityFilter { get; set; } = "";
@@ -269,9 +272,11 @@
         Resources.Where(x =>
             (string.IsNullOrWhiteSpace(SearchText)
                 || x.Customer.Contains(SearchText, StringComparison.OrdinalIgnoreCase)
-                || x.Subscription.Contains(SearchText, StringComparison.OrdinalIgnoreCase)
                 || x.ResourceGroup.Contains(SearchText, StringComparison.OrdinalIgnoreCase)
                 || x.ResourceName.Contains(SearchText, StringComparison.OrdinalIgnoreCase))
+            &&
+            (string.IsNullOrWhiteSpace(SubscriptionSearch)
+                || x.Subscription.Contains(SubscriptionSearch, StringComparison.OrdinalIgnoreCase))
             &&
             (string.IsNullOrWhiteSpace(StatusFilter)
                 || x.HealthStatus.Equals(StatusFilter, StringComparison.OrdinalIgnoreCase))
@@ -315,6 +320,7 @@
     private void ClearFilters()
     {
         SearchText = "";
+        SubscriptionSearch = "";
         StatusFilter = "";
         TypeFilter = "";
         SeverityFilter = "";
@@ -511,6 +517,8 @@
         };
     }
 }
+
+
 
 
 
