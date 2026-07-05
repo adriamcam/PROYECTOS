@@ -1,4 +1,7 @@
 @using ITQS.SupportOperationsCenter.Components.Reporting.HybridBenefit.Models
+@using ITQS.SupportOperationsCenter.Services
+
+@inject IHybridBenefitService HybridBenefitService
 
 <section class="hb-card hb-table-card">
     <div class="hb-card-header">
@@ -56,6 +59,7 @@
             <div class="title">Cambios</div>
         </div>
     </div>
+
     <div class="hb-table-wrap">
         <table>
             <thead>
@@ -69,6 +73,7 @@
                     <th>Actividad</th>
                     <th>Fecha cambio</th>
                     <th>Último scan</th>
+                    <th>Acciones</th>
                 </tr>
             </thead>
             <tbody>
@@ -110,29 +115,25 @@
                             }
                         </td>
                         <td>
-
-                            @if(string.IsNullOrWhiteSpace(item.ChangeType))
+                            @if (string.IsNullOrWhiteSpace(item.ChangeType))
                             {
-                                <span class="hb-activity none">
-
-                                    Sin cambios
-
-                                </span>
+                                <span class="hb-activity none">Sin cambios</span>
                             }
                             else
                             {
                                 <div class="hb-activity-card">
-
                                     <strong>@item.ChangeType</strong>
-
                                     <small>@item.Severity</small>
-
                                 </div>
                             }
-
                         </td>
                         <td>@(item.ChangeDate?.ToString("dd/MM/yyyy HH:mm") ?? "-")</td>
                         <td>@(item.LastScanDate?.ToString("dd/MM/yyyy HH:mm") ?? "-")</td>
+                        <td>
+                            <button class="hb-history-btn" type="button" @onclick="() => OpenHistoryAsync(item)">
+                                Ver historial
+                            </button>
+                        </td>
                     </tr>
                 }
             </tbody>
@@ -150,6 +151,67 @@
     </div>
 </section>
 
+@if (ShowHistoryPanel)
+{
+    <div class="hb-drawer-backdrop" @onclick="CloseHistory"></div>
+
+    <aside class="hb-drawer">
+        <div class="hb-drawer-header">
+            <div>
+                <span>Historial AHUB</span>
+                <h3>@SelectedResource?.ResourceName</h3>
+                <p>@SelectedResource?.Customer</p>
+            </div>
+
+            <button type="button" @onclick="CloseHistory">Cerrar</button>
+        </div>
+
+        <div class="hb-drawer-summary">
+            <div>
+                <span>Windows</span>
+                <strong>@(SelectedResource?.HasWindowsAHUB == true ? "Sí" : "No")</strong>
+            </div>
+            <div>
+                <span>SQL</span>
+                <strong>@(SelectedResource?.HasSqlAHUB == true ? "Sí" : "No")</strong>
+            </div>
+            <div>
+                <span>TagHB</span>
+                <strong>@(SelectedResource?.HasTagHB == true ? "OK" : "Falta")</strong>
+            </div>
+            <div>
+                <span>TagHBSQL</span>
+                <strong>@(SelectedResource?.HasTagHBSQL == true ? "OK" : "Falta")</strong>
+            </div>
+        </div>
+
+        @if (IsLoadingHistory)
+        {
+            <div class="hb-history-loading">Cargando historial...</div>
+        }
+        else if (!ResourceHistory.Any())
+        {
+            <div class="hb-history-empty">Sin historial registrado.</div>
+        }
+        else
+        {
+            <div class="hb-timeline">
+                @foreach (var item in ResourceHistory)
+                {
+                    <div class="hb-timeline-item">
+                        <div class="@GetSeverityDotClass(item.Severity)"></div>
+                        <div>
+                            <strong>@item.ChangeType</strong>
+                            <p>@item.ChangedFields | @item.OldValue → @item.NewValue</p>
+                            <span>@item.ChangeDate.ToString("dd/MM/yyyy HH:mm")</span>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </aside>
+}
+
 @code {
     [Parameter]
     public List<HybridBenefitResource> Resources { get; set; } = new();
@@ -162,6 +224,11 @@
     private int CurrentPage { get; set; } = 1;
     private int PageSize { get; set; } = 25;
 
+    private bool ShowHistoryPanel { get; set; }
+    private bool IsLoadingHistory { get; set; }
+    private HybridBenefitResource? SelectedResource { get; set; }
+    private List<HybridBenefitResourceHistory> ResourceHistory { get; set; } = new();
+
     private IEnumerable<HybridBenefitResource> FilteredResources =>
         Resources.Where(x =>
             (string.IsNullOrWhiteSpace(SearchText)
@@ -171,7 +238,8 @@
                 || x.ResourceName.Contains(SearchText, StringComparison.OrdinalIgnoreCase))
             &&
             (string.IsNullOrWhiteSpace(StatusFilter)
-                || x.OperationalStatus.Equals(StatusFilter, StringComparison.OrdinalIgnoreCase))
+                || x.OperationalStatus.Equals(StatusFilter, StringComparison.OrdinalIgnoreCase)
+                || (StatusFilter == "Missing Windows Tag" && x.OperationalStatus.Contains("Missing")))
             &&
             (string.IsNullOrWhiteSpace(SeverityFilter)
                 || x.Severity.Equals(SeverityFilter, StringComparison.OrdinalIgnoreCase))
@@ -208,6 +276,30 @@
         }
     }
 
+    private async Task OpenHistoryAsync(HybridBenefitResource resource)
+    {
+        SelectedResource = resource;
+        ShowHistoryPanel = true;
+        IsLoadingHistory = true;
+        ResourceHistory = new();
+
+        try
+        {
+            ResourceHistory = await HybridBenefitService.GetResourceHistoryAsync(resource.ResourceKey);
+        }
+        finally
+        {
+            IsLoadingHistory = false;
+        }
+    }
+
+    private void CloseHistory()
+    {
+        ShowHistoryPanel = false;
+        SelectedResource = null;
+        ResourceHistory = new();
+    }
+
     private static string GetStatusClass(string status)
     {
         return status switch
@@ -220,8 +312,15 @@
             _ => "hb-pill muted"
         };
     }
+
+    private static string GetSeverityDotClass(string severity)
+    {
+        return severity switch
+        {
+            "Critical" => "hb-timeline-dot critical",
+            "Warning" => "hb-timeline-dot warning",
+            "Information" => "hb-timeline-dot info",
+            _ => "hb-timeline-dot"
+        };
+    }
 }
-
-
-
-
