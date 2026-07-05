@@ -607,46 +607,103 @@
 @if (ShowInfoPopup)
 {
     <div class="gdap-modal-backdrop">
-        <div class="gdap-confirm-modal" style="max-width:950px">
-            <div class="modal-header">
+        <div class="info-modal">
+            <div class="info-header">
                 <div>
-                    <h3>Información Técnica</h3>
-                    <small>Objetos utilizados por Admin Links GDAP</small>
+                    <span class="info-eyebrow">INFORMACIÓN TÉCNICA</span>
+                    <h2>Admin Links GDAP</h2>
+                    <p>Arquitectura, objetos SQL, integraciones y flujo operativo del módulo.</p>
                 </div>
 
-                <button class="btn-secondary" @onclick="() => ShowInfoPopup=false">Cerrar</button>
+                <button type="button" class="info-close" @onclick="() => ShowInfoPopup = false">×</button>
             </div>
 
             <div class="info-grid">
-                <div class="info-box">
-                    <h4>Tablas</h4>
+                <div class="info-card">
+                    <h3>📋 Objetivo</h3>
+                    <p>
+                        Centralizar la administración de relaciones GDAP, enlaces de aprobación,
+                        vencimientos, contactos CRM, centro de correos y seguimiento operativo.
+                    </p>
+                </div>
+
+                <div class="info-card">
+                    <h3>🗄 Base de Datos</h3>
+                    <strong>Tablas</strong>
                     <ul>
                         <li>dbo.PartnerCenterCustomers</li>
                         <li>dbo.CRM_Customers</li>
                     </ul>
-                </div>
 
-                <div class="info-box">
-                    <h4>Vistas</h4>
+                    <strong>Vistas</strong>
                     <ul>
                         <li>dbo.vw_GDAP_Customers_With_CRMContact</li>
                         <li>dbo.vw_GDAP_PendingEmails</li>
                     </ul>
-                </div>
 
-                <div class="info-box">
-                    <h4>Procedimientos</h4>
+                    <strong>Procedimientos</strong>
                     <ul>
                         <li>dbo.usp_GDAP_UpdateCRMContact</li>
                         <li>dbo.usp_GDAP_RegisterMailSent</li>
                     </ul>
                 </div>
+
+                <div class="info-card">
+                    <h3>☁ Integraciones</h3>
+                    <ul>
+                        <li>Microsoft Partner Center</li>
+                        <li>Microsoft Graph</li>
+                        <li>Azure Automation</li>
+                        <li>Azure SQL Database</li>
+                        <li>CRM Customers</li>
+                        <li>Microsoft Outlook</li>
+                    </ul>
+                </div>
             </div>
 
-            <div class="automation-note">
-                <strong>Objetivo:</strong><br /><br />
-                Centralizar la administración GDAP, clientes, Approval URL,
-                centro de correos, contactos CRM, envíos y auditoría operativa.
+            <div class="info-section">
+                <h3>🔄 Flujo Operativo</h3>
+
+                <div class="flow-line">
+                    <div>Partner Center</div>
+                    <span>→</span>
+                    <div>Automation GDAP</div>
+                    <span>→</span>
+                    <div>Azure SQL</div>
+                    <span>→</span>
+                    <div>Admin Links GDAP</div>
+                    <span>→</span>
+                    <div>Centro de Correos</div>
+                    <span>→</span>
+                    <div>Auditoría</div>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <h3>📊 KPIs utilizados</h3>
+
+                <div class="kpi-chip-grid">
+                    <span>Total Clientes</span>
+                    <span>GDAP Activos</span>
+                    <span>Approval Pending</span>
+                    <span>Sin GDAP</span>
+                    <span>Vencen &lt; 30 días</span>
+                    <span>Vencen &lt; 15 días</span>
+                    <span>Vencen &lt; 7 días</span>
+                    <span>Desactivados</span>
+                    <span>Correos enviados</span>
+                    <span>Última ejecución</span>
+                </div>
+            </div>
+
+            <div class="info-note">
+                <strong>Versión:</strong> Admin Links GDAP v1.0 · ITQS Support Operations Center.
+            </div>
+
+            <div class="info-footer">
+                <button type="button" class="btn-primary" @onclick="() => ShowInfoPopup = false">
+                    Cerrar
+                </button>
             </div>
         </div>
     </div>
@@ -683,6 +740,7 @@
     </div>
 }
 </div>
+
 
 
 
