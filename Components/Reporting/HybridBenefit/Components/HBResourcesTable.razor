@@ -436,80 +436,16 @@
         return SortAscending ? "▲" : "▼";
     }
 
-    private async Task OpenLeaderEmailAsync()
+        private async Task OpenLeaderEmailAsync()
     {
-        var actionItems = FilteredResources
-            .Where(x => x.RequiresAction)
-            .ToList();
+        var subject = Uri.EscapeDataString("Azure Hybrid Benefit - Recursos que requieren acción");
 
-        var csv = new StringBuilder();
-        csv.AppendLine("Cliente,Recurso,Suscripcion,ResourceGroup,SKU,vCores,Problema,Recurrencia");
-
-        foreach (var item in actionItems)
-        {
-            csv.AppendLine(string.Join(",",
-                Csv(item.Customer),
-                Csv(item.ResourceName),
-                Csv(item.Subscription),
-                Csv(item.ResourceGroup),
-                Csv(item.SkuDisplay),
-                Csv(item.vCPUs?.ToString() ?? "-"),
-                Csv(GetProblemText(item)),
-                Csv(item.RecurrenceStatus)
-            ));
-        }
-
-        var html = new StringBuilder();
-        html.AppendLine("<p>Hola,</p>");
-        html.AppendLine("<p>Se adjunta el reporte de recursos con Azure Hybrid Benefit que requieren revisión de tags.</p>");
-        html.AppendLine($"<p><strong>Total recursos que requieren acción:</strong> {actionItems.Count}</p>");
-        html.AppendLine("<p>Favor coordinar con los clientes correspondientes para la corrección.</p>");
-        html.AppendLine("<p>Generado desde ITQS Support Operations Center.</p>");
-
-        var boundary = "----=_ITQS_AHUB_" + Guid.NewGuid().ToString("N");
-        var fileName = $"AHUB-Requieren-Accion-{DateTime.Now:yyyyMMddHHmm}.csv";
-
-        var htmlBase64 = Convert.ToBase64String(Encoding.UTF8.GetBytes(html.ToString()));
-
-        var csvBytes = Encoding.UTF8.GetPreamble()
-            .Concat(Encoding.UTF8.GetBytes(csv.ToString()))
-            .ToArray();
-
-        var csvBase64 = Convert.ToBase64String(csvBytes);
-
-        var eml = new StringBuilder();
-        eml.AppendLine("To:");
-        eml.AppendLine("Subject: Azure Hybrid Benefit - Recursos que requieren acción");
-        eml.AppendLine("MIME-Version: 1.0");
-        eml.AppendLine($"Content-Type: multipart/mixed; boundary=\"{boundary}\"");
-        eml.AppendLine();
-        eml.AppendLine($"--{boundary}");
-        eml.AppendLine("Content-Type: text/html; charset=utf-8");
-        eml.AppendLine("Content-Transfer-Encoding: base64");
-        eml.AppendLine();
-        eml.AppendLine(htmlBase64);
-        eml.AppendLine();
-        eml.AppendLine($"--{boundary}");
-        eml.AppendLine($"Content-Type: text/csv; name=\"{fileName}\"");
-        eml.AppendLine($"Content-Disposition: attachment; filename=\"{fileName}\"");
-        eml.AppendLine("Content-Transfer-Encoding: base64");
-        eml.AppendLine();
-        eml.AppendLine(csvBase64);
-        eml.AppendLine($"--{boundary}--");
-
-        var emlFileName = $"Correo-AHUB-Requieren-Accion-{DateTime.Now:yyyyMMddHHmm}.eml";
-
-        await JS.InvokeVoidAsync("eval", $@"
-            const blob = new Blob([{System.Text.Json.JsonSerializer.Serialize(eml.ToString())}], {{ type: 'message/rfc822' }});
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = '{emlFileName}';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        ");
+        await JS.InvokeVoidAsync(
+            "open",
+            $"mailto:?subject={subject}",
+            "_self");
     }
-    private async Task ExportExcelAsync()
+private async Task ExportExcelAsync()
     {
         var sb = new StringBuilder();
         sb.AppendLine("Health,Customer,Subscription,ResourceGroup,ResourceName,WindowsAHUB,SqlAHUB,TagHB,TagHBSQL,Problem,ChangeType,Severity,ChangeDate,LastScanDate");
@@ -674,6 +610,7 @@
         };
     }
 }
+
 
 
 
