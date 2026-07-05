@@ -37,8 +37,6 @@
     </div>
 
     <div class="hb-resource-toolbar">
-        <input placeholder="Buscar cliente, recurso o RG..." @bind="SearchText" @bind:event="oninput" />
-
         <select @bind="SubscriptionSearch">
             <option value="">Todas las suscripciones</option>
             @foreach (var subscription in SubscriptionOptions)
@@ -68,6 +66,8 @@
             <option value="Warning">Warning</option>
             <option value="Information">Information</option>
         </select>
+
+        <input placeholder="Buscar cliente, recurso o RG..." @bind="SearchText" @bind:event="oninput" />
 
         <button class="hb-clear-btn" type="button" @onclick="ClearFilters">Limpiar</button>
         <button class="hb-export-btn" type="button" @onclick="ExportExcelAsync">Exportar Excel</button>
@@ -530,6 +530,7 @@
         };
     }
 }
+
 
 
 
