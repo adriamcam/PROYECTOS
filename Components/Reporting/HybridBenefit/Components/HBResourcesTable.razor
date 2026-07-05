@@ -102,9 +102,16 @@
                     <th><button class="hb-sort" @onclick='() => SortBy("WindowsTag")'>Windows Tag @GetSortIcon("WindowsTag")</button></th>
                     <th><button class="hb-sort" @onclick='() => SortBy("SqlTag")'>SQL Tag @GetSortIcon("SqlTag")</button></th>
                     <th><button class="hb-sort" @onclick='() => SortBy("Problem")'>Problem @GetSortIcon("Problem")</button></th>
-                    <th><button class="hb-sort" @onclick='() => SortBy("Activity")'>Activity @GetSortIcon("Activity")</button></th>
-                    <th><button class="hb-sort" @onclick='() => SortBy("LastScan")'>Last Scan @GetSortIcon("LastScan")</button></th>
-                    <th>Actions</th>
+                    @if (StatusFilter == "Action Required")
+                    {
+                        <th><button class="hb-sort" @onclick='() => SortBy("Recurrence")'>Recurrencia @GetSortIcon("Recurrence")</button></th>
+                    }
+                    else
+                    {
+                        <th><button class="hb-sort" @onclick='() => SortBy("Activity")'>Activity @GetSortIcon("Activity")</button></th>
+                        <th><button class="hb-sort" @onclick='() => SortBy("LastScan")'>Last Scan @GetSortIcon("LastScan")</button></th>
+                        <th>Actions</th>
+                    }
                 </tr>
             </thead>
 
@@ -359,6 +366,7 @@
             "Problem" => SortAscending ? FilteredResources.OrderBy(x => GetProblemText(x)) : FilteredResources.OrderByDescending(x => GetProblemText(x)),
             "Activity" => SortAscending ? FilteredResources.OrderBy(x => x.ChangeType) : FilteredResources.OrderByDescending(x => x.ChangeType),
             "LastScan" => SortAscending ? FilteredResources.OrderBy(x => x.LastScanDate) : FilteredResources.OrderByDescending(x => x.LastScanDate),
+            "Recurrence" => SortAscending ? FilteredResources.OrderBy(x => x.RecurrenceStatus) : FilteredResources.OrderByDescending(x => x.RecurrenceStatus),
             _ => FilteredResources.OrderBy(x => x.ResourceName)
         };
 
@@ -570,6 +578,8 @@
         };
     }
 }
+
+
 
 
 
