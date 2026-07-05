@@ -1,0 +1,129 @@
+@using ITQS.SupportOperationsCenter.Components.Reporting.HybridBenefit.Models
+
+<section class="hb-card hb-table-card">
+    <div class="hb-card-header">
+        <div>
+            <h3>Azure Hybrid Benefit Resources</h3>
+            <p>Inventario operativo de recursos con Azure Hybrid Benefit.</p>
+        </div>
+    </div>
+
+    <div class="hb-resource-filters">
+        <input placeholder="Buscar cliente..." @bind="CustomerFilter" @bind:event="oninput" />
+        <input placeholder="Buscar suscripci￳n..." @bind="SubscriptionFilter" @bind:event="oninput" />
+        <input placeholder="Buscar recurso..." @bind="ResourceFilter" @bind:event="oninput" />
+
+        <select @bind="BenefitFilter">
+            <option value="">Todos</option>
+            <option value="Azure Hybrid Benefit">Windows AHUB</option>
+            <option value="Azure Hybrid Benefit (SQL)">SQL AHUB</option>
+            <option value="Azure Hybrid Benefit (Tag)">Tag AHUB</option>
+        </select>
+    </div>
+
+    <div class="hb-table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Cliente</th>
+                    <th>Suscripci￳n</th>
+                    <th>Resource Group</th>
+                    <th>Recurso</th>
+                    <th>Beneficio</th>
+                    <th>License Type</th>
+                    <th>SQL License</th>
+                    <th>TagHB</th>
+                    <th>TagHBSQL</th>
+                    <th>ￚltima detecci￳n</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in PagedResources)
+                {
+                    <tr>
+                        <td>@item.Customer</td>
+                        <td>@item.Subscription</td>
+                        <td>@item.ResourceGroup</td>
+                        <td>@item.ResourceName</td>
+                        <td><span class="@GetBenefitPillClass(item.HybridBenefit)">@item.HybridBenefit</span></td>
+                        <td>@item.LicenseType</td>
+                        <td>@item.SQLLicenseType</td>
+                        <td>@item.TagHB</td>
+                        <td>@item.TagHBSQL</td>
+                        <td>@item.ScanDate.ToString("dd/MM/yyyy HH:mm")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="hb-pagination">
+        <span>Mostrando @PagedResources.Count() de @FilteredResources.Count() registros</span>
+
+        <div>
+            <button disabled="@(CurrentPage <= 1)" @onclick="PreviousPage">Anterior</button>
+            <strong>P￡gina @CurrentPage de @TotalPages</strong>
+            <button disabled="@(CurrentPage >= TotalPages)" @onclick="NextPage">Siguiente</button>
+        </div>
+    </div>
+</section>
+
+@code {
+    [Parameter]
+    public List<HybridBenefitResource> Resources { get; set; } = new();
+
+    private string CustomerFilter { get; set; } = "";
+    private string SubscriptionFilter { get; set; } = "";
+    private string ResourceFilter { get; set; } = "";
+    private string BenefitFilter { get; set; } = "";
+
+    private int CurrentPage { get; set; } = 1;
+    private int PageSize { get; set; } = 25;
+
+    private IEnumerable<HybridBenefitResource> FilteredResources =>
+        Resources.Where(x =>
+            (string.IsNullOrWhiteSpace(CustomerFilter) || x.Customer.Contains(CustomerFilter, StringComparison.OrdinalIgnoreCase)) &&
+            (string.IsNullOrWhiteSpace(SubscriptionFilter) || x.Subscription.Contains(SubscriptionFilter, StringComparison.OrdinalIgnoreCase)) &&
+            (string.IsNullOrWhiteSpace(ResourceFilter) || x.ResourceName.Contains(ResourceFilter, StringComparison.OrdinalIgnoreCase)) &&
+            (string.IsNullOrWhiteSpace(BenefitFilter) || x.HybridBenefit.Equals(BenefitFilter, StringComparison.OrdinalIgnoreCase))
+        );
+
+    private IEnumerable<HybridBenefitResource> PagedResources =>
+        FilteredResources
+            .Skip((CurrentPage - 1) * PageSize)
+            .Take(PageSize);
+
+    private int TotalPages =>
+        Math.Max(1, (int)Math.Ceiling(FilteredResources.Count() / (double)PageSize));
+
+    private void PreviousPage()
+    {
+        if (CurrentPage > 1)
+        {
+            CurrentPage--;
+        }
+    }
+
+    private void NextPage()
+    {
+        if (CurrentPage < TotalPages)
+        {
+            CurrentPage++;
+        }
+    }
+
+    private static string GetBenefitPillClass(string benefit)
+    {
+        if (benefit.Contains("SQL", StringComparison.OrdinalIgnoreCase))
+        {
+            return "hb-pill info";
+        }
+
+        if (benefit.Contains("Tag", StringComparison.OrdinalIgnoreCase))
+        {
+            return "hb-pill warning";
+        }
+
+        return "hb-pill success";
+    }
+}

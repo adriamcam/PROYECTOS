@@ -43,15 +43,17 @@
         </div>
 
         <div class="hb-tabs">
-            <button class="active">Dashboard</button>
-            <button>Azure Hybrid Benefit Resources</button>
+            <button class="@(ActiveTab == "Dashboard" ? "active" : "")" @onclick="@(() => ActiveTab = "Dashboard")">Dashboard</button>
+            <button class="@(ActiveTab == "Resources" ? "active" : "")" @onclick="@(() => ActiveTab = "Resources")">Azure Hybrid Benefit Resources</button>
             <button>Suscripciones</button>
             <button>Recursos AHUB</button>
             <button>Cambios recientes</button>
             <button>Auditoría</button>
         </div>
 
-        <HBKpis Dashboard="Dashboard" />
+        @if (ActiveTab == "Dashboard")
+        {
+            <HBKpis Dashboard="Dashboard" />
 
         <div class="hb-dashboard-grid">
             <section class="hb-card hb-card-large">
@@ -124,12 +126,18 @@
                 </div>
             </section>
         </div>
+        }
+        else if (ActiveTab == "Resources")
+        {
+            <HBResourcesTable Resources="Dashboard.Resources" />
+        }
     }
 
 </section>
 
 @code {
     private HybridBenefitDashboard Dashboard { get; set; } = new();
+    private string ActiveTab { get; set; } = "Dashboard";
     private bool IsLoading { get; set; } = true;
     private string? ErrorMessage { get; set; }
 
@@ -172,6 +180,7 @@
         return "hb-pill success";
     }
 }
+
 
 
 

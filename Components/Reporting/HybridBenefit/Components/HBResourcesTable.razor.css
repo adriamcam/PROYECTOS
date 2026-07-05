@@ -1,0 +1,43 @@
+.hb-resource-filters {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 18px;
+}
+
+.hb-resource-filters input,
+.hb-resource-filters select {
+    width: 100%;
+    padding: 11px 12px;
+    border-radius: 12px;
+    border: 1px solid #cbd5e1;
+    outline: none;
+}
+
+.hb-pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 4px 4px;
+    color: #475569;
+    font-size: 13px;
+}
+
+.hb-pagination button {
+    border: 1px solid #cbd5e1;
+    background: white;
+    border-radius: 10px;
+    padding: 8px 12px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.hb-pagination button:disabled {
+    opacity: .45;
+    cursor: not-allowed;
+}
+
+.hb-pagination strong {
+    margin: 0 12px;
+    color: #0f172a;
+}
