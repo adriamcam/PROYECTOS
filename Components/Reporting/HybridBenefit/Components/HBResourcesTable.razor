@@ -87,6 +87,7 @@
 
         <button class="hb-clear-btn" type="button" @onclick="ClearFilters">Limpiar</button>
         <button class="hb-export-btn" type="button" @onclick="ExportExcelAsync">Exportar Excel</button>
+        <button class="hb-mail-btn" type="button" @onclick="OpenLeaderEmailAsync">📧 Enviar Correo</button>
     </div>
 
     <div class="hb-table-wrap hb-table-modern">
@@ -435,6 +436,44 @@
         return SortAscending ? "▲" : "▼";
     }
 
+    private async Task OpenLeaderEmailAsync()
+    {
+        var leaderEmail = "lider.equipo@itqscr.com";
+
+        var actionItems = FilteredResources
+            .Where(x => x.RequiresAction)
+            .ToList();
+
+        var sb = new StringBuilder();
+
+        sb.AppendLine("Hola,");
+        sb.AppendLine();
+        sb.AppendLine("Se detectaron recursos con Azure Hybrid Benefit que requieren revisión de tags.");
+        sb.AppendLine();
+        sb.AppendLine($"Total recursos que requieren acción: {actionItems.Count}");
+        sb.AppendLine();
+        sb.AppendLine("Detalle:");
+        sb.AppendLine("Cliente | Recurso | Suscripción | Resource Group | SKU | vCores | Problema | Recurrencia");
+        sb.AppendLine("------------------------------------------------------------------------------------------------");
+
+        foreach (var item in actionItems)
+        {
+            sb.AppendLine($"{item.Customer} | {item.ResourceName} | {item.Subscription} | {item.ResourceGroup} | {item.SkuDisplay} | {item.vCPUs?.ToString() ?? "-"} | {GetProblemText(item)} | {item.RecurrenceStatus}");
+        }
+
+        sb.AppendLine();
+        sb.AppendLine("Favor coordinar con los clientes correspondientes para la corrección.");
+        sb.AppendLine();
+        sb.AppendLine("Generado desde ITQS Support Operations Center.");
+
+        var subject = Uri.EscapeDataString("Azure Hybrid Benefit - Recursos que requieren acción");
+        var body = Uri.EscapeDataString(sb.ToString());
+
+        var mailto = $"mailto:{leaderEmail}?subject={subject}&body={body}";
+
+        await JS.InvokeVoidAsync("open", mailto, "_self");
+    }
+
     private async Task ExportExcelAsync()
     {
         var sb = new StringBuilder();
@@ -600,6 +639,7 @@
         };
     }
 }
+
 
 
 
