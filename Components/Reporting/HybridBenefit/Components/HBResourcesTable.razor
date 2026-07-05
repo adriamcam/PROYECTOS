@@ -69,17 +69,17 @@
         <table>
             <thead>
                 <tr>
-                    <th>Health</th>
-                    <th>Resource</th>
-                    <th>Subscription</th>
-                    <th>Resource Group</th>
-                    <th>Windows AHUB</th>
-                    <th>SQL AHUB</th>
-                    <th>Windows Tag</th>
-                    <th>SQL Tag</th>
-                    <th>Problem</th>
-                    <th>Activity</th>
-                    <th>Last Scan</th>
+                    <th><button class="hb-sort" @onclick='() => SortBy("Health")'>Health @GetSortIcon("Health")</button></th>
+                    <th><button class="hb-sort" @onclick='() => SortBy("Resource")'>Resource @GetSortIcon("Resource")</button></th>
+                    <th><button class="hb-sort" @onclick='() => SortBy("Subscription")'>Subscription @GetSortIcon("Subscription")</button></th>
+                    <th><button class="hb-sort" @onclick='() => SortBy("ResourceGroup")'>Resource Group @GetSortIcon("ResourceGroup")</button></th>
+                    <th><button class="hb-sort" @onclick='() => SortBy("Windows")'>Windows AHUB @GetSortIcon("Windows")</button></th>
+                    <th><button class="hb-sort" @onclick='() => SortBy("SQL")'>SQL AHUB @GetSortIcon("SQL")</button></th>
+                    <th><button class="hb-sort" @onclick='() => SortBy("WindowsTag")'>Windows Tag @GetSortIcon("WindowsTag")</button></th>
+                    <th><button class="hb-sort" @onclick='() => SortBy("SqlTag")'>SQL Tag @GetSortIcon("SqlTag")</button></th>
+                    <th><button class="hb-sort" @onclick='() => SortBy("Problem")'>Problem @GetSortIcon("Problem")</button></th>
+                    <th><button class="hb-sort" @onclick='() => SortBy("Activity")'>Activity @GetSortIcon("Activity")</button></th>
+                    <th><button class="hb-sort" @onclick='() => SortBy("LastScan")'>Last Scan @GetSortIcon("LastScan")</button></th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -257,6 +257,9 @@
     private int CurrentPage { get; set; } = 1;
     private int PageSize { get; set; } = 25;
 
+    private string SortColumn { get; set; } = "Resource";
+    private bool SortAscending { get; set; } = true;
+
     private bool ShowHistoryPanel { get; set; }
     private bool IsLoadingHistory { get; set; }
     private HybridBenefitResource? SelectedResource { get; set; }
@@ -284,8 +287,25 @@
             )
         );
 
+    private IEnumerable<HybridBenefitResource> OrderedResources =>
+        SortColumn switch
+        {
+            "Health" => SortAscending ? FilteredResources.OrderBy(x => x.HealthStatus) : FilteredResources.OrderByDescending(x => x.HealthStatus),
+            "Resource" => SortAscending ? FilteredResources.OrderBy(x => x.ResourceName) : FilteredResources.OrderByDescending(x => x.ResourceName),
+            "Subscription" => SortAscending ? FilteredResources.OrderBy(x => x.Subscription) : FilteredResources.OrderByDescending(x => x.Subscription),
+            "ResourceGroup" => SortAscending ? FilteredResources.OrderBy(x => x.ResourceGroup) : FilteredResources.OrderByDescending(x => x.ResourceGroup),
+            "Windows" => SortAscending ? FilteredResources.OrderByDescending(x => x.HasWindowsAHUB) : FilteredResources.OrderBy(x => x.HasWindowsAHUB),
+            "SQL" => SortAscending ? FilteredResources.OrderByDescending(x => x.HasSqlAHUB) : FilteredResources.OrderBy(x => x.HasSqlAHUB),
+            "WindowsTag" => SortAscending ? FilteredResources.OrderByDescending(x => x.HasTagHB) : FilteredResources.OrderBy(x => x.HasTagHB),
+            "SqlTag" => SortAscending ? FilteredResources.OrderByDescending(x => x.HasTagHBSQL) : FilteredResources.OrderBy(x => x.HasTagHBSQL),
+            "Problem" => SortAscending ? FilteredResources.OrderBy(x => GetProblemText(x)) : FilteredResources.OrderByDescending(x => GetProblemText(x)),
+            "Activity" => SortAscending ? FilteredResources.OrderBy(x => x.ChangeType) : FilteredResources.OrderByDescending(x => x.ChangeType),
+            "LastScan" => SortAscending ? FilteredResources.OrderBy(x => x.LastScanDate) : FilteredResources.OrderByDescending(x => x.LastScanDate),
+            _ => FilteredResources.OrderBy(x => x.ResourceName)
+        };
+
     private IEnumerable<HybridBenefitResource> PagedResources =>
-        FilteredResources
+        OrderedResources
             .Skip((CurrentPage - 1) * PageSize)
             .Take(PageSize);
 
@@ -299,6 +319,31 @@
         TypeFilter = "";
         SeverityFilter = "";
         CurrentPage = 1;
+    }
+
+    private void SortBy(string column)
+    {
+        if (SortColumn == column)
+        {
+            SortAscending = !SortAscending;
+        }
+        else
+        {
+            SortColumn = column;
+            SortAscending = true;
+        }
+
+        CurrentPage = 1;
+    }
+
+    private string GetSortIcon(string column)
+    {
+        if (SortColumn != column)
+        {
+            return "";
+        }
+
+        return SortAscending ? "▲" : "▼";
     }
 
     private async Task ExportExcelAsync()
@@ -466,6 +511,8 @@
         };
     }
 }
+
+
 
 
 
