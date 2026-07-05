@@ -33,4 +33,11 @@ public class HybridBenefitResource
     public DateTime? LastSeenDate { get; set; }
 
     public DateTime? LastScanDate { get; set; }
+
+    public string HealthStatus { get; set; } = "";
+
+    public bool RequiresAction =>
+        (HasWindowsAHUB && !HasTagHB)
+        || (HasSqlAHUB && !HasTagHBSQL);
 }
+

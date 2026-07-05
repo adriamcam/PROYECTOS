@@ -77,6 +77,7 @@
                     <th>Recurso</th>
                     <th>Suscripción</th>
                     <th>Resource Group</th>
+                    <th>Health</th>
                     <th>Estado AHUB</th>
                     <th>Actividad</th>
                     <th>Fecha cambio</th>
@@ -87,12 +88,27 @@
             <tbody>
                 @foreach (var item in PagedResources)
                 {
-                    <tr>
+                    <tr class="@GetRowClass(item)">
                         <td><span class="@GetStatusClass(item.OperationalStatus)">@item.OperationalStatus</span></td>
                         <td>@item.Customer</td>
                         <td><strong>@item.ResourceName</strong></td>
                         <td>@item.Subscription</td>
                         <td>@item.ResourceGroup</td>
+                        <td>
+                            @if (item.HealthStatus == "Healthy")
+                            {
+                                <span class="hb-health healthy">✔ Healthy</span>
+                            }
+                            else if (item.HealthStatus == "Action Required")
+                            {
+                                <span class="hb-health danger">⚠ Action</span>
+                            }
+                            else
+                            {
+                                <span class="hb-health info">★ New</span>
+                            }
+                        </td>
+
                         <td>
                             @if (item.HasWindowsAHUB)
                             {
@@ -323,6 +339,21 @@
         ResourceHistory = new();
     }
 
+    private static string GetRowClass(HybridBenefitResource item)
+    {
+        if (item.RequiresAction)
+        {
+            return "hb-row-danger";
+        }
+
+        if (item.ChangeType == "New Resource")
+        {
+            return "hb-row-info";
+        }
+
+        return "";
+    }
+
     private static string GetStatusClass(string status)
     {
         return status switch
@@ -347,6 +378,7 @@
         };
     }
 }
+
 
 
 

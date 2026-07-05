@@ -485,3 +485,35 @@
     font-size: 12px;
     font-weight: 900;
 }
+.hb-row-danger {
+    background: #fff5f5;
+}
+
+.hb-row-info {
+    background: #f8fbff;
+}
+
+.hb-health {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.hb-health.healthy {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.hb-health.danger {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.hb-health.info {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
