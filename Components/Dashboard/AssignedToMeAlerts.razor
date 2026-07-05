@@ -15,9 +15,15 @@
 <div class="module-title-row">
     <h1>Asignadas a mí</h1>
     <OperationalInfoButton
-        Title="Asignadas a mí"
-        Description="Este módulo muestra únicamente las alertas asignadas al usuario autenticado para seguimiento, comentarios y cierre operativo."
-        Tables="dbo.AlertsManagement, dbo.AlertasBackup, dbo.AlertUpdatesHistory, dbo.AzureAlertCloseQueue" />
+    Title="Asignadas a mí"
+    Description="Mostrar únicamente las alertas asignadas al usuario autenticado para seguimiento, actualización de comentarios, gestión operativa y cierre de incidentes."
+    Tables="dbo.AlertsManagement, dbo.AlertasBackup, dbo.AlertUpdatesHistory, dbo.AzureAlertCloseQueue"
+    Views="dbo.vw_MyAlerts, dbo.vw_MyAlertsSummary"
+    Procedures="dbo.usp_GetAlertsByUser, dbo.usp_UpdateAlertComment, dbo.usp_CloseAlert"
+    Integrations="Microsoft Graph, Azure SQL Database, Azure Monitor, Power Automate, Microsoft Outlook"
+    Flow="Asignación de Alerta > Lista Personal > Actualización > Cierre > Historial"
+    Kpis="Mis Alertas Activas, Vencen menor a 1 hora, Vencen menor a 24 horas, Vencidas, Cerradas Hoy, Comentarios Pendientes, Tiempo Promedio de Resolución, Última Ejecución"
+    Version="Asignadas a mí v1.0" />
 </div>
 
 <p>Alertas asignadas al usuario conectado para seguimiento, comentarios y cierre.</p>
@@ -946,6 +952,7 @@
         RefreshCts?.Dispose();
     }
 }
+
 
 
 

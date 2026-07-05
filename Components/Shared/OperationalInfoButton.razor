@@ -1,76 +1,159 @@
 <div class="operational-info">
-
-    <button class="info-button" @onclick="Open" title="Información Operativa">
-        <span>i</span>
+    <button class="info-button" @onclick="Open" title="Información Técnica">
+        ⓘ Información
     </button>
 
     @if (IsOpen)
     {
-        <div class="soc-modal-overlay" @onclick="Close">
+        <div class="tech-modal-overlay" @onclick="Close">
+            <div class="tech-modal" @onclick:stopPropagation="true">
 
-            <div class="soc-modal" @onclick:stopPropagation="true">
+                <div class="tech-header">
+                    <div>
+                        <span>INFORMACIÓN TÉCNICA</span>
+                        <h2>@Title</h2>
+                        <p>Arquitectura, objetos SQL, integraciones y flujo operativo del módulo.</p>
+                    </div>
 
-                <div class="soc-modal-header">
-
-                    <h2>ℹ Información Operativa</h2>
-
-                    <button class="soc-close" @onclick="Close">
-                        ✕
-                    </button>
-
+                    <button class="tech-close" @onclick="Close">×</button>
                 </div>
 
-                <div class="soc-modal-body">
+                <div class="tech-top-grid">
+                    <div class="tech-card">
+                        <h3>🎯 Objetivo</h3>
+                        <p>@Description</p>
+                    </div>
 
-                    <h3>@Title</h3>
+                    <div class="tech-card tech-db-card">
+                        <h3>🗄 Base de Datos</h3>
 
-                    <p>@Description</p>
+                        <div class="tech-db-grid">
+                            <div>
+                                <strong>Tablas</strong>
+                                <ul>
+                                    @foreach (var item in Split(Tables))
+                                    {
+                                        <li>@item</li>
+                                    }
+                                </ul>
+                            </div>
 
-                    @if (!string.IsNullOrWhiteSpace(Tables))
-                    {
-                        <div class="tables-box">
+                            <div>
+                                <strong>Vistas</strong>
+                                <ul>
+                                    @foreach (var item in Split(Views))
+                                    {
+                                        <li>@item</li>
+                                    }
+                                </ul>
+                            </div>
 
-                            <strong>Tablas utilizadas</strong>
-
-                            <ul>
-
-                                @foreach (var t in Tables.Split(','))
-                                {
-                                    <li>@t.Trim()</li>
-                                }
-
-                            </ul>
-
+                            <div>
+                                <strong>Procedimientos</strong>
+                                <ul>
+                                    @foreach (var item in Split(Procedures))
+                                    {
+                                        <li>@item</li>
+                                    }
+                                </ul>
+                            </div>
                         </div>
-                    }
+                    </div>
 
+                    <div class="tech-card">
+                        <h3>☁ Integraciones</h3>
+                        <ul>
+                            @foreach (var item in Split(Integrations))
+                            {
+                                <li>@item</li>
+                            }
+                        </ul>
+                    </div>
                 </div>
 
-                <div class="soc-modal-footer">
+                <div class="tech-section">
+                    <h3>🔄 Flujo Operativo</h3>
 
-                    <button class="primary-btn" @onclick="Close">
-                        Cerrar
-                    </button>
+                    <div class="tech-flow">
+                        @foreach (var item in Split(Flow, ">"))
+                        {
+                            <div class="tech-flow-item">@item</div>
+                            <span>→</span>
+                        }
+                    </div>
+                </div>
 
+                <div class="tech-bottom-grid">
+                    <div class="tech-section">
+                        <h3>📊 KPIs utilizados</h3>
+
+                        <div class="tech-chip-grid">
+                            @foreach (var item in Split(Kpis))
+                            {
+                                <span>@item</span>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="tech-section">
+                        <h3>👥 Roles</h3>
+
+                        <ul class="tech-check-list">
+                            @foreach (var item in Split(Roles))
+                            {
+                                <li>@item</li>
+                            }
+                        </ul>
+                    </div>
+
+                    <div class="tech-section">
+                        <h3>ℹ Información del Módulo</h3>
+
+                        <div class="tech-module-info">
+                            <strong>Versión:</strong>
+                            <span>@Version</span>
+
+                            <strong>Ambiente:</strong>
+                            <span>@Environment</span>
+
+                            <strong>Repositorio:</strong>
+                            <span>Support Operations Center</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tech-footer">
+                    <span>Versión: @Version · ITQS Support Operations Center.</span>
+                    <button class="tech-primary" @onclick="Close">Cerrar</button>
                 </div>
 
             </div>
-
         </div>
     }
-
 </div>
 
 @code {
-
     [Parameter] public string Title { get; set; } = "";
     [Parameter] public string Description { get; set; } = "";
     [Parameter] public string Tables { get; set; } = "";
+    [Parameter] public string Views { get; set; } = "";
+    [Parameter] public string Procedures { get; set; } = "";
+    [Parameter] public string Integrations { get; set; } = "";
+    [Parameter] public string Flow { get; set; } = "";
+    [Parameter] public string Kpis { get; set; } = "";
+    [Parameter] public string Roles { get; set; } = "Administrador, Manager SOC, Ingeniero SOC, Solo Lectura";
+    [Parameter] public string Version { get; set; } = "v1.0";
+    [Parameter] public string Environment { get; set; } = "Producción";
 
-    bool IsOpen;
+    private bool IsOpen;
 
-    void Open() => IsOpen = true;
+    private void Open() => IsOpen = true;
+    private void Close() => IsOpen = false;
 
-    void Close() => IsOpen = false;
-
+    private static IEnumerable<string> Split(string value, string separator = ",")
+    {
+        return (value ?? string.Empty)
+            .Split(separator, StringSplitOptions.RemoveEmptyEntries)
+            .Select(x => x.Trim());
+    }
 }

@@ -70,9 +70,15 @@
 <div class="module-title-row">
     <button class="primary-btn config-button" type="button" @onclick="OpenUserConfigAsync">⚙ Configuración</button>
     <OperationalInfoButton
-        Title="Admin / Manager View"
-        Description="Este módulo permite administrar asignaciones, carga de ingenieros, cierres masivos, historial operativo y configuración de usuarios del SOC."
-        Tables="dbo.AlertsManagement, dbo.AlertasBackup, dbo.AlertUpdatesHistory, dbo.ITQS_AppUsers, dbo.AzureAlertCloseQueue" />
+    Title="Admin / Manager View"
+    Description="Permite administrar asignaciones, carga de ingenieros, cierres masivos, historial operativo y configuración de usuarios del SOC."
+    Tables="dbo.AlertsManagement, dbo.AlertasBackup, dbo.AlertUpdatesHistory, dbo.ITQS_AppUsers, dbo.AzureAlertCloseQueue"
+    Views="dbo.vw_AdminAlerts, dbo.vw_EngineerWorkload, dbo.vw_AlertsHistory, dbo.vw_UserMaintenance"
+    Procedures="dbo.usp_ReassignAlerts, dbo.usp_BulkCloseAlerts, dbo.usp_GetEngineerWorkload, dbo.usp_GetAlertHistory"
+    Integrations="Microsoft Graph, Azure SQL Database, Azure Monitor, Power Automate, Key Vault, Microsoft Outlook"
+    Flow="Dashboard > Gestión de Asignaciones > Cierres Masivos > Mantenimiento de Usuarios > Historial y Auditoría"
+    Kpis="Alertas Activas, Cargas por Ingeniero, Alertas Críticas, Cierres Hoy, Reasignaciones Hoy, Usuarios Activos, Alertas Vencidas, Tiempo Promedio de Resolución, Última Ejecución"
+    Version="Admin / Manager View v1.0" />
 </div>
 <div class="cloud-divider"></div>
 
@@ -486,6 +492,7 @@
 
     private string FormatDate(DateTime? value) => value.HasValue ? value.Value.ToString("dd/MM/yyyy HH:mm") : "-";
 }
+
 
 
 
