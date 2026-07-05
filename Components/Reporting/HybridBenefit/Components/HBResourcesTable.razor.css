@@ -773,3 +773,23 @@
     color: #64748b;
     font-size: 11px;
 }
+
+.hb-export-btn{
+
+    min-width:145px;
+
+    width:auto;
+
+    padding:0 24px;
+
+    white-space:nowrap;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+}
+
+
