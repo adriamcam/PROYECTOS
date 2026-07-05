@@ -2,9 +2,11 @@ namespace ITQS.SupportOperationsCenter.Components.Reporting.HybridBenefit.Models
 
 public class HybridBenefitKpi
 {
-    public int TotalResources { get; set; }
+    public int AzureResourceCount { get; set; }
     public int TotalCustomers { get; set; }
     public int TotalSubscriptions { get; set; }
+
+    public int TotalBenefits { get; set; }
 
     public int WindowsCount { get; set; }
     public int WindowsWithTag { get; set; }
