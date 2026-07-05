@@ -183,6 +183,8 @@
 
                         @if (StatusFilter != "Action Required")
                         {
+                        @if (StatusFilter != "Action Required")
+                        {
                         <td>
                             @if (string.IsNullOrWhiteSpace(item.ChangeType))
                             {
@@ -205,6 +207,16 @@
                                 📜 Historial
                             </button>
                         </td>
+                        }
+                        else
+                        {
+                            <td>
+                                <span class="@(item.RecurrenceStatus == "Recurrente" ? "hb-recurrence recurrent" : "hb-recurrence new")">
+                                    @item.RecurrenceStatus
+                                </span>
+                                <small class="hb-recurrence-count">@item.ActionOccurrenceCount semana(s)</small>
+                            </td>
+                        }
                         }
                         else
                         {
@@ -558,6 +570,7 @@
         };
     }
 }
+
 
 
 
