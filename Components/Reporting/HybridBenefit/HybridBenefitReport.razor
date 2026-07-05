@@ -11,115 +11,13 @@
     @if (IsLoading)
     {
         <section class="hb-card">
-            <strong>Cargando Reporte Beneficio Híbrido...</strong>    @if (ShowInfoPopup)
-    {
-        <div class="report-modal-backdrop">
-            <div class="report-info-modal">
-                <div class="modal-header">
-                    <div>
-                        <span class="report-eyebrow">INFORMACIÓN TÉCNICA</span>
-                        <h2>Objetos utilizados por el reporte</h2>
-                    </div>
-
-                    <button type="button" class="modal-close" @onclick="() => ShowInfoPopup = false">×</button>
-                </div>
-
-                <div class="info-grid">
-                    <div class="info-box">
-                        <h3>Tablas</h3>
-                        <ul>
-                            <li>dbo.PartnerCenterCustomers</li>
-                            <li>dbo.CRM_Customers</li>
-                            <li>dbo.HybridBenefitResources</li>
-                            <li>dbo.HybridBenefitHistory</li>
-                        </ul>
-                    </div>
-
-                    <div class="info-box">
-                        <h3>Vistas</h3>
-                        <ul>
-                            <li>dbo.vw_HybridBenefit_Dashboard</li>
-                            <li>dbo.vw_HybridBenefit_Resources</li>
-                            <li>dbo.vw_HybridBenefit_Changes</li>
-                        </ul>
-                    </div>
-
-                    <div class="info-box">
-                        <h3>Procedimientos</h3>
-                        <ul>
-                            <li>dbo.usp_HybridBenefit_Sync</li>
-                            <li>dbo.usp_HybridBenefit_RegisterChange</li>
-                            <li>dbo.usp_HybridBenefit_ExportChanges</li>
-                        </ul>
-                    </div>
-                </div>
-
-                <div class="info-note">
-                    <strong>Objetivo:</strong>
-                    monitorear VMs con Azure Hybrid Benefit, validar cambios de estado, detectar altas/bajas,
-                    controlar tags y permitir exportar cambios a Excel.
-                </div>
-            </div>
-        </div>
-    }
-</section>
+            <strong>Cargando Reporte Beneficio Híbrido...</strong></section>
     }
     else if (!string.IsNullOrWhiteSpace(ErrorMessage))
     {
         <section class="hb-card">
             <strong>Error cargando datos</strong>
-            <p>@ErrorMessage</p>    @if (ShowInfoPopup)
-    {
-        <div class="report-modal-backdrop">
-            <div class="report-info-modal">
-                <div class="modal-header">
-                    <div>
-                        <span class="report-eyebrow">INFORMACIÓN TÉCNICA</span>
-                        <h2>Objetos utilizados por el reporte</h2>
-                    </div>
-
-                    <button type="button" class="modal-close" @onclick="() => ShowInfoPopup = false">×</button>
-                </div>
-
-                <div class="info-grid">
-                    <div class="info-box">
-                        <h3>Tablas</h3>
-                        <ul>
-                            <li>dbo.PartnerCenterCustomers</li>
-                            <li>dbo.CRM_Customers</li>
-                            <li>dbo.HybridBenefitResources</li>
-                            <li>dbo.HybridBenefitHistory</li>
-                        </ul>
-                    </div>
-
-                    <div class="info-box">
-                        <h3>Vistas</h3>
-                        <ul>
-                            <li>dbo.vw_HybridBenefit_Dashboard</li>
-                            <li>dbo.vw_HybridBenefit_Resources</li>
-                            <li>dbo.vw_HybridBenefit_Changes</li>
-                        </ul>
-                    </div>
-
-                    <div class="info-box">
-                        <h3>Procedimientos</h3>
-                        <ul>
-                            <li>dbo.usp_HybridBenefit_Sync</li>
-                            <li>dbo.usp_HybridBenefit_RegisterChange</li>
-                            <li>dbo.usp_HybridBenefit_ExportChanges</li>
-                        </ul>
-                    </div>
-                </div>
-
-                <div class="info-note">
-                    <strong>Objetivo:</strong>
-                    monitorear VMs con Azure Hybrid Benefit, validar cambios de estado, detectar altas/bajas,
-                    controlar tags y permitir exportar cambios a Excel.
-                </div>
-            </div>
-        </div>
-    }
-</section>
+            <p>@ErrorMessage</p></section>
     }
     else
     {
@@ -176,58 +74,7 @@
                                 <strong style="width:@width%">@item.TotalResources</strong>
                             </div>
                         }
-                    </div>    @if (ShowInfoPopup)
-    {
-        <div class="report-modal-backdrop">
-            <div class="report-info-modal">
-                <div class="modal-header">
-                    <div>
-                        <span class="report-eyebrow">INFORMACIÓN TÉCNICA</span>
-                        <h2>Objetos utilizados por el reporte</h2>
-                    </div>
-
-                    <button type="button" class="modal-close" @onclick="() => ShowInfoPopup = false">×</button>
-                </div>
-
-                <div class="info-grid">
-                    <div class="info-box">
-                        <h3>Tablas</h3>
-                        <ul>
-                            <li>dbo.PartnerCenterCustomers</li>
-                            <li>dbo.CRM_Customers</li>
-                            <li>dbo.HybridBenefitResources</li>
-                            <li>dbo.HybridBenefitHistory</li>
-                        </ul>
-                    </div>
-
-                    <div class="info-box">
-                        <h3>Vistas</h3>
-                        <ul>
-                            <li>dbo.vw_HybridBenefit_Dashboard</li>
-                            <li>dbo.vw_HybridBenefit_Resources</li>
-                            <li>dbo.vw_HybridBenefit_Changes</li>
-                        </ul>
-                    </div>
-
-                    <div class="info-box">
-                        <h3>Procedimientos</h3>
-                        <ul>
-                            <li>dbo.usp_HybridBenefit_Sync</li>
-                            <li>dbo.usp_HybridBenefit_RegisterChange</li>
-                            <li>dbo.usp_HybridBenefit_ExportChanges</li>
-                        </ul>
-                    </div>
-                </div>
-
-                <div class="info-note">
-                    <strong>Objetivo:</strong>
-                    monitorear VMs con Azure Hybrid Benefit, validar cambios de estado, detectar altas/bajas,
-                    controlar tags y permitir exportar cambios a Excel.
-                </div>
-            </div>
-        </div>
-    }
-</section>
+                    </div></section>
 
                 <section class="hb-card">
                     <div class="hb-card-header">
@@ -245,58 +92,7 @@
                                 <span>@item.Total</span>
                             </div>
                         }
-                    </div>    @if (ShowInfoPopup)
-    {
-        <div class="report-modal-backdrop">
-            <div class="report-info-modal">
-                <div class="modal-header">
-                    <div>
-                        <span class="report-eyebrow">INFORMACIÓN TÉCNICA</span>
-                        <h2>Objetos utilizados por el reporte</h2>
-                    </div>
-
-                    <button type="button" class="modal-close" @onclick="() => ShowInfoPopup = false">×</button>
-                </div>
-
-                <div class="info-grid">
-                    <div class="info-box">
-                        <h3>Tablas</h3>
-                        <ul>
-                            <li>dbo.PartnerCenterCustomers</li>
-                            <li>dbo.CRM_Customers</li>
-                            <li>dbo.HybridBenefitResources</li>
-                            <li>dbo.HybridBenefitHistory</li>
-                        </ul>
-                    </div>
-
-                    <div class="info-box">
-                        <h3>Vistas</h3>
-                        <ul>
-                            <li>dbo.vw_HybridBenefit_Dashboard</li>
-                            <li>dbo.vw_HybridBenefit_Resources</li>
-                            <li>dbo.vw_HybridBenefit_Changes</li>
-                        </ul>
-                    </div>
-
-                    <div class="info-box">
-                        <h3>Procedimientos</h3>
-                        <ul>
-                            <li>dbo.usp_HybridBenefit_Sync</li>
-                            <li>dbo.usp_HybridBenefit_RegisterChange</li>
-                            <li>dbo.usp_HybridBenefit_ExportChanges</li>
-                        </ul>
-                    </div>
-                </div>
-
-                <div class="info-note">
-                    <strong>Objetivo:</strong>
-                    monitorear VMs con Azure Hybrid Benefit, validar cambios de estado, detectar altas/bajas,
-                    controlar tags y permitir exportar cambios a Excel.
-                </div>
-            </div>
-        </div>
-    }
-</section>
+                    </div></section>
 
                 <section class="hb-card">
                     <div class="hb-card-header">
@@ -324,65 +120,16 @@
                                 <span>0</span>
                             </div>
                         }
-                    </div>    @if (ShowInfoPopup)
-    {
-        <div class="report-modal-backdrop">
-            <div class="report-info-modal">
-                <div class="modal-header">
-                    <div>
-                        <span class="report-eyebrow">INFORMACIÓN TÉCNICA</span>
-                        <h2>Objetos utilizados por el reporte</h2>
-                    </div>
-
-                    <button type="button" class="modal-close" @onclick="() => ShowInfoPopup = false">×</button>
-                </div>
-
-                <div class="info-grid">
-                    <div class="info-box">
-                        <h3>Tablas</h3>
-                        <ul>
-                            <li>dbo.PartnerCenterCustomers</li>
-                            <li>dbo.CRM_Customers</li>
-                            <li>dbo.HybridBenefitResources</li>
-                            <li>dbo.HybridBenefitHistory</li>
-                        </ul>
-                    </div>
-
-                    <div class="info-box">
-                        <h3>Vistas</h3>
-                        <ul>
-                            <li>dbo.vw_HybridBenefit_Dashboard</li>
-                            <li>dbo.vw_HybridBenefit_Resources</li>
-                            <li>dbo.vw_HybridBenefit_Changes</li>
-                        </ul>
-                    </div>
-
-                    <div class="info-box">
-                        <h3>Procedimientos</h3>
-                        <ul>
-                            <li>dbo.usp_HybridBenefit_Sync</li>
-                            <li>dbo.usp_HybridBenefit_RegisterChange</li>
-                            <li>dbo.usp_HybridBenefit_ExportChanges</li>
-                        </ul>
-                    </div>
-                </div>
-
-                <div class="info-note">
-                    <strong>Objetivo:</strong>
-                    monitorear VMs con Azure Hybrid Benefit, validar cambios de estado, detectar altas/bajas,
-                    controlar tags y permitir exportar cambios a Excel.
-                </div>
-            </div>
-        </div>
-    }
-</section>
+                    </div></section>
             </div>
         }
         else if (ActiveTab == "Resources")
         {
             <HBResourcesTable Resources="Dashboard.Resources" />
         }
-    }    @if (ShowInfoPopup)
+    }
+    
+    @if (ShowInfoPopup)
     {
         <div class="report-modal-backdrop">
             <div class="report-info-modal">
@@ -478,5 +225,7 @@
 
 
 Components\Reporting\HybridBenefit\HybridBenefitReport.razor=Components\Reporting\HybridBenefit\HybridBenefitReport.razor.css
+
+
 
 
