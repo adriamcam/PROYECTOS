@@ -880,3 +880,29 @@
     font-size: 11px;
     white-space: nowrap;
 }
+.hb-table-modern th:nth-child(9),
+.hb-table-modern td:nth-child(9) {
+    min-width: 230px;
+    width: 230px;
+}
+
+.hb-sku {
+    max-width: 220px;
+    line-height: 1.35;
+    font-size: 12px;
+    font-weight: 800;
+    white-space: normal;
+}
+
+.hb-table-modern th:nth-child(10),
+.hb-table-modern td:nth-child(10) {
+    min-width: 80px;
+    width: 80px;
+    text-align: center;
+}
+
+.hb-table-modern th:nth-child(11),
+.hb-table-modern td:nth-child(11) {
+    min-width: 130px;
+    width: 130px;
+}
