@@ -16,13 +16,13 @@
 
     <div class="hb-summary">
         <div class="hb-summary-card healthy" @onclick='() => StatusFilter = "Healthy"'>
-            <div class="value">@Resources.Count(x => x.HealthStatus == "Healthy")</div>
-            <div class="title">Healthy</div>
+            <div class="value">@Resources.Count</div>
+            <div class="title">Recursos AHUB</div>
         </div>
 
         <div class="hb-summary-card warning" @onclick='() => StatusFilter = "New"'>
-            <div class="value">@Resources.Count(x => x.HealthStatus == "New")</div>
-            <div class="title">Nuevos</div>
+            <div class="value">@Resources.Count(x => x.HasWindowsAHUB || x.HasSqlAHUB)</div>
+            <div class="title">Beneficios detectados</div>
         </div>
 
         <div class="hb-summary-card danger" @onclick='() => StatusFilter = "Action Required"'>
@@ -31,15 +31,21 @@
         </div>
 
         <div class="hb-summary-card info" @onclick='() => StatusFilter = "Changed"'>
-            <div class="value">@Resources.Count(x => x.HealthStatus == "Changed")</div>
-            <div class="title">Cambios</div>
+            <div class="value">@Resources.Count(x => !string.IsNullOrWhiteSpace(x.ChangeType) && x.ChangeType != "New Resource")</div>
+            <div class="title">Cambios reales</div>
         </div>
     </div>
 
     <div class="hb-resource-toolbar">
         <input placeholder="Buscar cliente, recurso o RG..." @bind="SearchText" @bind:event="oninput" />
 
-        <input placeholder="Buscar suscripción..." @bind="SubscriptionSearch" @bind:event="oninput" />
+        <select @bind="SubscriptionSearch">
+            <option value="">Todas las suscripciones</option>
+            @foreach (var subscription in SubscriptionOptions)
+            {
+                <option value="@subscription">@subscription</option>
+            }
+        </select>
 
         <select @bind="StatusFilter">
             <option value="">Todos los estados</option>
@@ -253,6 +259,13 @@
 
     private string SearchText { get; set; } = "";
     private string SubscriptionSearch { get; set; } = "";
+
+    private IEnumerable<string> SubscriptionOptions =>
+        Resources
+            .Select(x => x.Subscription)
+            .Where(x => !string.IsNullOrWhiteSpace(x))
+            .Distinct()
+            .OrderBy(x => x);
     private string StatusFilter { get; set; } = "";
     private string TypeFilter { get; set; } = "";
     private string SeverityFilter { get; set; } = "";
@@ -517,6 +530,7 @@
         };
     }
 }
+
 
 
 

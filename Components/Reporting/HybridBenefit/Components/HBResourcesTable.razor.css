@@ -570,3 +570,41 @@
 .hb-table-modern tbody tr:last-child td {
     border-bottom: none;
 }
+.hb-summary {
+    margin-bottom: 18px;
+}
+
+.hb-resource-toolbar {
+    display: grid;
+    grid-template-columns: minmax(260px, 2fr) minmax(220px, 1.4fr) minmax(180px, 1fr) minmax(180px, 1fr) minmax(200px, 1fr) auto auto;
+    gap: 12px;
+    align-items: center;
+    margin: 18px 0 28px;
+}
+
+.hb-resource-toolbar input,
+.hb-resource-toolbar select {
+    height: 44px;
+    min-width: 0;
+    border-radius: 12px;
+    border: 1px solid #cbd5e1;
+    padding: 0 12px;
+    background: #ffffff;
+}
+
+.hb-resource-toolbar button {
+    height: 44px;
+    white-space: nowrap;
+}
+
+@media (max-width: 1300px) {
+    .hb-resource-toolbar {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 800px) {
+    .hb-resource-toolbar {
+        grid-template-columns: 1fr;
+    }
+}
