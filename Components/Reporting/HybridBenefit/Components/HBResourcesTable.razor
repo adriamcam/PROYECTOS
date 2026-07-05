@@ -71,6 +71,8 @@
                 <tr>
                     <th>Health</th>
                     <th>Resource</th>
+                    <th>Subscription</th>
+                    <th>Resource Group</th>
                     <th>AHUB</th>
                     <th>Tags</th>
                     <th>Problem</th>
@@ -93,9 +95,11 @@
                         <td>
                             <div class="hb-resource-name">@item.ResourceName</div>
                             <div class="hb-resource-detail">@item.Customer</div>
-                            <div class="hb-resource-detail">@item.Subscription</div>
-                            <div class="hb-resource-detail">@item.ResourceGroup</div>
                         </td>
+
+                        <td>@item.Subscription</td>
+
+                        <td>@item.ResourceGroup</td>
 
                         <td>
                             @if (item.HasWindowsAHUB && item.HasSqlAHUB)
@@ -419,11 +423,6 @@
             return "Beneficio removido";
         }
 
-        if (item.HealthStatus == "New")
-        {
-            return "Nuevo recurso";
-        }
-
         return "Sin problema";
     }
 
@@ -432,11 +431,6 @@
         if (item.RequiresAction)
         {
             return "hb-problem danger";
-        }
-
-        if (item.HealthStatus == "New")
-        {
-            return "hb-problem info";
         }
 
         return "hb-problem success";
@@ -453,3 +447,4 @@
         };
     }
 }
+
