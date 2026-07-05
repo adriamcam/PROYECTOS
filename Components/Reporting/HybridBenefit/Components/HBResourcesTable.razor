@@ -1,25 +1,27 @@
+@using System.Text
 @using ITQS.SupportOperationsCenter.Components.Reporting.HybridBenefit.Models
 @using ITQS.SupportOperationsCenter.Services
+@using Microsoft.JSInterop
 
 @inject IHybridBenefitService HybridBenefitService
+@inject IJSRuntime JS
 
-<section class="hb-card hb-table-card">
+<section class="hb-card hb-table-card hb-ops-center">
     <div class="hb-card-header">
         <div>
             <h3>Azure Hybrid Benefit Resources</h3>
-            <p>Vista operativa de recursos, beneficios, tags y cambios detectados.</p>
+            <p>Centro operativo de recursos, beneficios, tags y cambios detectados.</p>
         </div>
     </div>
 
-    <div class="hb-resource-filters">
+    <div class="hb-resource-toolbar">
         <input placeholder="Buscar cliente, recurso, suscripción o RG..." @bind="SearchText" @bind:event="oninput" />
 
         <select @bind="StatusFilter">
             <option value="">Todos los estados</option>
             <option value="Healthy">Healthy</option>
-            <option value="Missing Windows Tag">Missing Windows Tag</option>
-            <option value="Missing SQL Tag">Missing SQL Tag</option>
-            <option value="New Resource">New Resource</option>
+            <option value="New">New</option>
+            <option value="Action Required">Action Required</option>
             <option value="Changed">Changed</option>
         </select>
 
@@ -37,33 +39,28 @@
             <option value="Information">Information</option>
         </select>
 
-        <button class="hb-clear-btn" type="button" @onclick="ClearFilters">
-            Limpiar filtros
-        </button>
-
-        <button class="hb-export-btn" type="button" @onclick="ExportExcel">
-            Exportar Excel
-        </button>
+        <button class="hb-clear-btn" type="button" @onclick="ClearFilters">Limpiar</button>
+        <button class="hb-export-btn" type="button" @onclick="ExportExcelAsync">Exportar Excel</button>
     </div>
 
     <div class="hb-summary">
         <div class="hb-summary-card healthy" @onclick='() => StatusFilter = "Healthy"'>
-            <div class="value">@Resources.Count(x => x.OperationalStatus == "Healthy")</div>
+            <div class="value">@Resources.Count(x => x.HealthStatus == "Healthy")</div>
             <div class="title">Healthy</div>
         </div>
 
-        <div class="hb-summary-card warning" @onclick='() => StatusFilter = "New Resource"'>
-            <div class="value">@Resources.Count(x => x.OperationalStatus == "New Resource")</div>
+        <div class="hb-summary-card warning" @onclick='() => StatusFilter = "New"'>
+            <div class="value">@Resources.Count(x => x.HealthStatus == "New")</div>
             <div class="title">Nuevos</div>
         </div>
 
-        <div class="hb-summary-card danger" @onclick='() => StatusFilter = "Missing Windows Tag"'>
-            <div class="value">@Resources.Count(x => x.OperationalStatus.Contains("Missing"))</div>
+        <div class="hb-summary-card danger" @onclick='() => StatusFilter = "Action Required"'>
+            <div class="value">@Resources.Count(x => x.RequiresAction)</div>
             <div class="title">Requieren acción</div>
         </div>
 
         <div class="hb-summary-card info" @onclick='() => StatusFilter = "Changed"'>
-            <div class="value">@Resources.Count(x => x.OperationalStatus == "Changed")</div>
+            <div class="value">@Resources.Count(x => x.HealthStatus == "Changed")</div>
             <div class="title">Cambios</div>
         </div>
     </div>
@@ -72,15 +69,12 @@
         <table>
             <thead>
                 <tr>
-                    <th>Estado</th>
-                    <th>Cliente</th>
-                    <th>Recurso</th>
-                    <th>Suscripción</th>
-                    <th>Resource Group</th>
                     <th>Health</th>
-                    <th>Estado AHUB</th>
-                    <th>Actividad</th>
-                    <th>Fecha cambio</th>
+                    <th>Recurso</th>
+                    <th>AHUB</th>
+                    <th>Tags</th>
+                    <th>Problema</th>
+                    <th>Último cambio</th>
                     <th>Último scan</th>
                     <th>Acciones</th>
                 </tr>
@@ -89,55 +83,58 @@
                 @foreach (var item in PagedResources)
                 {
                     <tr class="@GetRowClass(item)">
-                        <td><span class="@GetStatusClass(item.OperationalStatus)">@item.OperationalStatus</span></td>
-                        <td>@item.Customer</td>
-                        <td><strong>@item.ResourceName</strong></td>
-                        <td>@item.Subscription</td>
-                        <td>@item.ResourceGroup</td>
                         <td>
-                            @if (item.HealthStatus == "Healthy")
-                            {
-                                <span class="hb-health healthy">✔ Healthy</span>
-                            }
-                            else if (item.HealthStatus == "Action Required")
-                            {
-                                <span class="hb-health danger">⚠ Action</span>
-                            }
-                            else
-                            {
-                                <span class="hb-health info">★ New</span>
-                            }
+                            <span class="@GetHealthClass(item)">
+                                @GetHealthText(item)
+                            </span>
                         </td>
 
                         <td>
-                            @if (item.HasWindowsAHUB)
-                            {
-                                <span class="hb-badge windows">Windows AHUB</span>
-                            }
-
-                            @if (item.HasSqlAHUB)
-                            {
-                                <span class="hb-badge sql">SQL AHUB</span>
-                            }
-
-                            @if (item.HasTagHB)
-                            {
-                                <span class="hb-badge success">TagHB ✓</span>
-                            }
-                            else if (item.HasWindowsAHUB)
-                            {
-                                <span class="hb-badge danger">Falta TagHB</span>
-                            }
-
-                            @if (item.HasTagHBSQL)
-                            {
-                                <span class="hb-badge success">TagHBSQL ✓</span>
-                            }
-                            else if (item.HasSqlAHUB)
-                            {
-                                <span class="hb-badge danger">Falta TagHBSQL</span>
-                            }
+                            <div class="hb-resource-main">
+                                <strong>@item.ResourceName</strong>
+                                <span>@item.Customer</span>
+                                <small>@item.Subscription | @item.ResourceGroup</small>
+                            </div>
                         </td>
+
+                        <td>
+                            <div class="hb-badge-group">
+                                @if (item.HasWindowsAHUB)
+                                {
+                                    <span class="hb-badge windows">Windows</span>
+                                }
+
+                                @if (item.HasSqlAHUB)
+                                {
+                                    <span class="hb-badge sql">SQL</span>
+                                }
+                            </div>
+                        </td>
+
+                        <td>
+                            <div class="hb-badge-group">
+                                @if (item.HasWindowsAHUB)
+                                {
+                                    <span class="@(item.HasTagHB ? "hb-badge success" : "hb-badge danger")">
+                                        @(item.HasTagHB ? "TagHB OK" : "Falta TagHB")
+                                    </span>
+                                }
+
+                                @if (item.HasSqlAHUB)
+                                {
+                                    <span class="@(item.HasTagHBSQL ? "hb-badge success" : "hb-badge danger")">
+                                        @(item.HasTagHBSQL ? "TagSQL OK" : "Falta TagSQL")
+                                    </span>
+                                }
+                            </div>
+                        </td>
+
+                        <td>
+                            <span class="@GetProblemClass(item)">
+                                @GetProblemText(item)
+                            </span>
+                        </td>
+
                         <td>
                             @if (string.IsNullOrWhiteSpace(item.ChangeType))
                             {
@@ -148,14 +145,16 @@
                                 <div class="hb-activity-card">
                                     <strong>@item.ChangeType</strong>
                                     <small>@item.Severity</small>
+                                    <span>@(item.ChangeDate?.ToString("dd/MM/yyyy HH:mm") ?? "-")</span>
                                 </div>
                             }
                         </td>
-                        <td>@(item.ChangeDate?.ToString("dd/MM/yyyy HH:mm") ?? "-")</td>
+
                         <td>@(item.LastScanDate?.ToString("dd/MM/yyyy HH:mm") ?? "-")</td>
+
                         <td>
                             <button class="hb-history-btn" type="button" @onclick="() => OpenHistoryAsync(item)">
-                                Ver historial
+                                Historial
                             </button>
                         </td>
                     </tr>
@@ -191,22 +190,10 @@
         </div>
 
         <div class="hb-drawer-summary">
-            <div>
-                <span>Windows</span>
-                <strong>@(SelectedResource?.HasWindowsAHUB == true ? "Sí" : "No")</strong>
-            </div>
-            <div>
-                <span>SQL</span>
-                <strong>@(SelectedResource?.HasSqlAHUB == true ? "Sí" : "No")</strong>
-            </div>
-            <div>
-                <span>TagHB</span>
-                <strong>@(SelectedResource?.HasTagHB == true ? "OK" : "Falta")</strong>
-            </div>
-            <div>
-                <span>TagHBSQL</span>
-                <strong>@(SelectedResource?.HasTagHBSQL == true ? "OK" : "Falta")</strong>
-            </div>
+            <div><span>Windows</span><strong>@(SelectedResource?.HasWindowsAHUB == true ? "Sí" : "No")</strong></div>
+            <div><span>SQL</span><strong>@(SelectedResource?.HasSqlAHUB == true ? "Sí" : "No")</strong></div>
+            <div><span>TagHB</span><strong>@(SelectedResource?.HasTagHB == true ? "OK" : "Falta")</strong></div>
+            <div><span>TagHBSQL</span><strong>@(SelectedResource?.HasTagHBSQL == true ? "OK" : "Falta")</strong></div>
         </div>
 
         @if (IsLoadingHistory)
@@ -262,8 +249,7 @@
                 || x.ResourceName.Contains(SearchText, StringComparison.OrdinalIgnoreCase))
             &&
             (string.IsNullOrWhiteSpace(StatusFilter)
-                || x.OperationalStatus.Equals(StatusFilter, StringComparison.OrdinalIgnoreCase)
-                || (StatusFilter == "Missing Windows Tag" && x.OperationalStatus.Contains("Missing")))
+                || x.HealthStatus.Equals(StatusFilter, StringComparison.OrdinalIgnoreCase))
             &&
             (string.IsNullOrWhiteSpace(SeverityFilter)
                 || x.Severity.Equals(SeverityFilter, StringComparison.OrdinalIgnoreCase))
@@ -293,11 +279,50 @@
         CurrentPage = 1;
     }
 
-    private void ExportExcel()
+    private async Task ExportExcelAsync()
     {
-        // Pendiente: aquí conectaremos la descarga Excel.
+        var sb = new StringBuilder();
+        sb.AppendLine("Health,Customer,Subscription,ResourceGroup,ResourceName,WindowsAHUB,SqlAHUB,TagHB,TagHBSQL,Problem,ChangeType,Severity,ChangeDate,LastScanDate");
+
+        foreach (var item in FilteredResources)
+        {
+            sb.AppendLine(string.Join(",",
+                Csv(item.HealthStatus),
+                Csv(item.Customer),
+                Csv(item.Subscription),
+                Csv(item.ResourceGroup),
+                Csv(item.ResourceName),
+                Csv(item.HasWindowsAHUB ? "Yes" : "No"),
+                Csv(item.HasSqlAHUB ? "Yes" : "No"),
+                Csv(item.HasTagHB ? "OK" : "Missing"),
+                Csv(item.HasTagHBSQL ? "OK" : "Missing"),
+                Csv(GetProblemText(item)),
+                Csv(item.ChangeType),
+                Csv(item.Severity),
+                Csv(item.ChangeDate?.ToString("dd/MM/yyyy HH:mm") ?? ""),
+                Csv(item.LastScanDate?.ToString("dd/MM/yyyy HH:mm") ?? "")
+            ));
+        }
+
+        var csv = sb.ToString();
+        var fileName = $"Azure-Hybrid-Benefit-Resources-{DateTime.Now:yyyyMMddHHmm}.csv";
+
+        await JS.InvokeVoidAsync("eval", $@"
+            const blob = new Blob([{System.Text.Json.JsonSerializer.Serialize(csv)}], {{ type: 'text/csv;charset=utf-8;' }});
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = '{fileName}';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        ");
     }
 
+    private static string Csv(string value)
+    {
+        value ??= "";
+        return "\"" + value.Replace("\"", "\"\"") + "\"";
+    }
 
     private void PreviousPage()
     {
@@ -346,7 +371,7 @@
             return "hb-row-danger";
         }
 
-        if (item.ChangeType == "New Resource")
+        if (item.HealthStatus == "New")
         {
             return "hb-row-info";
         }
@@ -354,17 +379,68 @@
         return "";
     }
 
-    private static string GetStatusClass(string status)
+    private static string GetHealthClass(HybridBenefitResource item)
     {
-        return status switch
+        return item.HealthStatus switch
         {
-            "Healthy" => "hb-pill success",
-            "New Resource" => "hb-pill info",
-            "Changed" => "hb-pill warning",
-            "Missing Windows Tag" => "hb-pill danger",
-            "Missing SQL Tag" => "hb-pill danger",
-            _ => "hb-pill muted"
+            "Healthy" => "hb-health healthy",
+            "Action Required" => "hb-health danger",
+            "Changed" => "hb-health warning",
+            "New" => "hb-health info",
+            _ => "hb-health info"
         };
+    }
+
+    private static string GetHealthText(HybridBenefitResource item)
+    {
+        return item.HealthStatus switch
+        {
+            "Healthy" => "✔ Healthy",
+            "Action Required" => "⚠ Action",
+            "Changed" => "↻ Changed",
+            "New" => "★ New",
+            _ => "★ New"
+        };
+    }
+
+    private static string GetProblemText(HybridBenefitResource item)
+    {
+        if (item.HasWindowsAHUB && !item.HasTagHB)
+        {
+            return "Falta TagHB";
+        }
+
+        if (item.HasSqlAHUB && !item.HasTagHBSQL)
+        {
+            return "Falta TagHBSQL";
+        }
+
+        if (item.ChangeType?.Contains("Removed", StringComparison.OrdinalIgnoreCase) == true)
+        {
+            return "Beneficio removido";
+        }
+
+        if (item.HealthStatus == "New")
+        {
+            return "Nuevo recurso";
+        }
+
+        return "Sin problema";
+    }
+
+    private static string GetProblemClass(HybridBenefitResource item)
+    {
+        if (item.RequiresAction)
+        {
+            return "hb-problem danger";
+        }
+
+        if (item.HealthStatus == "New")
+        {
+            return "hb-problem info";
+        }
+
+        return "hb-problem success";
     }
 
     private static string GetSeverityDotClass(string severity)
@@ -378,8 +454,3 @@
         };
     }
 }
-
-
-
-
-
