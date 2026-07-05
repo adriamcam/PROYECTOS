@@ -1,0 +1,129 @@
+.info-button {
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    color: #1e3a8a;
+    border-radius: 10px;
+    padding: 10px 16px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.info-modal {
+    width: min(1100px, 96vw);
+    max-height: 90vh;
+    overflow-y: auto;
+    background: #ffffff;
+    border-radius: 18px;
+    padding: 28px;
+    box-shadow: 0 30px 80px rgba(15,23,42,.25);
+}
+
+.info-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 18px;
+    margin-bottom: 24px;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 18px;
+}
+
+.info-eyebrow {
+    color: #2563eb;
+    font-weight: 900;
+    font-size: 12px;
+    letter-spacing: .08em;
+}
+
+.info-header h2 {
+    margin: 6px 0;
+    font-size: 28px;
+    color: #07142f;
+}
+
+.info-header p {
+    margin: 0;
+    color: #64748b;
+}
+
+.info-close {
+    border: none;
+    background: #f1f5f9;
+    color: #0f172a;
+    border-radius: 12px;
+    width: 40px;
+    height: 40px;
+    font-size: 26px;
+    cursor: pointer;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0,1fr));
+    gap: 18px;
+}
+
+.info-card {
+    border: 1px solid #dbe4f0;
+    border-radius: 14px;
+    background: #f8fafc;
+    padding: 18px;
+}
+
+.info-card h3 {
+    margin: 0 0 12px;
+    color: #0f172a;
+}
+
+.info-card p,
+.info-card li {
+    color: #475569;
+    line-height: 1.45;
+}
+
+.info-card ul {
+    padding-left: 20px;
+    margin-top: 8px;
+}
+
+.info-section {
+    border: 1px solid #dbe4f0;
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 18px;
+    margin-top: 18px;
+}
+
+.flow-line {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.flow-line div {
+    background: #eff6ff;
+    color: #1d4ed8;
+    border: 1px solid #bfdbfe;
+    border-radius: 999px;
+    padding: 10px 14px;
+    font-weight: 800;
+}
+
+.flow-line span:last-child {
+    display: none;
+}
+
+.info-note {
+    margin-top: 18px;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    color: #1e3a8a;
+    border-radius: 14px;
+    padding: 14px;
+}
+
+.info-footer {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 20px;
+}
