@@ -15,26 +15,42 @@
     </div>
 
     <div class="hb-summary">
-        <div class="hb-summary-card healthy" @onclick='() => StatusFilter = "Healthy"'>
-            <div class="value">@Resources.Count</div>
-            <div class="title">Recursos AHUB</div>
-        </div>
 
-        <div class="hb-summary-card warning" @onclick='() => StatusFilter = "New"'>
-            <div class="value">@Resources.Count(x => x.HasWindowsAHUB || x.HasSqlAHUB)</div>
-            <div class="title">Beneficios detectados</div>
-        </div>
-
-        <div class="hb-summary-card danger" @onclick='() => StatusFilter = "Action Required"'>
-            <div class="value">@Resources.Count(x => x.RequiresAction)</div>
-            <div class="title">Requieren acción</div>
-        </div>
-
-        <div class="hb-summary-card info" @onclick='() => StatusFilter = "Changed"'>
-            <div class="value">@Resources.Count(x => !string.IsNullOrWhiteSpace(x.ChangeType) && x.ChangeType != "New Resource")</div>
-            <div class="title">Cambios reales</div>
-        </div>
+    <div class="hb-summary-card primary" @onclick='() => ClearFilters()'>
+        <div class="value">@Resources.Count</div>
+        <div class="title">Recursos monitoreados</div>
     </div>
+
+    <div class="hb-summary-card danger" @onclick='() => StatusFilter = "Action Required"'>
+        <div class="value">@Resources.Count(x => x.RequiresAction)</div>
+        <div class="title">Requieren acción</div>
+    </div>
+
+    <div class="hb-summary-card info" @onclick='() => StatusFilter = "Changed"'>
+        <div class="value">@Resources.Count(x =>
+            !string.IsNullOrWhiteSpace(x.ChangeType) &&
+            x.ChangeType != "New Resource")</div>
+        <div class="title">Cambios detectados</div>
+    </div>
+
+    <div class="hb-summary-card success" @onclick='() => ClearFilters()'>
+        <div class="value">
+            @{
+                var compliance = Resources.Count == 0
+                    ? 100
+                    : Math.Round(
+                        ((double)Resources.Count(x => !x.RequiresAction) /
+                        Resources.Count) * 100,
+                        2);
+            }
+
+            @compliance%
+        </div>
+
+        <div class="title">Compliance</div>
+    </div>
+
+</div>
 
     <div class="hb-resource-toolbar">
         <select @bind="SubscriptionSearch">
@@ -530,6 +546,8 @@
         };
     }
 }
+
+
 
 
 
