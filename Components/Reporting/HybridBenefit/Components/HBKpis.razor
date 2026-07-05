@@ -1,59 +1,15 @@
 @using ITQS.SupportOperationsCenter.Components.Reporting.HybridBenefit.Models
 
 <div class="hb-kpi-grid">
-    <div class="hb-kpi">
-        <span>Total Recursos</span>
-        <strong>@Dashboard.Kpis.TotalResources</strong>
-        <small>Recursos con AHUB activo</small>
-    </div>
-
-    <div class="hb-kpi">
-        <span>Clientes con AHUB</span>
-        <strong>@Dashboard.Kpis.TotalCustomers</strong>
-        <small>Clientes que utilizan Azure Hybrid Benefit</small>
-    </div>
-
-    <div class="hb-kpi">
-        <span>Suscripciones</span>
-        <strong>@Dashboard.Kpis.TotalSubscriptions</strong>
-        <small>Suscripciones detectadas</small>
-    </div>
-
-    <div class="hb-kpi">
-        <span>Windows AHUB</span>
-        <strong>@Dashboard.Kpis.WindowsCount</strong>
-        <small>Total Windows con beneficio</small>
-    </div>
-
-    <div class="hb-kpi">
-        <span>Windows con Tag</span>
-        <strong>@Dashboard.Kpis.WindowsWithTag</strong>
-        <small>Windows con TagHB configurado</small>
-    </div>
-
-    <div class="hb-kpi">
-        <span>Windows sin Tag</span>
-        <strong>@Dashboard.Kpis.WindowsMissingTag</strong>
-        <small>Windows que requieren TagHB</small>
-    </div>
-
-    <div class="hb-kpi">
-        <span>SQL AHUB</span>
-        <strong>@Dashboard.Kpis.SqlCount</strong>
-        <small>Total SQL con beneficio</small>
-    </div>
-
-    <div class="hb-kpi">
-        <span>SQL con Tag</span>
-        <strong>@Dashboard.Kpis.SqlWithTag</strong>
-        <small>SQL con TagHBSQL configurado</small>
-    </div>
-
-    <div class="hb-kpi">
-        <span>SQL sin Tag</span>
-        <strong>@Dashboard.Kpis.SqlMissingTag</strong>
-        <small>SQL que requieren TagHBSQL</small>
-    </div>
+    <div class="hb-kpi"><span>Total Recursos</span><strong>@Dashboard.Kpis.TotalResources</strong><small>Recursos con AHUB activo</small></div>
+    <div class="hb-kpi"><span>Clientes con AHUB</span><strong>@Dashboard.Kpis.TotalCustomers</strong><small>Clientes que utilizan Azure Hybrid Benefit</small></div>
+    <div class="hb-kpi"><span>Suscripciones</span><strong>@Dashboard.Kpis.TotalSubscriptions</strong><small>Suscripciones detectadas</small></div>
+    <div class="hb-kpi"><span>Windows AHUB</span><strong>@Dashboard.Kpis.WindowsCount</strong><small>Total Windows con beneficio</small></div>
+    <div class="hb-kpi"><span>Windows con Tag</span><strong>@Dashboard.Kpis.WindowsWithTag</strong><small>Windows con TagHB configurado</small></div>
+    <div class="hb-kpi"><span>Windows sin Tag</span><strong>@Dashboard.Kpis.WindowsMissingTag</strong><small>Windows que requieren TagHB</small></div>
+    <div class="hb-kpi"><span>SQL AHUB</span><strong>@Dashboard.Kpis.SqlCount</strong><small>Total SQL con beneficio</small></div>
+    <div class="hb-kpi"><span>SQL con Tag</span><strong>@Dashboard.Kpis.SqlWithTag</strong><small>SQL con TagHBSQL configurado</small></div>
+    <div class="hb-kpi"><span>SQL sin Tag</span><strong>@Dashboard.Kpis.SqlMissingTag</strong><small>SQL que requieren TagHBSQL</small></div>
 </div>
 
 @code {
