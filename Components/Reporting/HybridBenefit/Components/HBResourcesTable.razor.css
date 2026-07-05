@@ -749,3 +749,27 @@
 
 }
 
+.hb-recurrence {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 900;
+}
+
+.hb-recurrence.recurrent {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.hb-recurrence.new {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.hb-recurrence-count {
+    display: block;
+    margin-top: 5px;
+    color: #64748b;
+    font-size: 11px;
+}

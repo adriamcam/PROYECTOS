@@ -36,8 +36,13 @@ public class HybridBenefitResource
 
     public string HealthStatus { get; set; } = "";
 
+    public int ActionOccurrenceCount { get; set; }
+
+    public string RecurrenceStatus { get; set; } = "";
+
     public bool RequiresAction =>
         (HasWindowsAHUB && !HasTagHB)
         || (HasSqlAHUB && !HasTagHBSQL);
 }
+
 
