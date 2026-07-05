@@ -11,8 +11,7 @@
     @if (IsLoading)
     {
         <section class="hb-card">
-            <strong>Cargando Reporte Beneficio Híbrido...</strong>
-            @if (ShowInfoPopup)
+            <strong>Cargando Reporte Beneficio Híbrido...</strong>    @if (ShowInfoPopup)
     {
         <div class="report-modal-backdrop">
             <div class="report-info-modal">
@@ -69,8 +68,7 @@
     {
         <section class="hb-card">
             <strong>Error cargando datos</strong>
-            <p>@ErrorMessage</p>
-            @if (ShowInfoPopup)
+            <p>@ErrorMessage</p>    @if (ShowInfoPopup)
     {
         <div class="report-modal-backdrop">
             <div class="report-info-modal">
@@ -178,8 +176,7 @@
                                 <strong style="width:@width%">@item.TotalResources</strong>
                             </div>
                         }
-                    </div>
-                    @if (ShowInfoPopup)
+                    </div>    @if (ShowInfoPopup)
     {
         <div class="report-modal-backdrop">
             <div class="report-info-modal">
@@ -248,8 +245,7 @@
                                 <span>@item.Total</span>
                             </div>
                         }
-                    </div>
-                    @if (ShowInfoPopup)
+                    </div>    @if (ShowInfoPopup)
     {
         <div class="report-modal-backdrop">
             <div class="report-info-modal">
@@ -328,8 +324,7 @@
                                 <span>0</span>
                             </div>
                         }
-                    </div>
-                    @if (ShowInfoPopup)
+                    </div>    @if (ShowInfoPopup)
     {
         <div class="report-modal-backdrop">
             <div class="report-info-modal">
@@ -387,9 +382,7 @@
         {
             <HBResourcesTable Resources="Dashboard.Resources" />
         }
-    }
-
-    @if (ShowInfoPopup)
+    }    @if (ShowInfoPopup)
     {
         <div class="report-modal-backdrop">
             <div class="report-info-modal">
@@ -486,98 +479,4 @@
 
 Components\Reporting\HybridBenefit\HybridBenefitReport.razor=Components\Reporting\HybridBenefit\HybridBenefitReport.razor.css
 
-.report-actions {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-}
 
-.report-info {
-    border: 1px solid #cbd5e1;
-    background: #ffffff;
-    color: #1e3a8a;
-    border-radius: 10px;
-    padding: 12px 18px;
-    font-weight: 800;
-    cursor: pointer;
-}
-
-.report-modal-backdrop {
-    position: fixed;
-    inset: 0;
-    background: rgba(15, 23, 42, .55);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 9999;
-}
-
-.report-info-modal {
-    width: min(920px, 94vw);
-    background: #ffffff;
-    border-radius: 18px;
-    padding: 24px;
-    border: 1px solid #dbe4f0;
-    box-shadow: 0 24px 80px rgba(15, 23, 42, .25);
-}
-
-.modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 18px;
-    margin-bottom: 18px;
-}
-
-.modal-header h2 {
-    margin: 6px 0 0;
-    color: #07142f;
-}
-
-.modal-close {
-    border: none;
-    background: #f1f5f9;
-    color: #0f172a;
-    border-radius: 10px;
-    width: 38px;
-    height: 38px;
-    font-size: 24px;
-    cursor: pointer;
-}
-
-.info-grid {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 14px;
-}
-
-.info-box {
-    border: 1px solid #e2e8f0;
-    background: #f8fafc;
-    border-radius: 14px;
-    padding: 16px;
-}
-
-.info-box h3 {
-    margin: 0 0 12px;
-    color: #0f172a;
-}
-
-.info-box ul {
-    margin: 0;
-    padding-left: 18px;
-    color: #475569;
-}
-
-.info-box li {
-    margin-bottom: 8px;
-}
-
-.info-note {
-    margin-top: 16px;
-    background: #eff6ff;
-    border: 1px solid #bfdbfe;
-    color: #1e3a8a;
-    border-radius: 14px;
-    padding: 14px;
-}
