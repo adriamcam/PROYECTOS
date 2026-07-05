@@ -105,6 +105,11 @@
                     <th><button class="hb-sort" @onclick='() => SortBy("ChangedBy")'>Cambio por @GetSortIcon("ChangedBy")</button></th>
                     @if (StatusFilter == "Action Required")
                     {
+                        <th><button class="hb-sort" @onclick='() => SortBy("Sku")'>SKU @GetSortIcon("Sku")</button></th>
+                        <th><button class="hb-sort" @onclick='() => SortBy("vCPUs")'>vCores @GetSortIcon("vCPUs")</button></th>
+                    }
+                    @if (StatusFilter == "Action Required")
+                    {
                         <th><button class="hb-sort" @onclick='() => SortBy("Recurrence")'>Recurrencia @GetSortIcon("Recurrence")</button></th>
                     }
                     else
@@ -188,6 +193,17 @@
                                 @GetProblemText(item)
                             </span>
                         </td>
+
+                        @if (StatusFilter == "Action Required")
+                        {
+                            <td>
+                                <span class="hb-sku">@item.SkuDisplay</span>
+                            </td>
+
+                            <td>
+                                <span class="hb-vcpu">@(item.vCPUs?.ToString() ?? "-")</span>
+                            </td>
+                        }
 
                         <td>
                             @if (string.IsNullOrWhiteSpace(item.LastChangedBy))
@@ -377,6 +393,8 @@
             "SqlTag" => SortAscending ? FilteredResources.OrderByDescending(x => x.HasTagHBSQL) : FilteredResources.OrderBy(x => x.HasTagHBSQL),
             "Problem" => SortAscending ? FilteredResources.OrderBy(x => GetProblemText(x)) : FilteredResources.OrderByDescending(x => GetProblemText(x)),
             "ChangedBy" => SortAscending ? FilteredResources.OrderBy(x => x.LastChangedBy) : FilteredResources.OrderByDescending(x => x.LastChangedBy),
+            "Sku" => SortAscending ? FilteredResources.OrderBy(x => x.VMSize) : FilteredResources.OrderByDescending(x => x.VMSize),
+            "vCPUs" => SortAscending ? FilteredResources.OrderBy(x => x.vCPUs) : FilteredResources.OrderByDescending(x => x.vCPUs),
             "Activity" => SortAscending ? FilteredResources.OrderBy(x => x.ChangeType) : FilteredResources.OrderByDescending(x => x.ChangeType),
             "LastScan" => SortAscending ? FilteredResources.OrderBy(x => x.LastScanDate) : FilteredResources.OrderByDescending(x => x.LastScanDate),
             "Recurrence" => SortAscending ? FilteredResources.OrderBy(x => x.RecurrenceStatus) : FilteredResources.OrderByDescending(x => x.RecurrenceStatus),
@@ -591,6 +609,7 @@
         };
     }
 }
+
 
 
 

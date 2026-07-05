@@ -42,10 +42,27 @@ public class HybridBenefitResource
 
     public string LastChangedBy { get; set; } = "";
 
+    public string ResourceType { get; set; } = "";
+    public string OperatingSystem { get; set; } = "";
+    public string OSType { get; set; } = "";
+    public string Publisher { get; set; } = "";
+    public string Offer { get; set; } = "";
+    public string Sku { get; set; } = "";
+    public string VMSize { get; set; } = "";
+    public int? vCPUs { get; set; }
+    public decimal? MemoryGB { get; set; }
+    public string Region { get; set; } = "";
+
+    public string SkuDisplay =>
+        string.IsNullOrWhiteSpace(VMSize)
+            ? "-"
+            : $"{VMSize} ({vCPUs ?? 0} vCPUs, {MemoryGB ?? 0:N0} GiB memory)";
+
     public bool RequiresAction =>
         (HasWindowsAHUB && !HasTagHB)
         || (HasSqlAHUB && !HasTagHBSQL);
 }
+
 
 
 

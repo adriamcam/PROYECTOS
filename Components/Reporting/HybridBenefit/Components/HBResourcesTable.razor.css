@@ -812,3 +812,23 @@
     font-size: 12px;
     font-style: italic;
 }
+.hb-sku {
+    display: inline-block;
+    max-width: 260px;
+    color: #0f172a;
+    font-size: 12px;
+    font-weight: 800;
+    white-space: normal;
+}
+
+.hb-vcpu {
+    display: inline-flex;
+    min-width: 34px;
+    justify-content: center;
+    padding: 5px 10px;
+    border-radius: 999px;
+    background: #eef2ff;
+    color: #3730a3;
+    font-size: 12px;
+    font-weight: 900;
+}
