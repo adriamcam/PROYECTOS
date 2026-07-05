@@ -35,6 +35,27 @@
         </select>
     </div>
 
+    <div class="hb-summary">
+        <div class="hb-summary-card healthy" @onclick='() => StatusFilter = "Healthy"'>
+            <div class="value">@Resources.Count(x => x.OperationalStatus == "Healthy")</div>
+            <div class="title">Healthy</div>
+        </div>
+
+        <div class="hb-summary-card warning" @onclick='() => StatusFilter = "New Resource"'>
+            <div class="value">@Resources.Count(x => x.OperationalStatus == "New Resource")</div>
+            <div class="title">Nuevos</div>
+        </div>
+
+        <div class="hb-summary-card danger" @onclick='() => StatusFilter = "Missing Windows Tag"'>
+            <div class="value">@Resources.Count(x => x.OperationalStatus.Contains("Missing"))</div>
+            <div class="title">Requieren acción</div>
+        </div>
+
+        <div class="hb-summary-card info" @onclick='() => StatusFilter = "Changed"'>
+            <div class="value">@Resources.Count(x => x.OperationalStatus == "Changed")</div>
+            <div class="title">Cambios</div>
+        </div>
+    </div>
     <div class="hb-table-wrap">
         <table>
             <thead>
@@ -157,3 +178,4 @@
         };
     }
 }
+
