@@ -324,10 +324,48 @@
                     </div>
                 </div>
 
+                <div class="notification-summary">
+                    <div class="summary-card">
+                        <span>Total</span>
+                        <strong>@NotificationTotalCount</strong>
+                    </div>
+                    <div class="summary-card success">
+                        <span>Enviados</span>
+                        <strong>@NotificationSentCount</strong>
+                    </div>
+                    <div class="summary-card neutral">
+                        <span>Ignorados</span>
+                        <strong>@NotificationIgnoredCount</strong>
+                    </div>
+                    <div class="summary-card danger">
+                        <span>Fallidos</span>
+                        <strong>@NotificationFailedCount</strong>
+                    </div>
+                </div>
+
+                <div class="notification-filters">
+                    <input class="notification-search"
+                           placeholder="Buscar por cliente, partner, correo, caso, etapa o flow..."
+                           @bind="NotificationSearch"
+                           @bind:event="oninput" />
+
+                    <select class="notification-select" @bind="NotificationStatusFilter">
+                        <option value="All">Todos los estados</option>
+                        @foreach (var status in NotificationStatusOptions)
+                        {
+                            <option value="@status">@NotificationStatusText(status)</option>
+                        }
+                    </select>
+
+                    <button type="button" class="btn-secondary" @onclick="ClearNotificationFilters">
+                        Limpiar filtros
+                    </button>
+                </div>
+
                 @if (!SortedNotificationLogs.Any())
                 {
                     <div class="empty-state">
-                        No hay notificaciones registradas por el momento.
+                        No hay notificaciones registradas con los filtros actuales.
                     </div>
                 }
                 else
@@ -373,6 +411,7 @@
                                 Enviado <small>@NotificationSortIcon("SentAt")</small>
                             </button>
                         </span>
+                        <span>Link</span>
                     </div>
 
                     @foreach (var item in SortedNotificationLogs)
@@ -395,6 +434,18 @@
                             <span class="notification-flow">
                                 <strong>@FormatDateTime(item.SentAt)</strong>
                                 <small>@item.FlowName</small>
+                            </span>
+                            <span>
+                                @if (!string.IsNullOrWhiteSpace(item.ApprovalPendingLink))
+                                {
+                                    <a class="approval-link" href="@item.ApprovalPendingLink" target="_blank" rel="noopener noreferrer">
+                                        Abrir
+                                    </a>
+                                }
+                                else
+                                {
+                                    <small>-</small>
+                                }
                             </span>
                         </div>
                     }

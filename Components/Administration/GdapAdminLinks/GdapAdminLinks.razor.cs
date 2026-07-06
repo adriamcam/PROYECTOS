@@ -44,10 +44,62 @@ public partial class GdapAdminLinks : ComponentBase
     protected List<GdapNotificationLogModel> NotificationLogs { get; set; } = new();
     protected string NotificationSortColumn { get; set; } = "SentAt";
     protected bool NotificationSortAscending { get; set; }
+    protected string NotificationSearch { get; set; } = string.Empty;
+    protected string NotificationStatusFilter { get; set; } = "All";
+
+    protected int NotificationTotalCount => NotificationLogs.Count;
+    protected int NotificationSentCount => NotificationLogs.Count(x => string.Equals(x.Status, "Sent", StringComparison.OrdinalIgnoreCase));
+    protected int NotificationIgnoredCount => NotificationLogs.Count(x => (x.Status ?? string.Empty).Contains("Ignored", StringComparison.OrdinalIgnoreCase));
+    protected int NotificationFailedCount => NotificationLogs.Count(x => (x.Status ?? string.Empty).Contains("Failed", StringComparison.OrdinalIgnoreCase) || (x.Status ?? string.Empty).Contains("Error", StringComparison.OrdinalIgnoreCase));
+
+    protected List<string> NotificationStatusOptions =>
+        NotificationLogs
+            .Select(x => x.Status)
+            .Where(x => !string.IsNullOrWhiteSpace(x))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(x => x)
+            .ToList();
+
+    protected IEnumerable<GdapNotificationLogModel> FilteredNotificationLogs =>
+        NotificationLogs.Where(MatchesNotificationFilter);
 
     protected List<GdapNotificationLogModel> SortedNotificationLogs =>
-        ApplyNotificationSort(NotificationLogs).ToList();
+        ApplyNotificationSort(FilteredNotificationLogs).ToList();
 
+
+    protected bool MatchesNotificationFilter(GdapNotificationLogModel item)
+    {
+        if (NotificationStatusFilter != "All" &&
+            !string.Equals(item.Status, NotificationStatusFilter, StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        if (string.IsNullOrWhiteSpace(NotificationSearch))
+            return true;
+
+        var text = NotificationSearch.Trim();
+
+        return ContainsNotificationText(item.CustomerName, text)
+            || ContainsNotificationText(item.PartnerTenant, text)
+            || ContainsNotificationText(item.NotificationCase, text)
+            || ContainsNotificationText(item.NotificationStage, text)
+            || ContainsNotificationText(item.SentTo, text)
+            || ContainsNotificationText(item.Status, text)
+            || ContainsNotificationText(item.FlowName, text);
+    }
+
+    protected static bool ContainsNotificationText(string value, string search)
+    {
+        return !string.IsNullOrWhiteSpace(value)
+            && value.Contains(search, StringComparison.OrdinalIgnoreCase);
+    }
+
+    protected void ClearNotificationFilters()
+    {
+        NotificationSearch = string.Empty;
+        NotificationStatusFilter = "All";
+    }
     protected async Task SortNotificationsAsync(string column)
     {
         if (NotificationSortColumn == column)
