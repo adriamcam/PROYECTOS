@@ -66,6 +66,29 @@ public partial class GdapAdminLinks : ComponentBase
     protected List<GdapNotificationLogModel> SortedNotificationLogs =>
         ApplyNotificationSort(FilteredNotificationLogs).ToList();
 
+    protected int NotificationPage { get; set; } = 1;
+    protected int NotificationPageSize { get; set; } = 10;
+
+    protected int NotificationFilteredCount => SortedNotificationLogs.Count;
+
+    protected int NotificationTotalPages =>
+        Math.Max(1, (int)Math.Ceiling(NotificationFilteredCount / (double)NotificationPageSize));
+
+    protected int SafeNotificationPage =>
+        Math.Min(Math.Max(NotificationPage, 1), NotificationTotalPages);
+
+    protected int NotificationPageStart =>
+        NotificationFilteredCount == 0 ? 0 : ((SafeNotificationPage - 1) * NotificationPageSize) + 1;
+
+    protected int NotificationPageEnd =>
+        Math.Min(SafeNotificationPage * NotificationPageSize, NotificationFilteredCount);
+
+    protected List<GdapNotificationLogModel> PagedNotificationLogs =>
+        SortedNotificationLogs
+            .Skip((SafeNotificationPage - 1) * NotificationPageSize)
+            .Take(NotificationPageSize)
+            .ToList();
+
 
     protected bool MatchesNotificationFilter(GdapNotificationLogModel item)
     {
@@ -99,6 +122,21 @@ public partial class GdapAdminLinks : ComponentBase
     {
         NotificationSearch = string.Empty;
         NotificationStatusFilter = "All";
+        NotificationPage = 1;
+    }
+
+    protected void GoToNotificationPage(int page)
+    {
+        NotificationPage = Math.Min(Math.Max(page, 1), NotificationTotalPages);
+    }
+
+    protected void SetNotificationPageSize(Microsoft.AspNetCore.Components.ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var size))
+        {
+            NotificationPageSize = Math.Clamp(size, 5, 100);
+            NotificationPage = 1;
+        }
     }
     protected async Task SortNotificationsAsync(string column)
     {
@@ -957,8 +995,8 @@ Para ello, sigue estos pasos: abre un navegador como Chrome o Edge, preferibleme
     {
         return value switch
         {
-            "GDAP_ACTIVE_EXPIRING_WITH_PENDING_APPROVAL_LINK" => "Vence con approval link",
-            "GDAP_ACTIVE_EXPIRING_NO_PENDING_APPROVAL" => "Vence sin approval link",
+            "GDAP_ACTIVE_EXPIRING_WITH_PENDING_APPROVAL_LINK" => "Approval pending",
+            "GDAP_ACTIVE_EXPIRING_NO_PENDING_APPROVAL" => "Sin aprobación pendiente",
             "GDAP_APPROVAL_PENDING" => "Approval pendiente",
             "GDAP_WITHOUT_RELATIONSHIP" => "Sin relación GDAP",
             _ => string.IsNullOrWhiteSpace(value) ? "-" : value.Replace("_", " ")
