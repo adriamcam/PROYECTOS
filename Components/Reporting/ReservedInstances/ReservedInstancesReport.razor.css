@@ -889,3 +889,22 @@ cls
     font-size:14px;
     font-weight:900;
 }
+
+/* ============================
+   RI SORT BUTTONS
+============================ */
+
+.ri-sort-btn{
+    border:none;
+    background:transparent;
+    color:#334155;
+    font-size:12px;
+    font-weight:900;
+    text-transform:uppercase;
+    cursor:pointer;
+    padding:0;
+}
+
+.ri-sort-btn:hover{
+    color:#1d4ed8;
+}

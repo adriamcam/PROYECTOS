@@ -20,23 +20,23 @@
 
     <div class="ri-resource-summary">
         <div class="primary">
-            <strong>@Resources.Count</strong>
-            <span>Recursos</span>
+            <strong>@FilteredResources.Count()</strong>
+            <span>Recursos filtrados</span>
         </div>
 
         <div class="danger">
-            <strong>@Resources.Count(x => x.OperationalStatus != "Healthy")</strong>
-            <span>Issues</span>
+            <strong>@FilteredResources.Count(x => x.OperationalStatus != "Healthy")</strong>
+            <span>Issues filtrados</span>
         </div>
 
         <div class="success">
-            <strong>@Resources.Count(x => x.OperationalStatus == "Healthy")</strong>
-            <span>Healthy</span>
+            <strong>@FilteredResources.Count(x => x.OperationalStatus == "Healthy")</strong>
+            <span>Healthy filtrados</span>
         </div>
 
         <div class="info">
-            <strong>@Resources.Count(x => x.OperationalStatus == "Expiring Soon")</strong>
-            <span>Por vencer</span>
+            <strong>@FilteredResources.Count(x => x.OperationalStatus == "Expiring Soon")</strong>
+            <span>Por vencer filtrados</span>
         </div>
     </div>
 
@@ -558,6 +558,15 @@ private void ClearFilters()
         return "ri-pill success";
     }
 }
+
+
+
+
+
+
+
+
+
 
 
 
