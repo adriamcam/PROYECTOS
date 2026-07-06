@@ -178,6 +178,10 @@
             </div>
         </section>
     }
+    else if (ActiveTab == "Action")
+    {
+        <RIActionsTable Resources="Dashboard.Resources" />
+    }
     else
     {
         <RIResourcesTable Resources="Dashboard.Resources" />
@@ -227,6 +231,7 @@
         _ => "primary"
     };
 }
+
 
 
 
