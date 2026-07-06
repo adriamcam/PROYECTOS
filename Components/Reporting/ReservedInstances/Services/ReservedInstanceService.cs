@@ -44,7 +44,7 @@ public sealed class ReservedInstanceService : IReservedInstanceService
             Distribution = distribution,
             TopCustomers = topCustomers,
             Resources = resources,
-            Changes = new List<ReservedInstanceChange>()
+
         };
     }
 
@@ -60,13 +60,6 @@ public sealed class ReservedInstanceService : IReservedInstanceService
         return result.ToList();
     }
 
-    public Task<List<ReservedInstanceChange>> GetChangesAsync()
-    {
-        return Task.FromResult(new List<ReservedInstanceChange>());
     }
 
-    public Task<List<ReservedInstanceResourceHistory>> GetResourceHistoryAsync(string resourceKey)
-    {
-        return Task.FromResult(new List<ReservedInstanceResourceHistory>());
-    }
-}
+
