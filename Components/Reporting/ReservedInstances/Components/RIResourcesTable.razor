@@ -1,5 +1,4 @@
 @namespace ITQS.SupportOperationsCenter.Components.Reporting.ReservedInstances.Components
-
 @using ITQS.SupportOperationsCenter.Components.Reporting.ReservedInstances.Models
 
 <section class="ri-card">
@@ -30,7 +29,6 @@
         </select>
 
         <input placeholder="Buscar recurso, cliente o SKU..." @bind="SearchText" @bind:event="oninput" />
-
         <button class="ri-clear-btn" @onclick="ClearFilters">Limpiar</button>
     </div>
 
@@ -38,10 +36,10 @@
         <table>
             <thead>
                 <tr>
-                    <th>Status</th>
-                    <th>Resource</th>
-                    <th>Customer</th>
-                    <th>Subscription</th>
+                    <th>Estado</th>
+                    <th>Recurso</th>
+                    <th>Cliente</th>
+                    <th>Suscripción</th>
                     <th>SKU Reserva</th>
                     <th>SKU VM</th>
                     <th>Fecha Reserva</th>
@@ -51,42 +49,21 @@
                     <th>Problema</th>
                 </tr>
             </thead>
-
             <tbody>
                 @foreach (var item in FilteredResources)
                 {
                     <tr>
-                        <td>
-                            <span class="@GetStatusClass(item.OperationalStatus)">
-                                @GetStatusText(item.OperationalStatus)
-                            </span>
-                        </td>
-
-                        <td>
-                            <strong>@item.ResourceName</strong>
-                            <small>@item.Region</small>
-                        </td>
-
+                        <td><span class="@GetStatusClass(item.OperationalStatus)">@GetStatusText(item.OperationalStatus)</span></td>
+                        <td><strong>@item.ResourceName</strong><small>@(string.IsNullOrWhiteSpace(item.Region) ? "-" : item.Region)</small></td>
                         <td>@item.Customer</td>
                         <td>@item.Subscription</td>
                         <td><span class="ri-sku">@item.SKUReserva</span></td>
                         <td><span class="ri-sku">@item.SKUVM</span></td>
                         <td>@(item.FechaReserva?.ToString("dd/MM/yyyy") ?? "-")</td>
                         <td>@(item.FechaVM?.ToString("dd/MM/yyyy") ?? "-")</td>
-
-                        <td>
-                            <span class="@GetUtilClass(item.Utilization30d)">
-                                @((item.Utilization30d ?? 0).ToString("N2"))%
-                            </span>
-                        </td>
-
+                        <td><span class="@GetUtilClass(item.Utilization30d)">@((item.Utilization30d ?? 0).ToString("N2"))%</span></td>
                         <td>@(item.DaysRemaining?.ToString() ?? "-")</td>
-
-                        <td>
-                            <span class="@GetIssueClass(item.OperationalStatus)">
-                                @item.Issue
-                            </span>
-                        </td>
+                        <td><span class="@GetIssueClass(item.OperationalStatus)">@item.Issue</span></td>
                     </tr>
                 }
             </tbody>
@@ -95,33 +72,26 @@
 </section>
 
 @code {
-    [Parameter]
-    public List<ReservedInstanceResource> Resources { get; set; } = new();
+    [Parameter] public List<ReservedInstanceResource> Resources { get; set; } = new();
 
     private string StatusFilter { get; set; } = "";
     private string SubscriptionFilter { get; set; } = "";
     private string SearchText { get; set; } = "";
 
     private IEnumerable<string> SubscriptionOptions =>
-        Resources
-            .Select(x => x.Subscription)
-            .Where(x => !string.IsNullOrWhiteSpace(x))
-            .Distinct()
-            .OrderBy(x => x);
+        Resources.Select(x => x.Subscription).Where(x => !string.IsNullOrWhiteSpace(x)).Distinct().OrderBy(x => x);
 
     private IEnumerable<ReservedInstanceResource> FilteredResources =>
         Resources.Where(x =>
-            (string.IsNullOrWhiteSpace(StatusFilter) || x.OperationalStatus == StatusFilter)
-            &&
-            (string.IsNullOrWhiteSpace(SubscriptionFilter) || x.Subscription == SubscriptionFilter)
-            &&
+            (string.IsNullOrWhiteSpace(StatusFilter) || x.OperationalStatus == StatusFilter) &&
+            (string.IsNullOrWhiteSpace(SubscriptionFilter) || x.Subscription == SubscriptionFilter) &&
             (
-                string.IsNullOrWhiteSpace(SearchText)
-                || x.ResourceName.Contains(SearchText, StringComparison.OrdinalIgnoreCase)
-                || x.Customer.Contains(SearchText, StringComparison.OrdinalIgnoreCase)
-                || x.Subscription.Contains(SearchText, StringComparison.OrdinalIgnoreCase)
-                || x.SKUReserva.Contains(SearchText, StringComparison.OrdinalIgnoreCase)
-                || x.SKUVM.Contains(SearchText, StringComparison.OrdinalIgnoreCase)
+                string.IsNullOrWhiteSpace(SearchText) ||
+                x.ResourceName.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ||
+                x.Customer.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ||
+                x.Subscription.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ||
+                x.SKUReserva.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ||
+                x.SKUVM.Contains(SearchText, StringComparison.OrdinalIgnoreCase)
             )
         );
 
@@ -134,12 +104,12 @@
 
     private static string GetStatusText(string status) => status switch
     {
-        "Healthy" => "● Healthy",
-        "SKU Mismatch" => "⚠ SKU",
-        "Date Mismatch" => "📅 Fecha",
-        "Low Utilization" => "📉 Bajo uso",
-        "Expiring Soon" => "⏳ Por vencer",
-        "Expired" => "🔴 Expirada",
+        "Healthy" => "Healthy",
+        "SKU Mismatch" => "SKU cambiado",
+        "Date Mismatch" => "Fecha incorrecta",
+        "Low Utilization" => "Baja utilización",
+        "Expiring Soon" => "Por vencer",
+        "Expired" => "Expirada",
         _ => status
     };
 
@@ -154,7 +124,8 @@
         _ => "ri-badge"
     };
 
-    private static string GetIssueClass(string status) => status == "Healthy" ? "ri-issue success" : "ri-issue danger";
+    private static string GetIssueClass(string status) =>
+        status == "Healthy" ? "ri-issue success" : "ri-issue danger";
 
     private static string GetUtilClass(decimal? value)
     {

@@ -1,46 +1,15 @@
 @namespace ITQS.SupportOperationsCenter.Components.Reporting.ReservedInstances.Components
-
 @using ITQS.SupportOperationsCenter.Components.Reporting.ReservedInstances.Models
 
 <div class="ri-kpis">
-    <div class="ri-kpi primary">
-        <span>Recursos con RI</span>
-        <strong>@Dashboard.Kpis.TotalResources</strong>
-        <small>Total monitoreado</small>
-    </div>
-
-    <div class="ri-kpi success">
-        <span>Healthy</span>
-        <strong>@Dashboard.Kpis.HealthyCount</strong>
-        <small>Sin problemas detectados</small>
-    </div>
-
-    <div class="ri-kpi warning">
-        <span>SKU Cambiado</span>
-        <strong>@Dashboard.Kpis.SkuMismatchCount</strong>
-        <small>Reserva vs VM diferente</small>
-    </div>
-
-    <div class="ri-kpi danger">
-        <span>Baja utilización</span>
-        <strong>@Dashboard.Kpis.LowUtilizationCount</strong>
-        <small>Menor a 80%</small>
-    </div>
-
-    <div class="ri-kpi info">
-        <span>Por vencer</span>
-        <strong>@Dashboard.Kpis.ExpiringSoonCount</strong>
-        <small>Menos de 90 días</small>
-    </div>
-
-    <div class="ri-kpi purple">
-        <span>Utilización promedio</span>
-        <strong>@Dashboard.Kpis.AvgUtilization.ToString("N2")%</strong>
-        <small>Últimos 30 días</small>
-    </div>
+    <div class="ri-kpi primary"><span>Recursos con RI</span><strong>@Dashboard.Kpis.TotalResources</strong><small>Total monitoreado</small></div>
+    <div class="ri-kpi success"><span>Healthy</span><strong>@Dashboard.Kpis.HealthyCount</strong><small>Sin problemas</small></div>
+    <div class="ri-kpi warning"><span>SKU Cambiado</span><strong>@Dashboard.Kpis.SkuMismatchCount</strong><small>Reserva vs VM diferente</small></div>
+    <div class="ri-kpi danger"><span>Baja utilización</span><strong>@Dashboard.Kpis.LowUtilizationCount</strong><small>Menor a 80%</small></div>
+    <div class="ri-kpi info"><span>Por vencer</span><strong>@Dashboard.Kpis.ExpiringSoonCount</strong><small>Menos de 90 días</small></div>
+    <div class="ri-kpi purple"><span>Utilización promedio</span><strong>@Dashboard.Kpis.AvgUtilization.ToString("N2")%</strong><small>Últimos 30 días</small></div>
 </div>
 
 @code {
-    [Parameter]
-    public ReservedInstanceDashboard Dashboard { get; set; } = new();
+    [Parameter] public ReservedInstanceDashboard Dashboard { get; set; } = new();
 }

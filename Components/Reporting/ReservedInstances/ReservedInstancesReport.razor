@@ -25,13 +25,8 @@
     else
     {
         <div class="ri-tabs">
-            <button class="@(ActiveTab == "Dashboard" ? "active" : "")" @onclick='() => ActiveTab = "Dashboard"'>
-                Dashboard
-            </button>
-
-            <button class="@(ActiveTab == "Resources" ? "active" : "")" @onclick='() => ActiveTab = "Resources"'>
-                Reserved Instance Resources
-            </button>
+            <button class="@(ActiveTab == "Dashboard" ? "active" : "")" @onclick='() => ActiveTab = "Dashboard"'>Dashboard</button>
+            <button class="@(ActiveTab == "Resources" ? "active" : "")" @onclick='() => ActiveTab = "Resources"'>Reserved Instance Resources</button>
         </div>
 
         @if (ActiveTab == "Dashboard")
@@ -42,7 +37,7 @@
                 <section class="ri-card">
                     <div class="ri-card-header">
                         <h3>Distribución RI</h3>
-                        <p>Estado operativo de reservas.</p>
+                        <p>Estado operativo de las reservas.</p>
                     </div>
 
                     <div class="ri-list">
@@ -67,7 +62,7 @@
                         {
                             <div>
                                 <strong>@item.Customer</strong>
-                                <span>@item.TotalReservations reservas | @item.Issues issues</span>
+                                <span>@item.TotalReservations reservas | @item.Issues issues | @item.AvgUtilization.ToString("N2")%</span>
                             </div>
                         }
                     </div>
@@ -94,14 +89,7 @@
     private async Task LoadAsync()
     {
         IsLoading = true;
-
-        try
-        {
-            Dashboard = await ReservedInstanceService.GetDashboardAsync();
-        }
-        finally
-        {
-            IsLoading = false;
-        }
+        Dashboard = await ReservedInstanceService.GetDashboardAsync();
+        IsLoading = false;
     }
 }
