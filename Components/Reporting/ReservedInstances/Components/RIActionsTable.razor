@@ -146,26 +146,41 @@
         </div>
 
         <div class="ri-table-footer">
-            <div class="ri-table-footer-info">
-                Mostrando <strong>@PagedResources.Count()</strong> de <strong>@FilteredResources.Count()</strong> recursos
-                <span>Página @CurrentPage de @TotalPages</span>
-            </div>
 
-            <div class="ri-pagination-actions">
-                <button type="button" @onclick="PrevPage" disabled="@(CurrentPage == 1)">‹</button>
+    <div class="ri-table-footer-left">
+        Mostrando <strong>@PagedResources.Count()</strong> de
+        <strong>@FilteredResources.Count()</strong> recursos
+    </div>
 
-                @foreach (var pageNumber in VisiblePages)
-                {
-                    <button type="button"
-                            class="@(pageNumber == CurrentPage ? "active" : "")"
-                            @onclick="() => GoToPage(pageNumber)">
-                        @pageNumber
-                    </button>
-                }
+    <div class="ri-table-footer-right">
 
-                <button type="button" @onclick="NextPage" disabled="@(CurrentPage >= TotalPages)">›</button>
-            </div>
-        </div>
+        <span class="ri-page-info">
+            Página <strong>@CurrentPage</strong> de <strong>@TotalPages</strong>
+        </span>
+
+        <button class="ri-page-btn"
+                @onclick="PrevPage"
+                disabled="@(CurrentPage==1)">
+            ‹
+        </button>
+
+        @foreach(var pageNumber in VisiblePages)
+        {
+            <button class="ri-page-btn @(pageNumber==CurrentPage?"active":"")"
+                    @onclick="()=>GoToPage(pageNumber)">
+                @pageNumber
+            </button>
+        }
+
+        <button class="ri-page-btn"
+                @onclick="NextPage"
+                disabled="@(CurrentPage>=TotalPages)">
+            ›
+        </button>
+
+    </div>
+
+</div>
     </div>
 
 </section>
@@ -362,6 +377,9 @@
         return "\"" + value.Replace("\"", "\"\"") + "\"";
     }
 }
+
+
+
 
 
 
