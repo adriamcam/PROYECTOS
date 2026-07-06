@@ -1,3 +1,4 @@
+using ITQS.SupportOperationsCenter.Components.Reporting.ReservedInstances.Services;
 using ITQS.SupportOperationsCenter.Components;
 using ITQS.SupportOperationsCenter.Data;
 using ITQS.SupportOperationsCenter.Extensions;
@@ -96,6 +97,8 @@ builder.Services.AddScoped<IGdapAdminLinksService, GdapAdminLinksService>();
 builder.Services.AddScoped<IHybridBenefitRepository, HybridBenefitRepository>();
 builder.Services.AddScoped<IHybridBenefitService, HybridBenefitService>();
 
+builder.Services.AddScoped<IReservedInstanceService, ReservedInstanceService>();
+
 var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())
@@ -117,6 +120,7 @@ app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
 app.Run();
+
 
 
 
