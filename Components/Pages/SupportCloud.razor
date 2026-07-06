@@ -1,3 +1,4 @@
+@using ITQS.SupportOperationsCenter.Components.Reporting.ReservedInstances
 @page "/support-cloud"
 @rendermode @(new InteractiveServerRenderMode())
 
@@ -191,8 +192,7 @@
             }
             else if (CurrentModule == "ReporteInstanciasReservadas")
             {
-                <h2>Reporte Instancias Reservadas</h2>
-                <p>Módulo en construcción.</p>
+                <ReservedInstancesReport />
             }
             else if (CurrentModule == "ReportePALM")
             {
@@ -420,6 +420,8 @@
         }
     }
 }
+
+
 
 
 
