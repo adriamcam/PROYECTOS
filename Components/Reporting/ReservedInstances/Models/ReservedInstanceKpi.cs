@@ -1,32 +1,19 @@
 namespace ITQS.SupportOperationsCenter.Components.Reporting.ReservedInstances.Models;
 
-public class ReservedInstanceKpi
+public sealed class ReservedInstanceKpi
 {
-    public int AzureResourceCount { get; set; }
+    public int TotalResources { get; set; }
     public int TotalCustomers { get; set; }
     public int TotalSubscriptions { get; set; }
-
-    public int TotalBenefits { get; set; }
-
-    public int WindowsCount { get; set; }
-    public int WindowsWithTag { get; set; }
-    public int WindowsMissingTag { get; set; }
-
-    public int SqlCount { get; set; }
-    public int SqlWithTag { get; set; }
-    public int SqlMissingTag { get; set; }
-
-    public int TotalMissingTags { get; set; }
-    public int TotalWithTags { get; set; }
-    public decimal TagCompliancePercent { get; set; }
-
-    public int ChangeCount { get; set; }
-    public DateTime LastScanDate { get; set; }
+    public int TotalReservations { get; set; }
+    public int HealthyCount { get; set; }
+    public int SkuMismatchCount { get; set; }
+    public int DateMismatchCount { get; set; }
+    public int LowUtilizationCount { get; set; }
+    public int ExpiringSoonCount { get; set; }
+    public int ExpiredCount { get; set; }
+    public decimal AvgUtilization { get; set; }
+    public decimal TotalMonthlySavings { get; set; }
+    public decimal TotalYearlySavings { get; set; }
+    public DateTime? LastScanDate { get; set; }
 }
-
-
-
-
-
-
-

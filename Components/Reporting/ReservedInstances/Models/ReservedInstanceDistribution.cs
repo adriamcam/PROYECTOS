@@ -1,15 +1,7 @@
 namespace ITQS.SupportOperationsCenter.Components.Reporting.ReservedInstances.Models;
 
-public class ReservedInstanceDistribution
+public sealed class ReservedInstanceDistribution
 {
-    public string BenefitType { get; set; } = string.Empty;
-
+    public string StatusName { get; set; } = "";
     public int Total { get; set; }
 }
-
-
-
-
-
-
-

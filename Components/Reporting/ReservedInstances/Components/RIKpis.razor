@@ -1,34 +1,46 @@
 @namespace ITQS.SupportOperationsCenter.Components.Reporting.ReservedInstances.Components
+
 @using ITQS.SupportOperationsCenter.Components.Reporting.ReservedInstances.Models
-@using ITQS.SupportOperationsCenter.Components.Reporting.ReservedInstances.Services
 
-<div class="hb-kpi-grid">
-    <div class="hb-kpi"><span>Recursos Azure</span><strong>@Dashboard.Kpis.AzureResourceCount</strong><small>Recursos únicos con AHUB</small></div>
-    <div class="hb-kpi"><span>Clientes con AHUB</span><strong>@Dashboard.Kpis.TotalCustomers</strong><small>Clientes que utilizan Reserved Instances</small></div>
-    <div class="hb-kpi"><span>Suscripciones</span><strong>@Dashboard.Kpis.TotalSubscriptions</strong><small>Suscripciones detectadas</small></div>
+<div class="ri-kpis">
+    <div class="ri-kpi primary">
+        <span>Recursos con RI</span>
+        <strong>@Dashboard.Kpis.TotalResources</strong>
+        <small>Total monitoreado</small>
+    </div>
 
-    <div class="hb-kpi hb-kpi-health"><span>Health Score</span><strong>@Dashboard.Kpis.TagCompliancePercent.ToString("N2")%</strong><small>Cumplimiento general de tags</small></div>
-    <div class="hb-kpi"><span>Beneficios detectados</span><strong>@Dashboard.Kpis.TotalBenefits</strong><small>Windows AHUB + SQL AHUB</small></div>
-    <div class="hb-kpi hb-kpi-danger"><span>Total sin Tags</span><strong>@Dashboard.Kpis.TotalMissingTags</strong><small>Beneficios que requieren corrección</small></div>
+    <div class="ri-kpi success">
+        <span>Healthy</span>
+        <strong>@Dashboard.Kpis.HealthyCount</strong>
+        <small>Sin problemas detectados</small>
+    </div>
 
-    <div class="hb-kpi"><span>Windows AHUB</span><strong>@Dashboard.Kpis.WindowsCount</strong><small>Total Windows con beneficio</small></div>
-    <div class="hb-kpi hb-kpi-success"><span>Windows con Tag</span><strong>@Dashboard.Kpis.WindowsWithTag</strong><small>Windows con TagHB configurado</small></div>
-    <div class="hb-kpi hb-kpi-danger"><span>Windows sin Tag</span><strong>@Dashboard.Kpis.WindowsMissingTag</strong><small>Windows que requieren TagHB</small></div>
+    <div class="ri-kpi warning">
+        <span>SKU Cambiado</span>
+        <strong>@Dashboard.Kpis.SkuMismatchCount</strong>
+        <small>Reserva vs VM diferente</small>
+    </div>
 
-    <div class="hb-kpi"><span>SQL AHUB</span><strong>@Dashboard.Kpis.SqlCount</strong><small>Total SQL con beneficio</small></div>
-    <div class="hb-kpi hb-kpi-success"><span>SQL con Tag</span><strong>@Dashboard.Kpis.SqlWithTag</strong><small>SQL con TagHBSQL configurado</small></div>
-    <div class="hb-kpi hb-kpi-danger"><span>SQL sin Tag</span><strong>@Dashboard.Kpis.SqlMissingTag</strong><small>SQL que requieren TagHBSQL</small></div>
+    <div class="ri-kpi danger">
+        <span>Baja utilización</span>
+        <strong>@Dashboard.Kpis.LowUtilizationCount</strong>
+        <small>Menor a 80%</small>
+    </div>
+
+    <div class="ri-kpi info">
+        <span>Por vencer</span>
+        <strong>@Dashboard.Kpis.ExpiringSoonCount</strong>
+        <small>Menos de 90 días</small>
+    </div>
+
+    <div class="ri-kpi purple">
+        <span>Utilización promedio</span>
+        <strong>@Dashboard.Kpis.AvgUtilization.ToString("N2")%</strong>
+        <small>Últimos 30 días</small>
+    </div>
 </div>
 
 @code {
-    [Parameter, EditorRequired]
+    [Parameter]
     public ReservedInstanceDashboard Dashboard { get; set; } = new();
 }
-
-
-
-
-
-
-
-

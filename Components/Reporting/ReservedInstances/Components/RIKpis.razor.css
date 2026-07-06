@@ -1,92 +1,44 @@
-.hb-kpi-grid{
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
-    gap:18px;
-    margin-bottom:24px;
+.ri-kpis {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 16px;
 }
 
-.hb-kpi{
-    background:#ffffff;
-    border:1px solid #e2e8f0;
-    border-radius:18px;
-    padding:22px;
-    box-shadow:0 10px 26px rgba(15,23,42,.06);
+.ri-kpi {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 18px;
+    padding: 20px;
+    box-shadow: 0 6px 18px rgba(15, 23, 42, .05);
 }
 
-.hb-kpi span{
-    display:block;
-    color:#64748b;
-    font-size:13px;
-    font-weight:800;
+.ri-kpi span {
+    color: #64748b;
+    font-weight: 800;
+    font-size: 12px;
+    text-transform: uppercase;
 }
 
-.hb-kpi strong{
-    display:block;
-    margin-top:10px;
-    color:#2563eb;
-    font-size:36px;
-    font-weight:900;
+.ri-kpi strong {
+    display: block;
+    margin-top: 10px;
+    font-size: 34px;
+    font-weight: 900;
 }
 
-.hb-kpi small{
-    display:block;
-    margin-top:8px;
-    color:#475569;
-    font-size:13px;
-}
-.hb-kpi-health strong {
-    color: #0f766e;
+.ri-kpi small {
+    color: #94a3b8;
 }
 
-.hb-kpi-health {
-    border-color: #99f6e4;
-    background: linear-gradient(180deg, #ffffff 0%, #f0fdfa 100%);
+.ri-kpi.primary { border-left: 5px solid #2563eb; }
+.ri-kpi.success { border-left: 5px solid #16a34a; }
+.ri-kpi.warning { border-left: 5px solid #f59e0b; }
+.ri-kpi.danger { border-left: 5px solid #dc2626; }
+.ri-kpi.info { border-left: 5px solid #0891b2; }
+.ri-kpi.purple { border-left: 5px solid #7c3aed; }
+
+@media (max-width: 1300px) {
+    .ri-kpis {
+        grid-template-columns: repeat(2, 1fr);
+    }
 }
-
-.hb-kpi-success strong {
-    color: #16a34a;
-}
-
-.hb-kpi-success {
-    border-color: #bbf7d0;
-    background: linear-gradient(180deg, #ffffff 0%, #f0fdf4 100%);
-}
-
-.hb-kpi-danger strong {
-    color: #dc2626;
-}
-
-.hb-kpi-danger {
-    border-color: #fecaca;
-    background: linear-gradient(180deg, #ffffff 0%, #fef2f2 100%);
-}
-.hb-kpi-health strong {
-    color: #0f766e;
-}
-
-.hb-kpi-health {
-    border-color: #99f6e4;
-    background: linear-gradient(180deg, #ffffff 0%, #f0fdfa 100%);
-}
-
-.hb-kpi-success strong {
-    color: #16a34a;
-}
-
-.hb-kpi-success {
-    border-color: #bbf7d0;
-    background: linear-gradient(180deg, #ffffff 0%, #f0fdf4 100%);
-}
-
-.hb-kpi-danger strong {
-    color: #dc2626;
-}
-
-.hb-kpi-danger {
-    border-color: #fecaca;
-    background: linear-gradient(180deg, #ffffff 0%, #fef2f2 100%);
-}
-
-
-
-
