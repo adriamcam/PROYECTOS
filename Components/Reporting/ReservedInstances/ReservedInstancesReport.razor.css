@@ -1,47 +1,118 @@
 .ri-page{
     display:flex;
     flex-direction:column;
-    gap:20px;
+    gap:18px;
 }
 
 .ri-header{
     display:flex;
     justify-content:space-between;
-    align-items:center;
+    align-items:flex-start;
+    gap:24px;
 }
 
 .ri-header h1{
     margin:0;
-    font-size:32px;
-    font-weight:700;
+    color:#0f172a;
+    font-size:30px;
+    font-weight:800;
 }
 
 .ri-header p{
+    margin:8px 0 0;
     color:#64748b;
-    margin-top:8px;
+    font-size:15px;
 }
 
-.ri-tabs{
-    display:flex;
-    gap:10px;
-}
-
-.ri-tabs button{
-    border:none;
-    padding:12px 22px;
-    border-radius:12px;
+.ri-refresh-btn{
+    border:0;
+    border-radius:14px;
+    padding:10px 16px;
+    font-weight:800;
     cursor:pointer;
-    background:#f1f5f9;
-}
-
-.ri-tabs button.active{
     background:#2563eb;
     color:white;
 }
 
-.ri-card{
+.ri-tabs{
+    display:flex;
+    gap:8px;
+    padding:8px;
+    border-radius:18px;
+    background:#f1f5f9;
+    width:max-content;
+}
+
+.ri-tabs button{
+    border:0;
+    border-radius:13px;
+    padding:10px 18px;
+    background:transparent;
+    color:#475569;
+    font-weight:800;
+    cursor:pointer;
+}
+
+.ri-tabs button.active{
     background:white;
-    border-radius:16px;
-    border:1px solid #E5E7EB;
-    padding:30px;
+    color:#0f172a;
+    box-shadow:0 8px 18px rgba(15,23,42,.08);
+}
+
+.ri-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:16px;
+}
+
+.ri-card{
+    padding:20px;
+    border-radius:22px;
+    background:white;
+    border:1px solid #e2e8f0;
+    box-shadow:0 12px 30px rgba(15,23,42,.06);
+}
+
+.ri-card-header h3{
+    margin:0;
+    color:#0f172a;
+    font-size:18px;
+}
+
+.ri-card-header p{
+    margin:5px 0 0;
+    color:#64748b;
+    font-size:13px;
+}
+
+.ri-list{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    margin-top:18px;
+}
+
+.ri-list div{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:12px 14px;
+    border-radius:14px;
+    background:#f8fafc;
+}
+
+.ri-list strong{
+    color:#0f172a;
+    font-weight:900;
+}
+
+.ri-list span{
+    color:#2563eb;
+    font-weight:900;
+}
+
+@media(max-width:1200px){
+    .ri-grid{
+        grid-template-columns:1fr;
+    }
 }

@@ -1,13 +1,56 @@
 @namespace ITQS.SupportOperationsCenter.Components.Reporting.ReservedInstances.Components
 @using ITQS.SupportOperationsCenter.Components.Reporting.ReservedInstances.Models
 
-<div class="ri-kpis">
-    <div class="ri-kpi primary"><span>Recursos con RI</span><strong>@Dashboard.Kpis.TotalResources</strong><small>Total monitoreado</small></div>
-    <div class="ri-kpi success"><span>Healthy</span><strong>@Dashboard.Kpis.HealthyCount</strong><small>Sin problemas</small></div>
-    <div class="ri-kpi warning"><span>SKU Cambiado</span><strong>@Dashboard.Kpis.SkuMismatchCount</strong><small>Reserva vs VM diferente</small></div>
-    <div class="ri-kpi danger"><span>Baja utilización</span><strong>@Dashboard.Kpis.LowUtilizationCount</strong><small>Menor a 80%</small></div>
-    <div class="ri-kpi info"><span>Por vencer</span><strong>@Dashboard.Kpis.ExpiringSoonCount</strong><small>Menos de 90 días</small></div>
-    <div class="ri-kpi purple"><span>Utilización promedio</span><strong>@Dashboard.Kpis.AvgUtilization.ToString("N2")%</strong><small>Últimos 30 días</small></div>
+<div class="ri-kpi-grid">
+
+    <div class="ri-kpi">
+        <span>Recursos RI</span>
+        <strong>@Dashboard.Kpis.TotalResources</strong>
+        <small>Recursos monitoreados</small>
+    </div>
+
+    <div class="ri-kpi">
+        <span>Clientes con RI</span>
+        <strong>@Dashboard.Kpis.TotalCustomers</strong>
+        <small>Clientes con reservas</small>
+    </div>
+
+    <div class="ri-kpi">
+        <span>Suscripciones</span>
+        <strong>@Dashboard.Kpis.TotalSubscriptions</strong>
+        <small>Suscripciones evaluadas</small>
+    </div>
+
+    <div class="ri-kpi ri-kpi-health">
+        <span>Health Score</span>
+        <strong>@Dashboard.Kpis.AvgUtilization.ToString("N2")%</strong>
+        <small>Estado general</small>
+    </div>
+
+    <div class="ri-kpi ri-kpi-success">
+        <span>Healthy</span>
+        <strong>@Dashboard.Kpis.HealthyCount</strong>
+        <small>Sin problemas detectados</small>
+    </div>
+
+    <div class="ri-kpi ri-kpi-danger">
+        <span>Reservas con problemas</span>
+        <strong>@(Dashboard.Kpis.SkuMismatchCount + Dashboard.Kpis.DateMismatchCount + Dashboard.Kpis.LowUtilizationCount + Dashboard.Kpis.ExpiringSoonCount + Dashboard.Kpis.ExpiredCount)</strong>
+        <small>Requieren revisión</small>
+    </div>
+
+    <div class="ri-kpi ri-kpi-warning">
+        <span>SKU Cambiado</span>
+        <strong>@Dashboard.Kpis.SkuMismatchCount</strong>
+        <small>Reserva vs VM diferente</small>
+    </div>
+
+    <div class="ri-kpi ri-kpi-warning">
+        <span>Por vencer</span>
+        <strong>@Dashboard.Kpis.ExpiringSoonCount</strong>
+        <small>Menos de 90 días</small>
+    </div>
+
 </div>
 
 @code {
