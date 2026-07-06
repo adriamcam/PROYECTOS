@@ -7,4 +7,6 @@ public interface IReservedInstanceService
     Task<ReservedInstanceDashboard> GetDashboardAsync();
 
     Task<List<ReservedInstanceResource>> GetResourcesAsync();
+    Task<List<ReservedInstanceChangeHistory>> GetChangeHistoryAsync(string resourceKey);
 }
+

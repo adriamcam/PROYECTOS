@@ -3,8 +3,10 @@
 @using System.Text
 @using Microsoft.JSInterop
 @using ITQS.SupportOperationsCenter.Components.Reporting.ReservedInstances.Models
+@using ITQS.SupportOperationsCenter.Components.Reporting.ReservedInstances.Services
 
 @inject IJSRuntime JS
+@inject IReservedInstanceService ReservedInstanceService
 
 <section class="ri-action-page">
 
@@ -239,6 +241,7 @@
     [Parameter] public List<ReservedInstanceResource> Resources { get; set; } = new();
 
     private ReservedInstanceResource? SelectedResource { get; set; }
+    private List<ReservedInstanceChangeHistory> ChangeHistory { get; set; } = new();
 
     private string SearchText { get; set; } = "";
     private string ProblemFilter { get; set; } = "";
@@ -481,6 +484,7 @@
         return "\"" + value.Replace("\"", "\"\"") + "\"";
     }
 }
+
 
 
 

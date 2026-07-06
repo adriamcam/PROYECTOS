@@ -63,4 +63,18 @@ public sealed class ReservedInstanceService : IReservedInstanceService
 
         return result.ToList();
     }
+    public async Task<List<ReservedInstanceChangeHistory>> GetChangeHistoryAsync(string resourceKey)
+    {
+        using var conn = _connectionFactory.CreateConnection();
+
+        var result = await conn.QueryAsync<ReservedInstanceChangeHistory>(
+            "dbo.sp_RI_GetChangeHistory",
+            new { ResourceKey = resourceKey },
+            commandType: CommandType.StoredProcedure,
+            commandTimeout: 120
+        );
+
+        return result.ToList();
+    }
 }
+
