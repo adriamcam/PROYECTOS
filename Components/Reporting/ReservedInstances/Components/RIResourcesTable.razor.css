@@ -249,7 +249,8 @@
     display:flex;
     justify-content:space-between;
     align-items:center;
-    margin-top:18px;
+    gap:12px;
+    margin-top:14px;
     padding:0 4px;
 }
 
@@ -257,6 +258,7 @@
     margin-left:auto;
     display:flex;
     align-items:center;
+    justify-content:flex-end;
     gap:6px;
 }
 
@@ -458,7 +460,8 @@
     display:flex;
     justify-content:space-between;
     align-items:center;
-    margin-top:18px;
+    gap:12px;
+    margin-top:14px;
     padding:0 4px;
 }
 }
@@ -494,3 +497,65 @@
     color:#b91c1c;
 }
 
+
+
+/* ===== Compact Right Pagination Fix ===== */
+
+.ri-table-footer{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:12px;
+    margin-top:14px;
+    padding:0 4px;
+}
+
+.ri-table-footer-info{
+    color:#475569;
+    font-size:13px;
+    font-weight:800;
+}
+
+.ri-table-footer-info span{
+    display:block;
+    margin-top:3px;
+    color:#64748b;
+    font-size:12px;
+}
+
+.ri-pagination-actions{
+    margin-left:auto;
+    display:flex;
+    align-items:center;
+    justify-content:flex-end;
+    gap:6px;
+}
+
+.ri-pagination-actions button{
+    min-width:30px;
+    height:30px;
+    border:none;
+    border-radius:9px;
+    padding:0 10px;
+    background:#f1f5f9;
+    color:#475569;
+    font-size:12px;
+    font-weight:900;
+    cursor:pointer;
+}
+
+.ri-pagination-actions button:hover{
+    background:#dbeafe;
+    color:#1d4ed8;
+}
+
+.ri-pagination-actions button.active{
+    background:#2563eb;
+    color:#ffffff;
+}
+
+.ri-pagination-actions button:disabled{
+    background:#f8fafc;
+    color:#cbd5e1;
+    cursor:not-allowed;
+}

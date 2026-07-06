@@ -189,20 +189,25 @@
             </tbody>
         </table>
     </div>
-
     <div class="ri-table-footer">
-        <div>
-            Mostrando <strong>@PagedResources.Count()</strong> de <strong>@FilteredResources.Count()</strong> registros
+        <div class="ri-table-footer-info">
+            Mostrando <strong>@PagedResources.Count()</strong> de <strong>@TotalRecords</strong> registros
+            <span>Página @CurrentPage de @TotalPages</span>
         </div>
 
-        <div>
-            Página <strong>@CurrentPage</strong> de <strong>@TotalPages</strong>
-        </div>
-
-        <div class="ri-pagination">
+        <div class="ri-pagination-actions">
             <button type="button" @onclick="FirstPage" disabled="@(CurrentPage == 1)">«</button>
-            <button type="button" @onclick="PreviousPage" disabled="@(CurrentPage == 1)">‹</button>
-            <button type="button" class="active">@CurrentPage</button>
+            <button type="button" @onclick="PrevPage" disabled="@(CurrentPage == 1)">‹</button>
+
+            @foreach (var pageNumber in VisiblePages)
+            {
+                <button type="button"
+                        class="@(pageNumber == CurrentPage ? "active" : "")"
+                        @onclick="() => GoToPage(pageNumber)">
+                    @pageNumber
+                </button>
+            }
+
             <button type="button" @onclick="NextPage" disabled="@(CurrentPage >= TotalPages)">›</button>
             <button type="button" @onclick="LastPage" disabled="@(CurrentPage >= TotalPages)">»</button>
         </div>
@@ -557,42 +562,34 @@ private void ClearFilters()
         if (item.DaysRemaining <= 90) return "ri-pill warning";
         return "ri-pill success";
     }
+    private int TotalRecords => FilteredResources.Count();
+
+    private IEnumerable<int> VisiblePages
+    {
+        get
+        {
+            var start = Math.Max(1, CurrentPage - 2);
+            var end = Math.Min(TotalPages, CurrentPage + 2);
+
+            for (var i = start; i <= end; i++)
+            {
+                yield return i;
+            }
+        }
+    }
+
+    private void GoToPage(int pageNumber)
+    {
+        CurrentPage = pageNumber;
+    }
+private void PrevPage()
+    {
+        if (CurrentPage > 1)
+        {
+            CurrentPage--;
+        }
+    }
+
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
