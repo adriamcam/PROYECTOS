@@ -849,6 +849,55 @@ Para ello, sigue estos pasos: abre un navegador como Chrome o Edge, preferibleme
     protected static string FormatDateTime(DateTime? value)
         => value.HasValue ? value.Value.ToString("dd/MM/yyyy HH:mm") : "-";
 
+
+    protected static string NotificationCaseText(string value)
+    {
+        return value switch
+        {
+            "GDAP_ACTIVE_EXPIRING_WITH_PENDING_APPROVAL_LINK" => "Vence con approval link",
+            "GDAP_ACTIVE_EXPIRING_NO_PENDING_APPROVAL" => "Vence sin approval link",
+            "GDAP_APPROVAL_PENDING" => "Approval pendiente",
+            "GDAP_WITHOUT_RELATIONSHIP" => "Sin relación GDAP",
+            _ => string.IsNullOrWhiteSpace(value) ? "-" : value.Replace("_", " ")
+        };
+    }
+
+    protected static string NotificationStageText(string value)
+    {
+        return value switch
+        {
+            "INTERNAL_NO_PENDING_APPROVAL" => "Validación interna",
+            "CLIENT_NOTIFICATION_1" => "Notificación cliente #1",
+            "CLIENT_NOTIFICATION_2" => "Notificación cliente #2",
+            "CLIENT_NOTIFICATION_3" => "Notificación cliente #3",
+            "SALES_VALIDATION" => "Validación ventas",
+            _ => string.IsNullOrWhiteSpace(value) ? "-" : value.Replace("_", " ")
+        };
+    }
+
+    protected static string NotificationStatusText(string value)
+    {
+        return value switch
+        {
+            "Sent" => "Enviado",
+            "TestIgnored" => "Ignorado prueba",
+            "Failed" => "Fallido",
+            "Pending" => "Pendiente",
+            _ => string.IsNullOrWhiteSpace(value) ? "-" : value
+        };
+    }
+
+    protected static string NotificationStatusCss(string value)
+    {
+        var status = value?.ToLowerInvariant() ?? string.Empty;
+
+        if (status.Contains("sent")) return "active";
+        if (status.Contains("failed") || status.Contains("error")) return "danger";
+        if (status.Contains("ignored")) return "neutral";
+        if (status.Contains("pending")) return "pending";
+
+        return "neutral";
+    }
     protected static string StatusText(GdapAdminLinksCustomerModel item)
         => string.IsNullOrWhiteSpace(item.StatusFound) ? "Sin estado" : item.StatusFound;
 

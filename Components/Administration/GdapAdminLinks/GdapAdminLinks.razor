@@ -351,12 +351,12 @@
                                 <strong>@item.CustomerName</strong>
                                 <small>@item.PartnerTenant</small>
                             </span>
-                            <span>@item.NotificationCase</span>
-                            <span>@item.NotificationStage</span>
+                            <span>@NotificationCaseText(item.NotificationCase)</span>
+                            <span>@NotificationStageText(item.NotificationStage)</span>
                             <span>@(item.DaysToExpire.HasValue ? item.DaysToExpire.Value.ToString() : "-")</span>
                             <span>@FormatDate(item.ActiveEndDate)</span>
                             <span>@(string.IsNullOrWhiteSpace(item.SentTo) ? "-" : item.SentTo)</span>
-                            <span>@(string.IsNullOrWhiteSpace(item.Status) ? "-" : item.Status)</span>
+                            <span><span class="status-pill @NotificationStatusCss(item.Status)">@NotificationStatusText(item.Status)</span></span>
                             <span>
                                 <strong>@FormatDateTime(item.SentAt)</strong>
                                 <small>@item.FlowName</small>
