@@ -41,6 +41,7 @@ public partial class GdapAdminLinks : ComponentBase
     protected List<GdapAdminLinksCustomerModel> ExpiringItems { get; set; } = new();
     protected List<GdapAdminLinksReportModel> PartnerReports { get; set; } = new();
     protected List<GdapAdminLinksAuditEventModel> AuditEvents { get; set; } = new();
+    protected List<GdapNotificationLogModel> NotificationLogs { get; set; } = new();
     protected List<GdapAdminLinksAuditEventModel> NotificationEvents =>
         AuditEvents
             .Where(IsNotificationEvent)
@@ -216,6 +217,10 @@ public partial class GdapAdminLinks : ComponentBase
     protected async Task LoadAuditAsync()
     {
         AuditEvents = (await GdapService.GetAuditEventsAsync()).ToList();
+    }
+    protected async Task LoadNotificationLogsAsync()
+    {
+        NotificationLogs = (await GdapService.GetNotificationLogsAsync()).ToList();
     }
 
     protected async Task ExportCustomersCsvAsync()

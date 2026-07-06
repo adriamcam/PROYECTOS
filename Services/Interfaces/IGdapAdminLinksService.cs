@@ -18,6 +18,7 @@ public interface IGdapAdminLinksService
     Task<GdapAdminLinksActionResult> EnableCustomerAsync(int id, string updatedBy);
     Task<GdapAdminLinksActionResult> ExecuteAutomationAsync(int id, string requestedBy);
     Task<GdapAdminLinksActionResult> SyncCustomerAsync(int id, string requestedBy);
+    Task<IReadOnlyList<GdapNotificationLogModel>> GetNotificationLogsAsync();
     Task<IReadOnlyList<GdapMailTemplateModel>> GetMailTemplatesAsync();
     Task<GdapMailPreviewModel> PreviewEmailAsync(int customerId, int templateId);
     Task<GdapAdminLinksActionResult> SendEmailAsync(GdapMailSendRequest request);

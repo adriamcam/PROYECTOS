@@ -522,6 +522,71 @@ VALUES
 
 
 
+    public async Task<IReadOnlyList<GdapNotificationLogModel>> GetNotificationLogsAsync()
+    {
+        var list = new List<GdapNotificationLogModel>();
+
+        await using var conn = await OpenConnectionAsync();
+        await using var cmd = conn.CreateCommand();
+
+        cmd.CommandType = CommandType.Text;
+        cmd.CommandTimeout = 120;
+        cmd.CommandText = @"
+SELECT TOP 500
+    Id,
+    CustomerTenantId,
+    CustomerName,
+    PartnerTenant,
+    NotificationCase,
+    NotificationStage,
+    DaysToExpire,
+    ActiveEndDate,
+    ApprovalPendingLink,
+    SentTo,
+    SentCc,
+    FlowName,
+    FlowRunId,
+    Status,
+    SentAt,
+    CreatedAt,
+    ResolvedAt,
+    ResolutionStatus,
+    ResolutionReason
+FROM dbo.GDAP_NotificationLog
+ORDER BY
+    ISNULL(SentAt, CreatedAt) DESC,
+    Id DESC;";
+
+        await using var reader = await cmd.ExecuteReaderAsync();
+
+        while (await reader.ReadAsync())
+        {
+            list.Add(new GdapNotificationLogModel
+            {
+                Id = GetInt(reader, "Id"),
+                CustomerTenantId = GetString(reader, "CustomerTenantId"),
+                CustomerName = GetString(reader, "CustomerName"),
+                PartnerTenant = GetString(reader, "PartnerTenant"),
+                NotificationCase = GetString(reader, "NotificationCase"),
+                NotificationStage = GetString(reader, "NotificationStage"),
+                DaysToExpire = GetNullableInt(reader, "DaysToExpire"),
+                ActiveEndDate = GetNullableDate(reader, "ActiveEndDate"),
+                ApprovalPendingLink = GetString(reader, "ApprovalPendingLink"),
+                SentTo = GetString(reader, "SentTo"),
+                SentCc = GetString(reader, "SentCc"),
+                FlowName = GetString(reader, "FlowName"),
+                FlowRunId = GetString(reader, "FlowRunId"),
+                Status = GetString(reader, "Status"),
+                SentAt = GetNullableDate(reader, "SentAt"),
+                CreatedAt = GetNullableDate(reader, "CreatedAt"),
+                ResolvedAt = GetNullableDate(reader, "ResolvedAt"),
+                ResolutionStatus = GetString(reader, "ResolutionStatus"),
+                ResolutionReason = GetString(reader, "ResolutionReason")
+            });
+        }
+
+        return list;
+    }
     public async Task<IReadOnlyList<GdapMailTemplateModel>> GetMailTemplatesAsync()
     {
         var list = new List<GdapMailTemplateModel>();

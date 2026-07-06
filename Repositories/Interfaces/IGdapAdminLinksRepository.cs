@@ -19,6 +19,7 @@ public interface IGdapAdminLinksRepository
     Task RegisterHistoryAsync(int id, string eventType, string description, string executedBy, string? approvalUrl = null);
     Task MarkAutomationStartedAsync(GdapAdminLinksAutomationRequest request, string jobId);
     Task MarkAutomationFinishedAsync(GdapAdminLinksAutomationRequest request, GdapAdminLinksAutomationResult result);
+    Task<IReadOnlyList<GdapNotificationLogModel>> GetNotificationLogsAsync();
     Task<IReadOnlyList<GdapMailTemplateModel>> GetMailTemplatesAsync();
     Task<GdapMailTemplateModel?> GetMailTemplateAsync(int id);
     Task<GdapMailTemplateModel?> GetDefaultMailTemplateAsync();

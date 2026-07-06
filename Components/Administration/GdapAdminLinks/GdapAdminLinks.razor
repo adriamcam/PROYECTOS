@@ -320,12 +320,12 @@
                 <div class="section-header">
                     <div>
                         <h3>Log de Notificaciones GDAP</h3>
-                        <p>Historial de correos, recordatorios e intentos de notificación registrados para clientes GDAP.</p>
+                        <p>Historial de notificaciones generadas por el flujo GDAP, incluyendo etapa, destinatario, estado y fecha de envío.</p>
                     </div>
-                    <button class="btn-primary" @onclick="LoadAuditAsync">↻ Refrescar notificaciones</button>
+                    <button class="btn-primary" @onclick="LoadNotificationLogsAsync">↻ Refrescar notificaciones</button>
                 </div>
 
-                @if (!NotificationEvents.Any())
+                @if (!NotificationLogs.Any())
                 {
                     <div class="empty-state">
                         No hay notificaciones registradas por el momento.
@@ -333,43 +333,40 @@
                 }
                 else
                 {
-                    <div class="gdap-row audit-head">
-                        <span>Fecha</span>
+                    <div class="gdap-row mail-head">
                         <span>Cliente</span>
-                        <span>Partner</span>
-                        <span>Evento</span>
-                        <span>Ejecutado por</span>
-                        <span>Detalle</span>
-                        <span>URL</span>
+                        <span>Caso</span>
+                        <span>Etapa</span>
+                        <span>Días</span>
+                        <span>Vence</span>
+                        <span>Enviado a</span>
+                        <span>Status</span>
+                        <span>Flow</span>
                     </div>
 
-                    @foreach (var item in NotificationEvents)
+                    @foreach (var item in NotificationLogs)
                     {
-                        <div class="gdap-row audit-row">
-                            <span>@FormatDateTime(item.EventDate)</span>
+                        <div class="gdap-row mail-row">
                             <span>
                                 <strong>@item.CustomerName</strong>
-                                <small>@item.CustomerTenantId</small>
+                                <small>@item.PartnerTenant</small>
                             </span>
-                            <span>@item.PartnerTenant</span>
-                            <span>@item.EventType</span>
-                            <span>@item.ExecutedBy</span>
-                            <span>@item.Description</span>
-                            <span class="row-actions">
-                                @if (!string.IsNullOrWhiteSpace(item.ApprovalUrl))
-                                {
-                                    <a href="@item.ApprovalUrl" target="_blank">🔗</a>
-                                }
-                                else
-                                {
-                                    <small>-</small>
-                                }
+                            <span>@item.NotificationCase</span>
+                            <span>@item.NotificationStage</span>
+                            <span>@(item.DaysToExpire.HasValue ? item.DaysToExpire.Value.ToString() : "-")</span>
+                            <span>@FormatDate(item.ActiveEndDate)</span>
+                            <span>@(string.IsNullOrWhiteSpace(item.SentTo) ? "-" : item.SentTo)</span>
+                            <span>@(string.IsNullOrWhiteSpace(item.Status) ? "-" : item.Status)</span>
+                            <span>
+                                <strong>@FormatDateTime(item.SentAt)</strong>
+                                <small>@item.FlowName</small>
                             </span>
                         </div>
                     }
                 }
             </section>
         }
+
         else if (ActiveTab == "Expiring")
         {
             <section class="gdap-table-card">

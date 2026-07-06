@@ -322,6 +322,9 @@ public async Task<GdapAdminLinksActionResult> ExecuteAutomationAsync(int id, str
     }
 
 
+    public Task<IReadOnlyList<GdapNotificationLogModel>> GetNotificationLogsAsync()
+        => _repository.GetNotificationLogsAsync();
+
     public Task<IReadOnlyList<GdapMailTemplateModel>> GetMailTemplatesAsync()
         => _repository.GetMailTemplatesAsync();
 
