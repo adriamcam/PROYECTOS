@@ -41,6 +41,24 @@ public partial class GdapAdminLinks : ComponentBase
     protected List<GdapAdminLinksCustomerModel> ExpiringItems { get; set; } = new();
     protected List<GdapAdminLinksReportModel> PartnerReports { get; set; } = new();
     protected List<GdapAdminLinksAuditEventModel> AuditEvents { get; set; } = new();
+    protected List<GdapAdminLinksAuditEventModel> NotificationEvents =>
+        AuditEvents
+            .Where(IsNotificationEvent)
+            .OrderByDescending(x => x.EventDate)
+            .Take(300)
+            .ToList();
+
+    private static bool IsNotificationEvent(GdapAdminLinksAuditEventModel item)
+    {
+        var text = $"{item.EventType} {item.Description}".ToLowerInvariant();
+
+        return text.Contains("correo")
+            || text.Contains("email")
+            || text.Contains("mail")
+            || text.Contains("notificacion")
+            || text.Contains("notificación")
+            || text.Contains("approval");
+    }
 
     protected bool ShowDetail { get; set; }
     protected GdapAdminLinksCustomerModel? SelectedDetail { get; set; }
@@ -159,14 +177,13 @@ public partial class GdapAdminLinks : ComponentBase
             await LoadExpiringAsync();
         else if (tab == "Templates")
             await LoadTemplatesAsync();
+        else if (tab == "Notifications")
+            await LoadAuditAsync();
         else if (tab == "Reports")
             await LoadReportsAsync();
         else if (tab == "Audit")
             await LoadAuditAsync();
-            await LoadReportsAsync();
-            await LoadAuditAsync();
     }
-
     protected async Task LoadItemsAsync()
     {
         Items = (await GdapService.GetCustomersAsync(Filters)).ToList();

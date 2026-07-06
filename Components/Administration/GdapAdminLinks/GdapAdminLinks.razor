@@ -38,6 +38,7 @@
             <button class="@(ActiveTab == "Mail" ? "active" : "")" @onclick='() => ChangeTabAsync("Mail")'>Centro de Correos</button>
             <button class="@(ActiveTab == "Expiring" ? "active" : "")" @onclick='() => ChangeTabAsync("Expiring")'>Vencimientos</button>
             <button class="@(ActiveTab == "Templates" ? "active" : "")" @onclick='() => ChangeTabAsync("Templates")'>Plantillas</button>
+            <button class="@(ActiveTab == "Notifications" ? "active" : "")" @onclick='() => ChangeTabAsync("Notifications")'>Notificaciones</button>
             <button class="@(ActiveTab == "Reports" ? "active" : "")" @onclick='() => ChangeTabAsync("Reports")'>Reportes</button>
             <button class="@(ActiveTab == "Audit" ? "active" : "")" @onclick='() => ChangeTabAsync("Audit")'>Auditoría</button>
         </section>
@@ -313,6 +314,62 @@
             </section>
         }
 
+        else if (ActiveTab == "Notifications")
+        {
+            <section class="gdap-table-card">
+                <div class="section-header">
+                    <div>
+                        <h3>Log de Notificaciones GDAP</h3>
+                        <p>Historial de correos, recordatorios e intentos de notificación registrados para clientes GDAP.</p>
+                    </div>
+                    <button class="btn-primary" @onclick="LoadAuditAsync">↻ Refrescar notificaciones</button>
+                </div>
+
+                @if (!NotificationEvents.Any())
+                {
+                    <div class="empty-state">
+                        No hay notificaciones registradas por el momento.
+                    </div>
+                }
+                else
+                {
+                    <div class="gdap-row audit-head">
+                        <span>Fecha</span>
+                        <span>Cliente</span>
+                        <span>Partner</span>
+                        <span>Evento</span>
+                        <span>Ejecutado por</span>
+                        <span>Detalle</span>
+                        <span>URL</span>
+                    </div>
+
+                    @foreach (var item in NotificationEvents)
+                    {
+                        <div class="gdap-row audit-row">
+                            <span>@FormatDateTime(item.EventDate)</span>
+                            <span>
+                                <strong>@item.CustomerName</strong>
+                                <small>@item.CustomerTenantId</small>
+                            </span>
+                            <span>@item.PartnerTenant</span>
+                            <span>@item.EventType</span>
+                            <span>@item.ExecutedBy</span>
+                            <span>@item.Description</span>
+                            <span class="row-actions">
+                                @if (!string.IsNullOrWhiteSpace(item.ApprovalUrl))
+                                {
+                                    <a href="@item.ApprovalUrl" target="_blank">🔗</a>
+                                }
+                                else
+                                {
+                                    <small>-</small>
+                                }
+                            </span>
+                        </div>
+                    }
+                }
+            </section>
+        }
         else if (ActiveTab == "Expiring")
         {
             <section class="gdap-table-card">
