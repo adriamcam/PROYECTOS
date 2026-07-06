@@ -41,5 +41,9 @@ public sealed class ReservedInstanceResource
 
     public string OperationalStatus { get; set; } = "";
     public string Issue { get; set; } = "";
+    public string LastChangedBy { get; set; } = "";
+    public DateTime? LastChangeDate { get; set; }
     public DateTime? LastScanDate { get; set; }
 }
+
+
