@@ -101,7 +101,7 @@
 
 .ri-table-wrap table{
     width:100%;
-    min-width:1700px;
+    min-width:1250px;
     border-collapse:collapse;
 }
 
@@ -617,3 +617,4 @@
     font-size:13px;
     font-weight:800;
 }
+

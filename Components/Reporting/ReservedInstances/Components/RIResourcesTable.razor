@@ -80,53 +80,40 @@
 
     <div class="ri-table-wrap">
         <table>
-            <thead>
+                        <thead>
                 <tr>
-                    <th><button class="ri-sort" @onclick='() => SortBy("Status")'>Estado @GetSortIcon("Status")</button></th>
-                    <th><button class="ri-sort" @onclick='() => SortBy("Resource")'>Recurso @GetSortIcon("Resource")</button></th>
-                    <th><button class="ri-sort" @onclick='() => SortBy("Customer")'>Cliente @GetSortIcon("Customer")</button></th>
                     <th><button class="ri-sort" @onclick='() => SortBy("Subscription")'>Suscripción @GetSortIcon("Subscription")</button></th>
+                    <th><button class="ri-sort" @onclick='() => SortBy("Resource")'>Recurso @GetSortIcon("Resource")</button></th>
                     <th><button class="ri-sort" @onclick='() => SortBy("SKUReserva")'>SKU Reserva @GetSortIcon("SKUReserva")</button></th>
                     <th><button class="ri-sort" @onclick='() => SortBy("SKUVM")'>SKU VM @GetSortIcon("SKUVM")</button></th>
                     <th><button class="ri-sort" @onclick='() => SortBy("FechaReserva")'>Fecha Reserva @GetSortIcon("FechaReserva")</button></th>
                     <th><button class="ri-sort" @onclick='() => SortBy("FechaVM")'>Fecha VM @GetSortIcon("FechaVM")</button></th>
                     <th><button class="ri-sort" @onclick='() => SortBy("Days")'>Días @GetSortIcon("Days")</button></th>
                     <th><button class="ri-sort" @onclick='() => SortBy("Utilization")'>Utilización @GetSortIcon("Utilization")</button></th>
+                    <th><button class="ri-sort" @onclick='() => SortBy("Status")'>Estado @GetSortIcon("Status")</button></th>
                     <th>Recomendación</th>
-                    <th><button class="ri-sort" @onclick='() => SortBy("ChangedBy")'>Cambiado por @GetSortIcon("ChangedBy")</button></th>
-                    <th><button class="ri-sort" @onclick='() => SortBy("ChangeDate")'>Fecha cambio @GetSortIcon("ChangeDate")</button></th>
-                    <th>Acción</th>
                 </tr>
             </thead>
 
-            <tbody>
+                        <tbody>
                 @foreach (var item in PagedResources)
                 {
                     <tr>
-                        <td><span class="@GetStatusClass(item.OperationalStatus)">@GetStatusText(item.OperationalStatus)</span></td>
+                        <td>@Normalize(item.Subscription)</td>
 
                         <td>
                             <div class="ri-resource-name">@Normalize(item.ResourceName)</div>
                             <small>@Normalize(item.Region)</small>
                         </td>
 
-                        <td>@Normalize(item.Customer)</td>
-                        <td>@Normalize(item.Subscription)</td>
                         <td><span class="ri-sku">@Normalize(item.SKUReserva)</span></td>
                         <td><span class="ri-sku">@Normalize(item.SKUVM)</span></td>
                         <td>@(item.FechaReserva?.ToString("dd/MM/yyyy") ?? "-")</td>
                         <td>@(item.FechaVM?.ToString("dd/MM/yyyy") ?? "-")</td>
                         <td><span class="@GetDaysClass(item)">@(item.DaysRemaining?.ToString() ?? "-")</span></td>
                         <td><span class="@GetUtilClass(item.Utilization30d)">@((item.Utilization30d ?? 0).ToString("N2"))%</span></td>
+                        <td><span class="@GetStatusClass(item.OperationalStatus)">@GetStatusText(item.OperationalStatus)</span></td>
                         <td><span class="@GetRecommendationClass(item)">@GetRecommendation(item)</span></td>
-                        <td>@(string.IsNullOrWhiteSpace(item.LastChangedBy) ? "Sin dato" : item.LastChangedBy)</td>
-                        <td>@(item.LastChangeDate?.ToString("dd/MM/yyyy HH:mm") ?? "-")</td>
-
-                        <td>
-                            <button class="ri-detail-btn" type="button" @onclick="() => OpenDrawer(item)">
-                                Ver detalle
-                            </button>
-                        </td>
                     </tr>
                 }
             </tbody>
@@ -464,4 +451,6 @@
         _ => "Revisar recurso"
     };
 }
+
+
 
