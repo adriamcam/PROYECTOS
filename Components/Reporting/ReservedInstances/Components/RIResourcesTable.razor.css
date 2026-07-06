@@ -54,7 +54,7 @@
 
 .ri-resource-filters{
     display:grid;
-    grid-template-columns:220px 260px 220px 1fr 120px auto;
+    grid-template-columns:260px 220px 1fr 120px auto;
     gap:12px;
     margin:18px 0;
 }
@@ -559,3 +559,4 @@
     color:#cbd5e1;
     cursor:not-allowed;
 }
+

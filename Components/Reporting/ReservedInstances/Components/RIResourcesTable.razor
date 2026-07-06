@@ -21,22 +21,22 @@
     <div class="ri-resource-summary">
         <div class="primary">
             <strong>@FilteredResources.Count()</strong>
-            <span>Recursos filtrados</span>
+            <span>Total de recursos filtrados</span>
         </div>
 
         <div class="danger">
-            <strong>@FilteredResources.Count(x => x.OperationalStatus != "Healthy")</strong>
-            <span>Issues filtrados</span>
+            <strong>@FilteredResources.Count(x => x.OperationalStatus != "Recursos Healthy")</strong>
+            <span>Requiere accion filtrados</span>
         </div>
 
         <div class="success">
-            <strong>@FilteredResources.Count(x => x.OperationalStatus == "Healthy")</strong>
-            <span>Healthy filtrados</span>
+            <strong>@FilteredResources.Count(x => x.OperationalStatus == "Recursos Healthy")</strong>
+            <span>Recursos Healthy filtrados</span>
         </div>
 
         <div class="info">
             <strong>@FilteredResources.Count(x => x.OperationalStatus == "Expiring Soon")</strong>
-            <span>Por vencer filtrados</span>
+            <span>IR por vencer filtrados</span>
         </div>
     </div>
 
@@ -59,11 +59,11 @@
 
         <select @bind="StatusFilter" @bind:after="ResetPage">
             <option value="">Todos los estados</option>
-            <option value="Healthy">Healthy</option>
+            <option value="Recursos Healthy">Recursos Healthy</option>
             <option value="SKU Mismatch">SKU diferente</option>
             <option value="Date Mismatch">Fecha no coincide</option>
             <option value="Low Utilization">Baja utilización</option>
-            <option value="Expiring Soon">Por vencer</option>
+            <option value="Expiring Soon">IR por vencer</option>
             <option value="Expired">Expirada</option>
         </select>
 
@@ -510,18 +510,18 @@ private void ClearFilters()
     }
     private static string GetStatusText(string status) => status switch
     {
-        "Healthy" => "Healthy",
+        "Recursos Healthy" => "Recursos Healthy",
         "SKU Mismatch" => "SKU diferente",
         "Date Mismatch" => "Fecha no coincide",
         "Low Utilization" => "Baja utilización",
-        "Expiring Soon" => "Por vencer",
+        "Expiring Soon" => "IR por vencer",
         "Expired" => "Expirada",
         _ => status
     };
 
     private static string GetStatusClass(string status) => status switch
     {
-        "Healthy" => "ri-badge success",
+        "Recursos Healthy" => "ri-badge success",
         "SKU Mismatch" => "ri-badge warning",
         "Date Mismatch" => "ri-badge danger",
         "Low Utilization" => "ri-badge purple",
@@ -591,5 +591,6 @@ private void PrevPage()
     }
 
 }
+
 
 
