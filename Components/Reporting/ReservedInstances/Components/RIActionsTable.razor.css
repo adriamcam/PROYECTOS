@@ -125,3 +125,139 @@
         grid-template-columns:1fr;
     }
 }
+
+/* ===== RI Action Center Table Professional Layout ===== */
+
+.ri-action-panel .ri-table-wrap{
+    overflow:auto;
+    border:1px solid #e2e8f0;
+    border-radius:18px;
+    background:#ffffff;
+    box-shadow:0 10px 28px rgba(15,23,42,.06);
+}
+
+.ri-action-panel table{
+    width:100%;
+    min-width:1280px;
+    border-collapse:collapse;
+}
+
+.ri-action-panel th{
+    position:sticky;
+    top:0;
+    z-index:3;
+    padding:14px 16px;
+    background:#f8fafc;
+    color:#334155;
+    border-bottom:1px solid #e2e8f0;
+    font-size:12px;
+    font-weight:900;
+    text-transform:uppercase;
+    text-align:left;
+    white-space:nowrap;
+}
+
+.ri-action-panel td{
+    padding:16px;
+    border-bottom:1px solid #edf2f7;
+    color:#334155;
+    font-size:13px;
+    vertical-align:middle;
+}
+
+.ri-action-panel tbody tr:nth-child(even){
+    background:#fbfdff;
+}
+
+.ri-action-panel tbody tr:hover{
+    background:#eff6ff;
+}
+
+.ri-action-main{
+    color:#0f172a;
+    font-weight:900;
+}
+
+.ri-action-resource{
+    color:#0f172a;
+    font-weight:900;
+}
+
+.ri-action-panel small{
+    display:block;
+    margin-top:5px;
+    color:#64748b;
+    font-size:12px;
+    font-weight:700;
+}
+
+.ri-action-sku{
+    display:inline-flex;
+    align-items:center;
+    max-width:260px;
+    padding:7px 12px;
+    border-radius:999px;
+    background:#f1f5f9;
+    color:#334155;
+    font-size:11px;
+    font-weight:900;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+
+.ri-action-detail{
+    max-width:260px;
+    color:#475569;
+    font-size:13px;
+    font-weight:800;
+    line-height:1.35;
+}
+
+.ri-action-user{
+    display:inline-flex;
+    padding:6px 10px;
+    border-radius:999px;
+    background:#eef2ff;
+    color:#3730a3;
+    font-size:11px;
+    font-weight:900;
+}
+
+.ri-action-date{
+    color:#475569;
+    font-size:12px;
+    font-weight:800;
+    white-space:nowrap;
+}
+
+.ri-action-panel .ri-badge{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:999px;
+    padding:6px 11px;
+    font-size:11px;
+    font-weight:900;
+    white-space:nowrap;
+}
+
+.ri-action-panel .ri-badge.danger{
+    background:#fee2e2;
+    color:#b91c1c;
+}
+
+.ri-action-panel .ri-badge.warning{
+    background:#ffedd5;
+    color:#c2410c;
+}
+
+.ri-action-panel .ri-badge.info{
+    background:#dbeafe;
+    color:#1d4ed8;
+}
+
+.ri-action-panel .ri-badge.muted{
+    background:#f1f5f9;
+    color:#64748b;
+}

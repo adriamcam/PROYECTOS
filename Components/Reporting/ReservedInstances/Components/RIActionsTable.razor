@@ -79,44 +79,65 @@
 
         <div class="ri-table-wrap">
             <table>
-                <thead>
+                                <thead>
                     <tr>
                         <th>Prioridad</th>
-                        <th>Estado</th>
-                        <th>Cliente</th>
                         <th>Suscripción</th>
                         <th>Recurso</th>
                         <th>SKU Reserva</th>
                         <th>SKU VM</th>
                         <th>Problema</th>
                         <th>Detalle</th>
-                        <th>Días</th>
                         <th>Cambiado por</th>
                         <th>Fecha cambio</th>
-                        <th>Acción</th>
                     </tr>
                 </thead>
 
-                <tbody>
+                                <tbody>
                     @foreach (var item in PagedResources)
                     {
                         <tr>
-                            <td><span class="@GetPriorityClass(item)">@GetPriority(item)</span></td>
-                            <td><span class="@GetStatusClass(item.OperationalStatus)">@GetStatusText(item.OperationalStatus)</span></td>
-                            <td>@Normalize(item.Customer)</td>
-                            <td>@Normalize(item.Subscription)</td>
-                            <td><strong>@Normalize(item.ResourceName)</strong></td>
-                            <td><span class="ri-sku">@Normalize(item.SKUReserva)</span></td>
-                            <td><span class="ri-sku">@Normalize(item.SKUVM)</span></td>
-                            <td>@GetProblem(item)</td>
-                            <td>@GetDetail(item)</td>
-                            <td><span class="@GetDaysClass(item)">@(item.DaysRemaining?.ToString() ?? "-")</span></td>
-                            <td>@(string.IsNullOrWhiteSpace(item.LastChangedBy) ? "Sin dato" : item.LastChangedBy)</td>
-                            <td>@(item.LastChangeDate?.ToString("dd/MM/yyyy HH:mm") ?? "-")</td>
                             <td>
-                                <button class="ri-detail-btn" type="button">
-                                    Ver detalle
-                                </button>
+                                <span class="@GetPriorityClass(item)">
+                                    @GetPriority(item)
+                                </span>
+                            </td>
+
+                            <td>
+                                <div class="ri-action-main">@Normalize(item.Subscription)</div>
+                                <small>@Normalize(item.Customer)</small>
+                            </td>
+
+                            <td>
+                                <div class="ri-action-resource">@Normalize(item.ResourceName)</div>
+                                <small>@GetStatusText(item.OperationalStatus)</small>
+                            </td>
+
+                            <td><span class="ri-action-sku">@Normalize(item.SKUReserva)</span></td>
+                            <td><span class="ri-action-sku">@Normalize(item.SKUVM)</span></td>
+
+                            <td>
+                                <span class="@GetStatusClass(item.OperationalStatus)">
+                                    @GetProblem(item)
+                                </span>
+                            </td>
+
+                            <td>
+                                <div class="ri-action-detail">
+                                    @GetDetail(item)
+                                </div>
+                            </td>
+
+                            <td>
+                                <span class="ri-action-user">
+                                    @(string.IsNullOrWhiteSpace(item.LastChangedBy) ? "Sin dato" : item.LastChangedBy)
+                                </span>
+                            </td>
+
+                            <td>
+                                <span class="ri-action-date">
+                                    @(item.LastChangeDate?.ToString("dd/MM/yyyy HH:mm") ?? "-")
+                                </span>
                             </td>
                         </tr>
                     }
@@ -341,5 +362,6 @@
         return "\"" + value.Replace("\"", "\"\"") + "\"";
     }
 }
+
 
 
