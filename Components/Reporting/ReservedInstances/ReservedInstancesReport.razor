@@ -81,9 +81,10 @@
     private bool IsLoading { get; set; } = true;
     private string ActiveTab { get; set; } = "Dashboard";
 
-    protected override async Task OnInitializedAsync()
+    protected override Task OnInitializedAsync()
     {
-        await LoadAsync();
+        IsLoading = false;
+        return Task.CompletedTask;
     }
 
     private async Task LoadAsync()
@@ -93,3 +94,4 @@
         IsLoading = false;
     }
 }
+

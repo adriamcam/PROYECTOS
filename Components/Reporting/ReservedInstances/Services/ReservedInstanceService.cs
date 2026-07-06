@@ -20,22 +20,26 @@ public sealed class ReservedInstanceService : IReservedInstanceService
 
         var kpis = await conn.QueryFirstOrDefaultAsync<ReservedInstanceKpi>(
             "dbo.sp_RI_GetKPIs",
-            commandType: CommandType.StoredProcedure
+            commandType: CommandType.StoredProcedure,
+            commandTimeout: 120
         ) ?? new ReservedInstanceKpi();
 
         var distribution = (await conn.QueryAsync<ReservedInstanceDistribution>(
             "dbo.sp_RI_GetDistribution",
-            commandType: CommandType.StoredProcedure
+            commandType: CommandType.StoredProcedure,
+            commandTimeout: 120
         )).ToList();
 
         var topCustomers = (await conn.QueryAsync<ReservedInstanceTopCustomer>(
             "dbo.sp_RI_GetTopCustomers",
-            commandType: CommandType.StoredProcedure
+            commandType: CommandType.StoredProcedure,
+            commandTimeout: 120
         )).ToList();
 
         var resources = (await conn.QueryAsync<ReservedInstanceResource>(
             "dbo.sp_RI_GetResourcesOperational",
-            commandType: CommandType.StoredProcedure
+            commandType: CommandType.StoredProcedure,
+            commandTimeout: 120
         )).ToList();
 
         return new ReservedInstanceDashboard
@@ -43,8 +47,7 @@ public sealed class ReservedInstanceService : IReservedInstanceService
             Kpis = kpis,
             Distribution = distribution,
             TopCustomers = topCustomers,
-            Resources = resources,
-
+            Resources = resources
         };
     }
 
@@ -54,12 +57,10 @@ public sealed class ReservedInstanceService : IReservedInstanceService
 
         var result = await conn.QueryAsync<ReservedInstanceResource>(
             "dbo.sp_RI_GetResourcesOperational",
-            commandType: CommandType.StoredProcedure
+            commandType: CommandType.StoredProcedure,
+            commandTimeout: 120
         );
 
         return result.ToList();
     }
-
-    }
-
-
+}
