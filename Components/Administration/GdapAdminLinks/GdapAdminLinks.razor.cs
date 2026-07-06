@@ -204,6 +204,7 @@ public partial class GdapAdminLinks : ComponentBase
             await LoadTemplatesAsync();
             await LoadReportsAsync();
             await LoadAuditAsync();
+            await LoadNotificationLogsAsync();
         }
         catch (Exception ex)
         {
@@ -226,12 +227,13 @@ public partial class GdapAdminLinks : ComponentBase
         else if (tab == "Templates")
             await LoadTemplatesAsync();
         else if (tab == "Notifications")
-            await LoadAuditAsync();
+            await LoadNotificationLogsAsync();
         else if (tab == "Reports")
             await LoadReportsAsync();
         else if (tab == "Audit")
             await LoadAuditAsync();
     }
+
     protected async Task LoadItemsAsync()
     {
         Items = (await GdapService.GetCustomersAsync(Filters)).ToList();
@@ -634,6 +636,7 @@ public partial class GdapAdminLinks : ComponentBase
                 await LoadTemplatesAsync();
             await LoadReportsAsync();
             await LoadAuditAsync();
+            await LoadNotificationLogsAsync();
 
             MailPreview = await GdapService.PreviewEmailAsync(item.Id, SelectedTemplateId);
             ShowMailPreview = true;
@@ -852,6 +855,7 @@ Para ello, sigue estos pasos: abre un navegador como Chrome o Edge, preferibleme
             await LoadTemplatesAsync();
             await LoadReportsAsync();
             await LoadAuditAsync();
+            await LoadNotificationLogsAsync();
         }
         else
         {
