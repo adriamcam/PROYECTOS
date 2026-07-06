@@ -1,4 +1,4 @@
-namespace ITQS.SupportOperationsCenter.Components.Reporting.ReservedInstancess.Models;
+namespace ITQS.SupportOperationsCenter.Components.Reporting.ReservedInstances.Models;
 
 public class ReservedInstanceTopCustomer
 {
@@ -6,6 +6,8 @@ public class ReservedInstanceTopCustomer
 
     public int TotalResources { get; set; }
 }
+
+
 
 
 

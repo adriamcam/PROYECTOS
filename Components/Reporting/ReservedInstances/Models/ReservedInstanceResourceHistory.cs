@@ -1,4 +1,4 @@
-namespace ITQS.SupportOperationsCenter.Components.Reporting.ReservedInstancess.Models;
+namespace ITQS.SupportOperationsCenter.Components.Reporting.ReservedInstances.Models;
 
 public class ReservedInstanceResourceHistory
 {
@@ -12,6 +12,8 @@ public class ReservedInstanceResourceHistory
     public string ChangedFields { get; set; } = "";
     public DateTime ChangeDate { get; set; }
 }
+
+
 
 
 

@@ -1,4 +1,4 @@
-namespace ITQS.SupportOperationsCenter.Components.Reporting.ReservedInstancess.Models;
+namespace ITQS.SupportOperationsCenter.Components.Reporting.ReservedInstances.Models;
 
 public class ReservedInstanceDashboard
 {
@@ -12,6 +12,8 @@ public class ReservedInstanceDashboard
 
     public List<ReservedInstanceChange> Changes { get; set; } = new();
 }
+
+
 
 
 

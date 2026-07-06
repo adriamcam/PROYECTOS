@@ -1,4 +1,4 @@
-namespace ITQS.SupportOperationsCenter.Components.Reporting.ReservedInstancess.Models;
+namespace ITQS.SupportOperationsCenter.Components.Reporting.ReservedInstances.Models;
 
 public class ReservedInstanceResource
 {
@@ -62,6 +62,8 @@ public class ReservedInstanceResource
         (HasWindowsAHUB && !HasTagHB)
         || (HasSqlAHUB && !HasTagHBSQL);
 }
+
+
 
 
 

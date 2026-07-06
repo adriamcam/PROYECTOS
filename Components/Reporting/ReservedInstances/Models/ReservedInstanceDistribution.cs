@@ -1,4 +1,4 @@
-namespace ITQS.SupportOperationsCenter.Components.Reporting.ReservedInstancess.Models;
+namespace ITQS.SupportOperationsCenter.Components.Reporting.ReservedInstances.Models;
 
 public class ReservedInstanceDistribution
 {
@@ -6,6 +6,8 @@ public class ReservedInstanceDistribution
 
     public int Total { get; set; }
 }
+
+
 
 
 

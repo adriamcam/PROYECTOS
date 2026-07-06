@@ -12,3 +12,5 @@ public interface IReservedInstanceService
 
     Task<List<ReservedInstanceResourceHistory>> GetResourceHistoryAsync(string resourceKey);
 }
+
+

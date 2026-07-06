@@ -1,4 +1,4 @@
-namespace ITQS.SupportOperationsCenter.Components.Reporting.ReservedInstancess.Models;
+namespace ITQS.SupportOperationsCenter.Components.Reporting.ReservedInstances.Models;
 
 public class ReservedInstanceKpi
 {
@@ -23,6 +23,8 @@ public class ReservedInstanceKpi
     public int ChangeCount { get; set; }
     public DateTime LastScanDate { get; set; }
 }
+
+
 
 
 

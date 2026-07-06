@@ -1,5 +1,6 @@
 @namespace ITQS.SupportOperationsCenter.Components.Reporting.ReservedInstances.Components
 @using ITQS.SupportOperationsCenter.Components.Reporting.ReservedInstances.Models
+@using ITQS.SupportOperationsCenter.Components.Reporting.ReservedInstances.Services
 
 <div class="hb-kpi-grid">
     <div class="hb-kpi"><span>Recursos Azure</span><strong>@Dashboard.Kpis.AzureResourceCount</strong><small>Recursos únicos con AHUB</small></div>
@@ -23,6 +24,8 @@
     [Parameter, EditorRequired]
     public ReservedInstanceDashboard Dashboard { get; set; } = new();
 }
+
+
 
 
 

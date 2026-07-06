@@ -1,4 +1,4 @@
-namespace ITQS.SupportOperationsCenter.Components.Reporting.ReservedInstancess.Models;
+namespace ITQS.SupportOperationsCenter.Components.Reporting.ReservedInstances.Models;
 
 public class ReservedInstanceChange
 {
@@ -22,6 +22,8 @@ public class ReservedInstanceChange
 
     public DateTime ScanDate { get; set; }
 }
+
+
 
 
 
