@@ -1,0 +1,243 @@
+@namespace ITQS.SupportOperationsCenter.Components.Reporting.ReservedInstancess
+
+@using ITQS.SupportOperationsCenter.Services
+@using ITQS.SupportOperationsCenter.Components.Reporting.ReservedInstances.Models
+@using ITQS.SupportOperationsCenter.Components.Reporting.ReservedInstances.Components
+
+@inject IReservedInstanceService ReservedInstanceService
+
+<section class="hb-page">
+
+    @if (IsLoading)
+    {
+        <section class="hb-card">
+            <strong>Cargando Reporte Instancias Reservadas...</strong></section>
+    }
+    else if (!string.IsNullOrWhiteSpace(ErrorMessage))
+    {
+        <section class="hb-card">
+            <strong>Error cargando datos</strong>
+            <p>@ErrorMessage</p></section>
+    }
+    else
+    {
+        <div class="hb-hero">
+            <div>
+                <span class="hb-eyebrow">Reportería</span>
+                <h1>Reporte Instancias Reservadas</h1>
+                <p>Monitoreo y análisis del uso de Reserved Instances por cliente, suscripción y recurso.</p>
+
+                <div class="hb-meta">
+                    <span>Última ejecución</span>
+                    <strong>@Dashboard.Kpis.LastScanDate.ToString("dd/MM/yyyy HH:mm")</strong>
+                </div>
+            </div>
+
+            <div class="hb-actions">
+                <button type="button" class="hb-btn hb-btn-secondary" @onclick="() => ShowInfoPopup = true">
+                    ⓘ Información
+                </button>
+
+                <button type="button" class="hb-btn hb-btn-primary" @onclick="LoadDashboardAsync">
+                    Actualizar
+                </button>
+            </div>
+        </div>
+
+        <div class="hb-tabs">
+            <button class="@(ActiveTab == "Dashboard" ? "active" : "")" @onclick='() => SetTab("Dashboard")'>
+                Dashboard
+            </button>
+
+            <button class="@(ActiveTab == "Resources" ? "active" : "")" @onclick='() => SetTab("Resources")'>
+                Reserved Instance Resources
+            </button>
+        </div>
+
+        @if (ActiveTab == "Dashboard")
+        {
+            <RIKpis Dashboard="Dashboard" />
+
+            <div class="hb-dashboard-grid">
+                <section class="hb-card hb-card-large">
+                    <div class="hb-card-header">
+                        <div>
+                            <h3>Top clientes con AHUB</h3>
+                            <p>Clientes con mayor cantidad de recursos usando instancias reservadas.</p>
+                        </div>
+                    </div>
+
+                    <div class="hb-bars">
+                        @foreach (var item in Dashboard.TopCustomers.Take(5))
+                        {
+                            var max = Dashboard.TopCustomers.Any() ? Dashboard.TopCustomers.Max(x => x.TotalResources) : 1;
+                            var width = Math.Max(12, (int)Math.Round((item.TotalResources * 100.0) / max));
+
+                            <div>
+                                <span>@item.Customer</span>
+                                <strong style="width:@width%">@item.TotalResources</strong>
+                            </div>
+                        }
+                    </div></section>
+
+                <section class="hb-card">
+                    <div class="hb-card-header">
+                        <div>
+                            <h3>Distribución AHUB</h3>
+                            <p>Clasificación de beneficios Reserved Instances.</p>
+                        </div>
+                    </div>
+
+                    <div class="hb-change-list">
+                        @foreach (var item in Dashboard.Distribution)
+                        {
+                            <div>
+                                <strong>@item.BenefitType</strong>
+                                <span>@item.Total</span>
+                            </div>
+                        }
+                    </div></section>
+
+                <section class="hb-card">
+                    <div class="hb-card-header">
+                        <div>
+                            <h3>Cambios recientes</h3>
+                            <p>Activaciones y desactivaciones detectadas.</p>
+                        </div>
+                    </div>
+
+                    <div class="hb-change-list">
+                        @if (Dashboard.Changes.Any())
+                        {
+                            @foreach (var item in Dashboard.Changes.Take(5))
+                            {
+                                <div>
+                                    <strong>@(item.AHUB_Status ?? item.ChangeType ?? "Cambio")</strong>
+                                    <span>@item.ResourceName</span>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <div>
+                                <strong>Sin cambios recientes</strong>
+                                <span>0</span>
+                            </div>
+                        }
+                    </div></section>
+            </div>
+        }
+        else if (ActiveTab == "Resources")
+        {
+            <RIResourcesTable Resources="Dashboard.Resources" />
+        }
+    }
+    
+    @if (ShowInfoPopup)
+    {
+        <div class="report-modal-backdrop">
+            <div class="report-info-modal">
+                <div class="modal-header">
+                    <div>
+                        <span class="report-eyebrow">INFORMACIÓN TÉCNICA</span>
+                        <h2>Objetos utilizados por el reporte</h2>
+                    </div>
+
+                    <button type="button" class="modal-close" @onclick="() => ShowInfoPopup = false">×</button>
+                </div>
+
+                <div class="info-grid">
+                    <div class="info-box">
+                        <h3>Tablas</h3>
+                        <ul>
+                            <li>dbo.PartnerCenterCustomers</li>
+                            <li>dbo.CRM_Customers</li>
+                            <li>dbo.ReservedInstanceResources</li>
+                            <li>dbo.ReservedInstanceHistory</li>
+                        </ul>
+                    </div>
+
+                    <div class="info-box">
+                        <h3>Vistas</h3>
+                        <ul>
+                            <li>dbo.vw_ReservedInstance_Dashboard</li>
+                            <li>dbo.vw_ReservedInstance_Resources</li>
+                            <li>dbo.vw_ReservedInstance_Changes</li>
+                        </ul>
+                    </div>
+
+                    <div class="info-box">
+                        <h3>Procedimientos</h3>
+                        <ul>
+                            <li>dbo.usp_ReservedInstance_Sync</li>
+                            <li>dbo.usp_ReservedInstance_RegisterChange</li>
+                            <li>dbo.usp_ReservedInstance_ExportChanges</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="info-note">
+                    <strong>Objetivo:</strong>
+                    monitorear VMs con Reserved Instances, validar cambios de estado, detectar altas/bajas,
+                    controlar tags y permitir exportar cambios a Excel.
+                </div>
+            </div>
+        </div>
+    }
+</section>
+
+@code {
+    private ReservedInstanceDashboard Dashboard { get; set; } = new();
+    private bool IsLoading { get; set; } = true;
+    private string? ErrorMessage { get; set; }
+    private string ActiveTab { get; set; } = "Dashboard";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDashboardAsync();
+    }
+
+    private void SetTab(string tab)
+    {
+        ActiveTab = tab;
+    }
+
+    private async Task LoadDashboardAsync()
+    {
+        try
+        {
+            IsLoading = true;
+            ErrorMessage = null;
+
+            Dashboard = await ReservedInstanceService.GetDashboardAsync();
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = ex.Message;
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+}
+
+
+@code {
+    private bool ShowInfoPopup = false;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

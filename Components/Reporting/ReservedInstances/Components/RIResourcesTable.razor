@@ -1,0 +1,645 @@
+@namespace ITQS.SupportOperationsCenter.Components.Reporting.ReservedInstances.Components
+@using System.Text
+@using ITQS.SupportOperationsCenter.Components.Reporting.ReservedInstances.Models
+@using ITQS.SupportOperationsCenter.Services
+@using Microsoft.JSInterop
+
+@inject IReservedInstanceService ReservedInstanceService
+@inject IJSRuntime JS
+
+<section class="hb-card hb-table-card hb-ops-center">
+    <div class="hb-card-header">
+        <div>
+            <h3>Reserved Instance Resources</h3>
+            <p>Centro operativo de recursos, beneficios, tags y cambios detectados.</p>
+        </div>
+    </div>
+
+    <div class="hb-summary">
+
+    <div class="hb-summary-card primary" @onclick='() => ClearFilters()'>
+        <div class="value">@Resources.Count</div>
+        <div class="title">Recursos monitoreados</div>
+    </div>
+
+    <div class="hb-summary-card danger" @onclick='() => StatusFilter = "Action Required"'>
+        <div class="value">@Resources.Count(x => x.RequiresAction)</div>
+        <div class="title">Requieren acción</div>
+    </div>
+
+    <div class="hb-summary-card info" @onclick='() => StatusFilter = "Changed"'>
+        <div class="value">@Resources.Count(x =>
+            !string.IsNullOrWhiteSpace(x.ChangeType) &&
+            x.ChangeType != "New Resource")</div>
+        <div class="title">Cambios detectados</div>
+    </div>
+
+    <div class="hb-summary-card success" @onclick='() => ClearFilters()'>
+        <div class="value">
+            @{
+                var compliance = Resources.Count == 0
+                    ? 100
+                    : Math.Round(
+                        ((double)Resources.Count(x => !x.RequiresAction) /
+                        Resources.Count) * 100,
+                        2);
+            }
+
+            @compliance%
+        </div>
+
+        <div class="title">Compliance</div>
+    </div>
+
+</div>
+
+    <div class="hb-resource-toolbar">
+        <select @bind="SubscriptionSearch">
+            <option value="">Todas las suscripciones</option>
+            @foreach (var subscription in SubscriptionOptions)
+            {
+                <option value="@subscription">@subscription</option>
+            }
+        </select>
+
+        <select @bind="StatusFilter">
+            <option value="">Todos los estados</option>
+            <option value="Healthy">Healthy</option>
+            <option value="New">New</option>
+            <option value="Action Required">Action Required</option>
+            <option value="Changed">Changed</option>
+        </select>
+
+        <select @bind="TypeFilter">
+            <option value="">Todos los tipos</option>
+            <option value="Windows">Windows AHUB</option>
+            <option value="SQL">SQL AHUB</option>
+            <option value="Both">Windows + SQL</option>
+        </select>
+
+        <select @bind="SeverityFilter">
+            <option value="">Todas las severidades</option>
+            <option value="Critical">Critical</option>
+            <option value="Warning">Warning</option>
+            <option value="Information">Information</option>
+        </select>
+
+        <input placeholder="Buscar cliente, recurso o RG..." @bind="SearchText" @bind:event="oninput" />
+
+        <button class="hb-clear-btn" type="button" @onclick="ClearFilters">Limpiar</button>
+        <button class="hb-export-btn" type="button" @onclick="ExportExcelAsync">Exportar Excel</button>
+        <button class="hb-mail-btn" type="button" @onclick="OpenLeaderEmailAsync">📧 Enviar Correo</button>
+    </div>
+
+    <div class="hb-table-wrap hb-table-modern">
+        <table>
+            <thead>
+                <tr>
+                    <th><button class="hb-sort" @onclick='() => SortBy("Health")'>Health @GetSortIcon("Health")</button></th>
+                    <th><button class="hb-sort" @onclick='() => SortBy("Resource")'>Resource @GetSortIcon("Resource")</button></th>
+                    <th><button class="hb-sort" @onclick='() => SortBy("Subscription")'>Subscription @GetSortIcon("Subscription")</button></th>
+                    <th><button class="hb-sort" @onclick='() => SortBy("ResourceGroup")'>Resource Group @GetSortIcon("ResourceGroup")</button></th>
+                    <th><button class="hb-sort" @onclick='() => SortBy("Windows")'>Windows AHUB @GetSortIcon("Windows")</button></th>
+                    <th><button class="hb-sort" @onclick='() => SortBy("SQL")'>SQL AHUB @GetSortIcon("SQL")</button></th>
+                    <th><button class="hb-sort" @onclick='() => SortBy("WindowsTag")'>Windows Tag @GetSortIcon("WindowsTag")</button></th>
+                    <th><button class="hb-sort" @onclick='() => SortBy("SqlTag")'>SQL Tag @GetSortIcon("SqlTag")</button></th>
+
+                    @if (StatusFilter == "Action Required")
+                    {
+                        <th><button class="hb-sort" @onclick='() => SortBy("Sku")'>SKU @GetSortIcon("Sku")</button></th>
+                        <th><button class="hb-sort" @onclick='() => SortBy("vCPUs")'>vCores @GetSortIcon("vCPUs")</button></th>
+                    }
+
+                    <th><button class="hb-sort" @onclick='() => SortBy("Problem")'>Problem @GetSortIcon("Problem")</button></th>
+                    <th><button class="hb-sort" @onclick='() => SortBy("ChangedBy")'>Cambio por @GetSortIcon("ChangedBy")</button></th>
+
+                    @if (StatusFilter == "Action Required")
+                    {
+                        <th><button class="hb-sort" @onclick='() => SortBy("Recurrence")'>Recurrencia @GetSortIcon("Recurrence")</button></th>
+                    }
+                    else
+                    {
+                        <th><button class="hb-sort" @onclick='() => SortBy("Activity")'>Activity @GetSortIcon("Activity")</button></th>
+                        <th><button class="hb-sort" @onclick='() => SortBy("LastScan")'>Last Scan @GetSortIcon("LastScan")</button></th>
+                        <th>Actions</th>
+                    }
+                </tr>
+            </thead>
+
+            <tbody>
+                @foreach (var item in PagedResources)
+                {
+                    <tr class="@GetRowClass(item)">
+                        <td>
+                            <span class="@GetHealthClass(item)">
+                                @GetHealthText(item)
+                            </span>
+                        </td>
+
+                        <td>
+                            <div class="hb-resource-name">@item.ResourceName</div>
+                            <div class="hb-resource-detail">@item.Customer</div>
+                        </td>
+
+                        <td>@item.Subscription</td>
+
+                        <td>@item.ResourceGroup</td>
+
+                        <td>
+                            @if (item.HasWindowsAHUB)
+                            {
+                                <span class="hb-ahub-pill windows">✓ Windows</span>
+                            }
+                            else
+                            {
+                                <span class="hb-ahub-pill muted">—</span>
+                            }
+                        </td>
+
+                        <td>
+                            @if (item.HasSqlAHUB)
+                            {
+                                <span class="hb-ahub-pill sql">✓ SQL</span>
+                            }
+                            else
+                            {
+                                <span class="hb-ahub-pill muted">—</span>
+                            }
+                        </td>
+
+                        <td>
+                            @if (item.HasWindowsAHUB)
+                            {
+                                <span class="@(item.HasTagHB ? "hb-tag ok" : "hb-tag bad")">
+                                    @(item.HasTagHB ? "✓ TagHB" : "✗ Falta TagHB")
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="hb-tag muted">—</span>
+                            }
+                        </td>
+
+                        <td>
+                            @if (item.HasSqlAHUB)
+                            {
+                                <span class="@(item.HasTagHBSQL ? "hb-tag ok" : "hb-tag bad")">
+                                    @(item.HasTagHBSQL ? "✓ TagHBSQL" : "✗ Falta TagHBSQL")
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="hb-tag muted">—</span>
+                            }
+                        </td>
+
+                        @if (StatusFilter == "Action Required")
+                        {
+                            <td>
+                                <span class="hb-sku">@item.SkuDisplay</span>
+                            </td>
+
+                            <td>
+                                <span class="hb-vcpu">@(item.vCPUs?.ToString() ?? "-")</span>
+                            </td>
+                        }
+
+                        <td>
+                            <span class="@GetProblemClass(item)">
+                                @GetProblemText(item)
+                            </span>
+                        </td>
+
+                        <td>
+                            @if (string.IsNullOrWhiteSpace(item.LastChangedBy))
+                            {
+                                <span class="hb-muted-text">Sin usuario</span>
+                            }
+                            else
+                            {
+                                <span class="hb-changed-by">@item.LastChangedBy</span>
+                            }
+                        </td>
+
+                        @if (StatusFilter == "Action Required")
+                        {
+                            <td>
+                                <span class="@(item.RecurrenceStatus == "Recurrente" ? "hb-recurrence recurrent" : "hb-recurrence new")">
+                                    @item.RecurrenceStatus
+                                </span>
+                                <small class="hb-recurrence-count">@item.ActionOccurrenceCount sem.</small>
+                            </td>
+                        }
+                        else
+                        {
+                            <td>
+                                @if (string.IsNullOrWhiteSpace(item.ChangeType))
+                                {
+                                    <span class="hb-activity none">Sin cambios</span>
+                                }
+                                else
+                                {
+                                    <div class="hb-activity-card">
+                                        <strong>@item.ChangeType</strong>
+                                        <small>@item.Severity</small>
+                                        <span>@(item.ChangeDate?.ToString("dd/MM/yyyy HH:mm") ?? "-")</span>
+                                    </div>
+                                }
+                            </td>
+
+                            <td>@(item.LastScanDate?.ToString("dd/MM/yyyy HH:mm") ?? "-")</td>
+
+                            <td>
+                                <button class="hb-history-btn" type="button" @onclick="() => OpenHistoryAsync(item)">
+                                    📜 Historial
+                                </button>
+                            </td>
+                        }
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="hb-pagination">
+        <span>Mostrando @PagedResources.Count() de @FilteredResources.Count() registros</span>
+
+        <div>
+            <button disabled="@(CurrentPage <= 1)" @onclick="PreviousPage">Anterior</button>
+            <strong>Página @CurrentPage de @TotalPages</strong>
+            <button disabled="@(CurrentPage >= TotalPages)" @onclick="NextPage">Siguiente</button>
+        </div>
+    </div>
+</section>
+
+@if (ShowHistoryPanel)
+{
+    <div class="hb-drawer-backdrop" @onclick="CloseHistory"></div>
+
+    <aside class="hb-drawer">
+        <div class="hb-drawer-header">
+            <div>
+                <span>Historial AHUB</span>
+                <h3>@SelectedResource?.ResourceName</h3>
+                <p>@SelectedResource?.Customer</p>
+            </div>
+
+            <button type="button" @onclick="CloseHistory">Cerrar</button>
+        </div>
+
+        <div class="hb-drawer-summary">
+            <div><span>Windows</span><strong>@(SelectedResource?.HasWindowsAHUB == true ? "Sí" : "No")</strong></div>
+            <div><span>SQL</span><strong>@(SelectedResource?.HasSqlAHUB == true ? "Sí" : "No")</strong></div>
+            <div><span>TagHB</span><strong>@(SelectedResource?.HasTagHB == true ? "OK" : "Falta")</strong></div>
+            <div><span>TagHBSQL</span><strong>@(SelectedResource?.HasTagHBSQL == true ? "OK" : "Falta")</strong></div>
+        </div>
+
+        @if (IsLoadingHistory)
+        {
+            <div class="hb-history-loading">Cargando historial...</div>
+        }
+        else if (!ResourceHistory.Any())
+        {
+            <div class="hb-history-empty">Sin historial registrado.</div>
+        }
+        else
+        {
+            <div class="hb-timeline">
+                @foreach (var history in ResourceHistory)
+                {
+                    <div class="hb-timeline-item">
+                        <div class="@GetSeverityDotClass(history.Severity)"></div>
+                        <div>
+                            <strong>@history.ChangeType</strong>
+                            <p>@history.ChangedFields | @history.OldValue → @history.NewValue</p>
+                            <span>@history.ChangeDate.ToString("dd/MM/yyyy HH:mm")</span>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </aside>
+}
+
+@code {
+    [Parameter]
+    public List<ReservedInstanceResource> Resources { get; set; } = new();
+
+    private string SearchText { get; set; } = "";
+    private string SubscriptionSearch { get; set; } = "";
+
+    private IEnumerable<string> SubscriptionOptions =>
+        Resources
+            .Select(x => x.Subscription)
+            .Where(x => !string.IsNullOrWhiteSpace(x))
+            .Distinct()
+            .OrderBy(x => x);
+    private string StatusFilter { get; set; } = "";
+    private string TypeFilter { get; set; } = "";
+    private string SeverityFilter { get; set; } = "";
+
+    private int CurrentPage { get; set; } = 1;
+    private int PageSize { get; set; } = 25;
+
+    private string SortColumn { get; set; } = "Resource";
+    private bool SortAscending { get; set; } = true;
+
+    private bool ShowHistoryPanel { get; set; }
+    private bool IsLoadingHistory { get; set; }
+    private ReservedInstanceResource? SelectedResource { get; set; }
+    private List<ReservedInstanceResourceHistory> ResourceHistory { get; set; } = new();
+
+    private IEnumerable<ReservedInstanceResource> FilteredResources =>
+        Resources.Where(x =>
+            (string.IsNullOrWhiteSpace(SearchText)
+                || x.Customer.Contains(SearchText, StringComparison.OrdinalIgnoreCase)
+                || x.ResourceGroup.Contains(SearchText, StringComparison.OrdinalIgnoreCase)
+                || x.ResourceName.Contains(SearchText, StringComparison.OrdinalIgnoreCase))
+            &&
+            (string.IsNullOrWhiteSpace(SubscriptionSearch)
+                || x.Subscription.Contains(SubscriptionSearch, StringComparison.OrdinalIgnoreCase))
+            &&
+            (string.IsNullOrWhiteSpace(StatusFilter)
+                || x.HealthStatus.Equals(StatusFilter, StringComparison.OrdinalIgnoreCase))
+            &&
+            (string.IsNullOrWhiteSpace(SeverityFilter)
+                || x.Severity.Equals(SeverityFilter, StringComparison.OrdinalIgnoreCase))
+            &&
+            (
+                string.IsNullOrWhiteSpace(TypeFilter)
+                || (TypeFilter == "Windows" && x.HasWindowsAHUB && !x.HasSqlAHUB)
+                || (TypeFilter == "SQL" && x.HasSqlAHUB && !x.HasWindowsAHUB)
+                || (TypeFilter == "Both" && x.HasWindowsAHUB && x.HasSqlAHUB)
+            )
+        );
+
+    private IEnumerable<ReservedInstanceResource> OrderedResources =>
+        SortColumn switch
+        {
+            "Health" => SortAscending ? FilteredResources.OrderBy(x => x.HealthStatus) : FilteredResources.OrderByDescending(x => x.HealthStatus),
+            "Resource" => SortAscending ? FilteredResources.OrderBy(x => x.ResourceName) : FilteredResources.OrderByDescending(x => x.ResourceName),
+            "Subscription" => SortAscending ? FilteredResources.OrderBy(x => x.Subscription) : FilteredResources.OrderByDescending(x => x.Subscription),
+            "ResourceGroup" => SortAscending ? FilteredResources.OrderBy(x => x.ResourceGroup) : FilteredResources.OrderByDescending(x => x.ResourceGroup),
+            "Windows" => SortAscending ? FilteredResources.OrderByDescending(x => x.HasWindowsAHUB) : FilteredResources.OrderBy(x => x.HasWindowsAHUB),
+            "SQL" => SortAscending ? FilteredResources.OrderByDescending(x => x.HasSqlAHUB) : FilteredResources.OrderBy(x => x.HasSqlAHUB),
+            "WindowsTag" => SortAscending ? FilteredResources.OrderByDescending(x => x.HasTagHB) : FilteredResources.OrderBy(x => x.HasTagHB),
+            "SqlTag" => SortAscending ? FilteredResources.OrderByDescending(x => x.HasTagHBSQL) : FilteredResources.OrderBy(x => x.HasTagHBSQL),
+            "Problem" => SortAscending ? FilteredResources.OrderBy(x => GetProblemText(x)) : FilteredResources.OrderByDescending(x => GetProblemText(x)),
+            "ChangedBy" => SortAscending ? FilteredResources.OrderBy(x => x.LastChangedBy) : FilteredResources.OrderByDescending(x => x.LastChangedBy),
+            "Sku" => SortAscending ? FilteredResources.OrderBy(x => x.VMSize) : FilteredResources.OrderByDescending(x => x.VMSize),
+            "vCPUs" => SortAscending ? FilteredResources.OrderBy(x => x.vCPUs) : FilteredResources.OrderByDescending(x => x.vCPUs),
+            "Activity" => SortAscending ? FilteredResources.OrderBy(x => x.ChangeType) : FilteredResources.OrderByDescending(x => x.ChangeType),
+            "LastScan" => SortAscending ? FilteredResources.OrderBy(x => x.LastScanDate) : FilteredResources.OrderByDescending(x => x.LastScanDate),
+            "Recurrence" => SortAscending ? FilteredResources.OrderBy(x => x.RecurrenceStatus) : FilteredResources.OrderByDescending(x => x.RecurrenceStatus),
+            _ => FilteredResources.OrderBy(x => x.ResourceName)
+        };
+
+    private IEnumerable<ReservedInstanceResource> PagedResources =>
+        OrderedResources
+            .Skip((CurrentPage - 1) * PageSize)
+            .Take(PageSize);
+
+    private int TotalPages =>
+        Math.Max(1, (int)Math.Ceiling(FilteredResources.Count() / (double)PageSize));
+
+    private void ClearFilters()
+    {
+        SearchText = "";
+        SubscriptionSearch = "";
+        StatusFilter = "";
+        TypeFilter = "";
+        SeverityFilter = "";
+        CurrentPage = 1;
+    }
+
+    private void SortBy(string column)
+    {
+        if (SortColumn == column)
+        {
+            SortAscending = !SortAscending;
+        }
+        else
+        {
+            SortColumn = column;
+            SortAscending = true;
+        }
+
+        CurrentPage = 1;
+    }
+
+    private string GetSortIcon(string column)
+    {
+        if (SortColumn != column)
+        {
+            return "";
+        }
+
+        return SortAscending ? "▲" : "▼";
+    }
+
+        private async Task OpenLeaderEmailAsync()
+    {
+        var subject = Uri.EscapeDataString("Reserved Instances - Recursos que requieren acción");
+
+        await JS.InvokeVoidAsync(
+            "open",
+            $"mailto:?subject={subject}",
+            "_self");
+    }
+private async Task ExportExcelAsync()
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine("Health,Customer,Subscription,ResourceGroup,ResourceName,WindowsAHUB,SqlAHUB,TagHB,TagHBSQL,Problem,ChangeType,Severity,ChangeDate,LastScanDate");
+
+        foreach (var item in FilteredResources)
+        {
+            sb.AppendLine(string.Join(",",
+                Csv(item.HealthStatus),
+                Csv(item.Customer),
+                Csv(item.Subscription),
+                Csv(item.ResourceGroup),
+                Csv(item.ResourceName),
+                Csv(item.HasWindowsAHUB ? "Yes" : "No"),
+                Csv(item.HasSqlAHUB ? "Yes" : "No"),
+                Csv(item.HasTagHB ? "OK" : "Missing"),
+                Csv(item.HasTagHBSQL ? "OK" : "Missing"),
+                Csv(GetProblemText(item)),
+                Csv(item.ChangeType),
+                Csv(item.Severity),
+                Csv(item.ChangeDate?.ToString("dd/MM/yyyy HH:mm") ?? ""),
+                Csv(item.LastScanDate?.ToString("dd/MM/yyyy HH:mm") ?? "")
+            ));
+        }
+
+        var csv = sb.ToString();
+        var fileName = $"Azure-Hybrid-Benefit-Resources-{DateTime.Now:yyyyMMddHHmm}.csv";
+
+        await JS.InvokeVoidAsync("eval", $@"
+            const blob = new Blob([{System.Text.Json.JsonSerializer.Serialize(csv)}], {{ type: 'text/csv;charset=utf-8;' }});
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = '{fileName}';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        ");
+    }
+
+    private static string Csv(string value)
+    {
+        value ??= "";
+        return "\"" + value.Replace("\"", "\"\"") + "\"";
+    }
+
+    private void PreviousPage()
+    {
+        if (CurrentPage > 1)
+        {
+            CurrentPage--;
+        }
+    }
+
+    private void NextPage()
+    {
+        if (CurrentPage < TotalPages)
+        {
+            CurrentPage++;
+        }
+    }
+
+    private async Task OpenHistoryAsync(ReservedInstanceResource resource)
+    {
+        SelectedResource = resource;
+        ShowHistoryPanel = true;
+        IsLoadingHistory = true;
+        ResourceHistory = new();
+
+        try
+        {
+            ResourceHistory = await ReservedInstanceService.GetResourceHistoryAsync(resource.ResourceKey);
+        }
+        finally
+        {
+            IsLoadingHistory = false;
+        }
+    }
+
+    private void CloseHistory()
+    {
+        ShowHistoryPanel = false;
+        SelectedResource = null;
+        ResourceHistory = new();
+    }
+
+    private static string GetRowClass(ReservedInstanceResource item)
+    {
+        if (item.RequiresAction)
+        {
+            return "hb-row-danger";
+        }
+
+        if (item.HealthStatus == "New")
+        {
+            return "hb-row-info";
+        }
+
+        return "";
+    }
+
+    private static string GetHealthClass(ReservedInstanceResource item)
+    {
+        return item.HealthStatus switch
+        {
+            "Healthy" => "hb-health healthy",
+            "Action Required" => "hb-health action",
+            "Changed" => "hb-health changed",
+            "New" => "hb-health new",
+            _ => "hb-health new"
+        };
+    }
+
+    private static string GetHealthText(ReservedInstanceResource item)
+    {
+        return item.HealthStatus switch
+        {
+            "Healthy" => "● Healthy",
+            "Action Required" => "⚠ Action",
+            "Changed" => "▲ Changed",
+            "New" => "★ New",
+            _ => "★ New"
+        };
+    }
+
+    private static string GetProblemText(ReservedInstanceResource item)
+    {
+        if (item.HasWindowsAHUB && !item.HasTagHB)
+        {
+            return "Falta TagHB";
+        }
+
+        if (item.HasSqlAHUB && !item.HasTagHBSQL)
+        {
+            return "Falta TagHBSQL";
+        }
+
+        if (item.ChangeType?.Contains("Removed", StringComparison.OrdinalIgnoreCase) == true)
+        {
+            return "Beneficio removido";
+        }
+
+        return "Sin problema";
+    }
+
+    private static string GetProblemClass(ReservedInstanceResource item)
+    {
+        if (item.RequiresAction)
+        {
+            return "hb-problem danger";
+        }
+
+        return "hb-problem success";
+    }
+
+    private static string GetSeverityDotClass(string severity)
+    {
+        return severity switch
+        {
+            "Critical" => "hb-timeline-dot critical",
+            "Warning" => "hb-timeline-dot warning",
+            "Information" => "hb-timeline-dot info",
+            _ => "hb-timeline-dot"
+        };
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
