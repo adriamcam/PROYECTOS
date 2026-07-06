@@ -1,0 +1,343 @@
+@namespace ITQS.SupportOperationsCenter.Components.Reporting.ReservedInstances.Components
+
+@using System.Text
+@using Microsoft.JSInterop
+@using ITQS.SupportOperationsCenter.Components.Reporting.ReservedInstances.Models
+
+@inject IJSRuntime JS
+
+<section class="ri-action-page">
+
+    <div class="ri-action-hero">
+        <div>
+            <h3>Recursos que requieren acción</h3>
+            <p>@ActionResources.Count recursos requieren revisión</p>
+        </div>
+
+        <button class="ri-export-btn" type="button" @onclick="ExportCsvAsync">
+            Exportar CSV
+        </button>
+    </div>
+
+    <div class="ri-action-kpis">
+        <div class="critical">
+            <strong>@ActionResources.Count</strong>
+            <span>Requieren acción</span>
+        </div>
+
+        <div class="critical">
+            <strong>@ActionResources.Count(x => x.OperationalStatus == "SKU Mismatch")</strong>
+            <span>SKU diferente</span>
+        </div>
+
+        <div class="high">
+            <strong>@ActionResources.Count(x => x.OperationalStatus == "Low Utilization")</strong>
+            <span>Baja utilización</span>
+        </div>
+
+        <div class="medium">
+            <strong>@ActionResources.Count(x => x.OperationalStatus == "Expiring Soon")</strong>
+            <span>Por vencer</span>
+        </div>
+
+        <div class="critical">
+            <strong>@ActionResources.Count(x => x.OperationalStatus == "Date Mismatch")</strong>
+            <span>Fecha no coincide</span>
+        </div>
+    </div>
+
+    <div class="ri-action-panel">
+        <div class="ri-action-filters">
+            <input placeholder="Buscar recurso, cliente, suscripción o SKU..." @bind="SearchText" @bind:event="oninput" />
+
+            <select @bind="ProblemFilter">
+                <option value="">Todos los problemas</option>
+                <option value="Expired">Expirada</option>
+                <option value="SKU Mismatch">SKU diferente</option>
+                <option value="Date Mismatch">Fecha no coincide</option>
+                <option value="Low Utilization">Baja utilización</option>
+                <option value="Expiring Soon">Por vencer</option>
+            </select>
+
+            <select @bind="PriorityFilter">
+                <option value="">Todas las prioridades</option>
+                <option value="Crítica">Crítica</option>
+                <option value="Alta">Alta</option>
+                <option value="Media">Media</option>
+            </select>
+
+            <select @bind="SubscriptionFilter">
+                <option value="">Todas las suscripciones</option>
+                @foreach (var item in SubscriptionOptions)
+                {
+                    <option value="@item">@item</option>
+                }
+            </select>
+
+            <button class="ri-clear-btn" type="button" @onclick="ClearFilters">Limpiar filtros</button>
+        </div>
+
+        <div class="ri-table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Prioridad</th>
+                        <th>Estado</th>
+                        <th>Cliente</th>
+                        <th>Suscripción</th>
+                        <th>Recurso</th>
+                        <th>SKU Reserva</th>
+                        <th>SKU VM</th>
+                        <th>Problema</th>
+                        <th>Detalle</th>
+                        <th>Días</th>
+                        <th>Cambiado por</th>
+                        <th>Fecha cambio</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (var item in PagedResources)
+                    {
+                        <tr>
+                            <td><span class="@GetPriorityClass(item)">@GetPriority(item)</span></td>
+                            <td><span class="@GetStatusClass(item.OperationalStatus)">@GetStatusText(item.OperationalStatus)</span></td>
+                            <td>@Normalize(item.Customer)</td>
+                            <td>@Normalize(item.Subscription)</td>
+                            <td><strong>@Normalize(item.ResourceName)</strong></td>
+                            <td><span class="ri-sku">@Normalize(item.SKUReserva)</span></td>
+                            <td><span class="ri-sku">@Normalize(item.SKUVM)</span></td>
+                            <td>@GetProblem(item)</td>
+                            <td>@GetDetail(item)</td>
+                            <td><span class="@GetDaysClass(item)">@(item.DaysRemaining?.ToString() ?? "-")</span></td>
+                            <td>@(string.IsNullOrWhiteSpace(item.LastChangedBy) ? "Sin dato" : item.LastChangedBy)</td>
+                            <td>@(item.LastChangeDate?.ToString("dd/MM/yyyy HH:mm") ?? "-")</td>
+                            <td>
+                                <button class="ri-detail-btn" type="button">
+                                    Ver detalle
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="ri-table-footer">
+            <div class="ri-table-footer-info">
+                Mostrando <strong>@PagedResources.Count()</strong> de <strong>@FilteredResources.Count()</strong> recursos
+                <span>Página @CurrentPage de @TotalPages</span>
+            </div>
+
+            <div class="ri-pagination-actions">
+                <button type="button" @onclick="PrevPage" disabled="@(CurrentPage == 1)">‹</button>
+
+                @foreach (var pageNumber in VisiblePages)
+                {
+                    <button type="button"
+                            class="@(pageNumber == CurrentPage ? "active" : "")"
+                            @onclick="() => GoToPage(pageNumber)">
+                        @pageNumber
+                    </button>
+                }
+
+                <button type="button" @onclick="NextPage" disabled="@(CurrentPage >= TotalPages)">›</button>
+            </div>
+        </div>
+    </div>
+
+</section>
+
+@code {
+    [Parameter] public List<ReservedInstanceResource> Resources { get; set; } = new();
+
+    private string SearchText { get; set; } = "";
+    private string ProblemFilter { get; set; } = "";
+    private string PriorityFilter { get; set; } = "";
+    private string SubscriptionFilter { get; set; } = "";
+
+    private int CurrentPage { get; set; } = 1;
+    private int PageSize { get; set; } = 20;
+
+    private List<ReservedInstanceResource> ActionResources =>
+        Resources
+            .Where(x => x.OperationalStatus != "Healthy")
+            .OrderBy(GetPriorityRank)
+            .ThenBy(x => x.Customer)
+            .ThenBy(x => x.ResourceName)
+            .ToList();
+
+    private IEnumerable<string> SubscriptionOptions =>
+        ActionResources
+            .Select(x => x.Subscription)
+            .Where(x => !string.IsNullOrWhiteSpace(x))
+            .Distinct()
+            .OrderBy(x => x);
+
+    private IEnumerable<ReservedInstanceResource> FilteredResources =>
+        ActionResources.Where(x =>
+            (string.IsNullOrWhiteSpace(ProblemFilter) || x.OperationalStatus == ProblemFilter) &&
+            (string.IsNullOrWhiteSpace(PriorityFilter) || GetPriority(x) == PriorityFilter) &&
+            (string.IsNullOrWhiteSpace(SubscriptionFilter) || x.Subscription == SubscriptionFilter) &&
+            (
+                string.IsNullOrWhiteSpace(SearchText) ||
+                ContainsSafe(x.ResourceName, SearchText) ||
+                ContainsSafe(x.Customer, SearchText) ||
+                ContainsSafe(x.Subscription, SearchText) ||
+                ContainsSafe(x.SKUReserva, SearchText) ||
+                ContainsSafe(x.SKUVM, SearchText)
+            )
+        );
+
+    private IEnumerable<ReservedInstanceResource> PagedResources =>
+        FilteredResources.Skip((CurrentPage - 1) * PageSize).Take(PageSize);
+
+    private int TotalPages =>
+        Math.Max(1, (int)Math.Ceiling(FilteredResources.Count() / (double)PageSize));
+
+    private IEnumerable<int> VisiblePages
+    {
+        get
+        {
+            var start = Math.Max(1, CurrentPage - 2);
+            var end = Math.Min(TotalPages, CurrentPage + 2);
+
+            for (var i = start; i <= end; i++)
+                yield return i;
+        }
+    }
+
+    private void ClearFilters()
+    {
+        SearchText = "";
+        ProblemFilter = "";
+        PriorityFilter = "";
+        SubscriptionFilter = "";
+        CurrentPage = 1;
+    }
+
+    private void GoToPage(int pageNumber) => CurrentPage = pageNumber;
+    private void NextPage() { if (CurrentPage < TotalPages) CurrentPage++; }
+    private void PrevPage() { if (CurrentPage > 1) CurrentPage--; }
+
+    private async Task ExportCsvAsync()
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine("Prioridad,Estado,Cliente,Suscripcion,Recurso,SKUReserva,SKUVM,Problema,Detalle,Dias,CambiadoPor,FechaCambio");
+
+        foreach (var item in FilteredResources)
+        {
+            sb.AppendLine(string.Join(",",
+                Csv(GetPriority(item)),
+                Csv(GetStatusText(item.OperationalStatus)),
+                Csv(item.Customer),
+                Csv(item.Subscription),
+                Csv(item.ResourceName),
+                Csv(item.SKUReserva),
+                Csv(item.SKUVM),
+                Csv(GetProblem(item)),
+                Csv(GetDetail(item)),
+                Csv(item.DaysRemaining?.ToString() ?? "-"),
+                Csv(string.IsNullOrWhiteSpace(item.LastChangedBy) ? "Sin dato" : item.LastChangedBy),
+                Csv(item.LastChangeDate?.ToString("dd/MM/yyyy HH:mm") ?? "-")
+            ));
+        }
+
+        var fileName = $"ri-requiere-accion-{DateTime.Now:yyyyMMddHHmm}.csv";
+        var data = Uri.EscapeDataString(sb.ToString());
+
+        await JS.InvokeVoidAsync("eval", $"const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,{data}';a.download='{fileName}';document.body.appendChild(a);a.click();a.remove();");
+    }
+
+    private static int GetPriorityRank(ReservedInstanceResource item) => item.OperationalStatus switch
+    {
+        "Expired" => 1,
+        "SKU Mismatch" => 2,
+        "Date Mismatch" => 3,
+        "Low Utilization" => 4,
+        "Expiring Soon" => 5,
+        _ => 9
+    };
+
+    private static string GetPriority(ReservedInstanceResource item) => item.OperationalStatus switch
+    {
+        "Expired" => "Crítica",
+        "SKU Mismatch" => "Crítica",
+        "Date Mismatch" => "Crítica",
+        "Low Utilization" => "Alta",
+        "Expiring Soon" => "Media",
+        _ => "Media"
+    };
+
+    private static string GetPriorityClass(ReservedInstanceResource item) => item.OperationalStatus switch
+    {
+        "Expired" => "ri-priority critical",
+        "SKU Mismatch" => "ri-priority critical",
+        "Date Mismatch" => "ri-priority critical",
+        "Low Utilization" => "ri-priority high",
+        "Expiring Soon" => "ri-priority medium",
+        _ => "ri-priority medium"
+    };
+
+    private static string GetProblem(ReservedInstanceResource item) => item.OperationalStatus switch
+    {
+        "Expired" => "Reserva expirada",
+        "SKU Mismatch" => "SKU diferente",
+        "Date Mismatch" => "Fecha no coincide",
+        "Low Utilization" => "Baja utilización",
+        "Expiring Soon" => "Por vencer",
+        _ => "Revisar recurso"
+    };
+
+    private static string GetDetail(ReservedInstanceResource item) => item.OperationalStatus switch
+    {
+        "Expired" => "Reserva vencida",
+        "SKU Mismatch" => "Los SKUs no coinciden",
+        "Date Mismatch" => "Fechas no coinciden",
+        "Low Utilization" => $"Utilización promedio {(item.Utilization30d ?? 0).ToString("N2")}%",
+        "Expiring Soon" => $"Vence en {item.DaysRemaining} días",
+        _ => "Validar recurso"
+    };
+
+    private static string GetStatusText(string? status) => status switch
+    {
+        "Expired" => "Expirada",
+        "SKU Mismatch" => "SKU diferente",
+        "Date Mismatch" => "Fecha no coincide",
+        "Low Utilization" => "Baja utilización",
+        "Expiring Soon" => "Por vencer",
+        _ => status ?? "Sin estado"
+    };
+
+    private static string GetStatusClass(string? status) => status switch
+    {
+        "Expired" => "ri-badge danger",
+        "SKU Mismatch" => "ri-badge danger",
+        "Date Mismatch" => "ri-badge danger",
+        "Low Utilization" => "ri-badge warning",
+        "Expiring Soon" => "ri-badge info",
+        _ => "ri-badge muted"
+    };
+
+    private static string GetDaysClass(ReservedInstanceResource item)
+    {
+        if (item.DaysRemaining is null) return "ri-pill muted";
+        if (item.DaysRemaining < 0) return "ri-pill danger";
+        if (item.DaysRemaining <= 90) return "ri-pill warning";
+        return "ri-pill success";
+    }
+
+    private static bool ContainsSafe(string? value, string search) =>
+        !string.IsNullOrWhiteSpace(value) &&
+        value.Contains(search, StringComparison.OrdinalIgnoreCase);
+
+    private static string Normalize(string? value) =>
+        string.IsNullOrWhiteSpace(value) ? "-" : value;
+
+    private static string Csv(string? value)
+    {
+        value ??= "";
+        return "\"" + value.Replace("\"", "\"\"") + "\"";
+    }
+}

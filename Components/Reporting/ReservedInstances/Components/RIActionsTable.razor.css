@@ -1,0 +1,127 @@
+.ri-action-page{
+    display:flex;
+    flex-direction:column;
+    gap:18px;
+}
+
+.ri-action-hero{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    padding:24px;
+    border-radius:22px;
+    background:#ffffff;
+    border:1px solid #e2e8f0;
+    box-shadow:0 12px 30px rgba(15,23,42,.06);
+}
+
+.ri-action-hero h3{
+    margin:0;
+    color:#0f172a;
+    font-size:26px;
+    font-weight:900;
+}
+
+.ri-action-hero p{
+    margin:8px 0 0;
+    color:#475569;
+    font-size:15px;
+    font-weight:800;
+}
+
+.ri-action-kpis{
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    gap:16px;
+}
+
+.ri-action-kpis div{
+    padding:22px;
+    border-radius:18px;
+    background:#ffffff;
+    border:1px solid #e2e8f0;
+    box-shadow:0 10px 26px rgba(15,23,42,.06);
+    border-left:5px solid #ef4444;
+}
+
+.ri-action-kpis div.high{
+    border-left-color:#f97316;
+}
+
+.ri-action-kpis div.medium{
+    border-left-color:#eab308;
+}
+
+.ri-action-kpis strong{
+    display:block;
+    font-size:32px;
+    color:#0f172a;
+    font-weight:900;
+}
+
+.ri-action-kpis span{
+    display:block;
+    margin-top:8px;
+    color:#334155;
+    font-size:13px;
+    font-weight:900;
+}
+
+.ri-action-panel{
+    padding:18px;
+    border-radius:22px;
+    background:#ffffff;
+    border:1px solid #e2e8f0;
+    box-shadow:0 12px 30px rgba(15,23,42,.06);
+}
+
+.ri-action-filters{
+    display:grid;
+    grid-template-columns:1.5fr 220px 220px 260px auto;
+    gap:12px;
+    margin-bottom:18px;
+}
+
+.ri-action-filters input,
+.ri-action-filters select{
+    height:42px;
+    border-radius:12px;
+    border:1px solid #cbd5e1;
+    padding:0 12px;
+    background:#ffffff;
+}
+
+.ri-priority{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:999px;
+    padding:6px 12px;
+    font-size:11px;
+    font-weight:900;
+}
+
+.ri-priority.critical{
+    background:#fee2e2;
+    color:#b91c1c;
+}
+
+.ri-priority.high{
+    background:#ffedd5;
+    color:#c2410c;
+}
+
+.ri-priority.medium{
+    background:#fef3c7;
+    color:#92400e;
+}
+
+@media(max-width:1300px){
+    .ri-action-kpis{
+        grid-template-columns:repeat(2,1fr);
+    }
+
+    .ri-action-filters{
+        grid-template-columns:1fr;
+    }
+}
