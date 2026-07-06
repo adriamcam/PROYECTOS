@@ -1,5 +1,7 @@
 @namespace ITQS.SupportOperationsCenter.Components.Reporting.ReservedInstances.Components
 @using ITQS.SupportOperationsCenter.Components.Reporting.ReservedInstances.Models
+@using Microsoft.JSInterop
+@inject IJSRuntime JS
 
 <section class="ri-card ri-resources">
 
@@ -7,6 +9,12 @@
         <div>
             <h3>Reserved Instance Resources</h3>
             <p>Validación operativa de SKU, fechas, utilización, vencimiento y auditoría.</p>
+        </div>
+
+        <div class="ri-header-actions">
+            <button class="ri-export-btn" type="button" @onclick="ExportCsv">
+                Exportar CSV
+            </button>
         </div>
     </div>
 
@@ -33,7 +41,7 @@
     </div>
 
     <div class="ri-resource-filters">
-        <select @bind="CustomerFilter">
+        <select @bind="CustomerFilter" @bind:after="ResetPage">
             <option value="">Todos los clientes</option>
             @foreach (var item in CustomerOptions)
             {
@@ -41,7 +49,7 @@
             }
         </select>
 
-        <select @bind="SubscriptionFilter">
+        <select @bind="SubscriptionFilter" @bind:after="ResetPage">
             <option value="">Todas las suscripciones</option>
             @foreach (var item in SubscriptionOptions)
             {
@@ -49,7 +57,7 @@
             }
         </select>
 
-        <select @bind="StatusFilter">
+        <select @bind="StatusFilter" @bind:after="ResetPage">
             <option value="">Todos los estados</option>
             <option value="Healthy">Healthy</option>
             <option value="SKU Mismatch">SKU diferente</option>
@@ -59,7 +67,7 @@
             <option value="Expired">Expirada</option>
         </select>
 
-        <input placeholder="Buscar VM, cliente, suscripción o SKU..." @bind="SearchText" @bind:event="oninput" />
+        <input placeholder="Buscar VM, cliente, suscripción o SKU..." @bind="SearchText" @bind:event="oninput" @bind:after="ResetPage" />
 
         <select @bind="PageSize" @bind:after="ResetPage">
             <option value="10">10 filas</option>
@@ -69,6 +77,11 @@
         </select>
 
         <button class="ri-clear-btn" type="button" @onclick="ClearFilters">Limpiar</button>
+    </div>
+
+    <div class="ri-filter-summary">
+        <span>Filtros activos:</span>
+        <strong>@GetActiveFiltersText()</strong>
     </div>
 
     <div class="ri-table-wrap">
@@ -85,6 +98,7 @@
                     <th>Fecha VM</th>
                     <th>Días</th>
                     <th>Utilización</th>
+                    <th>Recomendación</th>
                     <th>Cambiado por</th>
                     <th>Fecha cambio</th>
                     <th>Acción</th>
@@ -92,7 +106,19 @@
             </thead>
 
             <tbody>
-                @foreach (var item in PagedResources)
+                @if (!PagedResources.Any())
+                {
+                    <tr>
+                        <td colspan="15">
+                            <div class="ri-empty-table">
+                                No hay registros para los filtros seleccionados.
+                            </div>
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var item in PagedResources)
                 {
                     <tr class="@GetRowClass(item)">
                         <td>
@@ -134,6 +160,12 @@
                         </td>
 
                         <td>
+                            <span class="ri-recommendation-pill">
+                                @GetRecommendation(item)
+                            </span>
+                        </td>
+
+                        <td>
                             @if (string.IsNullOrWhiteSpace(item.LastChangedBy))
                             {
                                 <span class="ri-muted">Sin dato</span>
@@ -152,6 +184,7 @@
                             </button>
                         </td>
                     </tr>
+                    }
                 }
             </tbody>
         </table>
@@ -334,6 +367,24 @@ private IEnumerable<ReservedInstanceResource> PagedResources =>
             )
         );
 
+    private string GetActiveFiltersText()
+    {
+        var filters = new List<string>();
+
+        if (!string.IsNullOrWhiteSpace(CustomerFilter))
+            filters.Add($"Cliente: {CustomerFilter}");
+
+        if (!string.IsNullOrWhiteSpace(SubscriptionFilter))
+            filters.Add($"Suscripción: {SubscriptionFilter}");
+
+        if (!string.IsNullOrWhiteSpace(StatusFilter))
+            filters.Add($"Estado: {GetStatusText(StatusFilter)}");
+
+        if (!string.IsNullOrWhiteSpace(SearchText))
+            filters.Add($"Búsqueda: {SearchText}");
+
+        return filters.Count == 0 ? "Ninguno" : string.Join(" | ", filters);
+    }
     private void FirstPage() => CurrentPage = 1;
 
 private void PreviousPage()
@@ -366,6 +417,47 @@ private void ClearFilters()
         SearchText = "";
     }
 
+    private async Task ExportCsv()
+    {
+        var rows = FilteredResources.ToList();
+
+        var csv = new System.Text.StringBuilder();
+
+        csv.AppendLine("Estado,Riesgo,Recurso,Cliente,Suscripcion,SKU Reserva,SKU VM,Fecha Reserva,Fecha VM,Dias,Utilizacion,Recomendacion,Cambiado Por,Fecha Cambio");
+
+        foreach (var item in rows)
+        {
+            csv.AppendLine(string.Join(",",
+                Csv(GetStatusText(item.OperationalStatus)),
+                Csv(GetRiskText(item)),
+                Csv(item.ResourceName),
+                Csv(item.Customer),
+                Csv(item.Subscription),
+                Csv(item.SKUReserva),
+                Csv(item.SKUVM),
+                Csv(item.FechaReserva?.ToString("dd/MM/yyyy") ?? ""),
+                Csv(item.FechaVM?.ToString("dd/MM/yyyy") ?? ""),
+                Csv(item.DaysRemaining?.ToString() ?? ""),
+                Csv((item.Utilization30d ?? 0).ToString("N2") + "%"),
+                Csv(GetRecommendation(item)),
+                Csv(item.LastChangedBy),
+                Csv(item.LastChangeDate?.ToString("dd/MM/yyyy HH:mm") ?? "")
+            ));
+        }
+
+        var bytes = System.Text.Encoding.UTF8.GetBytes(csv.ToString());
+        var base64 = Convert.ToBase64String(bytes);
+        var fileName = $"reserved-instance-resources-{DateTime.Now:yyyyMMddHHmm}.csv";
+
+        await JS.InvokeVoidAsync("downloadFileFromBase64", fileName, "text/csv;charset=utf-8", base64);
+    }
+
+    private static string Csv(string? value)
+    {
+        value ??= "";
+        value = value.Replace("\"", "\"\"");
+        return $"\"{value}\"";
+    }
     private void OpenDrawer(ReservedInstanceResource item)
     {
         SelectedResource = item;
@@ -376,6 +468,17 @@ private void ClearFilters()
         SelectedResource = null;
     }
 
+    private static string GetRecommendation(ReservedInstanceResource item)
+    {
+        if (item.OperationalStatus == "Expired") return "Renovar o validar reemplazo";
+        if (item.OperationalStatus == "SKU Mismatch") return "Validar SKU asociado";
+        if (item.OperationalStatus == "Date Mismatch") return "Revisar fechas de reserva";
+        if (item.OperationalStatus == "Low Utilization") return "Revisar ajuste o intercambio";
+        if (item.OperationalStatus == "Expiring Soon") return "Planificar renovación";
+        if ((item.Utilization30d ?? 0) >= 80) return "Mantener reserva";
+
+        return "Monitorear";
+    }
     private static string GetRowClass(ReservedInstanceResource item)
     {
         return item.OperationalStatus switch
@@ -389,6 +492,17 @@ private void ClearFilters()
         };
     }
 
+    private static string GetRiskText(ReservedInstanceResource item)
+    {
+        if (item.OperationalStatus == "Expired") return "Crítico";
+        if (item.OperationalStatus == "SKU Mismatch") return "Alto";
+        if (item.OperationalStatus == "Date Mismatch") return "Alto";
+        if (item.DaysRemaining <= 30) return "Alto";
+        if (item.DaysRemaining <= 90) return "Medio";
+        if ((item.Utilization30d ?? 0) < 50) return "Medio";
+
+        return "Bajo";
+    }
     private static string GetStatusText(string status) => status switch
     {
         "Healthy" => "Healthy",
@@ -444,6 +558,19 @@ private void ClearFilters()
         return "ri-pill success";
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

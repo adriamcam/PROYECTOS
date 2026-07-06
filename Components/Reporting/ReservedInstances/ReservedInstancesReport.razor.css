@@ -811,3 +811,81 @@ cls
 .ri-table-wrap tbody tr:hover{
     filter:brightness(.98);
 }
+
+/* ============================
+   RI RECOMMENDATION PILL
+============================ */
+
+.ri-recommendation-pill{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:999px;
+    padding:6px 12px;
+    background:#f8fafc;
+    color:#334155;
+    border:1px solid #e2e8f0;
+    font-size:11px;
+    font-weight:900;
+    white-space:nowrap;
+}
+
+/* ============================
+   RI HEADER ACTIONS
+============================ */
+
+.ri-header-actions{
+    display:flex;
+    align-items:center;
+    gap:10px;
+}
+
+.ri-export-btn{
+    height:38px;
+    border:none;
+    border-radius:12px;
+    padding:0 16px;
+    background:#0f172a;
+    color:#ffffff;
+    font-size:12px;
+    font-weight:900;
+    cursor:pointer;
+}
+
+.ri-export-btn:hover{
+    background:#1d4ed8;
+}
+
+/* ============================
+   RI FILTER SUMMARY
+============================ */
+
+.ri-filter-summary{
+    display:flex;
+    gap:8px;
+    align-items:center;
+    margin:0 0 14px;
+    padding:10px 14px;
+    border-radius:14px;
+    background:#f8fafc;
+    border:1px solid #e2e8f0;
+    color:#64748b;
+    font-size:12px;
+    font-weight:800;
+}
+
+.ri-filter-summary strong{
+    color:#0f172a;
+}
+
+/* ============================
+   RI EMPTY TABLE
+============================ */
+
+.ri-empty-table{
+    padding:26px;
+    text-align:center;
+    color:#64748b;
+    font-size:14px;
+    font-weight:900;
+}
