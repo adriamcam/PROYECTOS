@@ -41,6 +41,10 @@
         <button class="@(ActiveTab == "Resources" ? "active" : "")" @onclick='() => ActiveTab = "Resources"'>
             Recursos
         </button>
+
+        <button class="@(ActiveTab == "Action" ? "active" : "")" @onclick='() => ActiveTab = "Action"'>
+            Requiere acción
+        </button>
     </div>
 
     @if (IsLoading && !IsLoaded)
@@ -223,6 +227,8 @@
         _ => "primary"
     };
 }
+
+
 
 
 
