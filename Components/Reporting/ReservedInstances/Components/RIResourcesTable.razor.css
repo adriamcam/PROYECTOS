@@ -249,16 +249,13 @@
     display:flex;
     justify-content:space-between;
     align-items:center;
-    gap:12px;
-    margin-top:14px;
-    color:#475569;
-    font-size:12px;
-    font-weight:800;
+    margin-top:18px;
+    padding:0 4px;
 }
 
 .ri-pagination-actions{
+    margin-left:auto;
     display:flex;
-    justify-content:flex-end;
     align-items:center;
     gap:6px;
 }
@@ -461,11 +458,8 @@
     display:flex;
     justify-content:space-between;
     align-items:center;
-    gap:12px;
-    margin-top:14px;
-    color:#475569;
-    font-size:12px;
-    font-weight:800;
+    margin-top:18px;
+    padding:0 4px;
 }
 }
 
@@ -499,3 +493,4 @@
     background:#fee2e2;
     color:#b91c1c;
 }
+
