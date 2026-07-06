@@ -13,6 +13,7 @@
 @implements IDisposable
 
 <div class="module-title-row">
+    <div class="module-title">
     <h1>Asignadas a mí</h1>
     <OperationalInfoButton
     Title="Asignadas a mí"
@@ -27,6 +28,23 @@
 </div>
 
 <p>Alertas asignadas al usuario conectado para seguimiento, comentarios y cierre.</p>
+</div>
+
+<div class="module-actions">
+    <OperationalInfoButton
+        Title="Asignadas a mí"
+        Description="Gestión de alertas asignadas al ingeniero."
+        Tables="dbo.AlertsManagement,dbo.AlertasBackup,dbo.AlertUpdatesHistory,dbo.AzureAlertCloseQueue"
+        Views="dbo.vw_MyAlerts,dbo.vw_MyAlertsSummary"
+        Procedures="dbo.usp_GetAlertsByUser,dbo.usp_UpdateAlertComment,dbo.usp_CloseAlert"
+        Integrations="Microsoft Graph,Azure SQL Database,Azure Monitor,Power Automate"
+        Flow="Asignación>Trabajo>Comentarios>Cierre>Historial"
+        Kpis="Mis Alertas,Pendientes,Vencidas,Cerradas Hoy"
+        Version="Asignadas a mí v1.0" />
+</div>
+
+</div>
+
 <div class="cloud-divider"></div>
 
 <div class="assigned-kpi-row">
@@ -61,6 +79,23 @@
             <small>Backup</small>
         </div>
     </div>
+</div>
+
+</div>
+
+<div class="module-actions">
+    <OperationalInfoButton
+        Title="Asignadas a mí"
+        Description="Gestión de alertas asignadas al ingeniero."
+        Tables="dbo.AlertsManagement,dbo.AlertasBackup,dbo.AlertUpdatesHistory,dbo.AzureAlertCloseQueue"
+        Views="dbo.vw_MyAlerts,dbo.vw_MyAlertsSummary"
+        Procedures="dbo.usp_GetAlertsByUser,dbo.usp_UpdateAlertComment,dbo.usp_CloseAlert"
+        Integrations="Microsoft Graph,Azure SQL Database,Azure Monitor,Power Automate"
+        Flow="Asignación>Trabajo>Comentarios>Cierre>Historial"
+        Kpis="Mis Alertas,Pendientes,Vencidas,Cerradas Hoy"
+        Version="Asignadas a mí v1.0" />
+</div>
+
 </div>
 
 <div class="cloud-divider"></div>
@@ -952,6 +987,7 @@
         RefreshCts?.Dispose();
     }
 }
+
 
 
 

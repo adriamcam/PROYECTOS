@@ -5,6 +5,7 @@
 @implements IDisposable
 
 <div class="module-title-row">
+    <div class="module-title">
     <h1>Dashboard</h1>
     <OperationalInfoButton
     Title="Dashboard"
@@ -17,6 +18,23 @@
     Kpis="Total Clientes, Alertas Activas, Críticas, Altas, Medias, Bajas, Tiempo Promedio de Resolución, Alertas por Ingeniero, Reasignaciones, Correos Enviados, Última Ejecución"
     Version="Dashboard v1.0" />
 </div>
+</div>
+
+<div class="module-actions">
+    <OperationalInfoButton
+        Title="Dashboard"
+        Description="Monitoreo centralizado de todas las alertas activas del SOC."
+        Tables="dbo.AlertsManagement,dbo.AlertasBackup"
+        Views="dbo.vw_AlertsDashboard,dbo.vw_AlertsSummary,dbo.vw_AlertsByCustomer"
+        Procedures="dbo.usp_GetActiveAlerts,dbo.usp_GetAlertSummary,dbo.usp_AssignAlert"
+        Integrations="Microsoft Graph,Azure SQL Database,Azure Monitor,Power Automate,Key Vault,Microsoft Outlook"
+        Flow="Azure Monitor>AlertsManagement>Dashboard SOC>Asignación>Resolución>Historial"
+        Kpis="Total Clientes,Alertas Activas,Críticas,Altas,Medias,Bajas,Tiempo Promedio de Resolución"
+        Version="Dashboard v1.0" />
+</div>
+
+</div>
+
 <div class="cloud-divider"></div>
 
 <div class="kpi-row">
@@ -26,6 +44,23 @@
     <KpiCard Title="Sin asignar" Icon="📋" CssClass="blue" Value="@Dashboard.UnassignedAlerts" Label="Pendientes" />
     <KpiCard Title="Críticas" Icon="🔥" CssClass="red" Value="@Dashboard.CriticalAlerts" Label="Sev0 / Sev1" />
     <KpiCard Title="Nuevas hoy" Icon="📈" CssClass="green" Value="@Dashboard.NewToday" Label="Hoy" />
+</div>
+
+</div>
+
+<div class="module-actions">
+    <OperationalInfoButton
+        Title="Dashboard"
+        Description="Monitoreo centralizado de todas las alertas activas del SOC."
+        Tables="dbo.AlertsManagement,dbo.AlertasBackup"
+        Views="dbo.vw_AlertsDashboard,dbo.vw_AlertsSummary,dbo.vw_AlertsByCustomer"
+        Procedures="dbo.usp_GetActiveAlerts,dbo.usp_GetAlertSummary,dbo.usp_AssignAlert"
+        Integrations="Microsoft Graph,Azure SQL Database,Azure Monitor,Power Automate,Key Vault,Microsoft Outlook"
+        Flow="Azure Monitor>AlertsManagement>Dashboard SOC>Asignación>Resolución>Historial"
+        Kpis="Total Clientes,Alertas Activas,Críticas,Altas,Medias,Bajas,Tiempo Promedio de Resolución"
+        Version="Dashboard v1.0" />
+</div>
+
 </div>
 
 <div class="cloud-divider"></div>
@@ -63,7 +98,24 @@
         </div>
     </div>
 
-    <div class="cloud-divider"></div>
+    </div>
+
+<div class="module-actions">
+    <OperationalInfoButton
+        Title="Dashboard"
+        Description="Monitoreo centralizado de todas las alertas activas del SOC."
+        Tables="dbo.AlertsManagement,dbo.AlertasBackup"
+        Views="dbo.vw_AlertsDashboard,dbo.vw_AlertsSummary,dbo.vw_AlertsByCustomer"
+        Procedures="dbo.usp_GetActiveAlerts,dbo.usp_GetAlertSummary,dbo.usp_AssignAlert"
+        Integrations="Microsoft Graph,Azure SQL Database,Azure Monitor,Power Automate,Key Vault,Microsoft Outlook"
+        Flow="Azure Monitor>AlertsManagement>Dashboard SOC>Asignación>Resolución>Historial"
+        Kpis="Total Clientes,Alertas Activas,Críticas,Altas,Medias,Bajas,Tiempo Promedio de Resolución"
+        Version="Dashboard v1.0" />
+</div>
+
+</div>
+
+<div class="cloud-divider"></div>
 
     <div class="alerts-toolbar">
         <input class="alerts-search"
@@ -668,6 +720,7 @@
         RefreshCts?.Dispose();
     }
 }
+
 
 
 

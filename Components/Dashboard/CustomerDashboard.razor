@@ -1,3 +1,29 @@
-<h1>Info Clientes</h1>
+<div class="module-title-row">
+
+<div class="module-title">
+
+<h1>Clientes</h1>
+
+<p>Información de clientes, tenants y suscripciones.</p>
+
+</div>
+
+<div class="module-actions">
+
+<OperationalInfoButton
+Title="Clientes"
+Description="Administración centralizada de clientes."
+Tables="dbo.CRM_Customers,dbo.PartnerCenterCustomers"
+Views="dbo.vw_Customers,dbo.vw_CustomerSubscriptions"
+Procedures="dbo.usp_GetCustomers,dbo.usp_UpdateCustomer"
+Integrations="Partner Center,CRM,Azure SQL"
+Flow="CRM>Partner Center>SQL>Dashboard"
+Kpis="Clientes,Tenants,Suscripciones"
+Version="Clientes v1.0"/>
+
+</div>
+
+</div>
 <p>Información de clientes, tenants, suscripciones y contactos operativos.</p>
 <div class="cloud-divider"></div>
+
