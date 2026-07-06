@@ -1,4 +1,3 @@
-cls
 .ri-page{
     display:flex;
     flex-direction:column;
@@ -434,7 +433,7 @@ cls
 
 .ri-resource-filters{
     display:grid;
-    grid-template-columns:220px 260px 220px 1fr 130px auto;
+    grid-template-columns:220px 260px 220px 1fr auto;
     gap:12px;
     margin:18px 0;
 }
@@ -717,97 +716,4 @@ cls
     .ri-resource-filters{
         grid-template-columns:1fr;
     }
-}
-
-
-/* ============================
-   RI UTILIZATION BAR
-============================ */
-
-.ri-util-wrap{
-    display:flex;
-    align-items:center;
-    gap:10px;
-    min-width:150px;
-}
-
-.ri-util-track{
-    width:74px;
-    height:8px;
-    border-radius:999px;
-    background:#e2e8f0;
-    overflow:hidden;
-}
-
-.ri-util-fill{
-    height:100%;
-    border-radius:999px;
-}
-
-.ri-util-fill.success{
-    background:#16a34a;
-}
-
-.ri-util-fill.warning{
-    background:#f59e0b;
-}
-
-.ri-util-fill.danger{
-    background:#dc2626;
-}
-
-/* ============================
-   RI DETAIL ICON BUTTON
-============================ */
-
-.ri-icon-btn{
-    width:36px;
-    height:34px;
-    padding:0;
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    font-size:15px;
-}
-
-/* ============================
-   RI STICKY TABLE HEADER
-============================ */
-
-.ri-table-wrap{
-    max-height:680px;
-}
-
-.ri-table-wrap th{
-    position:sticky;
-    top:0;
-    z-index:5;
-}
-
-.ri-table-wrap tbody tr:last-child td{
-    border-bottom:none;
-}
-
-/* ============================
-   RI ROW RISK COLORS
-============================ */
-
-.ri-table-wrap tbody tr.ri-row-danger{
-    background:#fef2f2;
-}
-
-.ri-table-wrap tbody tr.ri-row-warning{
-    background:#fffbeb;
-}
-
-.ri-table-wrap tbody tr.ri-row-purple{
-    background:#faf5ff;
-}
-
-.ri-table-wrap tbody tr.ri-row-info{
-    background:#eff6ff;
-}
-
-.ri-table-wrap tbody tr:hover{
-    filter:brightness(.98);
 }
