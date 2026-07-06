@@ -15,12 +15,6 @@
         <small>Clientes con reservas</small>
     </div>
 
-    <div class="ri-kpi">
-        <span>Suscripciones</span>
-        <strong>@Dashboard.Kpis.TotalSubscriptions</strong>
-        <small>Suscripciones evaluadas</small>
-    </div>
-
     <div class="ri-kpi ri-kpi-health">
         <span>Health Score</span>
         <strong>@Dashboard.Kpis.AvgUtilization.ToString("N2")%</strong>
@@ -37,12 +31,6 @@
         <span>Reservas con problemas</span>
         <strong>@(Dashboard.Kpis.SkuMismatchCount + Dashboard.Kpis.DateMismatchCount + Dashboard.Kpis.LowUtilizationCount + Dashboard.Kpis.ExpiringSoonCount + Dashboard.Kpis.ExpiredCount)</strong>
         <small>Requieren revisión</small>
-    </div>
-
-    <div class="ri-kpi ri-kpi-warning">
-        <span>SKU Cambiado</span>
-        <strong>@Dashboard.Kpis.SkuMismatchCount</strong>
-        <small>Reserva vs VM diferente</small>
     </div>
 
     <div class="ri-kpi ri-kpi-warning">

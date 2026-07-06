@@ -10,16 +10,28 @@
 
 <section class="ri-page">
 
-    <div class="ri-header">
+    <section class="ri-hero">
         <div>
+            <span class="ri-eyebrow">Azure Reserved Instances</span>
             <h1>Reporte Instancias Reservadas</h1>
-            <p>Dashboard operativo para validar SKU, fechas, utilización y estado de reservas.</p>
+            <p>Centro ejecutivo para validar utilización, vencimientos, cambios de SKU y estado operativo de reservas Azure.</p>
+
+            @if (IsLoaded)
+            {
+                <div class="ri-meta">
+                    <span>@Dashboard.Kpis.TotalResources recursos</span>
+                    <span>@Dashboard.Kpis.TotalCustomers clientes</span>
+                    <span>@Dashboard.Kpis.AvgUtilization.ToString("N2")% health score</span>
+                </div>
+            }
         </div>
 
-        <button class="ri-refresh-btn" @onclick="LoadAsync" disabled="@IsLoading">
-            @(IsLoading ? "Cargando..." : "Actualizar")
-        </button>
-    </div>
+        <div class="ri-actions">
+            <button class="ri-btn ri-btn-primary" @onclick="LoadAsync" disabled="@IsLoading">
+                @(IsLoading ? "Cargando..." : "Actualizar")
+            </button>
+        </div>
+    </section>
 
     <div class="ri-tabs">
         <button class="@(ActiveTab == "Dashboard" ? "active" : "")" @onclick='() => ActiveTab = "Dashboard"'>
@@ -31,30 +43,47 @@
         </button>
     </div>
 
-    @if (!IsLoaded)
+    @if (IsLoading && !IsLoaded)
     {
         <div class="ri-card">
-            <h2>Dashboard</h2>
-            <p>Presiona <strong>Actualizar</strong> para cargar los datos de Instancias Reservadas.</p>
+            <h3>Cargando dashboard...</h3>
+            <p>Consultando información de instancias reservadas.</p>
+        </div>
+    }
+    else if (!IsLoaded)
+    {
+        <div class="ri-card">
+            <h3>Dashboard listo</h3>
+            <p>Presiona <strong>Actualizar</strong> para cargar la información.</p>
         </div>
     }
     else if (ActiveTab == "Dashboard")
     {
         <RIKpis Dashboard="Dashboard" />
 
-        <div class="ri-grid">
+        <div class="ri-dashboard-grid">
             <section class="ri-card">
                 <div class="ri-card-header">
-                    <h3>Distribución RI</h3>
-                    <p>Estado operativo de las reservas.</p>
+                    <div>
+                        <h3>Distribución RI</h3>
+                        <p>Estado operativo de las reservas.</p>
+                    </div>
                 </div>
 
-                <div class="ri-list">
+                <div class="ri-bars">
                     @foreach (var item in Dashboard.Distribution)
                     {
-                        <div>
-                            <strong>@item.StatusName</strong>
-                            <span>@item.Total</span>
+                        var percent = Dashboard.Kpis.TotalResources == 0 ? 0 : Math.Round((decimal)item.Total / Dashboard.Kpis.TotalResources * 100, 2);
+
+                        <div class="ri-bar-row">
+                            <span>@item.StatusName</span>
+
+                            <div class="ri-bar-track">
+                                <div class="ri-bar-fill @GetDistributionClass(item.StatusName)" style="width:@percent%"></div>
+                            </div>
+
+                            <strong>@item.Total</strong>
+                            <small>@percent.ToString("N2")%</small>
                         </div>
                     }
                 </div>
@@ -62,16 +91,27 @@
 
             <section class="ri-card">
                 <div class="ri-card-header">
-                    <h3>Top Clientes</h3>
-                    <p>Clientes con mayor cantidad de reservas.</p>
+                    <div>
+                        <h3>Top Clientes</h3>
+                        <p>Clientes con mayor cantidad de reservas.</p>
+                    </div>
                 </div>
 
-                <div class="ri-list">
-                    @foreach (var item in Dashboard.TopCustomers.Take(10))
+                <div class="ri-top-list">
+                    @foreach (var item in Dashboard.TopCustomers.Take(8))
                     {
-                        <div>
-                            <strong>@item.Customer</strong>
-                            <span>@item.TotalReservations reservas | @item.Issues issues | @item.AvgUtilization.ToString("N2")%</span>
+                        <div class="ri-top-row">
+                            <div>
+                                <strong>@item.Customer</strong>
+                                <span>@item.TotalReservations reservas | @item.Issues issues</span>
+                            </div>
+
+                            <div class="ri-top-score">
+                                <span>@item.AvgUtilization.ToString("N2")%</span>
+                                <div class="ri-mini-track">
+                                    <div class="ri-mini-fill" style="width:@item.AvgUtilization%"></div>
+                                </div>
+                            </div>
                         </div>
                     }
                 </div>
@@ -110,5 +150,15 @@
             IsLoading = false;
         }
     }
-}
 
+    private static string GetDistributionClass(string status) => status switch
+    {
+        "Healthy" => "success",
+        "SKU cambiado" => "warning",
+        "Fecha no coincide" => "danger",
+        "Baja utilización" => "purple",
+        "Por vencer" => "info",
+        "Expiradas" => "muted",
+        _ => "primary"
+    };
+}
