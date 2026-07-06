@@ -10,8 +10,8 @@
 
     <div class="ri-action-hero">
         <div>
-            <h3>Recursos que requieren acción</h3>
-            <p>@ActionResources.Count recursos requieren revisión</p>
+            <h2>Centro Operativo - Recursos que requieren acción</h2>
+            <p>Recursos que requieren intervención inmediata del equipo de operaciones.</p>
         </div>
 
         <button class="ri-export-btn" type="button" @onclick="ExportCsvAsync">
@@ -341,3 +341,5 @@
         return "\"" + value.Replace("\"", "\"\"") + "\"";
     }
 }
+
+
