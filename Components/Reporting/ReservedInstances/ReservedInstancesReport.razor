@@ -117,6 +117,62 @@
                 </div>
             </section>
         </div>
+
+        <section class="ri-card ri-recommendations">
+            <div class="ri-card-header">
+                <div>
+                    <h3>Recomendaciones</h3>
+                    <p>Resumen ejecutivo de los principales hallazgos y acciones recomendadas.</p>
+                </div>
+            </div>
+
+            <div class="ri-recommendation-grid">
+                <div class="ri-recommendation success">
+                    <div class="ri-icon">✔</div>
+                    <div>
+                        <strong>@Dashboard.Kpis.HealthyCount</strong>
+                        <span>reservas funcionando correctamente</span>
+                        <small>Sin problemas detectados.</small>
+                    </div>
+                </div>
+
+                <div class="ri-recommendation warning">
+                    <div class="ri-icon">⚠</div>
+                    <div>
+                        <strong>@Dashboard.Kpis.SkuMismatchCount</strong>
+                        <span>reservas presentan cambio de SKU</span>
+                        <small>Reserva vs VM diferente.</small>
+                    </div>
+                </div>
+
+                <div class="ri-recommendation purple">
+                    <div class="ri-icon">📉</div>
+                    <div>
+                        <strong>@Dashboard.Kpis.LowUtilizationCount</strong>
+                        <span>reservas con utilización inferior al 80%</span>
+                        <small>Evaluar liberación o ajuste.</small>
+                    </div>
+                </div>
+
+                <div class="ri-recommendation info">
+                    <div class="ri-icon">⌛</div>
+                    <div>
+                        <strong>@Dashboard.Kpis.ExpiringSoonCount</strong>
+                        <span>reservas vencerán en menos de 90 días</span>
+                        <small>Considerar renovación.</small>
+                    </div>
+                </div>
+
+                <div class="ri-recommendation danger">
+                    <div class="ri-icon">🚨</div>
+                    <div>
+                        <strong>@(Dashboard.Kpis.SkuMismatchCount + Dashboard.Kpis.DateMismatchCount + Dashboard.Kpis.LowUtilizationCount + Dashboard.Kpis.ExpiringSoonCount + Dashboard.Kpis.ExpiredCount)</strong>
+                        <span>recursos requieren revisión</span>
+                        <small>Revisar detalle en Recursos.</small>
+                    </div>
+                </div>
+            </div>
+        </section>
     }
     else
     {
@@ -162,3 +218,4 @@
         _ => "primary"
     };
 }
+
