@@ -1,97 +1,40 @@
 @page "/reporting/reserved-instances"
 
-@using ITQS.SupportOperationsCenter.Components.Reporting.ReservedInstances.Models
-@using ITQS.SupportOperationsCenter.Components.Reporting.ReservedInstances.Services
-@using ITQS.SupportOperationsCenter.Components.Reporting.ReservedInstances.Components
-
-@inject IReservedInstanceService ReservedInstanceService
-
 <PageTitle>Reporte Instancias Reservadas</PageTitle>
 
 <section class="ri-page">
+
     <div class="ri-header">
+
         <div>
             <h1>Reporte Instancias Reservadas</h1>
-            <p>Dashboard operativo para validar SKU, fechas, utilización y estado de reservas.</p>
+            <p>
+                Dashboard para monitoreo de Azure Reserved Instances.
+            </p>
         </div>
 
-        <button class="ri-refresh-btn" @onclick="LoadAsync">Actualizar</button>
     </div>
 
-    @if (IsLoading)
-    {
-        <div class="ri-loading">Cargando información...</div>
-    }
-    else
-    {
-        <div class="ri-tabs">
-            <button class="@(ActiveTab == "Dashboard" ? "active" : "")" @onclick='() => ActiveTab = "Dashboard"'>Dashboard</button>
-            <button class="@(ActiveTab == "Resources" ? "active" : "")" @onclick='() => ActiveTab = "Resources"'>Reserved Instance Resources</button>
-        </div>
+    <div class="ri-tabs">
 
-        @if (ActiveTab == "Dashboard")
-        {
-            <RIKpis Dashboard="Dashboard" />
+        <button class="active">
+            Dashboard
+        </button>
 
-            <div class="ri-grid">
-                <section class="ri-card">
-                    <div class="ri-card-header">
-                        <h3>Distribución RI</h3>
-                        <p>Estado operativo de las reservas.</p>
-                    </div>
+        <button>
+            Recursos
+        </button>
 
-                    <div class="ri-list">
-                        @foreach (var item in Dashboard.Distribution)
-                        {
-                            <div>
-                                <strong>@item.StatusName</strong>
-                                <span>@item.Total</span>
-                            </div>
-                        }
-                    </div>
-                </section>
+    </div>
 
-                <section class="ri-card">
-                    <div class="ri-card-header">
-                        <h3>Top Clientes</h3>
-                        <p>Clientes con mayor cantidad de reservas.</p>
-                    </div>
+    <div class="ri-card">
 
-                    <div class="ri-list">
-                        @foreach (var item in Dashboard.TopCustomers.Take(10))
-                        {
-                            <div>
-                                <strong>@item.Customer</strong>
-                                <span>@item.TotalReservations reservas | @item.Issues issues | @item.AvgUtilization.ToString("N2")%</span>
-                            </div>
-                        }
-                    </div>
-                </section>
-            </div>
-        }
-        else
-        {
-            <RIResourcesTable Resources="Dashboard.Resources" />
-        }
-    }
+        <h2>Dashboard</h2>
+
+        <p>
+            Módulo inicial funcionando correctamente.
+        </p>
+
+    </div>
+
 </section>
-
-@code {
-    private ReservedInstanceDashboard Dashboard { get; set; } = new();
-    private bool IsLoading { get; set; } = true;
-    private string ActiveTab { get; set; } = "Dashboard";
-
-    protected override Task OnInitializedAsync()
-    {
-        IsLoading = false;
-        return Task.CompletedTask;
-    }
-
-    private async Task LoadAsync()
-    {
-        IsLoading = true;
-        Dashboard = await ReservedInstanceService.GetDashboardAsync();
-        IsLoading = false;
-    }
-}
-
