@@ -472,3 +472,19 @@ cursor:not-allowed;
 
 }
 
+
+.ri-action-sort{
+    border:none;
+    background:transparent;
+    padding:0;
+    color:#0f172a;
+    font-size:12px;
+    font-weight:900;
+    text-transform:uppercase;
+    cursor:pointer;
+    white-space:nowrap;
+}
+
+.ri-action-sort:hover{
+    color:#2563eb;
+}

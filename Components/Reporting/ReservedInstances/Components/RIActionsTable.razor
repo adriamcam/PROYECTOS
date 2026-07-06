@@ -79,17 +79,17 @@
 
         <div class="ri-table-wrap">
             <table>
-                                <thead>
+                                                <thead>
                     <tr>
-                        <th>Prioridad</th>
-                        <th>Suscripción</th>
-                        <th>Recurso</th>
-                        <th>SKU Reserva</th>
-                        <th>SKU VM</th>
-                        <th>Problema</th>
-                        <th>Detalle</th>
-                        <th>Cambiado por</th>
-                        <th>Fecha cambio</th>
+                        <th><button class="ri-action-sort" @onclick='() => SortBy("Priority")'>Prioridad @GetSortIcon("Priority")</button></th>
+                        <th><button class="ri-action-sort" @onclick='() => SortBy("Subscription")'>Suscripción @GetSortIcon("Subscription")</button></th>
+                        <th><button class="ri-action-sort" @onclick='() => SortBy("Resource")'>Recurso @GetSortIcon("Resource")</button></th>
+                        <th><button class="ri-action-sort" @onclick='() => SortBy("SKUReserva")'>SKU Reserva @GetSortIcon("SKUReserva")</button></th>
+                        <th><button class="ri-action-sort" @onclick='() => SortBy("SKUVM")'>SKU VM @GetSortIcon("SKUVM")</button></th>
+                        <th><button class="ri-action-sort" @onclick='() => SortBy("Problem")'>Problema @GetSortIcon("Problem")</button></th>
+                        <th><button class="ri-action-sort" @onclick='() => SortBy("Detail")'>Detalle @GetSortIcon("Detail")</button></th>
+                        <th><button class="ri-action-sort" @onclick='() => SortBy("ChangedBy")'>Cambiado por @GetSortIcon("ChangedBy")</button></th>
+                        <th><button class="ri-action-sort" @onclick='() => SortBy("ChangeDate")'>Fecha cambio @GetSortIcon("ChangeDate")</button></th>
                     </tr>
                 </thead>
 
@@ -195,6 +195,8 @@
 
     private int CurrentPage { get; set; } = 1;
     private int PageSize { get; set; } = 20;
+    private string SortColumn { get; set; } = "Priority";
+    private bool SortAscending { get; set; } = true;
 
     private List<ReservedInstanceResource> ActionResources =>
         Resources
@@ -226,8 +228,23 @@
             )
         );
 
+
+    private IEnumerable<ReservedInstanceResource> OrderedResources =>
+        SortColumn switch
+        {
+            "Priority" => SortAscending ? FilteredResources.OrderBy(GetPriorityRank) : FilteredResources.OrderByDescending(GetPriorityRank),
+            "Subscription" => SortAscending ? FilteredResources.OrderBy(x => x.Subscription) : FilteredResources.OrderByDescending(x => x.Subscription),
+            "Resource" => SortAscending ? FilteredResources.OrderBy(x => x.ResourceName) : FilteredResources.OrderByDescending(x => x.ResourceName),
+            "SKUReserva" => SortAscending ? FilteredResources.OrderBy(x => x.SKUReserva) : FilteredResources.OrderByDescending(x => x.SKUReserva),
+            "SKUVM" => SortAscending ? FilteredResources.OrderBy(x => x.SKUVM) : FilteredResources.OrderByDescending(x => x.SKUVM),
+            "Problem" => SortAscending ? FilteredResources.OrderBy(GetProblem) : FilteredResources.OrderByDescending(GetProblem),
+            "Detail" => SortAscending ? FilteredResources.OrderBy(GetDetail) : FilteredResources.OrderByDescending(GetDetail),
+            "ChangedBy" => SortAscending ? FilteredResources.OrderBy(x => x.LastChangedBy) : FilteredResources.OrderByDescending(x => x.LastChangedBy),
+            "ChangeDate" => SortAscending ? FilteredResources.OrderBy(x => x.LastChangeDate) : FilteredResources.OrderByDescending(x => x.LastChangeDate),
+            _ => FilteredResources.OrderBy(GetPriorityRank)
+        };
     private IEnumerable<ReservedInstanceResource> PagedResources =>
-        FilteredResources.Skip((CurrentPage - 1) * PageSize).Take(PageSize);
+        OrderedResources.Skip((CurrentPage - 1) * PageSize).Take(PageSize);
 
     private int TotalPages =>
         Math.Max(1, (int)Math.Ceiling(FilteredResources.Count() / (double)PageSize));
@@ -244,6 +261,31 @@
         }
     }
 
+
+    private void SortBy(string column)
+    {
+        if (SortColumn == column)
+        {
+            SortAscending = !SortAscending;
+        }
+        else
+        {
+            SortColumn = column;
+            SortAscending = true;
+        }
+
+        CurrentPage = 1;
+    }
+
+    private string GetSortIcon(string column)
+    {
+        if (SortColumn != column)
+        {
+            return "↕";
+        }
+
+        return SortAscending ? "↑" : "↓";
+    }
     private void ClearFilters()
     {
         SearchText = "";
@@ -377,6 +419,7 @@
         return "\"" + value.Replace("\"", "\"\"") + "\"";
     }
 }
+
 
 
 
