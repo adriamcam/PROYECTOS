@@ -42,6 +42,53 @@ public partial class GdapAdminLinks : ComponentBase
     protected List<GdapAdminLinksReportModel> PartnerReports { get; set; } = new();
     protected List<GdapAdminLinksAuditEventModel> AuditEvents { get; set; } = new();
     protected List<GdapNotificationLogModel> NotificationLogs { get; set; } = new();
+    protected string NotificationSortColumn { get; set; } = "SentAt";
+    protected bool NotificationSortAscending { get; set; }
+
+    protected List<GdapNotificationLogModel> SortedNotificationLogs =>
+        ApplyNotificationSort(NotificationLogs).ToList();
+
+    protected async Task SortNotificationsAsync(string column)
+    {
+        if (NotificationSortColumn == column)
+            NotificationSortAscending = !NotificationSortAscending;
+        else
+        {
+            NotificationSortColumn = column;
+            NotificationSortAscending = column is "CustomerName" or "PartnerTenant" or "NotificationCase" or "NotificationStage";
+        }
+
+        await Task.CompletedTask;
+    }
+
+    protected string NotificationSortIcon(string column)
+    {
+        if (NotificationSortColumn != column)
+            return "↕";
+
+        return NotificationSortAscending ? "↑" : "↓";
+    }
+
+    private IEnumerable<GdapNotificationLogModel> ApplyNotificationSort(IEnumerable<GdapNotificationLogModel> source)
+    {
+        Func<GdapNotificationLogModel, object?> selector = NotificationSortColumn switch
+        {
+            "CustomerName" => x => x.CustomerName,
+            "PartnerTenant" => x => x.PartnerTenant,
+            "NotificationCase" => x => x.NotificationCase,
+            "NotificationStage" => x => x.NotificationStage,
+            "DaysToExpire" => x => x.DaysToExpire ?? int.MaxValue,
+            "ActiveEndDate" => x => x.ActiveEndDate ?? DateTime.MaxValue,
+            "SentTo" => x => x.SentTo,
+            "Status" => x => x.Status,
+            "SentAt" => x => x.SentAt ?? DateTime.MinValue,
+            _ => x => x.SentAt ?? DateTime.MinValue
+        };
+
+        return NotificationSortAscending
+            ? source.OrderBy(selector).ThenByDescending(x => x.Id)
+            : source.OrderByDescending(selector).ThenByDescending(x => x.Id);
+    }
     protected List<GdapAdminLinksAuditEventModel> NotificationEvents =>
         AuditEvents
             .Where(IsNotificationEvent)

@@ -322,10 +322,9 @@
                         <h3>Log de Notificaciones GDAP</h3>
                         <p>Historial de notificaciones generadas por el flujo GDAP, incluyendo etapa, destinatario, estado y fecha de envío.</p>
                     </div>
-                    <button class="btn-primary" @onclick="LoadNotificationLogsAsync">↻ Refrescar notificaciones</button>
                 </div>
 
-                @if (!NotificationLogs.Any())
+                @if (!SortedNotificationLogs.Any())
                 {
                     <div class="empty-state">
                         No hay notificaciones registradas por el momento.
@@ -333,31 +332,67 @@
                 }
                 else
                 {
-                    <div class="gdap-row mail-head">
-                        <span>Cliente</span>
-                        <span>Caso</span>
-                        <span>Etapa</span>
-                        <span>Días</span>
-                        <span>Vence</span>
-                        <span>Enviado a</span>
-                        <span>Status</span>
-                        <span>Flow</span>
+                    <div class="gdap-row notification-head">
+                        <span>
+                            <button type="button" class="sort-link" @onclick='() => SortNotificationsAsync("CustomerName")'>
+                                Cliente <small>@NotificationSortIcon("CustomerName")</small>
+                            </button>
+                        </span>
+                        <span>
+                            <button type="button" class="sort-link" @onclick='() => SortNotificationsAsync("NotificationCase")'>
+                                Caso <small>@NotificationSortIcon("NotificationCase")</small>
+                            </button>
+                        </span>
+                        <span>
+                            <button type="button" class="sort-link" @onclick='() => SortNotificationsAsync("NotificationStage")'>
+                                Etapa <small>@NotificationSortIcon("NotificationStage")</small>
+                            </button>
+                        </span>
+                        <span>
+                            <button type="button" class="sort-link" @onclick='() => SortNotificationsAsync("DaysToExpire")'>
+                                Días <small>@NotificationSortIcon("DaysToExpire")</small>
+                            </button>
+                        </span>
+                        <span>
+                            <button type="button" class="sort-link" @onclick='() => SortNotificationsAsync("ActiveEndDate")'>
+                                Vence <small>@NotificationSortIcon("ActiveEndDate")</small>
+                            </button>
+                        </span>
+                        <span>
+                            <button type="button" class="sort-link" @onclick='() => SortNotificationsAsync("SentTo")'>
+                                Enviado a <small>@NotificationSortIcon("SentTo")</small>
+                            </button>
+                        </span>
+                        <span>
+                            <button type="button" class="sort-link" @onclick='() => SortNotificationsAsync("Status")'>
+                                Estado <small>@NotificationSortIcon("Status")</small>
+                            </button>
+                        </span>
+                        <span>
+                            <button type="button" class="sort-link" @onclick='() => SortNotificationsAsync("SentAt")'>
+                                Enviado <small>@NotificationSortIcon("SentAt")</small>
+                            </button>
+                        </span>
                     </div>
 
-                    @foreach (var item in NotificationLogs)
+                    @foreach (var item in SortedNotificationLogs)
                     {
-                        <div class="gdap-row mail-row">
+                        <div class="gdap-row notification-row">
                             <span>
                                 <strong>@item.CustomerName</strong>
                                 <small>@item.PartnerTenant</small>
                             </span>
-                            <span>@NotificationCaseText(item.NotificationCase)</span>
-                            <span>@NotificationStageText(item.NotificationStage)</span>
+                            <span class="notification-case">@NotificationCaseText(item.NotificationCase)</span>
+                            <span class="notification-stage">@NotificationStageText(item.NotificationStage)</span>
                             <span>@(item.DaysToExpire.HasValue ? item.DaysToExpire.Value.ToString() : "-")</span>
                             <span>@FormatDate(item.ActiveEndDate)</span>
-                            <span>@(string.IsNullOrWhiteSpace(item.SentTo) ? "-" : item.SentTo)</span>
-                            <span><span class="status-pill @NotificationStatusCss(item.Status)">@NotificationStatusText(item.Status)</span></span>
+                            <span class="notification-email">@(string.IsNullOrWhiteSpace(item.SentTo) ? "-" : item.SentTo)</span>
                             <span>
+                                <span class="status-pill @NotificationStatusCss(item.Status)">
+                                    @NotificationStatusText(item.Status)
+                                </span>
+                            </span>
+                            <span class="notification-flow">
                                 <strong>@FormatDateTime(item.SentAt)</strong>
                                 <small>@item.FlowName</small>
                             </span>

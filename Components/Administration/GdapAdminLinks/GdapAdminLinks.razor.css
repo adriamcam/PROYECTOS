@@ -1009,3 +1009,64 @@
         grid-template-columns: 1fr;
     }
 }
+
+.gdap-row.notification-head,
+.gdap-row.notification-row {
+    grid-template-columns:
+        minmax(170px, 1.2fr)
+        minmax(155px, 1fr)
+        minmax(145px, 0.95fr)
+        minmax(55px, 0.35fr)
+        minmax(100px, 0.55fr)
+        minmax(170px, 1fr)
+        minmax(110px, 0.65fr)
+        minmax(155px, 0.9fr);
+    align-items: center;
+    column-gap: 16px;
+}
+
+.gdap-row.notification-head {
+    font-weight: 700;
+    color: #17233f;
+}
+
+.gdap-row.notification-row {
+    min-height: 72px;
+}
+
+.sort-link {
+    background: transparent;
+    border: 0;
+    padding: 0;
+    color: inherit;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    text-align: left;
+}
+
+.sort-link small {
+    color: #2563eb;
+    font-size: 0.8rem;
+}
+
+.notification-case,
+.notification-stage,
+.notification-email,
+.notification-flow {
+    overflow-wrap: anywhere;
+    word-break: normal;
+}
+
+.notification-flow strong,
+.notification-flow small {
+    display: block;
+}
+
+.notification-flow small {
+    color: #64748b;
+    line-height: 1.25;
+}
