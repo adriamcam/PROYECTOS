@@ -90,6 +90,7 @@
                         <th><button class="ri-action-sort" @onclick='() => SortBy("Detail")'>Detalle @GetSortIcon("Detail")</button></th>
                         <th><button class="ri-action-sort" @onclick='() => SortBy("ChangedBy")'>Cambiado por @GetSortIcon("ChangedBy")</button></th>
                         <th><button class="ri-action-sort" @onclick='() => SortBy("ChangeDate")'>Fecha cambio @GetSortIcon("ChangeDate")</button></th>
+                        <th>Detalle</th>
                     </tr>
                 </thead>
 
@@ -139,6 +140,12 @@
                                     @(item.LastChangeDate?.ToString("dd/MM/yyyy HH:mm") ?? "-")
                                 </span>
                             </td>
+
+                            <td>
+                                <button class="ri-history-btn" type="button" @onclick="() => OpenHistory(item)">
+                                    Historial
+                                </button>
+                            </td>
                         </tr>
                     }
                 </tbody>
@@ -185,8 +192,53 @@
 
 </section>
 
+@if (SelectedResource is not null)
+{
+    <div class="ri-history-backdrop" @onclick="CloseHistory"></div>
+
+    <div class="ri-history-modal">
+        <div class="ri-history-header">
+            <div>
+                <span>Línea de tiempo</span>
+                <h3>@SelectedResource.ResourceName</h3>
+                <p>@SelectedResource.Subscription</p>
+            </div>
+
+            <button type="button" @onclick="CloseHistory">×</button>
+        </div>
+
+        <div class="ri-timeline">
+            <div class="ri-timeline-item">
+                <strong>Problema detectado</strong>
+                <span>@GetProblem(SelectedResource)</span>
+                <small>@GetDetail(SelectedResource)</small>
+            </div>
+
+            <div class="ri-timeline-item">
+                <strong>Cambiado por</strong>
+                <span>@(string.IsNullOrWhiteSpace(SelectedResource.LastChangedBy) ? "Sin dato" : SelectedResource.LastChangedBy)</span>
+                <small>@(SelectedResource.LastChangeDate?.ToString("dd/MM/yyyy HH:mm") ?? "Sin fecha de cambio")</small>
+            </div>
+
+            <div class="ri-timeline-item">
+                <strong>Último scan</strong>
+                <span>@(SelectedResource.LastScanDate?.ToString("dd/MM/yyyy HH:mm") ?? "Sin dato")</span>
+                <small>Validación automática de Reserved Instances</small>
+            </div>
+
+            <div class="ri-timeline-item">
+                <strong>Recomendación</strong>
+                <span>@GetProblem(SelectedResource)</span>
+                <small>@GetDetail(SelectedResource)</small>
+            </div>
+        </div>
+    </div>
+}
+
 @code {
     [Parameter] public List<ReservedInstanceResource> Resources { get; set; } = new();
+
+    private ReservedInstanceResource? SelectedResource { get; set; }
 
     private string SearchText { get; set; } = "";
     private string ProblemFilter { get; set; } = "";
@@ -286,6 +338,16 @@
 
         return SortAscending ? "↑" : "↓";
     }
+    private void OpenHistory(ReservedInstanceResource item)
+    {
+        SelectedResource = item;
+    }
+
+    private void CloseHistory()
+    {
+        SelectedResource = null;
+    }
+
     private void ClearFilters()
     {
         SearchText = "";
@@ -419,6 +481,7 @@
         return "\"" + value.Replace("\"", "\"\"") + "\"";
     }
 }
+
 
 
 
