@@ -192,6 +192,11 @@
         await LoadAsync();
     }
 
+    private void ChangeTab(string tab)
+    {
+        ActiveTab = tab;
+    }
+
     private async Task LoadAsync()
     {
         IsLoading = true;
@@ -218,5 +223,7 @@
         _ => "primary"
     };
 }
+
+
 
 

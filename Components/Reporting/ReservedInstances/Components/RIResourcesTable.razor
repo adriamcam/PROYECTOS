@@ -21,15 +21,15 @@
     </div>
 
     <div class="ri-resource-summary">
-        <div class="primary">
+        <button class="primary ri-summary-action" type="button" @onclick="OpenResourcesTab">
             <strong>@Resources.Count</strong>
             <span>Total de recursos</span>
-        </div>
+        </button>
 
-        <div class="danger">
+        <button class="danger ri-summary-action" type="button" @onclick="OpenActionTab">
             <strong>@Resources.Count(x => x.OperationalStatus != "Healthy")</strong>
             <span>Requiere accion</span>
-        </div>
+        </button>
 
         <div class="success">
             <strong>@Resources.Count(x => x.OperationalStatus == "Healthy")</strong>
@@ -212,6 +212,7 @@
 
 @code {
     [Parameter] public List<ReservedInstanceResource> Resources { get; set; } = new();
+    [Parameter] public EventCallback<string> OnChangeTab { get; set; }
 
     private string SubscriptionFilter { get; set; } = "";
     private string StatusFilter { get; set; } = "";
@@ -316,6 +317,16 @@
     private void LastPage() => CurrentPage = TotalPages;
     private void NextPage() { if (CurrentPage < TotalPages) CurrentPage++; }
     private void PrevPage() { if (CurrentPage > 1) CurrentPage--; }
+
+    private async Task OpenResourcesTab()
+    {
+        await OnChangeTab.InvokeAsync("Resources");
+    }
+
+    private async Task OpenActionTab()
+    {
+        await OnChangeTab.InvokeAsync("Action");
+    }
 
     private void ClearFilters()
     {
@@ -453,3 +464,4 @@
         _ => "Revisar recurso"
     };
 }
+
