@@ -10,18 +10,10 @@
         </section>
     }
     else
-    {
-        <section class="appreg-hero">
+    {        <section class="appreg-hero">
             <div>
                 <span>Administración</span>
-                <div class="module-title-row">
-<div class="module-title">
-    <h1>App Registrations ITQS</h1>
-    <OperationalInfoButton
-        Title="App Registrations ITQS"
-        Description="Este módulo monitorea las App Registrations utilizadas por ITQS para conectarse a clientes. Permite revisar expiraciones, asignar ingenieros y generar seguimiento operativo."
-        Tables="dbo.AppRegistrationExpirations, dbo.AppRegistrationTasks, dbo.ITQS_AppUsers" />
-</div>
+                <h1>App Registrations ITQS</h1>
                 <p>Monitoreo de las App Registrations utilizadas por ITQS para conectarse a los clientes.</p>
             </div>
 
@@ -30,6 +22,18 @@
                     <span>Último escaneo</span>
                     <strong>@Dashboard.LastScanText</strong>
                 </div>
+
+                <OperationalInfoButton
+                    Title="App Registrations ITQS"
+                    Description="Monitorea las App Registrations utilizadas por ITQS para conectarse a clientes. Permite revisar expiraciones, asignar ingenieros y generar seguimiento operativo."
+                    Tables="dbo.AppRegistrationExpirations, dbo.AppRegistrationTasks, dbo.ITQS_AppUsers"
+                    Views="dbo.vw_AppRegistrations, dbo.vw_AppStatus"
+                    Procedures="dbo.usp_GetAppRegistrations, dbo.usp_ValidateAppConnection"
+                    Integrations="Microsoft Entra ID, Microsoft Graph, Azure Key Vault, Azure SQL Database"
+                    Flow="Entra ID > App Registrations > SQL > Dashboard > Seguimiento"
+                    Kpis="Clientes, App Registrations, Secrets, Certificates, Expiran menor a 30 días, Expiradas"
+                    Version="App Registrations ITQS v1.0" />
+
                 <button class="btn-primary" type="button" @onclick="RefreshAsync">↻ Actualizar</button>
             </div>
         </section>
@@ -248,6 +252,7 @@
         </div>
     }
 </div>
+
 
 
 
