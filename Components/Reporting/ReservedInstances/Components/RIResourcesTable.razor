@@ -230,7 +230,7 @@
         };
 
     private IEnumerable<ReservedInstanceResource> FilteredResources =>
-        Resources.Where(x =>
+        QuickFilteredResources.Where(x =>
             (string.IsNullOrWhiteSpace(SubscriptionFilter) || x.Subscription == SubscriptionFilter) &&
             (string.IsNullOrWhiteSpace(StatusFilter) || x.OperationalStatus == StatusFilter) &&
             (
@@ -239,30 +239,24 @@
                 ContainsSafe(x.Customer, SearchText) ||
                 ContainsSafe(x.Subscription, SearchText) ||
                 ContainsSafe(x.SKUReserva, SearchText) ||
-                ContainsSafe(x.SKUVM, SearchText) ||
-                ContainsSafe(x.OperationalStatus, SearchText) ||
-                ContainsSafe(x.Issue, SearchText)
+                ContainsSafe(x.SKUVM, SearchText)
             )
         );
 
     private IEnumerable<ReservedInstanceResource> OrderedResources =>
         SortColumn switch
         {
-            "Status" => SortAscending ? FilteredResources.OrderBy(x => x.OperationalStatus) : FilteredResources.OrderByDescending(x => x.OperationalStatus),
-            "Resource" => SortAscending ? FilteredResources.OrderBy(x => x.ResourceName) : FilteredResources.OrderByDescending(x => x.ResourceName),
-            "Customer" => SortAscending ? FilteredResources.OrderBy(x => x.Customer) : FilteredResources.OrderByDescending(x => x.Customer),
             "Subscription" => SortAscending ? FilteredResources.OrderBy(x => x.Subscription) : FilteredResources.OrderByDescending(x => x.Subscription),
+            "Resource" => SortAscending ? FilteredResources.OrderBy(x => x.ResourceName) : FilteredResources.OrderByDescending(x => x.ResourceName),
             "SKUReserva" => SortAscending ? FilteredResources.OrderBy(x => x.SKUReserva) : FilteredResources.OrderByDescending(x => x.SKUReserva),
             "SKUVM" => SortAscending ? FilteredResources.OrderBy(x => x.SKUVM) : FilteredResources.OrderByDescending(x => x.SKUVM),
             "FechaReserva" => SortAscending ? FilteredResources.OrderBy(x => x.FechaReserva) : FilteredResources.OrderByDescending(x => x.FechaReserva),
             "FechaVM" => SortAscending ? FilteredResources.OrderBy(x => x.FechaVM) : FilteredResources.OrderByDescending(x => x.FechaVM),
             "Days" => SortAscending ? FilteredResources.OrderBy(x => x.DaysRemaining) : FilteredResources.OrderByDescending(x => x.DaysRemaining),
             "Utilization" => SortAscending ? FilteredResources.OrderBy(x => x.Utilization30d) : FilteredResources.OrderByDescending(x => x.Utilization30d),
-            "ChangedBy" => SortAscending ? FilteredResources.OrderBy(x => x.LastChangedBy) : FilteredResources.OrderByDescending(x => x.LastChangedBy),
-            "ChangeDate" => SortAscending ? FilteredResources.OrderBy(x => x.LastChangeDate) : FilteredResources.OrderByDescending(x => x.LastChangeDate),
-            _ => FilteredResources
+            "Status" => SortAscending ? FilteredResources.OrderBy(x => x.OperationalStatus) : FilteredResources.OrderByDescending(x => x.OperationalStatus),
+            _ => FilteredResources.OrderBy(x => x.Subscription).ThenBy(x => x.ResourceName)
         };
-
     private IEnumerable<ReservedInstanceResource> PagedResources =>
         OrderedResources.Skip((CurrentPage - 1) * PageSize).Take(PageSize);
 
@@ -347,6 +341,7 @@
         StatusFilter = "";
         SubscriptionFilter = "";
         SearchText = "";
+        QuickFilter = "";
         CurrentPage = 1;
     }
 
@@ -356,6 +351,7 @@
         StatusFilter = "";
         QuickFilter = "";
         SearchText = "";
+        QuickFilter = "";
         CurrentPage = 1;
     }
 
@@ -487,6 +483,8 @@
         _ => "Revisar recurso"
     };
 }
+
+
 
 
 
