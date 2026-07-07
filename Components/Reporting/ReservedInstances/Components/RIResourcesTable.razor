@@ -20,26 +20,26 @@
         </button>
     </div>
 
-    <div class="ri-resource-summary">
-        <button class="primary ri-summary-action" type="button" @onclick="OpenResourcesTab">
+        <div class="ri-resource-summary">
+        <button class="primary ri-summary-action" type="button" @onclick='() => ApplyQuickFilter("")'>
             <strong>@Resources.Count</strong>
             <span>Total de recursos</span>
         </button>
 
-        <button class="danger ri-summary-action" type="button" @onclick="OpenActionTab">
+        <button class="danger ri-summary-action" type="button" @onclick='() => ApplyQuickFilter("Action")'>
             <strong>@Resources.Count(x => x.OperationalStatus != "Healthy")</strong>
             <span>Requiere accion</span>
         </button>
 
-        <div class="success">
+        <button class="success ri-summary-action" type="button" @onclick='() => ApplyQuickFilter("Healthy")'>
             <strong>@Resources.Count(x => x.OperationalStatus == "Healthy")</strong>
             <span>Recursos Healthy</span>
-        </div>
+        </button>
 
-        <div class="info">
-            <strong>@Resources.Count(x => x.OperationalStatus == "Expiring Soon")</strong>
+        <button class="info ri-summary-action" type="button" @onclick='() => ApplyQuickFilter("ExpiringSoon")'>
+            <strong>@Resources.Count(x => x.ExpiresSoon == true || x.OperationalStatus == "Expiring Soon")</strong>
             <span>IR por vencer</span>
-        </div>
+        </button>
     </div>
 
     <div class="ri-resource-filters">
@@ -204,6 +204,7 @@
 
     private string SubscriptionFilter { get; set; } = "";
     private string StatusFilter { get; set; } = "";
+    private string QuickFilter { get; set; } = "";
     private string SearchText { get; set; } = "";
 
     private ReservedInstanceResource? SelectedResource { get; set; }
@@ -218,6 +219,15 @@
             .Where(x => !string.IsNullOrWhiteSpace(x))
             .Distinct()
             .OrderBy(x => x);
+
+    private IEnumerable<ReservedInstanceResource> QuickFilteredResources =>
+        QuickFilter switch
+        {
+            "Action" => Resources.Where(x => x.OperationalStatus != "Healthy"),
+            "Healthy" => Resources.Where(x => x.OperationalStatus == "Healthy"),
+            "ExpiringSoon" => Resources.Where(x => x.ExpiresSoon == true || x.OperationalStatus == "Expiring Soon"),
+            _ => Resources
+        };
 
     private IEnumerable<ReservedInstanceResource> FilteredResources =>
         Resources.Where(x =>
@@ -326,14 +336,26 @@
         else
         {
             StatusFilter = "";
+        QuickFilter = "";
             CurrentPage = 1;
         }
+    }
+
+    private void ApplyQuickFilter(string filter)
+    {
+        QuickFilter = filter;
+        StatusFilter = "";
+        QuickFilter = "";
+        SearchText = "";
+        SubscriptionFilter = "";
+        CurrentPage = 1;
     }
 
     private void ClearFilters()
     {
         SubscriptionFilter = "";
         StatusFilter = "";
+        QuickFilter = "";
         SearchText = "";
         CurrentPage = 1;
     }
@@ -466,6 +488,9 @@
         _ => "Revisar recurso"
     };
 }
+
+
+
 
 
 
