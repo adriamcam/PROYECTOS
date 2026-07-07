@@ -41,6 +41,11 @@ public partial class GdapAdminLinks : ComponentBase
     protected List<GdapAdminLinksCustomerModel> ExpiringItems { get; set; } = new();
     protected List<GdapAdminLinksReportModel> PartnerReports { get; set; } = new();
     protected List<GdapAdminLinksAuditEventModel> AuditEvents { get; set; } = new();
+
+    protected string AuditSearch { get; set; } = string.Empty;
+    protected string AuditEventTypeFilter { get; set; } = "All";
+    protected int AuditPage { get; set; } = 1;
+    protected int AuditPageSize { get; set; } = 10;
     protected List<GdapNotificationLogModel> NotificationLogs { get; set; } = new();
     protected string NotificationSortColumn { get; set; } = "SentAt";
     protected bool NotificationSortAscending { get; set; }
@@ -365,6 +370,212 @@ public partial class GdapAdminLinks : ComponentBase
             await LoadAuditAsync();
     }
 
+
+    protected int ReportsTotalCustomers => PartnerReports.Sum(x => x.TotalCustomers);
+    protected int ReportsActiveGdap => PartnerReports.Sum(x => x.ActiveGdap);
+    protected int ReportsApprovalPending => PartnerReports.Sum(x => x.ApprovalPending);
+    protected int ReportsWithoutGdap => PartnerReports.Sum(x => x.WithoutGdap);
+    protected int ReportsExpiringIn30Days => PartnerReports.Sum(x => x.ExpiringIn30Days);
+    protected int ReportsDisabledCustomers => PartnerReports.Sum(x => x.DisabledCustomers);
+    protected int ReportsPendingEmails => PartnerReports.Sum(x => x.PendingEmails);
+    protected int ReportsAutomationErrors => PartnerReports.Sum(x => x.AutomationErrors);
+
+    protected int ReportsManagedCustomers => Math.Max(0, ReportsTotalCustomers - ReportsDisabledCustomers);
+
+    protected int ReportsHealthPercent =>
+        ReportsManagedCustomers <= 0
+            ? 0
+            : Math.Clamp(Convert.ToInt32(Math.Round((ReportsActiveGdap * 100.0) / ReportsManagedCustomers)), 0, 100);
+
+    protected static int ReportManagedCustomers(GdapAdminLinksReportModel item)
+        => Math.Max(0, item.TotalCustomers - item.DisabledCustomers);
+
+    protected static int ReportHealthPercent(GdapAdminLinksReportModel item)
+    {
+        var managed = ReportManagedCustomers(item);
+
+        if (managed <= 0)
+            return 0;
+
+        return Math.Clamp(Convert.ToInt32(Math.Round((item.ActiveGdap * 100.0) / managed)), 0, 100);
+    }
+
+    protected static string ReportRiskCss(GdapAdminLinksReportModel item)
+    {
+        var health = ReportHealthPercent(item);
+
+        if (item.AutomationErrors > 0 || health < 50)
+            return "critical";
+
+        if (item.ApprovalPending > 0 || item.ExpiringIn30Days > 0 || health < 75)
+            return "warning";
+
+        return "healthy";
+    }
+
+    protected static string ReportRiskText(GdapAdminLinksReportModel item)
+    {
+        var css = ReportRiskCss(item);
+
+        return css switch
+        {
+            "healthy" => "Saludable",
+            "warning" => "Atención",
+            "critical" => "Crítico",
+            _ => "Revisar"
+        };
+    }
+
+    protected int AuditTotalCount => AuditEvents.Count;
+
+    protected int AuditTodayCount =>
+        AuditEvents.Count(x => x.EventDate.Date == DateTime.Today);
+
+    protected int AuditLast7DaysCount =>
+        AuditEvents.Count(x => x.EventDate >= DateTime.Today.AddDays(-7));
+
+    protected int AuditUserCount =>
+        AuditEvents
+            .Select(x => x.ExecutedBy)
+            .Where(x => !string.IsNullOrWhiteSpace(x))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Count();
+
+    protected List<string> AuditEventTypeOptions =>
+        AuditEvents
+            .Select(x => x.EventType)
+            .Where(x => !string.IsNullOrWhiteSpace(x))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(x => x)
+            .ToList();
+
+    protected List<GdapAdminLinksAuditEventModel> FilteredAuditEvents =>
+        AuditEvents
+            .Where(MatchesAuditFilters)
+            .OrderByDescending(x => x.EventDate)
+            .ThenByDescending(x => x.Id)
+            .ToList();
+
+    protected int AuditFilteredCount => FilteredAuditEvents.Count;
+
+    protected int AuditTotalPages =>
+        Math.Max(1, Convert.ToInt32(Math.Ceiling(AuditFilteredCount / (double)AuditPageSize)));
+
+    protected int SafeAuditPage =>
+        Math.Min(Math.Max(AuditPage, 1), AuditTotalPages);
+
+    protected int AuditPageStart =>
+        AuditFilteredCount == 0 ? 0 : ((SafeAuditPage - 1) * AuditPageSize) + 1;
+
+    protected int AuditPageEnd =>
+        Math.Min(SafeAuditPage * AuditPageSize, AuditFilteredCount);
+
+    protected List<GdapAdminLinksAuditEventModel> PagedAuditEvents =>
+        FilteredAuditEvents
+            .Skip((SafeAuditPage - 1) * AuditPageSize)
+            .Take(AuditPageSize)
+            .ToList();
+
+    protected bool MatchesAuditFilters(GdapAdminLinksAuditEventModel item)
+    {
+        if (!string.Equals(AuditEventTypeFilter, "All", StringComparison.OrdinalIgnoreCase) &&
+            !string.Equals(item.EventType, AuditEventTypeFilter, StringComparison.OrdinalIgnoreCase))
+            return false;
+
+        if (string.IsNullOrWhiteSpace(AuditSearch))
+            return true;
+
+        var search = AuditSearch.Trim();
+
+        return AuditContains(item.CustomerName, search)
+            || AuditContains(item.CustomerTenantId, search)
+            || AuditContains(item.PartnerTenant, search)
+            || AuditContains(item.EventType, search)
+            || AuditContains(item.Description, search)
+            || AuditContains(item.ExecutedBy, search)
+            || AuditContains(item.ApprovalUrl, search);
+    }
+
+    protected static bool AuditContains(string value, string search)
+        => !string.IsNullOrWhiteSpace(value) &&
+           value.Contains(search, StringComparison.OrdinalIgnoreCase);
+
+    protected void ClearAuditFilters()
+    {
+        AuditSearch = string.Empty;
+        AuditEventTypeFilter = "All";
+        AuditPage = 1;
+    }
+
+    protected void GoToAuditPage(int page)
+    {
+        AuditPage = Math.Min(Math.Max(page, 1), AuditTotalPages);
+    }
+
+    protected void SetAuditPageSize(Microsoft.AspNetCore.Components.ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var size))
+        {
+            AuditPageSize = Math.Clamp(size, 10, 100);
+            AuditPage = 1;
+        }
+    }
+
+    protected static string AuditEventText(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return "-";
+
+        return value switch
+        {
+            "MAIL_SENT" => "Correo enviado",
+            "MAIL_FAILED" => "Correo fallido",
+            "AUTOMATION_STARTED" => "Automation iniciada",
+            "AUTOMATION_FINISHED" => "Automation finalizada",
+            "CRM_CONTACT_UPDATED" => "Contacto CRM",
+            "CUSTOMER_DISABLED" => "Cliente desactivado",
+            "CUSTOMER_ENABLED" => "Cliente activado",
+            "GDAP_AUTOMATION_ENABLED" => "Automation ON",
+            "GDAP_AUTOMATION_DISABLED" => "Automation OFF",
+            _ => value.Replace("_", " ")
+        };
+    }
+
+    protected static string AuditEventCss(string value)
+    {
+        var text = value ?? string.Empty;
+
+        if (text.Contains("MAIL", StringComparison.OrdinalIgnoreCase))
+            return "mail";
+
+        if (text.Contains("AUTOMATION", StringComparison.OrdinalIgnoreCase))
+            return "automation";
+
+        if (text.Contains("CRM", StringComparison.OrdinalIgnoreCase))
+            return "crm";
+
+        if (text.Contains("DISABLED", StringComparison.OrdinalIgnoreCase) ||
+            text.Contains("FAILED", StringComparison.OrdinalIgnoreCase) ||
+            text.Contains("ERROR", StringComparison.OrdinalIgnoreCase))
+            return "danger";
+
+        if (text.Contains("ENABLED", StringComparison.OrdinalIgnoreCase) ||
+            text.Contains("FINISHED", StringComparison.OrdinalIgnoreCase))
+            return "ok";
+
+        return "neutral";
+    }
+
+    protected static string GdapShortId(string value)
+        => string.IsNullOrWhiteSpace(value) || value.Length < 8 ? value : value[..8];
+
+    protected static string GdapTrimText(string value, int max)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return "-";
+
+        return value.Length <= max ? value : $"{value[..max]}...";
+    }
     protected async Task LoadItemsAsync()
     {
         Items = (await GdapService.GetCustomersAsync(Filters)).ToList();
