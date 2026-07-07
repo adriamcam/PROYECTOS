@@ -1742,3 +1742,338 @@
         justify-content: center;
     }
 }
+/* gdap-audit-visual-fix-v2 */
+
+/* Contenedor general */
+.gdap-audit-page {
+    display: grid;
+    gap: 18px;
+}
+
+/* Cards KPI auditoría */
+.gdap-audit-kpis {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(180px, 1fr));
+    gap: 14px;
+}
+
+.audit-kpi {
+    border: 1px solid #dbe3ef;
+    border-left: 5px solid #94a3b8;
+    border-radius: 16px;
+    background: #ffffff;
+    padding: 16px 18px;
+    box-shadow: 0 14px 30px rgba(15, 23, 42, 0.06);
+}
+
+.audit-kpi span {
+    display: block;
+    color: #64748b;
+    font-size: 0.76rem;
+    font-weight: 900;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.audit-kpi strong {
+    display: block;
+    margin-top: 7px;
+    color: #0f172a;
+    font-size: 1.75rem;
+    font-weight: 900;
+}
+
+.audit-kpi small {
+    display: block;
+    margin-top: 5px;
+    color: #64748b;
+}
+
+.audit-kpi.ok {
+    border-left-color: #10b981;
+}
+
+.audit-kpi.warn {
+    border-left-color: #f59e0b;
+}
+
+.audit-kpi.muted {
+    border-left-color: #94a3b8;
+}
+
+/* Toolbar */
+.audit-toolbar {
+    display: grid;
+    grid-template-columns: minmax(300px, 1fr) minmax(220px, 0.35fr) auto;
+    gap: 12px;
+    align-items: center;
+}
+
+.audit-toolbar input,
+.audit-toolbar select {
+    width: 100%;
+    border: 1px solid #dbe3ef;
+    border-radius: 12px;
+    padding: 11px 13px;
+    background: #ffffff;
+    color: #0f172a;
+}
+
+/* Card tabla */
+.audit-table-card {
+    border: 1px solid #dbe3ef;
+    border-radius: 18px;
+    background: #ffffff;
+    padding: 18px;
+    box-shadow: 0 14px 30px rgba(15, 23, 42, 0.05);
+    overflow-x: auto;
+}
+
+/* Header compacto */
+.audit-table-card .section-header.compact {
+    margin-bottom: 12px;
+}
+
+/* Paginación */
+.audit-pagination {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #475569;
+}
+
+.audit-pagination select {
+    border: 1px solid #dbe3ef;
+    border-radius: 10px;
+    padding: 8px 10px;
+    background: #ffffff;
+}
+
+.audit-pagination button {
+    border: 1px solid #dbe3ef;
+    border-radius: 10px;
+    padding: 7px 10px;
+    color: #1d4ed8;
+    background: #ffffff;
+    font-weight: 900;
+    cursor: pointer;
+}
+
+.audit-pagination button:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+/* Tabla grid auditoría */
+.audit-row {
+    min-width: 1240px;
+    display: grid;
+    grid-template-columns:
+        minmax(135px, 0.75fr)
+        minmax(230px, 1.2fr)
+        minmax(115px, 0.6fr)
+        minmax(190px, 0.95fr)
+        minmax(330px, 1.7fr)
+        minmax(190px, 0.95fr)
+        minmax(75px, 0.35fr);
+    gap: 24px;
+    align-items: center;
+    padding: 15px 10px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.audit-row > span {
+    min-width: 0;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+.audit-row strong,
+.audit-row small {
+    display: block;
+}
+
+.audit-row strong {
+    color: #0f172a;
+    font-weight: 650;
+    line-height: 1.25;
+}
+
+.audit-row small {
+    margin-top: 4px;
+    color: #64748b;
+    font-weight: 500;
+    line-height: 1.25;
+}
+
+.audit-head {
+    border-radius: 14px;
+    background: #f8fafc;
+    color: #334155;
+    font-weight: 900;
+    text-transform: uppercase;
+    font-size: 0.78rem;
+    padding-top: 13px;
+    padding-bottom: 13px;
+}
+
+/* Evento */
+.audit-event-cell {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+}
+
+.audit-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-start;
+    max-width: 100%;
+    border-radius: 999px;
+    padding: 6px 10px;
+    font-size: 0.75rem;
+    font-weight: 750;
+    line-height: 1.15;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+/* Colores de evento */
+.audit-pill.mail {
+    color: #1d4ed8;
+    background: #dbeafe;
+}
+
+.audit-pill.automation {
+    color: #9a3412;
+    background: #ffedd5;
+}
+
+.audit-pill.crm {
+    color: #166534;
+    background: #dcfce7;
+}
+
+.audit-pill.ok {
+    color: #166534;
+    background: #dcfce7;
+}
+
+.audit-pill.danger {
+    color: #991b1b;
+    background: #fee2e2;
+}
+
+.audit-pill.neutral {
+    color: #475569;
+    background: #f1f5f9;
+}
+
+/* Descripción */
+.audit-description-cell {
+    min-width: 0;
+    padding-left: 4px;
+}
+
+.audit-description-text {
+    color: #0f172a;
+    font-size: 0.96rem;
+    font-weight: 450;
+    line-height: 1.45;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+/* Ejecutado por */
+.audit-user-cell {
+    color: #0f172a;
+    font-size: 0.95rem;
+    font-weight: 450;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+/* Link */
+.audit-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #bfdbfe;
+    border-radius: 999px;
+    padding: 7px 11px;
+    color: #1d4ed8;
+    background: #eff6ff;
+    text-decoration: none;
+    font-weight: 850;
+}
+
+.audit-link:hover {
+    background: #dbeafe;
+}
+
+/* Botón soft */
+.btn-soft {
+    border: 0;
+    border-radius: 12px;
+    padding: 10px 14px;
+    color: #1d4ed8;
+    background: #eff6ff;
+    font-weight: 900;
+    cursor: pointer;
+}
+
+.btn-soft:hover {
+    background: #dbeafe;
+}
+
+/* Ajustes para que no se vea todo tan pesado */
+.gdap-audit-page .audit-row:not(.audit-head) {
+    font-weight: 450;
+}
+
+.gdap-audit-page .audit-row:not(.audit-head) span {
+    font-weight: 450;
+}
+
+.gdap-audit-page .audit-row:not(.audit-head) strong {
+    font-weight: 650;
+}
+
+.gdap-audit-page .audit-row:not(.audit-head) .audit-description-text {
+    font-weight: 450;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+    .gdap-audit-kpis {
+        grid-template-columns: repeat(2, minmax(180px, 1fr));
+    }
+
+    .audit-toolbar {
+        grid-template-columns: 1fr;
+    }
+
+    .audit-row {
+        min-width: 1120px;
+        grid-template-columns:
+            minmax(130px, 0.7fr)
+            minmax(210px, 1.1fr)
+            minmax(110px, 0.55fr)
+            minmax(170px, 0.85fr)
+            minmax(290px, 1.45fr)
+            minmax(170px, 0.85fr)
+            minmax(70px, 0.35fr);
+        gap: 18px;
+    }
+}
+
+@media (max-width: 800px) {
+    .gdap-audit-kpis {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* end-gdap-audit-visual-fix-v2 */

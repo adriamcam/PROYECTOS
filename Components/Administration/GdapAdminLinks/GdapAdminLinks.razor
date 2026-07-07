@@ -776,17 +776,19 @@
 
                                 <span>@item.PartnerTenant</span>
 
-                                <span>
-                                    <span class="audit-pill @AuditEventCss(item.EventType)">
+                                <span class="audit-event-cell">
+                                    <span class="audit-pill @AuditEventCss(item.EventType)" title="@item.EventType">
                                         @AuditEventText(item.EventType)
                                     </span>
                                 </span>
 
-                                <span>
-                                    <strong>@GdapTrimText(item.Description, 90)</strong>
+                                <span class="audit-description-cell">
+                                    <div class="audit-description-text" title="@item.Description">
+                                        @GdapTrimText(item.Description, 120)
+                                    </div>
                                 </span>
 
-                                <span>@(string.IsNullOrWhiteSpace(item.ExecutedBy) ? "-" : item.ExecutedBy)</span>
+                                <span class="audit-user-cell">@(string.IsNullOrWhiteSpace(item.ExecutedBy) ? "-" : item.ExecutedBy)</span>
 
                                 <span>
                                     @if (!string.IsNullOrWhiteSpace(item.ApprovalUrl))
