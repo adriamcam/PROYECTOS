@@ -90,6 +90,7 @@
                         <th><button class="ri-action-sort" @onclick='() => SortBy("SKUVM")'>SKU VM @GetSortIcon("SKUVM")</button></th>
                         <th><button class="ri-action-sort" @onclick='() => SortBy("Problem")'>Problema @GetSortIcon("Problem")</button></th>
                         <th><button class="ri-action-sort" @onclick='() => SortBy("Detail")'>Detalle @GetSortIcon("Detail")</button></th>
+                        <th>Recomendación MS</th>
                         <th><button class="ri-action-sort" @onclick='() => SortBy("ChangedBy")'>Cambiado por @GetSortIcon("ChangedBy")</button></th>
                         <th><button class="ri-action-sort" @onclick='() => SortBy("ChangeDate")'>Fecha cambio @GetSortIcon("ChangeDate")</button></th>
                         <th>Detalle</th>
@@ -506,6 +507,7 @@
         return "\"" + value.Replace("\"", "\"\"") + "\"";
     }
 }
+
 
 
 
