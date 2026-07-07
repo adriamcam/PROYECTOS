@@ -161,14 +161,38 @@
 
             <section class="gdap-table-card">
                 <div class="gdap-row head">
-                    <span>Partner</span>
-                    <span>Cliente</span>
-                    <span>Estado</span>
-                    <span>Vence</span>
-                    <span>Días</span>
-                    <span>EnableGDAP</span>
-                    <span>Acciones</span>
-                </div>
+    <span>
+        <button type="button" class="sort-link" @onclick='() => SortCustomersAsync("PartnerTenant")'>
+            Partner <small>@CustomerSortIcon("PartnerTenant")</small>
+        </button>
+    </span>
+    <span>
+        <button type="button" class="sort-link" @onclick='() => SortCustomersAsync("CustomerName")'>
+            Cliente <small>@CustomerSortIcon("CustomerName")</small>
+        </button>
+    </span>
+    <span>
+        <button type="button" class="sort-link" @onclick='() => SortCustomersAsync("StatusFound")'>
+            Estado <small>@CustomerSortIcon("StatusFound")</small>
+        </button>
+    </span>
+    <span>
+        <button type="button" class="sort-link" @onclick='() => SortCustomersAsync("ActiveEndDate")'>
+            Vence <small>@CustomerSortIcon("ActiveEndDate")</small>
+        </button>
+    </span>
+    <span>
+        <button type="button" class="sort-link" @onclick='() => SortCustomersAsync("DaysToExpire")'>
+            Días <small>@CustomerSortIcon("DaysToExpire")</small>
+        </button>
+    </span>
+    <span>
+        <button type="button" class="sort-link" @onclick='() => SortCustomersAsync("EnabledGdap")'>
+            EnableGDAP <small>@CustomerSortIcon("EnabledGdap")</small>
+        </button>
+    </span>
+    <span>Acciones</span>
+</div>
 
                 @foreach (var item in PagedItems)
                 {
