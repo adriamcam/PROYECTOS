@@ -77,7 +77,7 @@ WHERE IsPresent = 1;";
         cmd.CommandType = CommandType.Text;
         cmd.CommandTimeout = 120;
         cmd.CommandText = @"
-SELECT TOP 1000
+SELECT
     CurrentId,
     CustomerName,
     TenantId,

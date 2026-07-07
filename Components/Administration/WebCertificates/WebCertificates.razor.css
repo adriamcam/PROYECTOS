@@ -190,16 +190,16 @@
 .cert-row {
     display: grid;
     grid-template-columns:
-        minmax(150px, 1fr)
-        minmax(140px, 0.9fr)
-        minmax(180px, 1.2fr)
-        minmax(180px, 1.2fr)
-        minmax(100px, 0.6fr)
-        minmax(70px, 0.4fr)
-        minmax(100px, 0.6fr)
-        minmax(160px, 1fr)
-        minmax(90px, 0.5fr);
-    gap: 14px;
+        minmax(150px, 0.9fr)
+        minmax(120px, 0.7fr)
+        minmax(230px, 1.35fr)
+        minmax(260px, 1.55fr)
+        minmax(95px, 0.55fr)
+        minmax(65px, 0.35fr)
+        minmax(105px, 0.55fr)
+        minmax(180px, 0.95fr)
+        minmax(90px, 0.45fr);
+    gap: 18px;
     align-items: center;
 }
 
@@ -513,4 +513,34 @@
     background: #eff6ff;
     font-weight: 800;
     cursor: pointer;
+}
+.cert-data-row > span {
+    min-width: 0;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+.cert-data-row strong {
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+.cert-data-row small {
+    max-width: 100%;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+.cert-head span {
+    min-width: 0;
+}
+
+.cert-table-card {
+    overflow-x: auto;
+}
+
+.cert-row {
+    min-width: 1280px;
 }
