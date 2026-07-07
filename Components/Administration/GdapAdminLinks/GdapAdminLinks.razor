@@ -513,6 +513,297 @@
                 }
             </section>
         }
+        else if (ActiveTab == "Reports")
+        {
+            <section class="gdap-report-page">
+                <div class="section-header">
+                    <div>
+                        <h3>Reportes GDAP</h3>
+                        <p>Resumen operativo por Partner Center para seguimiento ejecutivo, vencimientos, correos pendientes y automatización.</p>
+                    </div>
+
+                    <button type="button" class="btn-primary" @onclick="LoadReportsAsync">
+                        ↻ Refrescar reportes
+                    </button>
+                </div>
+
+                <section class="gdap-report-kpis">
+                    <div class="report-kpi">
+                        <span>Total clientes</span>
+                        <strong>@ReportsTotalCustomers</strong>
+                        <small>Todos los Partner Center</small>
+                    </div>
+
+                    <div class="report-kpi ok">
+                        <span>GDAP activos</span>
+                        <strong>@ReportsActiveGdap</strong>
+                        <small>Relaciones vigentes</small>
+                    </div>
+
+                    <div class="report-kpi warn">
+                        <span>Approval pending</span>
+                        <strong>@ReportsApprovalPending</strong>
+                        <small>Requieren aprobación</small>
+                    </div>
+
+                    <div class="report-kpi danger">
+                        <span>Sin GDAP</span>
+                        <strong>@ReportsWithoutGdap</strong>
+                        <small>Sin relación activa</small>
+                    </div>
+
+                    <div class="report-kpi high">
+                        <span>Vencen &lt; 30 días</span>
+                        <strong>@ReportsExpiringIn30Days</strong>
+                        <small>Seguimiento preventivo</small>
+                    </div>
+
+                    <div class="report-kpi muted">
+                        <span>Desactivados</span>
+                        <strong>@ReportsDisabledCustomers</strong>
+                        <small>No procesar</small>
+                    </div>
+                </section>
+
+                <section class="gdap-report-grid">
+                    <div class="report-card report-card-wide">
+                        <h3>Salud por Partner Center</h3>
+
+                        @if (!PartnerReports.Any())
+                        {
+                            <div class="empty-state">No hay datos de reportes cargados.</div>
+                        }
+                        else
+                        {
+                            <div class="report-partner-list">
+                                @foreach (var partner in PartnerReports.OrderBy(x => ReportHealthPercent(x)).ThenBy(x => x.PartnerTenant))
+                                {
+                                    <div class="report-partner-row">
+                                        <div>
+                                            <strong>@partner.PartnerTenant</strong>
+                                            <small>Total: @partner.TotalCustomers · Administrados: @ReportManagedCustomers(partner) · Activos: @partner.ActiveGdap</small>
+                                        </div>
+
+                                        <div class="report-progress">
+                                            <div class="report-bar">
+                                                <span class="@ReportRiskCss(partner)" style="width:@ReportHealthPercent(partner)%"></span>
+                                            </div>
+                                            <b class="@ReportRiskCss(partner)">@ReportHealthPercent(partner)%</b>
+                                        </div>
+
+                                        <span class="report-status @ReportRiskCss(partner)">
+                                            @ReportRiskText(partner)
+                                        </span>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+
+                    <div class="report-card">
+                        <h3>Indicadores de operación</h3>
+
+                        <div class="report-mini-list">
+                            <div><span>Correos pendientes</span><strong>@ReportsPendingEmails</strong></div>
+                            <div><span>Errores automation</span><strong>@ReportsAutomationErrors</strong></div>
+                            <div><span>Partner Centers</span><strong>@PartnerReports.Count</strong></div>
+                            <div><span>Salud general</span><strong>@ReportsHealthPercent%</strong></div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="report-table-card">
+                    <div class="section-header compact">
+                        <div>
+                            <h3>Resumen por Partner Center</h3>
+                            <p>Distribución de clientes por estado GDAP, vencimientos, correos y automatización.</p>
+                        </div>
+                    </div>
+
+                    <div class="report-row report-head">
+                        <span>Partner</span>
+                        <span>Total</span>
+                        <span>Activos</span>
+                        <span>Approval pending</span>
+                        <span>Sin GDAP</span>
+                        <span>Vencen &lt; 30</span>
+                        <span>Correos</span>
+                        <span>Desactivados</span>
+                        <span>Salud</span>
+                    </div>
+
+                    @if (!PartnerReports.Any())
+                    {
+                        <div class="empty-state">No hay datos para mostrar.</div>
+                    }
+                    else
+                    {
+                        @foreach (var partner in PartnerReports.OrderBy(x => x.PartnerTenant))
+                        {
+                            <div class="report-row">
+                                <span>
+                                    <strong>@partner.PartnerTenant</strong>
+                                    <small>@ReportRiskText(partner)</small>
+                                </span>
+                                <span>@partner.TotalCustomers</span>
+                                <span>@partner.ActiveGdap</span>
+                                <span>@partner.ApprovalPending</span>
+                                <span>@partner.WithoutGdap</span>
+                                <span>@partner.ExpiringIn30Days</span>
+                                <span>@partner.PendingEmails</span>
+                                <span>@partner.DisabledCustomers</span>
+                                <span>
+                                    <span class="report-pill @ReportRiskCss(partner)">
+                                        @ReportHealthPercent(partner)%
+                                    </span>
+                                </span>
+                            </div>
+                        }
+                    }
+                </section>
+            </section>
+        }
+
+        else if (ActiveTab == "Audit")
+        {
+            <section class="gdap-audit-page">
+                <div class="section-header">
+                    <div>
+                        <h3>Auditoría GDAP</h3>
+                        <p>Trazabilidad de acciones operativas: cambios, envíos, automatizaciones y registros del módulo.</p>
+                    </div>
+
+                    <button type="button" class="btn-primary" @onclick="LoadAuditAsync">
+                        ↻ Refrescar auditoría
+                    </button>
+                </div>
+
+                <section class="gdap-audit-kpis">
+                    <div class="audit-kpi">
+                        <span>Total eventos</span>
+                        <strong>@AuditTotalCount</strong>
+                        <small>Histórico cargado</small>
+                    </div>
+
+                    <div class="audit-kpi ok">
+                        <span>Hoy</span>
+                        <strong>@AuditTodayCount</strong>
+                        <small>Eventos del día</small>
+                    </div>
+
+                    <div class="audit-kpi warn">
+                        <span>Últimos 7 días</span>
+                        <strong>@AuditLast7DaysCount</strong>
+                        <small>Actividad reciente</small>
+                    </div>
+
+                    <div class="audit-kpi muted">
+                        <span>Usuarios</span>
+                        <strong>@AuditUserCount</strong>
+                        <small>Ejecutores únicos</small>
+                    </div>
+                </section>
+
+                <section class="audit-toolbar">
+                    <input placeholder="Buscar por cliente, partner, evento, usuario, descripción o tenant..."
+                           @bind="AuditSearch"
+                           @bind:event="oninput" />
+
+                    <select @bind="AuditEventTypeFilter">
+                        <option value="All">Todos los eventos</option>
+                        @foreach (var item in AuditEventTypeOptions)
+                        {
+                            <option value="@item">@AuditEventText(item)</option>
+                        }
+                    </select>
+
+                    <button type="button" class="btn-soft" @onclick="ClearAuditFilters">
+                        Limpiar filtros
+                    </button>
+                </section>
+
+                <section class="audit-table-card">
+                    <div class="section-header compact">
+                        <div>
+                            <h3>Eventos registrados</h3>
+                            <p>Mostrando <strong>@AuditPageStart</strong> - <strong>@AuditPageEnd</strong> de <strong>@AuditFilteredCount</strong> eventos.</p>
+                        </div>
+
+                        <div class="audit-pagination">
+                            <select value="@AuditPageSize" @onchange="SetAuditPageSize">
+                                <option value="10">10 por página</option>
+                                <option value="25">25 por página</option>
+                                <option value="50">50 por página</option>
+                                <option value="100">100 por página</option>
+                            </select>
+
+                            <button type="button" disabled="@(SafeAuditPage <= 1)" @onclick="() => GoToAuditPage(1)">«</button>
+                            <button type="button" disabled="@(SafeAuditPage <= 1)" @onclick="() => GoToAuditPage(SafeAuditPage - 1)">‹</button>
+                            <span>Página @SafeAuditPage de @AuditTotalPages</span>
+                            <button type="button" disabled="@(SafeAuditPage >= AuditTotalPages)" @onclick="() => GoToAuditPage(SafeAuditPage + 1)">›</button>
+                            <button type="button" disabled="@(SafeAuditPage >= AuditTotalPages)" @onclick="() => GoToAuditPage(AuditTotalPages)">»</button>
+                        </div>
+                    </div>
+
+                    <div class="audit-row audit-head">
+                        <span>Fecha</span>
+                        <span>Cliente</span>
+                        <span>Partner</span>
+                        <span>Evento</span>
+                        <span>Descripción</span>
+                        <span>Ejecutado por</span>
+                        <span>Link</span>
+                    </div>
+
+                    @if (!PagedAuditEvents.Any())
+                    {
+                        <div class="empty-state">No hay eventos de auditoría con los filtros actuales.</div>
+                    }
+                    else
+                    {
+                        @foreach (var item in PagedAuditEvents)
+                        {
+                            <div class="audit-row">
+                                <span>
+                                    <strong>@FormatDateTime(item.EventDate)</strong>
+                                    <small>ID: @item.Id</small>
+                                </span>
+
+                                <span>
+                                    <strong>@GdapTrimText(item.CustomerName, 42)</strong>
+                                    <small>@GdapShortId(item.CustomerTenantId)</small>
+                                </span>
+
+                                <span>@item.PartnerTenant</span>
+
+                                <span>
+                                    <span class="audit-pill @AuditEventCss(item.EventType)">
+                                        @AuditEventText(item.EventType)
+                                    </span>
+                                </span>
+
+                                <span>
+                                    <strong>@GdapTrimText(item.Description, 90)</strong>
+                                </span>
+
+                                <span>@(string.IsNullOrWhiteSpace(item.ExecutedBy) ? "-" : item.ExecutedBy)</span>
+
+                                <span>
+                                    @if (!string.IsNullOrWhiteSpace(item.ApprovalUrl))
+                                    {
+                                        <a class="audit-link" href="@item.ApprovalUrl" target="_blank" rel="noopener noreferrer">Abrir</a>
+                                    }
+                                    else
+                                    {
+                                        <span>-</span>
+                                    }
+                                </span>
+                            </div>
+                        }
+                    }
+                </section>
+            </section>
+        }
 
         else if (ActiveTab == "Expiring")
         {
