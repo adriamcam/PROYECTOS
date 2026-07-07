@@ -1,4 +1,7 @@
-﻿@namespace ITQS.SupportOperationsCenter.Components.Administration.WebCertificates
+@namespace ITQS.SupportOperationsCenter.Components.Administration.WebCertificates
+@using ITQS.SupportOperationsCenter.Models.Administration.WebCertificates
+@using ITQS.SupportOperationsCenter.Services.Interfaces
+@inject IWebCertificatesService WebCertificatesService
 
 <section class="cert-page">
     <section class="cert-hero">
@@ -11,71 +14,139 @@
         <div class="cert-hero-actions">
             <div class="cert-last-run">
                 <span>ÚLTIMA EJECUCIÓN</span>
-                <strong>Pendiente</strong>
+                <strong>@FormatDateTime(Dashboard.LastScanAt)</strong>
             </div>
 
             <button type="button" class="cert-info-button" @onclick="OpenInfo">
                 ⓘ Información
             </button>
 
-            <button type="button" class="cert-refresh-button">
-                ↻ Actualizar
+            <button type="button" class="cert-refresh-button" @onclick="LoadAsync" disabled="@IsLoading">
+                @(IsLoading ? "Actualizando..." : "↻ Actualizar")
             </button>
         </div>
     </section>
 
+    @if (!string.IsNullOrWhiteSpace(Message))
+    {
+        <div class="cert-message @(HasError ? "error" : "ok")">@Message</div>
+    }
+
     <section class="cert-kpis">
-        <div class="cert-kpi"><span>Total certificados</span><strong>0</strong><small>Inventario actual</small></div>
-        <div class="cert-kpi expired"><span>Vencidos</span><strong>0</strong><small>Atención inmediata</small></div>
-        <div class="cert-kpi critical"><span>Críticos &lt; 30 días</span><strong>0</strong><small>Prioridad alta</small></div>
-        <div class="cert-kpi warning"><span>Warning &lt; 90 días</span><strong>0</strong><small>Preventivo</small></div>
-        <div class="cert-kpi healthy"><span>Healthy</span><strong>0</strong><small>Sin riesgo cercano</small></div>
-        <div class="cert-kpi unknown"><span>Unknown</span><strong>0</strong><small>Validación requerida</small></div>
+        <div class="cert-kpi"><span>Total certificados</span><strong>@Dashboard.TotalCertificates</strong><small>Inventario actual</small></div>
+        <div class="cert-kpi expired"><span>Vencidos</span><strong>@Dashboard.Expired</strong><small>Atención inmediata</small></div>
+        <div class="cert-kpi critical"><span>Críticos &lt; 30 días</span><strong>@Dashboard.Critical</strong><small>Prioridad alta</small></div>
+        <div class="cert-kpi warning"><span>Warning &lt; 90 días</span><strong>@Dashboard.Warning</strong><small>Preventivo</small></div>
+        <div class="cert-kpi healthy"><span>Healthy</span><strong>@Dashboard.Healthy</strong><small>Sin riesgo cercano</small></div>
+        <div class="cert-kpi unknown"><span>Unknown</span><strong>@Dashboard.Unknown</strong><small>Validación requerida</small></div>
     </section>
 
     <section class="cert-toolbar">
-        <select><option>Todos los clientes</option></select>
-        <select>
-            <option>Todos los estados</option>
-            <option>Expired</option>
-            <option>Critical</option>
-            <option>Warning</option>
-            <option>Healthy</option>
-            <option>Unknown</option>
+        <select @bind="SelectedCustomer">
+            <option value="">Todos los clientes</option>
+            @foreach (var item in CustomerOptions)
+            {
+                <option value="@item">@item</option>
+            }
         </select>
-        <select>
-            <option>Todos los orígenes</option>
-            <option>Application Gateway / WAF</option>
-            <option>App Service</option>
-            <option>Key Vault</option>
+
+        <select @bind="SelectedStatus">
+            <option value="">Todos los estados</option>
+            @foreach (var item in StatusOptions)
+            {
+                <option value="@item">@item</option>
+            }
         </select>
-        <input placeholder="Buscar certificado, recurso, subscription o cliente..." />
-        <button type="button">🔎</button>
+
+        <select @bind="SelectedSource">
+            <option value="">Todos los orígenes</option>
+            @foreach (var item in SourceOptions)
+            {
+                <option value="@item">@SourceText(item)</option>
+            }
+        </select>
+
+        <input placeholder="Buscar certificado, recurso, subscription o cliente..."
+               @bind="Search"
+               @bind:event="oninput" />
+
+        <button type="button" @onclick="ClearFilters">🔎</button>
     </section>
 
     <section class="cert-table-card">
         <div class="cert-section-header">
             <div>
                 <h3>Inventario de Certificados</h3>
-                <p>Vista inicial del inventario. En la siguiente fase se conectará a SQL.</p>
+                <p>Mostrando <strong>@PageStart</strong> - <strong>@PageEnd</strong> de <strong>@FilteredCount</strong> certificados presentes.</p>
+            </div>
+
+            <div class="cert-pagination">
+                <select value="@PageSize" @onchange="SetPageSize">
+                    <option value="10">10 por página</option>
+                    <option value="25">25 por página</option>
+                    <option value="50">50 por página</option>
+                    <option value="100">100 por página</option>
+                </select>
+
+                <button type="button" disabled="@(SafePage <= 1)" @onclick="() => GoToPage(1)">«</button>
+                <button type="button" disabled="@(SafePage <= 1)" @onclick="() => GoToPage(SafePage - 1)">‹</button>
+                <span>Página @SafePage de @TotalPages</span>
+                <button type="button" disabled="@(SafePage >= TotalPages)" @onclick="() => GoToPage(SafePage + 1)">›</button>
+                <button type="button" disabled="@(SafePage >= TotalPages)" @onclick="() => GoToPage(TotalPages)">»</button>
             </div>
         </div>
 
         <div class="cert-row cert-head">
-            <span>Cliente</span>
-            <span>Origen</span>
-            <span>Recurso</span>
-            <span>Certificado</span>
-            <span>Expira</span>
-            <span>Días</span>
-            <span>Estado</span>
-            <span>Subscription</span>
+            <span><button type="button" class="sort-link" @onclick='() => SortBy("CustomerName")'>Cliente <small>@SortIcon("CustomerName")</small></button></span>
+            <span><button type="button" class="sort-link" @onclick='() => SortBy("Source")'>Origen <small>@SortIcon("Source")</small></button></span>
+            <span><button type="button" class="sort-link" @onclick='() => SortBy("ResourceName")'>Recurso <small>@SortIcon("ResourceName")</small></button></span>
+            <span><button type="button" class="sort-link" @onclick='() => SortBy("CertName")'>Certificado <small>@SortIcon("CertName")</small></button></span>
+            <span><button type="button" class="sort-link" @onclick='() => SortBy("NotAfter")'>Expira <small>@SortIcon("NotAfter")</small></button></span>
+            <span><button type="button" class="sort-link" @onclick='() => SortBy("DaysToExpire")'>Días <small>@SortIcon("DaysToExpire")</small></button></span>
+            <span><button type="button" class="sort-link" @onclick='() => SortBy("Status")'>Estado <small>@SortIcon("Status")</small></button></span>
+            <span><button type="button" class="sort-link" @onclick='() => SortBy("SubscriptionName")'>Subscription <small>@SortIcon("SubscriptionName")</small></button></span>
             <span>Acciones</span>
         </div>
 
-        <div class="cert-empty">
-            Aún no hay datos conectados. Próximo paso: leer desde dbo.ITQS_APP_CertInventory_Current.
-        </div>
+        @if (IsLoading)
+        {
+            <div class="cert-empty">Cargando inventario de certificados...</div>
+        }
+        else if (!PagedItems.Any())
+        {
+            <div class="cert-empty">No hay certificados con los filtros actuales.</div>
+        }
+        else
+        {
+            @foreach (var item in PagedItems)
+            {
+                <div class="cert-row cert-data-row">
+                    <span>
+                        <strong>@item.CustomerName</strong>
+                        <small>@item.ResourceGroup</small>
+                    </span>
+                    <span>@SourceText(item.Source)</span>
+                    <span>
+                        <strong>@item.ResourceName</strong>
+                        <small>@item.ResourceType</small>
+                    </span>
+                    <span>
+                        <strong>@CertificateDisplayName(item)</strong>
+                        <small>@CertificateSubText(item)</small>
+                    </span>
+                    <span>@FormatDate(item.NotAfter)</span>
+                    <span class="@DaysCss(item)">@DaysText(item)</span>
+                    <span><span class="cert-status @StatusCss(item.Status)">@item.Status</span></span>
+                    <span>
+                        <strong>@item.SubscriptionName</strong>
+                        <small>@ShortGuid(item.SubscriptionId)</small>
+                    </span>
+                    <span>
+                        <button type="button" class="cert-action-button" title="@item.Thumbprint">Detalle</button>
+                    </span>
+                </div>
+            }
+        }
     </section>
 
     @if (ShowInfo)
@@ -155,15 +226,242 @@
 </section>
 
 @code {
-    private bool ShowInfo { get; set; }
+    private WebCertificateDashboardModel Dashboard { get; set; } = new();
+    private List<WebCertificateInventoryModel> Items { get; set; } = new();
 
-    private void OpenInfo()
+    private bool ShowInfo { get; set; }
+    private bool IsLoading { get; set; }
+    private bool HasError { get; set; }
+    private string Message { get; set; } = string.Empty;
+
+    private string SelectedCustomer { get; set; } = string.Empty;
+    private string SelectedStatus { get; set; } = string.Empty;
+    private string SelectedSource { get; set; } = string.Empty;
+    private string Search { get; set; } = string.Empty;
+
+    private string SortColumn { get; set; } = "StatusPriority";
+    private bool SortAscending { get; set; } = true;
+
+    private int Page { get; set; } = 1;
+    private int PageSize { get; set; } = 10;
+
+    private List<string> CustomerOptions => Items.Select(x => x.CustomerName).Where(x => !string.IsNullOrWhiteSpace(x)).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(x => x).ToList();
+    private List<string> StatusOptions => Items.Select(x => x.Status).Where(x => !string.IsNullOrWhiteSpace(x)).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(x => x).ToList();
+    private List<string> SourceOptions => Items.Select(x => x.Source).Where(x => !string.IsNullOrWhiteSpace(x)).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(x => x).ToList();
+
+    private IEnumerable<WebCertificateInventoryModel> FilteredItems => Items.Where(MatchesFilters);
+    private List<WebCertificateInventoryModel> SortedItems => ApplySort(FilteredItems).ToList();
+    private int FilteredCount => SortedItems.Count;
+    private int TotalPages => Math.Max(1, (int)Math.Ceiling(FilteredCount / (double)PageSize));
+    private int SafePage => Math.Min(Math.Max(Page, 1), TotalPages);
+    private int PageStart => FilteredCount == 0 ? 0 : ((SafePage - 1) * PageSize) + 1;
+    private int PageEnd => Math.Min(SafePage * PageSize, FilteredCount);
+    private List<WebCertificateInventoryModel> PagedItems => SortedItems.Skip((SafePage - 1) * PageSize).Take(PageSize).ToList();
+
+    protected override async Task OnInitializedAsync()
     {
-        ShowInfo = true;
+        await LoadAsync();
     }
 
-    private void CloseInfo()
+    private async Task LoadAsync()
     {
-        ShowInfo = false;
+        IsLoading = true;
+        HasError = false;
+        Message = string.Empty;
+
+        try
+        {
+            Dashboard = await WebCertificatesService.GetDashboardAsync();
+            Items = (await WebCertificatesService.GetCertificatesAsync()).ToList();
+            Page = 1;
+        }
+        catch (Exception ex)
+        {
+            HasError = true;
+            Message = $"Error cargando certificados web: {ex.Message}";
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private bool MatchesFilters(WebCertificateInventoryModel item)
+    {
+        if (!string.IsNullOrWhiteSpace(SelectedCustomer) &&
+            !string.Equals(item.CustomerName, SelectedCustomer, StringComparison.OrdinalIgnoreCase))
+            return false;
+
+        if (!string.IsNullOrWhiteSpace(SelectedStatus) &&
+            !string.Equals(item.Status, SelectedStatus, StringComparison.OrdinalIgnoreCase))
+            return false;
+
+        if (!string.IsNullOrWhiteSpace(SelectedSource) &&
+            !string.Equals(item.Source, SelectedSource, StringComparison.OrdinalIgnoreCase))
+            return false;
+
+        if (string.IsNullOrWhiteSpace(Search))
+            return true;
+
+        var text = Search.Trim();
+
+        return Contains(item.CustomerName, text)
+            || Contains(item.SubscriptionName, text)
+            || Contains(item.ResourceGroup, text)
+            || Contains(item.ResourceName, text)
+            || Contains(item.CertName, text)
+            || Contains(item.HostName, text)
+            || Contains(item.Subject, text)
+            || Contains(item.Issuer, text)
+            || Contains(item.Thumbprint, text);
+    }
+
+    private static bool Contains(string value, string search)
+        => !string.IsNullOrWhiteSpace(value) && value.Contains(search, StringComparison.OrdinalIgnoreCase);
+
+    private IEnumerable<WebCertificateInventoryModel> ApplySort(IEnumerable<WebCertificateInventoryModel> source)
+    {
+        Func<WebCertificateInventoryModel, object?> selector = SortColumn switch
+        {
+            "CustomerName" => x => x.CustomerName,
+            "Source" => x => x.Source,
+            "ResourceName" => x => x.ResourceName,
+            "CertName" => x => x.CertName,
+            "NotAfter" => x => x.NotAfter ?? DateTime.MaxValue,
+            "DaysToExpire" => x => x.DaysToExpire ?? int.MaxValue,
+            "Status" => x => x.Status,
+            "SubscriptionName" => x => x.SubscriptionName,
+            "StatusPriority" => x => x.StatusPriority,
+            _ => x => x.StatusPriority
+        };
+
+        return SortAscending
+            ? source.OrderBy(selector).ThenBy(x => x.DaysToExpire ?? int.MaxValue)
+            : source.OrderByDescending(selector).ThenBy(x => x.DaysToExpire ?? int.MaxValue);
+    }
+
+    private void SortBy(string column)
+    {
+        if (SortColumn == column)
+            SortAscending = !SortAscending;
+        else
+        {
+            SortColumn = column;
+            SortAscending = column is "CustomerName" or "Source" or "ResourceName" or "CertName" or "Status" or "SubscriptionName";
+        }
+
+        Page = 1;
+    }
+
+    private string SortIcon(string column)
+    {
+        if (SortColumn != column)
+            return "↕";
+
+        return SortAscending ? "↑" : "↓";
+    }
+
+    private void ClearFilters()
+    {
+        SelectedCustomer = string.Empty;
+        SelectedStatus = string.Empty;
+        SelectedSource = string.Empty;
+        Search = string.Empty;
+        Page = 1;
+    }
+
+    private void GoToPage(int page)
+    {
+        Page = Math.Min(Math.Max(page, 1), TotalPages);
+    }
+
+    private void SetPageSize(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var size))
+        {
+            PageSize = Math.Clamp(size, 10, 100);
+            Page = 1;
+        }
+    }
+
+    private void OpenInfo() => ShowInfo = true;
+    private void CloseInfo() => ShowInfo = false;
+
+    private static string FormatDate(DateTime? value)
+        => value.HasValue ? value.Value.ToString("dd/MM/yyyy") : "-";
+
+    private static string FormatDateTime(DateTime? value)
+        => value.HasValue ? value.Value.ToString("dd/MM/yyyy HH:mm") : "Pendiente";
+
+    private static string ShortGuid(string value)
+        => string.IsNullOrWhiteSpace(value) || value.Length < 8 ? value : value[..8];
+
+    private static string SourceText(string value)
+    {
+        return value switch
+        {
+            "AppServiceCertificateResource" => "App Service Cert",
+            "AppServiceBinding" => "App Service Binding",
+            "ApplicationGatewayListener" => "App Gateway / WAF",
+            "KeyVaultCertificate" => "Key Vault",
+            _ => string.IsNullOrWhiteSpace(value) ? "-" : value
+        };
+    }
+
+    private static string CertificateDisplayName(WebCertificateInventoryModel item)
+    {
+        if (!string.IsNullOrWhiteSpace(item.CertName))
+            return item.CertName;
+
+        if (!string.IsNullOrWhiteSpace(item.HostName))
+            return item.HostName;
+
+        return "-";
+    }
+
+    private static string CertificateSubText(WebCertificateInventoryModel item)
+    {
+        if (!string.IsNullOrWhiteSpace(item.HostName))
+            return item.HostName;
+
+        if (!string.IsNullOrWhiteSpace(item.Subject))
+            return item.Subject;
+
+        if (!string.IsNullOrWhiteSpace(item.CertificateType))
+            return item.CertificateType;
+
+        return item.Issuer;
+    }
+
+    private static string DaysText(WebCertificateInventoryModel item)
+    {
+        if (!item.HasExpiryDate || !item.DaysToExpire.HasValue)
+            return "-";
+
+        return item.DaysToExpire.Value.ToString();
+    }
+
+    private static string DaysCss(WebCertificateInventoryModel item)
+    {
+        return item.Status switch
+        {
+            "Expired" => "days expired",
+            "Critical" => "days critical",
+            "Warning" => "days warning",
+            "Healthy" => "days healthy",
+            _ => "days unknown"
+        };
+    }
+
+    private static string StatusCss(string status)
+    {
+        return status switch
+        {
+            "Expired" => "expired",
+            "Critical" => "critical",
+            "Warning" => "warning",
+            "Healthy" => "healthy",
+            _ => "unknown"
+        };
     }
 }

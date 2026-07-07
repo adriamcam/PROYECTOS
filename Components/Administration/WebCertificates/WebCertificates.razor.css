@@ -1,4 +1,4 @@
-﻿.cert-page {
+.cert-page {
     display: flex;
     flex-direction: column;
     gap: 18px;
@@ -363,4 +363,154 @@
     .cert-toolbar {
         grid-template-columns: 1fr;
     }
+}
+
+.cert-message {
+    border-radius: 14px;
+    padding: 12px 16px;
+    font-weight: 700;
+}
+
+.cert-message.error {
+    color: #991b1b;
+    background: #fee2e2;
+    border: 1px solid #fecaca;
+}
+
+.cert-message.ok {
+    color: #166534;
+    background: #dcfce7;
+    border: 1px solid #86efac;
+}
+
+.cert-data-row {
+    padding: 16px 10px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.cert-data-row strong,
+.cert-data-row small {
+    display: block;
+}
+
+.cert-data-row small {
+    color: #64748b;
+    margin-top: 3px;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+}
+
+.cert-status {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    padding: 5px 10px;
+    font-size: 0.78rem;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.cert-status.expired,
+.cert-status.critical {
+    color: #991b1b;
+    background: #fee2e2;
+    border: 1px solid #fecaca;
+}
+
+.cert-status.warning {
+    color: #92400e;
+    background: #fef3c7;
+    border: 1px solid #fcd34d;
+}
+
+.cert-status.healthy {
+    color: #166534;
+    background: #dcfce7;
+    border: 1px solid #86efac;
+}
+
+.cert-status.unknown {
+    color: #475569;
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+}
+
+.days {
+    font-weight: 900;
+}
+
+.days.expired,
+.days.critical {
+    color: #dc2626;
+}
+
+.days.warning {
+    color: #d97706;
+}
+
+.days.healthy {
+    color: #059669;
+}
+
+.days.unknown {
+    color: #64748b;
+}
+
+.sort-link {
+    background: transparent;
+    border: 0;
+    padding: 0;
+    color: inherit;
+    font: inherit;
+    font-weight: 900;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    text-align: left;
+}
+
+.sort-link small {
+    color: #2563eb;
+    font-size: 0.78rem;
+}
+
+.cert-pagination {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #475569;
+}
+
+.cert-pagination select {
+    border: 1px solid #dbe3ef;
+    border-radius: 10px;
+    padding: 8px 10px;
+    background: #ffffff;
+}
+
+.cert-pagination button {
+    border: 1px solid #dbe3ef;
+    border-radius: 10px;
+    padding: 7px 10px;
+    color: #1d4ed8;
+    background: #ffffff;
+    font-weight: 900;
+    cursor: pointer;
+}
+
+.cert-pagination button:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.cert-action-button {
+    border: 1px solid #bfdbfe;
+    border-radius: 999px;
+    padding: 7px 11px;
+    color: #1d4ed8;
+    background: #eff6ff;
+    font-weight: 800;
+    cursor: pointer;
 }

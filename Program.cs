@@ -94,6 +94,10 @@ builder.Services.AddScoped<IGdapMailSenderService, GdapMailSenderService>();
 builder.Services.AddScoped<IGdapAdminLinksRepository, GdapAdminLinksRepository>();
 builder.Services.AddScoped<IGdapAdminLinksService, GdapAdminLinksService>();
 
+// Web Certificates
+builder.Services.AddScoped<IWebCertificatesRepository, WebCertificatesRepository>();
+builder.Services.AddScoped<IWebCertificatesService, WebCertificatesService>();
+
 builder.Services.AddScoped<IHybridBenefitRepository, HybridBenefitRepository>();
 builder.Services.AddScoped<IHybridBenefitService, HybridBenefitService>();
 
