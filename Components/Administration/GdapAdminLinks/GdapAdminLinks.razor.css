@@ -1255,3 +1255,12 @@
         flex-wrap: wrap;
     }
 }
+.gdap-row.customer-head .sort-link {
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+
+.gdap-row.customer-head .sort-link small {
+    text-transform: none;
+    letter-spacing: normal;
+}

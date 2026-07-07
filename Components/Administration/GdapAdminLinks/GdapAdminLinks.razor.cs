@@ -233,8 +233,10 @@ public partial class GdapAdminLinks : ComponentBase
 
     protected int PageNumber { get; set; } = 1;
     protected int PageSize { get; set; } = 10;
+    protected string CustomerSortColumn { get; set; } = "PartnerTenant";
+    protected bool CustomerSortAscending { get; set; } = true;
 
-    protected List<GdapAdminLinksCustomerModel> FilteredItems => Items.ToList();
+    protected List<GdapAdminLinksCustomerModel> FilteredItems => ApplyCustomerSort(Items).ToList();
 
     protected int TotalPages => Math.Max(1, (int)Math.Ceiling(FilteredItems.Count / (double)PageSize));
 
@@ -280,6 +282,47 @@ public partial class GdapAdminLinks : ComponentBase
         await RefreshAsync();
     }
 
+
+    protected async Task SortCustomersAsync(string column)
+    {
+        if (CustomerSortColumn == column)
+            CustomerSortAscending = !CustomerSortAscending;
+        else
+        {
+            CustomerSortColumn = column;
+            CustomerSortAscending = column is "PartnerTenant" or "CustomerName" or "StatusFound" or "EnabledGdap";
+        }
+
+        PageNumber = 1;
+
+        await Task.CompletedTask;
+    }
+
+    protected string CustomerSortIcon(string column)
+    {
+        if (CustomerSortColumn != column)
+            return "↕";
+
+        return CustomerSortAscending ? "↑" : "↓";
+    }
+
+    private IEnumerable<GdapAdminLinksCustomerModel> ApplyCustomerSort(IEnumerable<GdapAdminLinksCustomerModel> source)
+    {
+        Func<GdapAdminLinksCustomerModel, object?> selector = CustomerSortColumn switch
+        {
+            "PartnerTenant" => x => x.PartnerTenant,
+            "CustomerName" => x => x.CustomerName,
+            "StatusFound" => x => x.StatusFound,
+            "ActiveEndDate" => x => x.ActiveEndDate ?? DateTime.MaxValue,
+            "DaysToExpire" => x => x.DaysToExpire ?? int.MaxValue,
+            "EnabledGdap" => x => x.EnableGDAPAutomation,
+            _ => x => x.PartnerTenant
+        };
+
+        return CustomerSortAscending
+            ? source.OrderBy(selector).ThenBy(x => x.CustomerName)
+            : source.OrderByDescending(selector).ThenBy(x => x.CustomerName);
+    }
     protected async Task RefreshAsync()
     {
         IsLoading = true;
@@ -314,8 +357,6 @@ public partial class GdapAdminLinks : ComponentBase
             await LoadPendingEmailsAsync();
         else if (tab == "Expiring")
             await LoadExpiringAsync();
-        else if (tab == "Templates")
-            await LoadTemplatesAsync();
         else if (tab == "Notifications")
             await LoadNotificationLogsAsync();
         else if (tab == "Reports")
