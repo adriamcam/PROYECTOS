@@ -133,6 +133,12 @@
                             </td>
 
                             <td>
+                                <div class="@GetLifecycleClass(item)">
+                                    @GetLifecycleRecommendation(item)
+                                </div>
+                            </td>
+
+                            <td>
                                 <span class="ri-action-user">
                                     @(string.IsNullOrWhiteSpace(item.LastChangedBy) ? "Sin dato" : item.LastChangedBy)
                                 </span>
@@ -142,13 +148,6 @@
                                 <span class="ri-action-date">
                                     @(item.LastChangeDate?.ToString("dd/MM/yyyy HH:mm") ?? "-")
                                 </span>
-                            </td>
-
-                            
-                            <td>
-                                <div class="@GetLifecycleClass(item)">
-                                    @GetLifecycleRecommendation(item)
-                                </div>
                             </td>
 
                             <td>
@@ -514,6 +513,7 @@
         return "\"" + value.Replace("\"", "\"\"") + "\"";
     }
 }
+
 
 
 
