@@ -324,13 +324,8 @@
     {
         if (!string.IsNullOrWhiteSpace(InitialFilter))
         {
-            StatusFilter = InitialFilter;
-            CurrentPage = 1;
-        }
-        else
-        {
+            QuickFilter = InitialFilter;
             StatusFilter = "";
-        QuickFilter = "";
             CurrentPage = 1;
         }
     }
@@ -483,6 +478,7 @@
         _ => "Revisar recurso"
     };
 }
+
 
 
 
