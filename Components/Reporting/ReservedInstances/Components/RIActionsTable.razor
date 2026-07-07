@@ -90,7 +90,7 @@
                         <th><button class="ri-action-sort" @onclick='() => SortBy("SKUVM")'>SKU VM @GetSortIcon("SKUVM")</button></th>
                         <th><button class="ri-action-sort" @onclick='() => SortBy("Problem")'>Problema @GetSortIcon("Problem")</button></th>
                         <th><button class="ri-action-sort" @onclick='() => SortBy("Detail")'>Detalle @GetSortIcon("Detail")</button></th>
-                        <th>Recomendación MS</th>
+                        <th><button class="ri-action-sort" @onclick='() => SortBy("LifecycleRecommendation")'>Recomendación MS @GetSortIcon("LifecycleRecommendation")</button></th>
                         <th><button class="ri-action-sort" @onclick='() => SortBy("ChangedBy")'>Cambiado por @GetSortIcon("ChangedBy")</button></th>
                         <th><button class="ri-action-sort" @onclick='() => SortBy("ChangeDate")'>Fecha cambio @GetSortIcon("ChangeDate")</button></th>
                         <th>Detalle</th>
@@ -301,6 +301,10 @@
             "SKUVM" => SortAscending ? FilteredResources.OrderBy(x => x.SKUVM) : FilteredResources.OrderByDescending(x => x.SKUVM),
             "Problem" => SortAscending ? FilteredResources.OrderBy(GetProblem) : FilteredResources.OrderByDescending(GetProblem),
             "Detail" => SortAscending ? FilteredResources.OrderBy(GetDetail) : FilteredResources.OrderByDescending(GetDetail),
+            "LifecycleRecommendation" => SortAscending
+                ? FilteredResources.OrderBy(x => x.LifecycleRecommendation)
+                : FilteredResources.OrderByDescending(x => x.LifecycleRecommendation),
+
             "ChangedBy" => SortAscending ? FilteredResources.OrderBy(x => x.LastChangedBy) : FilteredResources.OrderByDescending(x => x.LastChangedBy),
             "ChangeDate" => SortAscending ? FilteredResources.OrderBy(x => x.LastChangeDate) : FilteredResources.OrderByDescending(x => x.LastChangeDate),
             _ => FilteredResources.OrderBy(GetPriorityRank)
@@ -513,6 +517,9 @@
         return "\"" + value.Replace("\"", "\"\"") + "\"";
     }
 }
+
+
+
 
 
 
