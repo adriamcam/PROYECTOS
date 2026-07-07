@@ -996,7 +996,7 @@ Para ello, sigue estos pasos: abre un navegador como Chrome o Edge, preferibleme
         return value switch
         {
             "GDAP_ACTIVE_EXPIRING_WITH_PENDING_APPROVAL_LINK" => "Approval pending",
-            "GDAP_ACTIVE_EXPIRING_NO_PENDING_APPROVAL" => "Sin aprobación pendiente",
+            "GDAP_ACTIVE_EXPIRING_NO_PENDING_APPROVAL" => "Pendiente de generar link",
             "GDAP_APPROVAL_PENDING" => "Approval pendiente",
             "GDAP_WITHOUT_RELATIONSHIP" => "Sin relación GDAP",
             _ => string.IsNullOrWhiteSpace(value) ? "-" : value.Replace("_", " ")

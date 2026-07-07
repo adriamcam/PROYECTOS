@@ -532,6 +532,40 @@ VALUES
         cmd.CommandType = CommandType.Text;
         cmd.CommandTimeout = 120;
         cmd.CommandText = @"
+WITH Ranked AS
+(
+    SELECT
+        Id,
+        CustomerTenantId,
+        CustomerName,
+        PartnerTenant,
+        NotificationCase,
+        NotificationStage,
+        DaysToExpire,
+        ActiveEndDate,
+        ApprovalPendingLink,
+        SentTo,
+        SentCc,
+        FlowName,
+        FlowRunId,
+        Status,
+        SentAt,
+        CreatedAt,
+        ResolvedAt,
+        ResolutionStatus,
+        ResolutionReason,
+        ROW_NUMBER() OVER
+        (
+            PARTITION BY
+                CustomerTenantId,
+                NotificationCase,
+                NotificationStage
+            ORDER BY
+                ISNULL(SentAt, CreatedAt) DESC,
+                Id DESC
+        ) AS rn
+    FROM dbo.GDAP_NotificationLog
+)
 SELECT TOP 500
     Id,
     CustomerTenantId,
@@ -552,7 +586,8 @@ SELECT TOP 500
     ResolvedAt,
     ResolutionStatus,
     ResolutionReason
-FROM dbo.GDAP_NotificationLog
+FROM Ranked
+WHERE rn = 1
 ORDER BY
     ISNULL(SentAt, CreatedAt) DESC,
     Id DESC;";
