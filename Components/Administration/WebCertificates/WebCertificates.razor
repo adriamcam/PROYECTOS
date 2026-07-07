@@ -70,7 +70,16 @@
                @bind="Search"
                @bind:event="oninput" />
 
-        <button type="button" @onclick="ClearFilters">🔎</button>
+        <button type="button" title="Limpiar filtros" @onclick="ClearFilters">🔎</button>
+    </section>
+
+    <section class="cert-status-filter">
+        <button type="button" class="@StatusChipClass("")" @onclick='() => SetStatusFilter("")'>Todos</button>
+        <button type="button" class="@StatusChipClass("Expired")" @onclick='() => SetStatusFilter("Expired")'>Expired</button>
+        <button type="button" class="@StatusChipClass("Critical")" @onclick='() => SetStatusFilter("Critical")'>Critical</button>
+        <button type="button" class="@StatusChipClass("Warning")" @onclick='() => SetStatusFilter("Warning")'>Warning</button>
+        <button type="button" class="@StatusChipClass("Healthy")" @onclick='() => SetStatusFilter("Healthy")'>Healthy</button>
+        <button type="button" class="@StatusChipClass("Unknown")" @onclick='() => SetStatusFilter("Unknown")'>Unknown</button>
     </section>
 
     <section class="cert-table-card">
@@ -122,32 +131,127 @@
             {
                 <div class="cert-row cert-data-row">
                     <span>
-                        <strong>@item.CustomerName</strong>
+                        <strong class="main-text">@item.CustomerName</strong>
                         <small>@item.ResourceGroup</small>
                     </span>
+
                     <span>@SourceText(item.Source)</span>
+
                     <span>
-                        <strong>@item.ResourceName</strong>
-                        <small>@item.ResourceType</small>
+                        <strong class="main-text">@ResourceDisplayName(item)</strong>
+                        <small title="@item.ResourceName">@TrimText(item.ResourceName, 48)</small>
                     </span>
+
                     <span>
-                        <strong>@CertificateDisplayName(item)</strong>
-                        <small>@CertificateSubText(item)</small>
+                        <strong class="main-text">@CertificateDisplayName(item)</strong>
+                        <small title="@CertificateSubText(item)">@TrimText(CertificateSubText(item), 60)</small>
                     </span>
+
                     <span>@FormatDate(item.NotAfter)</span>
                     <span class="@DaysCss(item)">@DaysText(item)</span>
                     <span><span class="cert-status @StatusCss(item.Status)">@item.Status</span></span>
+
                     <span>
-                        <strong>@item.SubscriptionName</strong>
+                        <strong class="main-text">@item.SubscriptionName</strong>
                         <small>@ShortGuid(item.SubscriptionId)</small>
                     </span>
+
                     <span>
-                        <button type="button" class="cert-action-button" title="@item.Thumbprint">Detalle</button>
+                        <button type="button" class="cert-action-button" @onclick="() => OpenDetail(item)">
+                            Detalle
+                        </button>
                     </span>
                 </div>
             }
         }
     </section>
+
+    @if (SelectedCertificate is not null)
+    {
+        <div class="cert-modal-backdrop">
+            <div class="cert-modal cert-detail-modal">
+                <button type="button" class="cert-modal-close" @onclick="CloseDetail">×</button>
+
+                <div class="cert-modal-header">
+                    <span>DETALLE DEL CERTIFICADO</span>
+                    <h2>@CertificateDisplayName(SelectedCertificate)</h2>
+                    <p>@SelectedCertificate.CustomerName · @SourceText(SelectedCertificate.Source) · @SelectedCertificate.Status</p>
+                </div>
+
+                <div class="detail-status-line">
+                    <span class="cert-status @StatusCss(SelectedCertificate.Status)">@SelectedCertificate.Status</span>
+                    <span class="@DaysCss(SelectedCertificate)">@DaysText(SelectedCertificate) días</span>
+                    <span>Expira: <strong>@FormatDate(SelectedCertificate.NotAfter)</strong></span>
+                    <span>Último scan: <strong>@FormatDateTime(SelectedCertificate.LastScanAt)</strong></span>
+                </div>
+
+                <div class="cert-detail-grid">
+                    <div class="cert-info-card">
+                        <h3>Cliente y suscripción</h3>
+                        <dl>
+                            <dt>Cliente</dt><dd>@SelectedCertificate.CustomerName</dd>
+                            <dt>TenantId</dt><dd>@Dash(SelectedCertificate.TenantId)</dd>
+                            <dt>Subscription</dt><dd>@Dash(SelectedCertificate.SubscriptionName)</dd>
+                            <dt>SubscriptionId</dt><dd>@Dash(SelectedCertificate.SubscriptionId)</dd>
+                            <dt>Resource Group</dt><dd>@Dash(SelectedCertificate.ResourceGroup)</dd>
+                        </dl>
+                    </div>
+
+                    <div class="cert-info-card">
+                        <h3>Recurso Azure</h3>
+                        <dl>
+                            <dt>Origen</dt><dd>@SourceText(SelectedCertificate.Source)</dd>
+                            <dt>Resource Type</dt><dd>@Dash(SelectedCertificate.ResourceType)</dd>
+                            <dt>Resource Name</dt><dd>@Dash(SelectedCertificate.ResourceName)</dd>
+                            <dt>App Service</dt><dd>@Dash(SelectedCertificate.AppServiceSiteName)</dd>
+                            <dt>Application Gateway</dt><dd>@Dash(SelectedCertificate.ApplicationGatewayName)</dd>
+                        </dl>
+                    </div>
+
+                    <div class="cert-info-card">
+                        <h3>Certificado</h3>
+                        <dl>
+                            <dt>Cert Name</dt><dd>@Dash(SelectedCertificate.CertName)</dd>
+                            <dt>HostName</dt><dd>@Dash(SelectedCertificate.HostName)</dd>
+                            <dt>Subject</dt><dd>@Dash(SelectedCertificate.Subject)</dd>
+                            <dt>Issuer</dt><dd>@Dash(SelectedCertificate.Issuer)</dd>
+                            <dt>Thumbprint</dt><dd class="mono">@Dash(SelectedCertificate.Thumbprint)</dd>
+                        </dl>
+                    </div>
+
+                    <div class="cert-info-card">
+                        <h3>Fechas y estado</h3>
+                        <dl>
+                            <dt>NotBefore</dt><dd>@FormatDateTime(SelectedCertificate.NotBefore)</dd>
+                            <dt>NotAfter</dt><dd>@FormatDateTime(SelectedCertificate.NotAfter)</dd>
+                            <dt>Días</dt><dd>@DaysText(SelectedCertificate)</dd>
+                            <dt>SSL State</dt><dd>@Dash(SelectedCertificate.SslState)</dd>
+                            <dt>Presente</dt><dd>@(SelectedCertificate.IsPresent ? "Sí" : "No")</dd>
+                        </dl>
+                    </div>
+
+                    <div class="cert-info-card">
+                        <h3>Tipo y proveedor</h3>
+                        <dl>
+                            <dt>Binding Type</dt><dd>@Dash(SelectedCertificate.BindingType)</dd>
+                            <dt>Certificate Type</dt><dd>@Dash(SelectedCertificate.CertificateType)</dd>
+                            <dt>Domain Provider</dt><dd>@Dash(SelectedCertificate.DomainProvider)</dd>
+                            <dt>Managed Certificate</dt><dd>@(SelectedCertificate.IsManagedCertificate ? "Sí" : "No")</dd>
+                            <dt>Uses Key Vault</dt><dd>@(SelectedCertificate.UsesKeyVault ? "Sí" : "No")</dd>
+                        </dl>
+                    </div>
+
+                    <div class="cert-info-card">
+                        <h3>Key Vault</h3>
+                        <dl>
+                            <dt>Key Vault Name</dt><dd>@Dash(SelectedCertificate.KeyVaultName)</dd>
+                            <dt>Secret Name</dt><dd>@Dash(SelectedCertificate.KeyVaultSecretName)</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
 
     @if (ShowInfo)
     {
@@ -230,6 +334,8 @@
     private List<WebCertificateInventoryModel> Items { get; set; } = new();
 
     private bool ShowInfo { get; set; }
+    private WebCertificateInventoryModel? SelectedCertificate { get; set; }
+
     private bool IsLoading { get; set; }
     private bool HasError { get; set; }
     private string Message { get; set; } = string.Empty;
@@ -370,6 +476,18 @@
         Page = 1;
     }
 
+    private void SetStatusFilter(string status)
+    {
+        SelectedStatus = status;
+        Page = 1;
+    }
+
+    private string StatusChipClass(string status)
+    {
+        var active = string.Equals(SelectedStatus, status, StringComparison.OrdinalIgnoreCase);
+        return active ? "cert-chip active" : "cert-chip";
+    }
+
     private void GoToPage(int page)
     {
         Page = Math.Min(Math.Max(page, 1), TotalPages);
@@ -387,14 +505,28 @@
     private void OpenInfo() => ShowInfo = true;
     private void CloseInfo() => ShowInfo = false;
 
+    private void OpenDetail(WebCertificateInventoryModel item) => SelectedCertificate = item;
+    private void CloseDetail() => SelectedCertificate = null;
+
     private static string FormatDate(DateTime? value)
         => value.HasValue ? value.Value.ToString("dd/MM/yyyy") : "-";
 
     private static string FormatDateTime(DateTime? value)
-        => value.HasValue ? value.Value.ToString("dd/MM/yyyy HH:mm") : "Pendiente";
+        => value.HasValue ? value.Value.ToString("dd/MM/yyyy HH:mm") : "-";
 
     private static string ShortGuid(string value)
         => string.IsNullOrWhiteSpace(value) || value.Length < 8 ? value : value[..8];
+
+    private static string Dash(string value)
+        => string.IsNullOrWhiteSpace(value) ? "-" : value;
+
+    private static string TrimText(string value, int max)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return "-";
+
+        return value.Length <= max ? value : $"{value[..max]}...";
+    }
 
     private static string SourceText(string value)
     {
@@ -408,29 +540,49 @@
         };
     }
 
+    private static string ResourceDisplayName(WebCertificateInventoryModel item)
+    {
+        if (!string.IsNullOrWhiteSpace(item.AppServiceSiteName))
+            return TrimText(item.AppServiceSiteName, 42);
+
+        if (!string.IsNullOrWhiteSpace(item.ApplicationGatewayName))
+            return TrimText(item.ApplicationGatewayName, 42);
+
+        if (!string.IsNullOrWhiteSpace(item.KeyVaultName))
+            return TrimText(item.KeyVaultName, 42);
+
+        return TrimText(item.ResourceName, 42);
+    }
+
     private static string CertificateDisplayName(WebCertificateInventoryModel item)
     {
+        if (!string.IsNullOrWhiteSpace(item.HostName) && !item.HostName.Contains(".azurewebsites.net", StringComparison.OrdinalIgnoreCase))
+            return TrimText(item.HostName, 46);
+
+        if (!string.IsNullOrWhiteSpace(item.Subject))
+            return TrimText(item.Subject, 46);
+
         if (!string.IsNullOrWhiteSpace(item.CertName))
-            return item.CertName;
+            return TrimText(item.CertName, 46);
 
         if (!string.IsNullOrWhiteSpace(item.HostName))
-            return item.HostName;
+            return TrimText(item.HostName, 46);
 
         return "-";
     }
 
     private static string CertificateSubText(WebCertificateInventoryModel item)
     {
-        if (!string.IsNullOrWhiteSpace(item.HostName))
-            return item.HostName;
-
-        if (!string.IsNullOrWhiteSpace(item.Subject))
-            return item.Subject;
+        if (!string.IsNullOrWhiteSpace(item.CertName))
+            return item.CertName;
 
         if (!string.IsNullOrWhiteSpace(item.CertificateType))
             return item.CertificateType;
 
-        return item.Issuer;
+        if (!string.IsNullOrWhiteSpace(item.Issuer))
+            return item.Issuer;
+
+        return item.HostName;
     }
 
     private static string DaysText(WebCertificateInventoryModel item)

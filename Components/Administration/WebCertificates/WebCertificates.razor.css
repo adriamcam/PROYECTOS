@@ -559,3 +559,115 @@
 .cert-hero h1 {
     text-shadow: 0 2px 8px rgba(15, 23, 42, 0.22);
 }
+/* cert-readability-v2 */
+.cert-data-row {
+    font-weight: 500;
+}
+
+.cert-data-row .main-text {
+    font-weight: 650;
+    color: #0f172a;
+}
+
+.cert-data-row strong:not(.main-text) {
+    font-weight: 600;
+}
+
+.cert-data-row small {
+    font-weight: 500;
+    color: #64748b;
+}
+
+.cert-row {
+    grid-template-columns:
+        minmax(145px, 0.9fr)
+        minmax(120px, 0.65fr)
+        minmax(215px, 1.15fr)
+        minmax(250px, 1.35fr)
+        minmax(95px, 0.5fr)
+        minmax(65px, 0.35fr)
+        minmax(105px, 0.5fr)
+        minmax(165px, 0.85fr)
+        minmax(90px, 0.45fr);
+}
+
+.cert-status-filter {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: -4px;
+}
+
+.cert-chip {
+    border: 1px solid #dbe3ef;
+    border-radius: 999px;
+    padding: 8px 13px;
+    background: #ffffff;
+    color: #334155;
+    font-weight: 750;
+    cursor: pointer;
+}
+
+.cert-chip.active {
+    color: #1d4ed8;
+    background: #eff6ff;
+    border-color: #bfdbfe;
+}
+
+.cert-detail-modal {
+    width: min(1180px, 100%);
+}
+
+.detail-status-line {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    margin: 18px 0 6px;
+    color: #475569;
+}
+
+.detail-status-line strong {
+    color: #0f172a;
+}
+
+.cert-detail-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(240px, 1fr));
+    gap: 18px;
+    margin-top: 22px;
+}
+
+.cert-info-card dl {
+    display: grid;
+    grid-template-columns: 120px minmax(0, 1fr);
+    gap: 8px 12px;
+    margin: 0;
+}
+
+.cert-info-card dt {
+    color: #64748b;
+    font-weight: 800;
+}
+
+.cert-info-card dd {
+    margin: 0;
+    color: #0f172a;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+.cert-info-card dd.mono {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    font-size: 0.86rem;
+}
+
+@media (max-width: 1100px) {
+    .cert-detail-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .cert-info-card dl {
+        grid-template-columns: 1fr;
+    }
+}
