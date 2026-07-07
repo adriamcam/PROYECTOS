@@ -362,6 +362,15 @@
         SelectedResource = null;
     }
 
+    private void ApplyProblemFilter(string status)
+    {
+        ProblemFilter = status;
+        PriorityFilter = "";
+        SubscriptionFilter = "";
+        SearchText = "";
+        CurrentPage = 1;
+    }
+
     private void ClearFilters()
     {
         SearchText = "";
@@ -517,6 +526,7 @@
         return "\"" + value.Replace("\"", "\"\"") + "\"";
     }
 }
+
 
 
 

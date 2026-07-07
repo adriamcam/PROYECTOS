@@ -645,3 +645,13 @@ cursor:not-allowed;
     color:#64748b;
     border:1px solid #e2e8f0;
 }
+
+.ri-action-kpi-click{
+    cursor:pointer;
+    transition:.18s ease;
+}
+
+.ri-action-kpi-click:hover{
+    transform:translateY(-2px);
+    box-shadow:0 16px 32px rgba(15,23,42,.12);
+}
