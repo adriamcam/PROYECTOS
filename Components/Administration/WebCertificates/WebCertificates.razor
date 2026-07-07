@@ -1,0 +1,169 @@
+﻿@namespace ITQS.SupportOperationsCenter.Components.Administration.WebCertificates
+
+<section class="cert-page">
+    <section class="cert-hero">
+        <div>
+            <span class="cert-eyebrow">ADMINISTRACIÓN</span>
+            <h1>Certificados Web</h1>
+            <p>Inventario operativo de certificados asociados a Application Gateway/WAF, App Services, Key Vault y servicios críticos.</p>
+        </div>
+
+        <div class="cert-hero-actions">
+            <div class="cert-last-run">
+                <span>ÚLTIMA EJECUCIÓN</span>
+                <strong>Pendiente</strong>
+            </div>
+
+            <button type="button" class="cert-info-button" @onclick="OpenInfo">
+                ⓘ Información
+            </button>
+
+            <button type="button" class="cert-refresh-button">
+                ↻ Actualizar
+            </button>
+        </div>
+    </section>
+
+    <section class="cert-kpis">
+        <div class="cert-kpi"><span>Total certificados</span><strong>0</strong><small>Inventario actual</small></div>
+        <div class="cert-kpi expired"><span>Vencidos</span><strong>0</strong><small>Atención inmediata</small></div>
+        <div class="cert-kpi critical"><span>Críticos &lt; 30 días</span><strong>0</strong><small>Prioridad alta</small></div>
+        <div class="cert-kpi warning"><span>Warning &lt; 90 días</span><strong>0</strong><small>Preventivo</small></div>
+        <div class="cert-kpi healthy"><span>Healthy</span><strong>0</strong><small>Sin riesgo cercano</small></div>
+        <div class="cert-kpi unknown"><span>Unknown</span><strong>0</strong><small>Validación requerida</small></div>
+    </section>
+
+    <section class="cert-toolbar">
+        <select><option>Todos los clientes</option></select>
+        <select>
+            <option>Todos los estados</option>
+            <option>Expired</option>
+            <option>Critical</option>
+            <option>Warning</option>
+            <option>Healthy</option>
+            <option>Unknown</option>
+        </select>
+        <select>
+            <option>Todos los orígenes</option>
+            <option>Application Gateway / WAF</option>
+            <option>App Service</option>
+            <option>Key Vault</option>
+        </select>
+        <input placeholder="Buscar certificado, recurso, subscription o cliente..." />
+        <button type="button">🔎</button>
+    </section>
+
+    <section class="cert-table-card">
+        <div class="cert-section-header">
+            <div>
+                <h3>Inventario de Certificados</h3>
+                <p>Vista inicial del inventario. En la siguiente fase se conectará a SQL.</p>
+            </div>
+        </div>
+
+        <div class="cert-row cert-head">
+            <span>Cliente</span>
+            <span>Origen</span>
+            <span>Recurso</span>
+            <span>Certificado</span>
+            <span>Expira</span>
+            <span>Días</span>
+            <span>Estado</span>
+            <span>Subscription</span>
+            <span>Acciones</span>
+        </div>
+
+        <div class="cert-empty">
+            Aún no hay datos conectados. Próximo paso: leer desde dbo.ITQS_APP_CertInventory_Current.
+        </div>
+    </section>
+
+    @if (ShowInfo)
+    {
+        <div class="cert-modal-backdrop">
+            <div class="cert-modal">
+                <button type="button" class="cert-modal-close" @onclick="CloseInfo">×</button>
+
+                <div class="cert-modal-header">
+                    <span>INFORMACIÓN TÉCNICA</span>
+                    <h2>Certificados Web</h2>
+                    <p>Arquitectura, objetos SQL, fuentes de inventario y flujo operativo del módulo.</p>
+                </div>
+
+                <div class="cert-info-grid">
+                    <div class="cert-info-card">
+                        <h3>🎯 Objetivo</h3>
+                        <p>Centralizar el inventario y seguimiento de certificados web utilizados en servicios Azure, detectando vencimientos, certificados críticos y recursos afectados.</p>
+                    </div>
+
+                    <div class="cert-info-card">
+                        <h3>🗄️ Base de Datos</h3>
+                        <strong>Tablas</strong>
+                        <ul>
+                            <li>dbo.ITQS_APP_CertInventory_Current</li>
+                            <li>dbo.ITQS_APP_CertInventory_History</li>
+                        </ul>
+                        <strong>Llave operativa</strong>
+                        <ul>
+                            <li>SourceObjectKeyHash</li>
+                        </ul>
+                    </div>
+
+                    <div class="cert-info-card">
+                        <h3>☁️ Fuentes</h3>
+                        <ul>
+                            <li>Application Gateway / WAF</li>
+                            <li>App Services</li>
+                            <li>Key Vault Certificates</li>
+                            <li>Extensión futura: on-prem / ADSelfService Plus</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="cert-flow-card">
+                    <h3>🔄 Flujo Operativo</h3>
+                    <div class="cert-flow-line">
+                        <div>Azure Automation</div>
+                        <span>→</span>
+                        <div>Azure Resources</div>
+                        <span>→</span>
+                        <div>Azure SQL</div>
+                        <span>→</span>
+                        <div>Certificados Web</div>
+                        <span>→</span>
+                        <div>Reportes / Alertas</div>
+                    </div>
+                </div>
+
+                <div class="cert-flow-card">
+                    <h3>📊 KPIs utilizados</h3>
+                    <div class="cert-chip-grid">
+                        <span>Total certificados</span>
+                        <span>Vencidos</span>
+                        <span>Críticos &lt; 30 días</span>
+                        <span>Warning &lt; 90 días</span>
+                        <span>Healthy</span>
+                        <span>Unknown</span>
+                        <span>App Gateway / WAF</span>
+                        <span>App Services</span>
+                        <span>Key Vault</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</section>
+
+@code {
+    private bool ShowInfo { get; set; }
+
+    private void OpenInfo()
+    {
+        ShowInfo = true;
+    }
+
+    private void CloseInfo()
+    {
+        ShowInfo = false;
+    }
+}

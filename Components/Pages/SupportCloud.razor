@@ -10,6 +10,7 @@
 @using ITQS.SupportOperationsCenter.Components.Administration.Customers
 @using ITQS.SupportOperationsCenter.Components.Administration.AppRegistrationsITQS
 @using ITQS.SupportOperationsCenter.Components.Administration.GdapAdminLinks
+@using ITQS.SupportOperationsCenter.Components.Administration.WebCertificates
 @using ITQS.SupportOperationsCenter.Components.Reporting.HybridBenefit
 
 @inject AuthenticationStateProvider AuthenticationStateProvider
@@ -186,6 +187,10 @@
             {
                 <GdapAdminLinks />
             }
+            else if (CurrentModule == "WebCertificates")
+            {
+                <WebCertificates />
+            }
             else if (CurrentModule == "ReporteBeneficioHibrido")
             {
                 <HybridBenefitReport />
@@ -279,6 +284,7 @@
             "CustomerAdmin" => "Administración / Clientes",
             "AppRegistrationsITQS" => "Administración / App Registrations ITQS",
             "GdapAdminLinks" => "Administración / Admin Links GDAP",
+            "WebCertificates" => "Administración / Certificados Web",
 
             "ReporteBeneficioHibrido" => "Reportería / Reporte Beneficio Híbrido",
             "ReporteInstanciasReservadas" => "Reportería / Reporte Instancias Reservadas",
@@ -394,7 +400,8 @@
 
         if (module == "CustomerAdmin" ||
             module == "AppRegistrationsITQS" ||
-            module == "GdapAdminLinks")
+            module == "GdapAdminLinks" ||
+        module == "WebCertificates")
         {
             ShowAdministrationMenu = true;
 
