@@ -21,28 +21,28 @@
         </button>
     </div>
 
-    <div class="ri-action-kpis">
-        <div class="critical">
+        <div class="ri-action-kpis">
+        <div class="critical ri-action-kpi-click" @onclick='() => ApplyProblemFilter("")'>
             <strong>@ActionResources.Count</strong>
             <span>Requieren acción</span>
         </div>
 
-        <div class="critical">
+        <div class="critical ri-action-kpi-click" @onclick='() => ApplyProblemFilter("SKU Mismatch")'>
             <strong>@ActionResources.Count(x => x.OperationalStatus == "SKU Mismatch")</strong>
             <span>SKU diferente</span>
         </div>
 
-        <div class="high">
+        <div class="high ri-action-kpi-click" @onclick='() => ApplyProblemFilter("Low Utilization")'>
             <strong>@ActionResources.Count(x => x.OperationalStatus == "Low Utilization")</strong>
             <span>Baja utilización</span>
         </div>
 
-        <div class="medium">
+        <div class="medium ri-action-kpi-click" @onclick='() => ApplyProblemFilter("Expiring Soon")'>
             <strong>@ActionResources.Count(x => x.OperationalStatus == "Expiring Soon")</strong>
             <span>Por vencer</span>
         </div>
 
-        <div class="critical">
+        <div class="critical ri-action-kpi-click" @onclick='() => ApplyProblemFilter("Date Mismatch")'>
             <strong>@ActionResources.Count(x => x.OperationalStatus == "Date Mismatch")</strong>
             <span>Fecha no coincide</span>
         </div>
@@ -526,6 +526,7 @@
         return "\"" + value.Replace("\"", "\"\"") + "\"";
     }
 }
+
 
 
 
