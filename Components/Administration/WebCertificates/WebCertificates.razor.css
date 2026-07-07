@@ -544,3 +544,18 @@
 .cert-row {
     min-width: 1280px;
 }
+/* cert-hero-title-fix */
+.cert-hero,
+.cert-hero h1,
+.cert-hero p,
+.cert-hero .cert-eyebrow {
+    color: #ffffff;
+}
+
+.cert-hero p {
+    opacity: 0.92;
+}
+
+.cert-hero h1 {
+    text-shadow: 0 2px 8px rgba(15, 23, 42, 0.22);
+}
