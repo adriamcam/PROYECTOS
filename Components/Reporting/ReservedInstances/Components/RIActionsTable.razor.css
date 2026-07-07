@@ -618,3 +618,30 @@ cursor:not-allowed;
     color:#64748b;
     font-size:12px;
 }
+
+.ri-ms-recommendation{
+    max-width:340px;
+    padding:9px 12px;
+    border-radius:12px;
+    font-size:12px;
+    font-weight:800;
+    line-height:1.35;
+}
+
+.ri-ms-recommendation.warning{
+    background:#fffbeb;
+    color:#92400e;
+    border:1px solid #fde68a;
+}
+
+.ri-ms-recommendation.danger{
+    background:#fef2f2;
+    color:#991b1b;
+    border:1px solid #fecaca;
+}
+
+.ri-ms-recommendation.muted{
+    background:#f8fafc;
+    color:#64748b;
+    border:1px solid #e2e8f0;
+}

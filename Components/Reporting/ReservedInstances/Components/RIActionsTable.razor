@@ -478,12 +478,36 @@
     private static string Normalize(string? value) =>
         string.IsNullOrWhiteSpace(value) ? "-" : value;
 
+
+    private static string GetLifecycleRecommendation(ReservedInstanceResource item)
+    {
+        if (!string.IsNullOrWhiteSpace(item.LifecycleRecommendation))
+            return item.LifecycleRecommendation;
+
+        if (!string.IsNullOrWhiteSpace(item.RetirementStatus))
+            return item.RetirementStatus;
+
+        return "Sin recomendación de lifecycle";
+    }
+
+    private static string GetLifecycleClass(ReservedInstanceResource item)
+    {
+        if (item.Ri3YearAvailable == false)
+            return "ri-ms-recommendation warning";
+
+        if (!string.IsNullOrWhiteSpace(item.RetirementStatus))
+            return "ri-ms-recommendation danger";
+
+        return "ri-ms-recommendation muted";
+    }
     private static string Csv(string? value)
     {
         value ??= "";
         return "\"" + value.Replace("\"", "\"\"") + "\"";
     }
 }
+
+
 
 
 

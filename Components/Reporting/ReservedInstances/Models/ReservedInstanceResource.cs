@@ -43,7 +43,14 @@ public sealed class ReservedInstanceResource
     public string Issue { get; set; } = "";
     public string LastChangedBy { get; set; } = "";
     public DateTime? LastChangeDate { get; set; }
+    public bool? Ri1YearAvailable { get; set; }
+    public bool? Ri3YearAvailable { get; set; }
+    public string? RetirementStatus { get; set; }
+    public string? LifecycleRecommendation { get; set; }
+    public DateTime? LifecycleLastUpdatedAt { get; set; }
+
     public DateTime? LastScanDate { get; set; }
 }
+
 
 
