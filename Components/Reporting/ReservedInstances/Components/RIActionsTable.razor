@@ -144,6 +144,13 @@
                                 </span>
                             </td>
 
+                            
+                            <td>
+                                <div class="@GetLifecycleClass(item)">
+                                    @GetLifecycleRecommendation(item)
+                                </div>
+                            </td>
+
                             <td>
                                 <button class="ri-history-btn" type="button" @onclick="() => OpenHistory(item)">
                                     Historial
@@ -507,6 +514,8 @@
         return "\"" + value.Replace("\"", "\"\"") + "\"";
     }
 }
+
+
 
 
 
