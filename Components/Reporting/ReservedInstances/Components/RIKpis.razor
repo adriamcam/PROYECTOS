@@ -43,4 +43,7 @@
 
 @code {
     [Parameter] public ReservedInstanceDashboard Dashboard { get; set; } = new();
+    [Parameter] public EventCallback<string> OnOpenResources { get; set; }
+    [Parameter] public EventCallback OnOpenAction { get; set; }
 }
+

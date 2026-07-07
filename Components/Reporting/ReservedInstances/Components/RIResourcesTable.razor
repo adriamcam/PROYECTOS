@@ -199,6 +199,7 @@
 
 @code {
     [Parameter] public List<ReservedInstanceResource> Resources { get; set; } = new();
+    [Parameter] public string InitialFilter { get; set; } = "";
     [Parameter] public EventCallback<string> OnChangeTab { get; set; }
 
     private string SubscriptionFilter { get; set; } = "";
@@ -313,6 +314,20 @@
     private async Task OpenActionTab()
     {
         await OnChangeTab.InvokeAsync("Action");
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (!string.IsNullOrWhiteSpace(InitialFilter))
+        {
+            StatusFilter = InitialFilter;
+            CurrentPage = 1;
+        }
+        else
+        {
+            StatusFilter = "";
+            CurrentPage = 1;
+        }
     }
 
     private void ClearFilters()
@@ -451,6 +466,7 @@
         _ => "Revisar recurso"
     };
 }
+
 
 
 

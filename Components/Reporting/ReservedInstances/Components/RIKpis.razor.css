@@ -70,3 +70,13 @@
 .ri-kpi-warning strong{
     color:#f59e0b;
 }
+
+.ri-clickable{
+    cursor:pointer;
+    transition:.18s ease;
+}
+
+.ri-clickable:hover{
+    transform:translateY(-2px);
+    box-shadow:0 16px 32px rgba(15,23,42,.12);
+}

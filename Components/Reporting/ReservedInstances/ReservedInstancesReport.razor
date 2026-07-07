@@ -63,7 +63,7 @@
     }
     else if (ActiveTab == "Dashboard")
     {
-        <RIKpis Dashboard="Dashboard" />
+        <RIKpis Dashboard="Dashboard" OnOpenResources="OpenResources" OnOpenAction="OpenAction" />
 
         <div class="ri-dashboard-grid">
             <section class="ri-card">
@@ -184,7 +184,7 @@
     }
     else
     {
-        <RIResourcesTable Resources="Dashboard.Resources" />
+        <RIResourcesTable Resources="Dashboard.Resources" InitialFilter="@ResourcesInitialFilter" />
     }
 
 </section>
@@ -194,10 +194,22 @@
     private bool IsLoading { get; set; } = true;
     private bool IsLoaded { get; set; }
     private string ActiveTab { get; set; } = "Dashboard";
+    private string ResourcesInitialFilter { get; set; } = "";
 
     protected override async Task OnInitializedAsync()
     {
         await LoadAsync();
+    }
+
+    private void OpenResources(string filter)
+    {
+        ResourcesInitialFilter = filter;
+        ActiveTab = "Resources";
+    }
+
+    private void OpenAction()
+    {
+        ActiveTab = "Action";
     }
 
     private void ChangeTab(string tab)
@@ -231,6 +243,10 @@
         _ => "primary"
     };
 }
+
+
+
+
 
 
 
