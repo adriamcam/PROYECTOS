@@ -33,12 +33,41 @@
     }
 
     <section class="cert-kpis">
-        <div class="cert-kpi"><span>Total certificados</span><strong>@Dashboard.TotalCertificates</strong><small>Inventario actual</small></div>
-        <div class="cert-kpi expired"><span>Vencidos</span><strong>@Dashboard.Expired</strong><small>Atención inmediata</small></div>
-        <div class="cert-kpi critical"><span>Críticos &lt; 30 días</span><strong>@Dashboard.Critical</strong><small>Prioridad alta</small></div>
-        <div class="cert-kpi warning"><span>Warning &lt; 90 días</span><strong>@Dashboard.Warning</strong><small>Preventivo</small></div>
-        <div class="cert-kpi healthy"><span>Healthy</span><strong>@Dashboard.Healthy</strong><small>Sin riesgo cercano</small></div>
-        <div class="cert-kpi unknown"><span>Unknown</span><strong>@Dashboard.Unknown</strong><small>Validación requerida</small></div>
+        <button type="button" class="@KpiCardClass("")" @onclick='() => SetStatusFilter("")'>
+            <span>Total certificados</span>
+            <strong>@Dashboard.TotalCertificates</strong>
+            <small>Inventario actual</small>
+        </button>
+
+        <button type="button" class="@KpiCardClass("Expired", "expired")" @onclick='() => SetStatusFilter("Expired")'>
+            <span>Vencidos</span>
+            <strong>@Dashboard.Expired</strong>
+            <small>Atención inmediata</small>
+        </button>
+
+        <button type="button" class="@KpiCardClass("Critical", "critical")" @onclick='() => SetStatusFilter("Critical")'>
+            <span>Críticos &lt; 30 días</span>
+            <strong>@Dashboard.Critical</strong>
+            <small>Prioridad alta</small>
+        </button>
+
+        <button type="button" class="@KpiCardClass("Warning", "warning")" @onclick='() => SetStatusFilter("Warning")'>
+            <span>Warning &lt; 90 días</span>
+            <strong>@Dashboard.Warning</strong>
+            <small>Preventivo</small>
+        </button>
+
+        <button type="button" class="@KpiCardClass("Healthy", "healthy")" @onclick='() => SetStatusFilter("Healthy")'>
+            <span>Healthy</span>
+            <strong>@Dashboard.Healthy</strong>
+            <small>Sin riesgo cercano</small>
+        </button>
+
+        <button type="button" class="@KpiCardClass("Unknown", "unknown")" @onclick='() => SetStatusFilter("Unknown")'>
+            <span>Unknown</span>
+            <strong>@Dashboard.Unknown</strong>
+            <small>Validación requerida</small>
+        </button>
     </section>
 
     <section class="cert-toolbar">
@@ -486,6 +515,14 @@
     {
         var active = string.Equals(SelectedStatus, status, StringComparison.OrdinalIgnoreCase);
         return active ? "cert-chip active" : "cert-chip";
+    }
+
+    private string KpiCardClass(string status, string extraClass = "")
+    {
+        var active = string.Equals(SelectedStatus, status, StringComparison.OrdinalIgnoreCase);
+        var classes = string.IsNullOrWhiteSpace(extraClass) ? "cert-kpi clickable" : $"cert-kpi clickable {extraClass}";
+
+        return active ? $"{classes} active" : classes;
     }
 
     private void GoToPage(int page)

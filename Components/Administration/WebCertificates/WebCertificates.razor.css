@@ -671,3 +671,23 @@
         grid-template-columns: 1fr;
     }
 }
+.cert-kpi.clickable {
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+}
+
+.cert-kpi.clickable:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 16px 36px rgba(15, 23, 42, 0.11);
+}
+
+.cert-kpi.clickable.active {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14), 0 16px 36px rgba(15, 23, 42, 0.10);
+}
+
+.cert-kpi.clickable.active span {
+    color: #1d4ed8;
+}
