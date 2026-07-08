@@ -45,6 +45,10 @@
         <button class="@(ActiveTab == "Action" ? "active" : "")" @onclick='() => ActiveTab = "Action"'>
             Requiere acción
         </button>
+
+        <button class="@(ActiveTab == "Analysis" ? "active" : "")" @onclick='() => ActiveTab = "Analysis"'>
+            Análisis IR
+        </button>
     </div>
 
     @if (IsLoading && !IsLoaded)
@@ -182,6 +186,10 @@
     {
         <RIActionsTable Resources="Dashboard.Resources" />
     }
+    else if (ActiveTab == "Analysis")
+    {
+        <RIAnalysisTable Resources="Dashboard.Resources" />
+    }
     else
     {
         <RIResourcesTable Resources="Dashboard.Resources" InitialFilter="@ResourcesInitialFilter" />
@@ -243,6 +251,10 @@
         _ => "primary"
     };
 }
+
+
+
+
 
 
 

@@ -1,0 +1,34 @@
+.ri-analysis-page{
+    display:flex;
+    flex-direction:column;
+    gap:18px;
+}
+
+.ri-analysis-hero,
+.ri-analysis-filters,
+.ri-analysis-kpis{
+    display:flex;
+    gap:14px;
+    align-items:center;
+    justify-content:space-between;
+}
+
+.ri-analysis-kpi{
+    flex:1;
+    border:none;
+    border-radius:18px;
+    padding:18px;
+    text-align:left;
+    cursor:pointer;
+    background:#fff;
+}
+
+.ri-analysis-kpi strong{
+    display:block;
+    font-size:28px;
+}
+
+.ri-analysis-recommendation{
+    max-width:360px;
+    font-weight:700;
+}
