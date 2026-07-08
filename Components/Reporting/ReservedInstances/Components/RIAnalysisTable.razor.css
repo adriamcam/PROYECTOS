@@ -4,31 +4,240 @@
     gap:18px;
 }
 
-.ri-analysis-hero,
-.ri-analysis-filters,
-.ri-analysis-kpis{
+.ri-analysis-hero{
+    background:#ffffff;
+    border:1px solid #dbe3ef;
+    border-radius:20px;
+    padding:26px 28px;
     display:flex;
-    gap:14px;
-    align-items:center;
     justify-content:space-between;
+    align-items:center;
+    box-shadow:0 12px 28px rgba(15,23,42,.06);
+}
+
+.ri-analysis-hero h2{
+    margin:0 0 8px 0;
+    font-size:24px;
+    font-weight:900;
+}
+
+.ri-analysis-hero p{
+    margin:0;
+    color:#334155;
+    font-weight:600;
+}
+
+.ri-analysis-kpis{
+    display:grid;
+    grid-template-columns:repeat(4, minmax(0, 1fr));
+    gap:14px;
 }
 
 .ri-analysis-kpi{
-    flex:1;
-    border:none;
+    background:#ffffff;
+    border:1px solid #dbe3ef;
     border-radius:18px;
-    padding:18px;
+    padding:20px 22px;
     text-align:left;
     cursor:pointer;
-    background:#fff;
+    box-shadow:0 10px 24px rgba(15,23,42,.06);
+    transition:.18s ease;
+}
+
+.ri-analysis-kpi:hover{
+    transform:translateY(-2px);
+    box-shadow:0 16px 34px rgba(15,23,42,.12);
 }
 
 .ri-analysis-kpi strong{
     display:block;
-    font-size:28px;
+    font-size:30px;
+    font-weight:950;
+    color:#020617;
+}
+
+.ri-analysis-kpi span{
+    display:block;
+    margin-top:6px;
+    font-size:13px;
+    font-weight:900;
+    color:#334155;
+}
+
+.ri-analysis-kpi.danger{border-left:5px solid #ef4444;}
+.ri-analysis-kpi.warning{border-left:5px solid #f59e0b;}
+.ri-analysis-kpi.info{border-left:5px solid #06b6d4;}
+.ri-analysis-kpi.success{border-left:5px solid #22c55e;}
+
+.ri-analysis-filters{
+    display:grid;
+    grid-template-columns:220px 220px 1fr 120px;
+    gap:10px;
+    align-items:center;
+}
+
+.ri-analysis-filters select,
+.ri-analysis-filters input{
+    height:42px;
+    border:1px solid #cbd5e1;
+    border-radius:12px;
+    padding:0 12px;
+    background:#ffffff;
+    font-weight:700;
+}
+
+.ri-table-wrap{
+    background:#ffffff;
+    border:1px solid #dbe3ef;
+    border-radius:18px;
+    overflow:auto;
+    box-shadow:0 12px 28px rgba(15,23,42,.06);
+}
+
+.ri-table-wrap table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+.ri-table-wrap th{
+    background:#f8fafc;
+    padding:14px 16px;
+    text-align:left;
+    font-size:12px;
+    font-weight:950;
+    color:#020617;
+    border-bottom:1px solid #e2e8f0;
+    white-space:nowrap;
+}
+
+.ri-table-wrap td{
+    padding:14px 16px;
+    border-bottom:1px solid #eef2f7;
+    vertical-align:top;
+    font-weight:700;
+    color:#0f172a;
+}
+
+.ri-sort{
+    border:none;
+    background:transparent;
+    font-weight:950;
+    cursor:pointer;
+}
+
+.ri-analysis-main,
+.ri-analysis-resource,
+.ri-analysis-cause{
+    font-weight:950;
+}
+
+.ri-analysis-page small{
+    display:block;
+    margin-top:4px;
+    color:#475569;
+    font-size:12px;
+    font-weight:700;
+}
+
+.ri-analysis-sku{
+    display:inline-block;
+    padding:7px 10px;
+    border-radius:999px;
+    background:#f1f5f9;
+    font-size:12px;
+    font-weight:900;
 }
 
 .ri-analysis-recommendation{
-    max-width:360px;
-    font-weight:700;
+    max-width:420px;
+    line-height:1.35;
+    font-weight:800;
+}
+
+.ri-priority,
+.ri-category{
+    display:inline-block;
+    padding:7px 10px;
+    border-radius:999px;
+    font-size:12px;
+    font-weight:950;
+}
+
+.ri-priority.high{
+    background:#fee2e2;
+    color:#991b1b;
+}
+
+.ri-priority.medium{
+    background:#fef3c7;
+    color:#92400e;
+}
+
+.ri-priority.low{
+    background:#dcfce7;
+    color:#166534;
+}
+
+.ri-priority.muted,
+.ri-category.muted{
+    background:#f1f5f9;
+    color:#64748b;
+}
+
+.ri-category.healthy{
+    background:#dcfce7;
+    color:#166534;
+}
+
+.ri-category.review{
+    background:#e0f2fe;
+    color:#075985;
+}
+
+.ri-category.warning{
+    background:#fef3c7;
+    color:#92400e;
+}
+
+.ri-category.danger{
+    background:#fee2e2;
+    color:#991b1b;
+}
+
+.ri-active-filters{
+    font-weight:800;
+    color:#334155;
+}
+
+.ri-table-footer{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:12px 4px;
+    font-weight:800;
+}
+
+.ri-pagination-actions{
+    display:flex;
+    gap:6px;
+}
+
+.ri-page-btn{
+    border:none;
+    border-radius:10px;
+    padding:8px 12px;
+    background:#eef2ff;
+    color:#1d4ed8;
+    font-weight:900;
+    cursor:pointer;
+}
+
+.ri-page-btn.active{
+    background:#2563eb;
+    color:#ffffff;
+}
+
+.ri-page-btn:disabled{
+    opacity:.45;
+    cursor:not-allowed;
 }
