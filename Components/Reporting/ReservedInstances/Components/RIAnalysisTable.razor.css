@@ -241,3 +241,13 @@
     opacity:.45;
     cursor:not-allowed;
 }
+
+.ri-export-btn:hover{
+    transform:translateY(-2px);
+    box-shadow:0 16px 32px rgba(37,99,235,.30);
+}
+
+.ri-export-btn svg{
+    width:18px;
+    height:18px;
+}

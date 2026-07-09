@@ -11,12 +11,11 @@
     <div class="ri-analysis-hero">
         <div>
             <h2>Análisis IR</h2>
-            <small style="color:red;font-weight:900;">VERSION TEST RI ANALYSIS 20260708</small>
             <p>Análisis de causa raíz, prioridad, categoría de optimización y recomendación operativa.</p>
         </div>
 
         <button class="ri-export-btn" type="button" @onclick="ExportCsvAsync">
-            Exportar CSV
+            <span>Exportar CSV</span>
         </button>
     </div>
 
@@ -346,6 +345,7 @@
         return $"\"{value}\"";
     }
 }
+
 
 
 
