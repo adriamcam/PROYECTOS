@@ -71,7 +71,7 @@
 
 .ri-analysis-filters{
     display:grid;
-    grid-template-columns:220px 220px 220px 1fr 120px;
+    grid-template-columns:220px 220px 220px 1fr 140px;
     gap:12px;
     align-items:center;
 }
@@ -250,7 +250,7 @@
 
 .ri-analysis-filters{
     display:grid;
-    grid-template-columns:220px 220px 220px 1fr 120px;
+    grid-template-columns:220px 220px 220px 1fr 140px;
     gap:12px;
     align-items:center;
 }
@@ -383,5 +383,6 @@
     transform:translateY(-1px);
     box-shadow:0 10px 18px rgba(37,99,235,.24);
 }
+
 
 
