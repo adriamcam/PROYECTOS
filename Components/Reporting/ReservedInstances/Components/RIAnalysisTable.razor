@@ -130,7 +130,7 @@
                         <td><div class="ri-analysis-recommendation">@Normalize(item.AnalysisRecommendation)</div></td>
                         <td class="ri-notes">
                             <span class="ri-note-empty">
-                                @(string.IsNullOrWhiteSpace(item.AnalysisNote) ? "Sin notas" : item.AnalysisNote)
+                                @(string.IsNullOrWhiteSpace(item.ManualAnalysisNote) ? "Sin notas" : item.ManualAnalysisNote)
                             </span>
                         </td>
 
@@ -388,6 +388,7 @@
         return $"\"{value}\"";
     }
 }
+
 
 
 

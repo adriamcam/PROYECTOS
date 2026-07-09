@@ -71,8 +71,16 @@ public sealed class ReservedInstanceResource
     public string? RelatedResourceName { get; set; }
     public DateTime? AnalysisUpdatedAt { get; set; }
 
+    public string? ManualAnalysisNote { get; set; }
+    public DateTime? ManualAnalysisNoteUpdatedAt { get; set; }
+    public string? ManualAnalysisNoteUpdatedBy { get; set; }
+    public string? AnalysisUpdatedBy { get; set; }
+
     public DateTime? LastScanDate { get; set; }
 }
+
+
+
 
 
 
