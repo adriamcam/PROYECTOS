@@ -167,6 +167,14 @@
 
 </section>
 
+<EditNoteDialog
+    Visible="@(SelectedNoteResource is not null)"
+    Title="Nota del análisis"
+    Subtitle="@SelectedNoteResource?.ResourceName"
+    Note="@NoteText"
+    OnSave="SaveNoteAsync"
+    OnCancel="CloseNoteModal" />
+
 @code {
     [Parameter] public List<ReservedInstanceResource> Resources { get; set; } = new();
 
@@ -424,6 +432,7 @@
         return $"\"{value}\"";
     }
 }
+
 
 
 
