@@ -398,3 +398,17 @@
 
 
 
+
+/* Ajuste buscador y botón limpiar */
+.ri-analysis-filters input{
+    grid-column:4 / 5;
+    width:100%;
+    min-width:280px;
+}
+
+.ri-analysis-filters .ri-clear-btn{
+    grid-column:5 / 6;
+    width:140px;
+    min-width:140px;
+}
+
