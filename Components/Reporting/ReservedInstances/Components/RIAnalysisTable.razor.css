@@ -71,7 +71,7 @@
 
 .ri-analysis-filters{
     display:grid;
-    grid-template-columns:220px 220px 220px minmax(360px, 1fr) 140px;
+    grid-template-columns:220px 220px 220px 1fr 140px;
     gap:12px;
     align-items:center;
 }
@@ -261,7 +261,7 @@
 
 .ri-analysis-filters{
     display:grid;
-    grid-template-columns:220px 220px 220px minmax(360px, 1fr) 140px;
+    grid-template-columns:220px 220px 220px 1fr 140px;
     gap:12px;
     align-items:center;
 }
@@ -402,7 +402,9 @@
 
 
 
-/* Layout final filtros Analisis IR */
+
+
+/* Layout definitivo filtros Analisis IR */
 .ri-analysis-filters select{
     width:220px;
     min-width:220px;
@@ -410,13 +412,38 @@
 }
 
 .ri-analysis-filters input{
-    grid-column:4;
+    grid-column:1 / 5;
+    grid-row:2;
     width:100%;
     min-width:0;
 }
 
 .ri-analysis-filters .ri-clear-btn{
     grid-column:5;
+    grid-row:2;
+    width:140px;
+    min-width:140px;
+    justify-self:end;
+}
+
+
+/* Layout definitivo filtros Analisis IR */
+.ri-analysis-filters select{
+    width:220px;
+    min-width:220px;
+    max-width:220px;
+}
+
+.ri-analysis-filters input{
+    grid-column:1 / 5;
+    grid-row:2;
+    width:100%;
+    min-width:0;
+}
+
+.ri-analysis-filters .ri-clear-btn{
+    grid-column:5;
+    grid-row:2;
     width:140px;
     min-width:140px;
     justify-self:end;
