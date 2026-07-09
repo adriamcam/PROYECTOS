@@ -136,6 +136,7 @@
     [Parameter] public List<ReservedInstanceResource> Resources { get; set; } = new();
 
     private string SearchText { get; set; } = "";
+    private string SubscriptionFilter { get; set; } = "";
     private string PriorityFilter { get; set; } = "";
     private string CategoryFilter { get; set; } = "";
     private string QuickFilter { get; set; } = "";
@@ -143,6 +144,14 @@
     private bool SortAscending { get; set; } = false;
     private int CurrentPage { get; set; } = 1;
     private int PageSize { get; set; } = 20;
+
+    private List<string> SubscriptionOptions =>
+        AnalysisResources
+            .Select(x => x.Subscription)
+            .Where(x => !string.IsNullOrWhiteSpace(x))
+            .Distinct()
+            .OrderBy(x => x)
+            .ToList()!;
 
     private List<ReservedInstanceResource> AnalysisResources =>
         Resources
@@ -226,6 +235,7 @@
     {
         QuickFilter = filter;
         PriorityFilter = "";
+        SubscriptionFilter = "";
         CategoryFilter = "";
         SearchText = "";
         CurrentPage = 1;
@@ -235,6 +245,7 @@
     {
         QuickFilter = "";
         PriorityFilter = "";
+        SubscriptionFilter = "";
         CategoryFilter = "";
         SearchText = "";
         CurrentPage = 1;
@@ -345,6 +356,7 @@
         return $"\"{value}\"";
     }
 }
+
 
 
 
