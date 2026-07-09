@@ -86,6 +86,17 @@
     font-weight:700;
 }
 
+.ri-analysis-filters select{
+    width:220px;
+    min-width:220px;
+    max-width:220px;
+}
+
+.ri-analysis-filters input{
+    width:100%;
+    min-width:0;
+}
+
 .ri-table-wrap{
     background:#ffffff;
     border:1px solid #dbe3ef;
@@ -383,6 +394,7 @@
     transform:translateY(-1px);
     box-shadow:0 10px 18px rgba(37,99,235,.24);
 }
+
 
 
 
