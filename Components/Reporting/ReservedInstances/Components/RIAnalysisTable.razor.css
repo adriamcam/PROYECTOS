@@ -71,8 +71,8 @@
 
 .ri-analysis-filters{
     display:grid;
-    grid-template-columns:220px 220px 1fr 120px;
-    gap:10px;
+    grid-template-columns:220px 220px 220px 1fr 120px;
+    gap:12px;
     align-items:center;
 }
 
@@ -249,7 +249,10 @@
 /* Mejoras botones y filtros Analisis IR */
 
 .ri-analysis-filters{
-    grid-template-columns: 220px 220px 220px 1fr 120px;
+    display:grid;
+    grid-template-columns:220px 220px 220px 1fr 120px;
+    gap:12px;
+    align-items:center;
 }
 
 
@@ -328,5 +331,21 @@
 .ri-clear-btn:hover{
     background:#1e293b;
     transform:translateY(-2px);
+}
+
+
+
+.ri-notes{
+    min-width:180px;
+}
+
+.ri-note-empty{
+    display:inline-block;
+    padding:4px 10px;
+    border-radius:999px;
+    background:#f1f5f9;
+    color:#64748b;
+    font-size:12px;
+    font-weight:700;
 }
 
