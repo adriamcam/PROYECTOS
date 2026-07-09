@@ -80,7 +80,7 @@
                     <th><button class="ri-sort" @onclick='() => SortBy("Cause")'>Causa @GetSortIcon("Cause")</button></th>
                     <th><button class="ri-sort" @onclick='() => SortBy("Category")'>Categoría @GetSortIcon("Category")</button></th>
                     <th>Recomendación</th>
-                    <th>Match</th>
+
                     <th>Actualizado</th>
                 </tr>
             </thead>
@@ -98,20 +98,13 @@
                             <div class="ri-analysis-resource">@Normalize(item.ResourceName)</div>
                             <small>@Normalize(item.ServiceType)</small>
                         </td>
-                        <td>
-                            <span class="ri-analysis-sku">@Normalize(item.SKUReserva)</span>
-                            <small>@Normalize(item.SKUVM)</small>
-                        </td>
+                        <td><span class="ri-analysis-sku">@Normalize(item.SKUReserva)</span></td>
                         <td>
                             <div class="ri-analysis-cause">@Normalize(item.CauseCode)</div>
                             <small>@Normalize(item.CauseDescription)</small>
                         </td>
                         <td><span class="@GetCategoryClass(item.OptimizationCategory)">@Normalize(item.OptimizationCategory)</span></td>
                         <td><div class="ri-analysis-recommendation">@Normalize(item.AnalysisRecommendation)</div></td>
-                        <td>
-                            <strong>@(item.RunningResourceCount ?? 0)</strong> / @(item.MatchingResourceCount ?? 0)
-                            <small>@Normalize(item.LastMatchedResourceName)</small>
-                        </td>
                         <td>@(item.AnalysisUpdatedAt?.ToString("dd/MM/yyyy HH:mm") ?? "-")</td>
                     </tr>
                 }
@@ -322,7 +315,7 @@
     private async Task ExportCsvAsync()
     {
         var sb = new StringBuilder();
-        sb.AppendLine("Customer,Subscription,ResourceName,SKUReserva,SKUVM,CauseCode,Recommendation,PriorityLevel,OptimizationCategory,MatchingResourceCount,RunningResourceCount");
+        sb.AppendLine("Customer,Subscription,ResourceName,SKUReserva,CauseCode,Recommendation,PriorityLevel,OptimizationCategory");
 
         foreach (var item in FilteredResources)
         {
@@ -331,13 +324,13 @@
                 Csv(item.Subscription),
                 Csv(item.ResourceName),
                 Csv(item.SKUReserva),
-                Csv(item.SKUVM),
+
                 Csv(item.CauseCode),
                 Csv(item.AnalysisRecommendation),
                 Csv(item.PriorityLevel),
                 Csv(item.OptimizationCategory),
-                item.MatchingResourceCount,
-                item.RunningResourceCount
+
+                Csv(item.OptimizationCategory)
             ));
         }
 
@@ -353,6 +346,8 @@
         return $"\"{value}\"";
     }
 }
+
+
 
 
 
