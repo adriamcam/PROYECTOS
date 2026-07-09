@@ -15,8 +15,22 @@
         </div>
 
         <button class="ri-export-btn" type="button" @onclick="ExportCsvAsync">
-            <span>Exportar CSV</span>
-        </button>
+    <svg xmlns="http://www.w3.org/2000/svg"
+         width="18"
+         height="18"
+         viewBox="0 0 24 24"
+         fill="none"
+         stroke="currentColor"
+         stroke-width="2">
+
+        <path d="M12 3v12"/>
+        <path d="M7 10l5 5 5-5"/>
+        <path d="M4 21h16"/>
+
+    </svg>
+
+    <span>Exportar CSV</span>
+</button>
     </div>
 
     <div class="ri-analysis-kpis">
@@ -42,6 +56,15 @@
     </div>
 
     <div class="ri-analysis-filters">
+        
+        <select @bind="SubscriptionFilter">
+            <option value="">Todas las suscripciones</option>
+            @foreach (var item in SubscriptionOptions)
+            {
+                <option value="@item">@item</option>
+            }
+        </select>
+
         <select @bind="PriorityFilter">
             <option value="">Todas las prioridades</option>
             <option value="High">High</option>
@@ -356,6 +379,9 @@
         return $"\"{value}\"";
     }
 }
+
+
+
 
 
 

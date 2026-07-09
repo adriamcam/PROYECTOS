@@ -242,15 +242,9 @@
     cursor:not-allowed;
 }
 
-.ri-export-btn:hover{
-    transform:translateY(-2px);
-    box-shadow:0 16px 32px rgba(37,99,235,.30);
-}
 
-.ri-export-btn svg{
-    width:18px;
-    height:18px;
-}
+
+
 
 /* Mejoras botones y filtros Analisis IR */
 
@@ -258,40 +252,81 @@
     grid-template-columns: 220px 220px 220px 1fr 120px;
 }
 
+
+
+
+
+
+
+
+
+
+/* ==========================================================
+   BOTONES ANALISIS IR
+   ========================================================== */
+
 .ri-export-btn{
     display:inline-flex;
     align-items:center;
     justify-content:center;
-    gap:8px;
+    gap:10px;
+
+    min-width:170px;
+    height:44px;
+
+    padding:0 20px;
+
     border:none;
     border-radius:12px;
-    padding:12px 18px;
+
     background:linear-gradient(135deg,#2563eb,#1d4ed8);
     color:#fff;
-    font-weight:900;
+
+    font-size:14px;
+    font-weight:800;
+
     cursor:pointer;
-    box-shadow:0 10px 24px rgba(37,99,235,.22);
-    transition:.18s ease;
+
+    transition:all .18s ease;
+
+    box-shadow:0 8px 20px rgba(37,99,235,.25);
 }
 
 .ri-export-btn:hover{
     transform:translateY(-2px);
-    box-shadow:0 16px 32px rgba(37,99,235,.32);
+    box-shadow:0 14px 28px rgba(37,99,235,.35);
+}
+
+.ri-export-btn svg{
+    width:18px;
+    height:18px;
+    flex:none;
 }
 
 .ri-clear-btn{
-    height:42px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+
+    min-width:120px;
+    height:44px;
+
     border:none;
     border-radius:12px;
+
     background:#0f172a;
     color:#fff;
-    font-weight:900;
+
+    font-size:14px;
+    font-weight:800;
+
     cursor:pointer;
-    transition:.18s ease;
+
+    transition:all .18s ease;
 }
 
 .ri-clear-btn:hover{
     background:#1e293b;
-    transform:translateY(-1px);
+    transform:translateY(-2px);
 }
 
