@@ -104,6 +104,7 @@
                     <th>Recomendación</th>
 
                     <th>Notas</th>
+                    <th>Actualizado</th>
                 </tr>
             </thead>
 
@@ -127,7 +128,15 @@
                         </td>
                         <td><span class="@GetCategoryClass(item.OptimizationCategory)">@Normalize(item.OptimizationCategory)</span></td>
                         <td><div class="ri-analysis-recommendation">@Normalize(item.AnalysisRecommendation)</div></td>
-                        <td>@(item.AnalysisUpdatedAt?.ToString("dd/MM/yyyy HH:mm") ?? "-")</td>
+                        <td class="ri-notes">
+                            <span class="ri-note-empty">
+                                @(string.IsNullOrWhiteSpace(item.AnalysisNote) ? "Sin notas" : item.AnalysisNote)
+                            </span>
+                        </td>
+
+                        <td class="ri-updated">
+                            @(item.AnalysisUpdatedAt?.ToString("dd/MM/yyyy HH:mm") ?? "-")
+                        </td>
                     </tr>
                 }
             </tbody>
@@ -379,6 +388,7 @@
         return $"\"{value}\"";
     }
 }
+
 
 
 
