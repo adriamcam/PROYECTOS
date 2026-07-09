@@ -63,6 +63,23 @@ public sealed class ReservedInstanceService : IReservedInstanceService
 
         return result.ToList();
     }
+    public async Task SaveManualAnalysisNoteAsync(string resourceKey, string? note, string updatedBy)
+    {
+        using var conn = _connectionFactory.CreateConnection();
+
+        await conn.ExecuteAsync(
+            "dbo.sp_RI_SaveManualAnalysisNote",
+            new
+            {
+                ResourceKey = resourceKey,
+                ManualAnalysisNote = note,
+                UpdatedBy = updatedBy
+            },
+            commandType: CommandType.StoredProcedure,
+            commandTimeout: 120
+        );
+    }
+
     public async Task<List<ReservedInstanceChangeHistory>> GetChangeHistoryAsync(string resourceKey)
     {
         using var conn = _connectionFactory.CreateConnection();
@@ -77,4 +94,5 @@ public sealed class ReservedInstanceService : IReservedInstanceService
         return result.ToList();
     }
 }
+
 

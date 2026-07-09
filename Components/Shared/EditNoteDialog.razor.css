@@ -1,0 +1,99 @@
+.note-dialog-backdrop{
+    position:fixed;
+    inset:0;
+    background:rgba(15,23,42,.55);
+    z-index:9998;
+}
+
+.note-dialog{
+    position:fixed;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    width:min(620px, calc(100vw - 40px));
+    background:#fff;
+    border-radius:20px;
+    border:1px solid #dbe3ef;
+    box-shadow:0 30px 80px rgba(15,23,42,.35);
+    z-index:9999;
+    overflow:hidden;
+}
+
+.note-dialog-header{
+    padding:20px 24px;
+    background:#0f172a;
+    color:#fff;
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+}
+
+.note-dialog-header h3{
+    margin:0;
+    font-size:20px;
+    font-weight:900;
+}
+
+.note-dialog-header p{
+    margin:6px 0 0;
+    color:#cbd5e1;
+    font-weight:700;
+}
+
+.note-dialog-header button{
+    border:none;
+    background:transparent;
+    color:#fff;
+    font-size:26px;
+    cursor:pointer;
+}
+
+.note-dialog-body{
+    padding:24px;
+}
+
+.note-dialog-body label{
+    display:block;
+    margin-bottom:8px;
+    font-weight:900;
+    color:#0f172a;
+}
+
+.note-dialog-body textarea{
+    width:100%;
+    min-height:180px;
+    resize:vertical;
+    border:1px solid #cbd5e1;
+    border-radius:14px;
+    padding:14px;
+    font-family:inherit;
+    font-size:14px;
+    font-weight:700;
+}
+
+.note-dialog-footer{
+    padding:18px 24px;
+    display:flex;
+    justify-content:flex-end;
+    gap:12px;
+    border-top:1px solid #e2e8f0;
+}
+
+.note-cancel,
+.note-save{
+    border:none;
+    border-radius:12px;
+    padding:11px 18px;
+    font-weight:900;
+    cursor:pointer;
+}
+
+.note-cancel{
+    background:#e2e8f0;
+    color:#0f172a;
+}
+
+.note-save{
+    background:#2563eb;
+    color:#fff;
+}

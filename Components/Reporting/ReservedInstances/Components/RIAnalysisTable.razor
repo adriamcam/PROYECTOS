@@ -3,8 +3,11 @@
 @using System.Text
 @using Microsoft.JSInterop
 @using ITQS.SupportOperationsCenter.Components.Reporting.ReservedInstances.Models
+@using ITQS.SupportOperationsCenter.Components.Reporting.ReservedInstances.Services
+@using ITQS.SupportOperationsCenter.Components.Shared
 
 @inject IJSRuntime JS
+@inject IReservedInstanceService ReservedInstanceService
 
 <section class="ri-analysis-page">
 
@@ -129,10 +132,10 @@
                         <td><span class="@GetCategoryClass(item.OptimizationCategory)">@Normalize(item.OptimizationCategory)</span></td>
                         <td><div class="ri-analysis-recommendation">@Normalize(item.AnalysisRecommendation)</div></td>
                         <td class="ri-notes">
-                            <span class="ri-note-empty">
-                                @(string.IsNullOrWhiteSpace(item.ManualAnalysisNote) ? "Sin notas" : item.ManualAnalysisNote)
-                            </span>
-                        </td>
+    <button class="ri-note-btn" type="button" @onclick="() => OpenNoteModal(item)">
+        @(string.IsNullOrWhiteSpace(item.ManualAnalysisNote) ? "Agregar nota" : "Ver / Editar")
+    </button>
+</td>
 
                         <td class="ri-updated">
                             @(item.AnalysisUpdatedAt?.ToString("dd/MM/yyyy HH:mm") ?? "-")
@@ -176,6 +179,9 @@
     private bool SortAscending { get; set; } = false;
     private int CurrentPage { get; set; } = 1;
     private int PageSize { get; set; } = 20;
+
+    private ReservedInstanceResource? SelectedNoteResource { get; set; }
+    private string NoteText { get; set; } = "";
 
     private List<string> SubscriptionOptions =>
         AnalysisResources
@@ -261,6 +267,36 @@
             filters.Add($"Búsqueda: {SearchText}");
 
         return filters.Count == 0 ? "Ninguno" : string.Join(" | ", filters);
+    }
+
+    private void OpenNoteModal(ReservedInstanceResource item)
+    {
+        SelectedNoteResource = item;
+        NoteText = item.ManualAnalysisNote ?? "";
+    }
+
+    private void CloseNoteModal()
+    {
+        SelectedNoteResource = null;
+        NoteText = "";
+    }
+
+    private async Task SaveNoteAsync(string? note)
+    {
+        if (SelectedNoteResource is null)
+            return;
+
+        await ReservedInstanceService.SaveManualAnalysisNoteAsync(
+            SelectedNoteResource.ResourceKey,
+            note,
+            "William Adrian Cambronero Acosta"
+        );
+
+        SelectedNoteResource.ManualAnalysisNote = note;
+        SelectedNoteResource.ManualAnalysisNoteUpdatedAt = DateTime.Now;
+        SelectedNoteResource.ManualAnalysisNoteUpdatedBy = "William Adrian Cambronero Acosta";
+
+        CloseNoteModal();
     }
 
     private void ApplyQuickFilter(string filter)
@@ -388,6 +424,17 @@
         return $"\"{value}\"";
     }
 }
+
+
+
+
+
+
+
+
+
+
+
 
 
 

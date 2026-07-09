@@ -8,5 +8,7 @@ public interface IReservedInstanceService
 
     Task<List<ReservedInstanceResource>> GetResourcesAsync();
     Task<List<ReservedInstanceChangeHistory>> GetChangeHistoryAsync(string resourceKey);
+    Task SaveManualAnalysisNoteAsync(string resourceKey, string? note, string updatedBy);
 }
+
 

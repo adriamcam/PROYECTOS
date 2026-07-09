@@ -1,0 +1,54 @@
+@namespace ITQS.SupportOperationsCenter.Components.Shared
+
+@if (Visible)
+{
+    <div class="note-dialog-backdrop" @onclick="Cancel"></div>
+
+    <div class="note-dialog">
+        <div class="note-dialog-header">
+            <div>
+                <h3>@Title</h3>
+                <p>@Subtitle</p>
+            </div>
+
+            <button type="button" @onclick="Cancel">×</button>
+        </div>
+
+        <div class="note-dialog-body">
+            <label>Nota</label>
+            <textarea @bind="NoteText" placeholder="Escriba la nota aquí..."></textarea>
+        </div>
+
+        <div class="note-dialog-footer">
+            <button class="note-cancel" type="button" @onclick="Cancel">Cancelar</button>
+            <button class="note-save" type="button" @onclick="Save">Guardar</button>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public bool Visible { get; set; }
+    [Parameter] public string Title { get; set; } = "Nota";
+    [Parameter] public string? Subtitle { get; set; }
+    [Parameter] public string? Note { get; set; }
+
+    [Parameter] public EventCallback<string?> OnSave { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+
+    private string? NoteText { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        NoteText = Note;
+    }
+
+    private async Task Save()
+    {
+        await OnSave.InvokeAsync(NoteText);
+    }
+
+    private async Task Cancel()
+    {
+        await OnCancel.InvokeAsync();
+    }
+}
