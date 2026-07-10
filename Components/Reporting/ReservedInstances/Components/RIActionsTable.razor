@@ -4,6 +4,7 @@
 @using Microsoft.JSInterop
 @using ITQS.SupportOperationsCenter.Components.Reporting.ReservedInstances.Models
 @using ITQS.SupportOperationsCenter.Components.Reporting.ReservedInstances.Services
+@using ITQS.SupportOperationsCenter.Components.Shared
 
 @inject IJSRuntime JS
 @inject IReservedInstanceService ReservedInstanceService
@@ -93,7 +94,8 @@
                         <th><button class="ri-action-sort" @onclick='() => SortBy("LifecycleRecommendation")'>Recomendación MS @GetSortIcon("LifecycleRecommendation")</button></th>
                         <th><button class="ri-action-sort" @onclick='() => SortBy("ChangedBy")'>Cambiado por @GetSortIcon("ChangedBy")</button></th>
                         <th><button class="ri-action-sort" @onclick='() => SortBy("ChangeDate")'>Fecha cambio @GetSortIcon("ChangeDate")</button></th>
-                        <th>Detalle</th>
+                        <th>Notas</th>
+                    <th>Detalle</th>
                     </tr>
                 </thead>
 
@@ -148,6 +150,12 @@
                                 <span class="ri-action-date">
                                     @(item.LastChangeDate?.ToString("dd/MM/yyyy HH:mm") ?? "-")
                                 </span>
+                            </td>
+
+                            <td class="ri-notes">
+                                <button class="ri-note-btn" type="button" @onclick="() => OpenNoteModal(item)">
+                                    @(string.IsNullOrWhiteSpace(item.ManualAnalysisNote) ? "📝 Agregar" : item.ManualAnalysisNote)
+                                </button>
                             </td>
 
                             <td>
@@ -244,6 +252,14 @@
     </div>
 }
 
+
+<EditNoteDialog
+    Visible="@(SelectedNoteResource is not null)"
+    Title="Nota del análisis"
+    Subtitle="@SelectedNoteResource?.ResourceName"
+    Note="@NoteText"
+    OnSave="SaveNoteAsync"
+    OnCancel="CloseNoteModal" />
 @code {
     [Parameter] public List<ReservedInstanceResource> Resources { get; set; } = new();
 
@@ -251,7 +267,10 @@
     private List<ReservedInstanceChangeHistory> ChangeHistory { get; set; } = new();
 
     private string SearchText { get; set; } = "";
-    private string ProblemFilter { get; set; } = "";
+    
+    private ReservedInstanceResource? SelectedNoteResource { get; set; }
+    private string NoteText { get; set; } = "";
+private string ProblemFilter { get; set; } = "";
     private string PriorityFilter { get; set; } = "";
     private string SubscriptionFilter { get; set; } = "";
 
@@ -361,6 +380,38 @@
     {
         SelectedResource = null;
     }
+    
+    private void OpenNoteModal(ReservedInstanceResource item)
+    {
+        SelectedNoteResource = item;
+        NoteText = item.ManualAnalysisNote ?? "";
+    }
+
+    private void CloseNoteModal()
+    {
+        SelectedNoteResource = null;
+        NoteText = "";
+    }
+
+    private async Task SaveNoteAsync(string? note)
+    {
+        if (SelectedNoteResource is null)
+            return;
+
+        await ReservedInstanceService.SaveManualAnalysisNoteAsync(
+            SelectedNoteResource.ResourceKey,
+            note,
+            "William Adrian Cambronero Acosta"
+        );
+
+        SelectedNoteResource.ManualAnalysisNote = note;
+        SelectedNoteResource.ManualAnalysisNoteUpdatedAt = DateTime.Now;
+        SelectedNoteResource.ManualAnalysisNoteUpdatedBy = "William Adrian Cambronero Acosta";
+
+        CloseNoteModal();
+    }
+
+
 
     private void ApplyProblemFilter(string status)
     {
@@ -526,6 +577,13 @@
         return "\"" + value.Replace("\"", "\"\"") + "\"";
     }
 }
+
+
+
+
+
+
+
 
 
 
