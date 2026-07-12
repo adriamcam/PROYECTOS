@@ -154,7 +154,9 @@
 
                             <td class="ri-notes">
                                 <button class="ri-note-btn" type="button" @onclick="() => OpenNoteModal(item)">
-                                    @(string.IsNullOrWhiteSpace(item.ManualAnalysisNote) ? "📝 Agregar" : item.ManualAnalysisNote)
+                                    @(string.IsNullOrWhiteSpace(item.ManualAnalysisNote)
+    ? "📝 Agregar"
+    : $"📝 {GetNotePreview(item.ManualAnalysisNote)}")
                                 </button>
                             </td>
 
@@ -381,6 +383,18 @@ private string ProblemFilter { get; set; } = "";
         SelectedResource = null;
     }
     
+    private static string GetNotePreview(string? note)
+    {
+        if (string.IsNullOrWhiteSpace(note))
+            return "Agregar";
+
+        const int maxLength = 35;
+
+        return note.Length <= maxLength
+            ? note
+            : note[..maxLength] + "...";
+    }
+
     private void OpenNoteModal(ReservedInstanceResource item)
     {
         SelectedNoteResource = item;
@@ -577,6 +591,7 @@ private string ProblemFilter { get; set; } = "";
         return "\"" + value.Replace("\"", "\"\"") + "\"";
     }
 }
+
 
 
 

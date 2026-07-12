@@ -1,0 +1,228 @@
+@using ITQS.SupportOperationsCenter.Components.Reporting.ReservedInstances.Models
+
+<section class="ric-section">
+    <div class="ric-heading">
+        <div>
+            <span class="ric-eyebrow">Conciliación de reservas</span>
+            <h2>Cobertura IR</h2>
+            <p>Validación de VMs, SKUs, tags IR y capacidad reservada disponible.</p>
+        </div>
+    </div>
+
+    <div class="ric-kpis">
+        @foreach (var card in KpiCards)
+        {
+            <button class="ric-kpi @card.Css" type="button" @onclick="() => ApplyStatusFilter(card.Filter)">
+                <span>@card.Title</span>
+                <strong>@card.Value</strong>
+                <small>@card.Subtitle</small>
+            </button>
+        }
+    </div>
+
+    <div class="ric-toolbar">
+        <input type="search" placeholder="Buscar cliente, VM, SKU o reserva..."
+               @bind="SearchText" @bind:event="oninput" />
+
+        <select @bind="CustomerFilter">
+            <option value="">Todos los clientes</option>
+            @foreach (var customer in CustomerOptions)
+            {
+                <option value="@customer">@customer</option>
+            }
+        </select>
+
+        <select @bind="StatusFilter">
+            <option value="">Todos los estados</option>
+            @foreach (var status in StatusOptions)
+            {
+                <option value="@status.Code">@status.Label</option>
+            }
+        </select>
+
+        <button type="button" class="ric-clear" @onclick="ClearFilters">Limpiar</button>
+    </div>
+
+    <div class="ric-summary">
+        <span>Mostrando <strong>@PagedResources.Count()</strong> de <strong>@FilteredResources.Count()</strong> registros</span>
+        <span>Score promedio filtrado: <strong>@FilteredAverageScore.ToString("N2")%</strong></span>
+    </div>
+
+    <div class="ric-table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Score</th>
+                    <th>Cliente</th>
+                    <th>Suscripción</th>
+                    <th>VM</th>
+                    <th>SKU actual</th>
+                    <th>Región</th>
+                    <th>Tag IR</th>
+                    <th>Reserva esperada</th>
+                    <th>Cobertura</th>
+                    <th>Capacidad</th>
+                    <th>Confianza</th>
+                    <th>Detalle</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in PagedResources)
+                {
+                    <tr>
+                        <td><span class="ric-score @GetScoreClass(item.CoverageScore)">@item.CoverageScore</span></td>
+                        <td><strong>@item.CustomerName</strong></td>
+                        <td><div class="ric-stack"><span>@item.SubscriptionName</span><small>@item.ResourceGroupName</small></div></td>
+                        <td><div class="ric-stack"><strong>@item.VMName</strong><small>@NormalizePowerState(item.PowerState)</small></div></td>
+                        <td><div class="ric-stack"><strong>@item.VMSize</strong><small>@item.VMFamily</small></div></td>
+                        <td>@item.Location</td>
+                        <td>
+                            @if (string.IsNullOrWhiteSpace(item.IRTag))
+                            {
+                                <span class="ric-empty">Sin tag</span>
+                            }
+                            else
+                            {
+                                <span class="ric-tag">@item.IRTag</span>
+                            }
+                        </td>
+                        <td><div class="ric-stack"><strong>@Normalize(item.IntendedReservationName)</strong><small>@Normalize(item.IntendedReservedSku)</small></div></td>
+                        <td><span class="ric-status @GetStatusClass(item.CoverageStatusCode)">@item.CoverageStatus</span></td>
+                        <td><div class="ric-capacity"><strong>@item.ReservedQuantity / @item.EligibleVMCount</strong><small>@item.CoveragePercent.ToString("N2")%</small></div></td>
+                        <td><span class="ric-confidence @item.CoverageConfidence.ToLowerInvariant()">@GetConfidenceLabel(item.CoverageConfidence)</span></td>
+                        <td><button type="button" class="ric-detail-btn" @onclick="() => OpenDetails(item)">Ver detalle</button></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="ric-pagination">
+        <button type="button" @onclick="PrevPage" disabled="@(CurrentPage <= 1)">‹</button>
+        @foreach (var page in VisiblePages)
+        {
+            <button type="button" class="@(page == CurrentPage ? "active" : "")" @onclick="() => GoToPage(page)">@page</button>
+        }
+        <button type="button" @onclick="NextPage" disabled="@(CurrentPage >= TotalPages)">›</button>
+    </div>
+</section>
+
+@if (SelectedResource is not null)
+{
+    <div class="ric-modal-backdrop" @onclick="CloseDetails">
+        <div class="ric-modal" @onclick:stopPropagation="true">
+            <div class="ric-modal-header">
+                <div><span class="ric-eyebrow">Detalle de cobertura</span><h3>@SelectedResource.VMName</h3></div>
+                <button type="button" class="ric-close" @onclick="CloseDetails">×</button>
+            </div>
+
+            <div class="ric-detail-grid">
+                <div><span>Cliente</span><strong>@SelectedResource.CustomerName</strong></div>
+                <div><span>Suscripción</span><strong>@SelectedResource.SubscriptionName</strong></div>
+                <div><span>SKU actual</span><strong>@SelectedResource.VMSize</strong></div>
+                <div><span>SKU reservado</span><strong>@Normalize(SelectedResource.IntendedReservedSku)</strong></div>
+                <div><span>Reserva esperada</span><strong>@Normalize(SelectedResource.IntendedReservationName)</strong></div>
+                <div><span>Tag IR</span><strong>@Normalize(SelectedResource.IRTag)</strong></div>
+                <div><span>VMs elegibles</span><strong>@SelectedResource.EligibleVMCount</strong></div>
+                <div><span>Cantidad reservada</span><strong>@SelectedResource.ReservedQuantity</strong></div>
+                <div><span>Estado</span><strong>@SelectedResource.CoverageStatus</strong></div>
+                <div><span>Confianza</span><strong>@GetConfidenceLabel(SelectedResource.CoverageConfidence)</strong></div>
+            </div>
+
+            <div class="ric-message"><span>Motivo</span><p>@SelectedResource.CoverageReason</p></div>
+            <div class="ric-message recommendation"><span>Recomendación</span><p>@SelectedResource.CoverageRecommendation</p></div>
+
+            @if (!string.IsNullOrWhiteSpace(SelectedResource.CompatibleReservationNames))
+            {
+                <div class="ric-message"><span>Reservas compatibles</span><p>@SelectedResource.CompatibleReservationNames</p></div>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public RICoverageKpi Kpis { get; set; } = new();
+    [Parameter, EditorRequired] public List<RICoverageResource> Resources { get; set; } = new();
+
+    private string SearchText { get; set; } = "";
+    private string CustomerFilter { get; set; } = "";
+    private string StatusFilter { get; set; } = "";
+    private int CurrentPage { get; set; } = 1;
+    private int PageSize { get; set; } = 20;
+    private RICoverageResource? SelectedResource { get; set; }
+
+    private readonly (string Code, string Label)[] StatusOptions =
+    [
+        ("COVERED_ALIGNED", "Cubierta y alineada"),
+        ("COVERED_TAGGED_COMPATIBLE", "Cubierta por reserva compatible"),
+        ("PROBABLY_COVERED_NO_TAG", "Probablemente cubierta sin tag"),
+        ("INSUFFICIENT_COVERAGE", "Cobertura insuficiente"),
+        ("AMBIGUOUS_COVERAGE", "Cobertura ambigua"),
+        ("TAGGED_SKU_CHANGED", "SKU cambiado"),
+        ("TAG_IR_VIGENTE_SIN_RESERVA", "Tag vigente sin reserva"),
+        ("TAG_IR_VENCIDA", "Tag IR vencido"),
+        ("TAG_IR_ELIMINADA", "Tag IR eliminado")
+    ];
+
+    private IEnumerable<(string Title, string Value, string Subtitle, string Filter, string Css)> KpiCards =>
+    [
+        ("Total VMs relevantes", Kpis.TotalVMs.ToString(), "Inventario relacionado con IR", "", "primary"),
+        ("Cubiertas y alineadas", Kpis.CoveredAligned.ToString(), "Tag, VM y SKU correctos", "COVERED_ALIGNED", "success"),
+        ("Cobertura insuficiente", Kpis.InsufficientCoverage.ToString(), "Más VMs que unidades reservadas", "INSUFFICIENT_COVERAGE", "warning"),
+        ("Tag vigente sin reserva", Kpis.TagIRVigenteSinReserva.ToString(), "Validar carga o scope", "TAG_IR_VIGENTE_SIN_RESERVA", "danger"),
+        ("SKU cambiado", Kpis.TaggedSkuChanged.ToString(), "La VM ya no coincide", "TAGGED_SKU_CHANGED", "purple"),
+        ("Tag vencido", Kpis.TagIRVencida.ToString(), "Revisar renovación", "TAG_IR_VENCIDA", "muted"),
+        ("Tag eliminado", Kpis.TagIREliminada.ToString(), "Limpiar trazabilidad", "TAG_IR_ELIMINADA", "dark"),
+        ("Coverage Score", $"{Kpis.AverageCoverageScore:N2}%", "Promedio general", "", "score")
+    ];
+
+    private List<string> CustomerOptions => Resources.Select(x => x.CustomerName).Where(x => !string.IsNullOrWhiteSpace(x)).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(x => x).ToList();
+
+    private IEnumerable<RICoverageResource> FilteredResources => Resources.Where(x =>
+        (string.IsNullOrWhiteSpace(CustomerFilter) || string.Equals(x.CustomerName, CustomerFilter, StringComparison.OrdinalIgnoreCase)) &&
+        (string.IsNullOrWhiteSpace(StatusFilter) || string.Equals(x.CoverageStatusCode, StatusFilter, StringComparison.OrdinalIgnoreCase)) &&
+        (string.IsNullOrWhiteSpace(SearchText) || Contains(x.CustomerName, SearchText) || Contains(x.SubscriptionName, SearchText) || Contains(x.VMName, SearchText) || Contains(x.VMSize, SearchText) || Contains(x.IRTag, SearchText) || Contains(x.IntendedReservationName, SearchText) || Contains(x.IntendedReservedSku, SearchText) || Contains(x.CoverageStatus, SearchText))
+    );
+
+    private IEnumerable<RICoverageResource> PagedResources => FilteredResources.OrderBy(x => x.CoverageScore).ThenBy(x => x.CustomerName).ThenBy(x => x.VMName).Skip((CurrentPage - 1) * PageSize).Take(PageSize);
+    private int TotalPages => Math.Max(1, (int)Math.Ceiling(FilteredResources.Count() / (double)PageSize));
+    private decimal FilteredAverageScore => FilteredResources.Any() ? FilteredResources.Average(x => (decimal)x.CoverageScore) : 0;
+
+    private IEnumerable<int> VisiblePages
+    {
+        get
+        {
+            var start = Math.Max(1, CurrentPage - 2);
+            var end = Math.Min(TotalPages, start + 4);
+            start = Math.Max(1, end - 4);
+            return Enumerable.Range(start, end - start + 1);
+        }
+    }
+
+    private void ApplyStatusFilter(string status) { StatusFilter = status; CurrentPage = 1; }
+    private void ClearFilters() { SearchText = ""; CustomerFilter = ""; StatusFilter = ""; CurrentPage = 1; }
+    private void PrevPage() { if (CurrentPage > 1) CurrentPage--; }
+    private void NextPage() { if (CurrentPage < TotalPages) CurrentPage++; }
+    private void GoToPage(int page) => CurrentPage = page;
+    private void OpenDetails(RICoverageResource item) => SelectedResource = item;
+    private void CloseDetails() => SelectedResource = null;
+
+    private static bool Contains(string? value, string search) => !string.IsNullOrWhiteSpace(value) && value.Contains(search, StringComparison.OrdinalIgnoreCase);
+    private static string Normalize(string? value) => string.IsNullOrWhiteSpace(value) ? "-" : value;
+    private static string NormalizePowerState(string? value) => string.IsNullOrWhiteSpace(value) ? "Estado no disponible" : value.Replace("VM ", "", StringComparison.OrdinalIgnoreCase);
+    private static string GetConfidenceLabel(string? value) => value?.ToUpperInvariant() switch { "HIGH" => "Alta", "MEDIUM" => "Media", "LOW" => "Baja", _ => "Pendiente" };
+    private static string GetScoreClass(int score) => score switch { >= 90 => "success", >= 70 => "info", >= 50 => "warning", >= 30 => "danger", _ => "critical" };
+    private static string GetStatusClass(string? code) => code switch
+    {
+        "COVERED_ALIGNED" => "success",
+        "COVERED_TAGGED_COMPATIBLE" => "success-soft",
+        "PROBABLY_COVERED_NO_TAG" => "info",
+        "INSUFFICIENT_COVERAGE" => "warning",
+        "AMBIGUOUS_COVERAGE" => "purple",
+        "TAGGED_SKU_CHANGED" => "purple",
+        "TAG_IR_VIGENTE_SIN_RESERVA" => "danger",
+        "TAG_IR_VENCIDA" => "muted",
+        "TAG_IR_ELIMINADA" => "dark",
+        _ => "neutral"
+    };
+}
