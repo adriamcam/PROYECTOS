@@ -156,3 +156,4 @@ ORDER BY CoverageScore ASC, CustomerName, SubscriptionName, VMName;";
         return result.ToList();
     }
 }
+

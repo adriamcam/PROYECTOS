@@ -1,4 +1,7 @@
 @using ITQS.SupportOperationsCenter.Components.Reporting.ReservedInstances.Models
+@using ITQS.SupportOperationsCenter.Components.Reporting.ReservedInstances.Services
+
+@inject IReservedInstanceService ReservedInstanceService
 
 <section class="ric-section">
     <div class="ric-heading">
@@ -63,6 +66,7 @@
                     <th>Cobertura</th>
                     <th>Capacidad</th>
                     <th>Confianza</th>
+                    <th>Notas</th>
                     <th>Detalle</th>
                 </tr>
             </thead>
@@ -140,6 +144,14 @@
     </div>
 }
 
+
+<EditNoteDialog
+    Visible="@(SelectedNoteResource is not null)"
+    Title="Nota de cobertura IR"
+    Subtitle="@SelectedNoteResource?.VMName"
+    Note="@NoteText"
+    OnSave="SaveNoteAsync"
+    OnCancel="CloseNoteModal" />
 @code {
     [Parameter, EditorRequired] public RICoverageKpi Kpis { get; set; } = new();
     [Parameter, EditorRequired] public List<RICoverageResource> Resources { get; set; } = new();
@@ -204,6 +216,40 @@
     private void PrevPage() { if (CurrentPage > 1) CurrentPage--; }
     private void NextPage() { if (CurrentPage < TotalPages) CurrentPage++; }
     private void GoToPage(int page) => CurrentPage = page;
+
+    private void OpenNoteModal(RICoverageResource item)
+    {
+        SelectedNoteResource = item;
+        NoteText = item.ManualAnalysisNote ?? "";
+    }
+
+    private void CloseNoteModal()
+    {
+        SelectedNoteResource = null;
+        NoteText = "";
+    }
+
+    private async Task SaveNoteAsync(string? note)
+    {
+        if (SelectedNoteResource is null ||
+            string.IsNullOrWhiteSpace(SelectedNoteResource.ResourceKey))
+        {
+            return;
+        }
+
+        await ReservedInstanceService.SaveManualAnalysisNoteAsync(
+            SelectedNoteResource.ResourceKey,
+            note,
+            "William Adrian Cambronero Acosta"
+        );
+
+        SelectedNoteResource.ManualAnalysisNote = note;
+        SelectedNoteResource.ManualAnalysisNoteUpdatedAt = DateTime.Now;
+        SelectedNoteResource.ManualAnalysisNoteUpdatedBy =
+            "William Adrian Cambronero Acosta";
+
+        CloseNoteModal();
+    }
     private void OpenDetails(RICoverageResource item) => SelectedResource = item;
     private void CloseDetails() => SelectedResource = null;
 
@@ -226,5 +272,9 @@
         _ => "neutral"
     };
 }
+
+
+
+
 
 

@@ -41,4 +41,10 @@ public sealed class RICoverageResource
     public string? CompatibleReservationNames { get; set; }
     public string? Tags { get; set; }
     public DateTime? LastSeenAt { get; set; }
+
+    public string? ResourceKey { get; set; }
+    public string? ManualAnalysisNote { get; set; }
+    public DateTime? ManualAnalysisNoteUpdatedAt { get; set; }
+    public string? ManualAnalysisNoteUpdatedBy { get; set; }
 }
+
