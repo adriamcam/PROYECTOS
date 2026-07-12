@@ -49,6 +49,11 @@
         <button class="@(ActiveTab == "Analysis" ? "active" : "")" @onclick='() => ActiveTab = "Analysis"'>
             Análisis IR
         </button>
+
+        <button class="@(ActiveTab == "Coverage" ? "active" : "")"
+                @onclick='() => ActiveTab = "Coverage"'>
+            Cobertura IR
+        </button>
     </div>
 
     @if (IsLoading && !IsLoaded)
@@ -190,6 +195,12 @@
     {
         <RIAnalysisTable Resources="Dashboard.Resources" />
     }
+    else if (ActiveTab == "Coverage")
+    {
+        <RICoverageTable
+            Kpis="CoverageKpis"
+            Resources="CoverageResources" />
+    }
     else
     {
         <RIResourcesTable Resources="Dashboard.Resources" InitialFilter="@ResourcesInitialFilter" />
@@ -233,7 +244,25 @@
 
         try
         {
-            Dashboard = await ReservedInstanceService.GetDashboardAsync();
+            var dashboardTask =
+                ReservedInstanceService.GetDashboardAsync();
+
+            var coverageKpisTask =
+                ReservedInstanceService.GetCoverageKpisAsync();
+
+            var coverageResourcesTask =
+                ReservedInstanceService.GetCoverageResourcesAsync();
+
+            await Task.WhenAll(
+                dashboardTask,
+                coverageKpisTask,
+                coverageResourcesTask
+            );
+
+            Dashboard = await dashboardTask;
+            CoverageKpis = await coverageKpisTask;
+            CoverageResources = await coverageResourcesTask;
+
             IsLoaded = true;
         }
         finally
