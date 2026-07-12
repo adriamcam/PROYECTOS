@@ -1,0 +1,99 @@
+.ric-kpis {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(190px, 1fr));
+    gap: 16px;
+    margin: 20px 0 22px;
+}
+
+.ric-kpi {
+    position: relative;
+    min-height: 132px;
+    padding: 18px 20px;
+    overflow: hidden;
+    border: 1px solid #dbe3ef;
+    border-radius: 18px;
+    background: #ffffff;
+    box-shadow: 0 10px 26px rgba(15, 23, 42, 0.07);
+    text-align: left;
+    cursor: pointer;
+    transition:
+        transform 0.18s ease,
+        box-shadow 0.18s ease,
+        border-color 0.18s ease;
+}
+
+.ric-kpi::before {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 5px;
+    height: 100%;
+    content: "";
+}
+
+.ric-kpi:hover {
+    transform: translateY(-3px);
+    border-color: #bfdbfe;
+    box-shadow: 0 16px 36px rgba(15, 23, 42, 0.12);
+}
+
+.ric-kpi span,
+.ric-kpi strong,
+.ric-kpi small {
+    position: relative;
+    z-index: 1;
+    display: block;
+}
+
+.ric-kpi span {
+    color: #475569;
+    font-size: 0.76rem;
+    font-weight: 900;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.ric-kpi strong {
+    margin: 11px 0 8px;
+    color: #0f172a;
+    font-size: 2rem;
+    font-weight: 900;
+    line-height: 1;
+}
+
+.ric-kpi small {
+    color: #64748b;
+    font-size: 0.78rem;
+    font-weight: 650;
+    line-height: 1.35;
+}
+
+.ric-kpi.primary::before { background: #2563eb; }
+.ric-kpi.success::before { background: #16a34a; }
+.ric-kpi.warning::before { background: #f59e0b; }
+.ric-kpi.danger::before { background: #ef4444; }
+.ric-kpi.purple::before { background: #8b5cf6; }
+.ric-kpi.muted::before { background: #64748b; }
+.ric-kpi.dark::before { background: #334155; }
+.ric-kpi.score::before { background: #06b6d4; }
+
+.ric-kpi.primary { background: linear-gradient(135deg, #ffffff 65%, #eff6ff); }
+.ric-kpi.success { background: linear-gradient(135deg, #ffffff 65%, #f0fdf4); }
+.ric-kpi.warning { background: linear-gradient(135deg, #ffffff 65%, #fffbeb); }
+.ric-kpi.danger { background: linear-gradient(135deg, #ffffff 65%, #fef2f2); }
+.ric-kpi.purple { background: linear-gradient(135deg, #ffffff 65%, #faf5ff); }
+.ric-kpi.muted { background: linear-gradient(135deg, #ffffff 65%, #f8fafc); }
+.ric-kpi.dark { background: linear-gradient(135deg, #ffffff 65%, #f1f5f9); }
+.ric-kpi.score { background: linear-gradient(135deg, #ffffff 65%, #ecfeff); }
+
+@media (max-width: 1250px) {
+    .ric-kpis {
+        grid-template-columns: repeat(2, minmax(190px, 1fr));
+    }
+}
+
+@media (max-width: 650px) {
+    .ric-kpis {
+        grid-template-columns: 1fr;
+    }
+}
