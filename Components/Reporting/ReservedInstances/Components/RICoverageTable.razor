@@ -1,5 +1,6 @@
 @using ITQS.SupportOperationsCenter.Components.Reporting.ReservedInstances.Models
 @using ITQS.SupportOperationsCenter.Components.Reporting.ReservedInstances.Services
+@using ITQS.SupportOperationsCenter.Components.Shared
 
 @inject IReservedInstanceService ReservedInstanceService
 
@@ -162,6 +163,8 @@
     private int CurrentPage { get; set; } = 1;
     private int PageSize { get; set; } = 20;
     private RICoverageResource? SelectedResource { get; set; }
+    private RICoverageResource? SelectedNoteResource { get; set; }
+    private string NoteText { get; set; } = "";
 
     private readonly (string Code, string Label)[] StatusOptions =
     [
@@ -272,6 +275,8 @@
         _ => "neutral"
     };
 }
+
+
 
 
 
