@@ -199,8 +199,6 @@
 
 @code {
     private ReservedInstanceDashboard Dashboard { get; set; } = new();
-    private RICoverageKpi CoverageKpis { get; set; } = new();
-    private List<RICoverageResource> CoverageResources { get; set; } = new();
     private bool IsLoading { get; set; } = true;
     private bool IsLoaded { get; set; }
     private string ActiveTab { get; set; } = "Dashboard";
@@ -253,7 +251,6 @@
         _ => "primary"
     };
 }
-
 
 
 
