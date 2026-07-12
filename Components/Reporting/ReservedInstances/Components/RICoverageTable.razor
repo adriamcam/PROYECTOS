@@ -95,7 +95,7 @@
                         <td><span class="ric-status @GetStatusClass(item.CoverageStatusCode)">@item.CoverageStatus</span></td>
                         <td><div class="ric-capacity"><strong>@item.ReservedQuantity / @item.EligibleVMCount</strong><small>@item.CoveragePercent.ToString("N2")%</small></div></td>
                         <td><span class="ric-confidence @item.CoverageConfidence.ToLowerInvariant()">@GetConfidenceLabel(item.CoverageConfidence)</span></td>
-                        <td><button type="button" class="ric-detail-btn" @onclick="() => OpenDetails(item)">Ver detalle</button></td>
+                        <td><button type="button" class="ric-detail-btn" @onclick="() => OpenDetails(item)">👁 Ver</button></td>
                     </tr>
                 }
             </tbody>
@@ -275,6 +275,8 @@
         _ => "neutral"
     };
 }
+
+
 
 
 

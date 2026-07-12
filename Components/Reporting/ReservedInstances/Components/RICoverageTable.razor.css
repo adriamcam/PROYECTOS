@@ -1,56 +1,153 @@
 .ric-section {
     width: 100%;
-    padding: 8px 0 28px;
+    padding: 4px 0 32px;
 }
+
+/* ============================================================
+   CABECERA
+   ============================================================ */
 
 .ric-heading {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     justify-content: space-between;
-    gap: 16px;
-    margin-bottom: 10px;
-    padding: 22px 24px;
+    margin-bottom: 18px;
+    padding: 24px 26px;
     border: 1px solid #dbe3ef;
-    border-radius: 18px;
+    border-radius: 20px;
     background:
-        radial-gradient(circle at top right, rgba(37, 99, 235, 0.10), transparent 35%),
-        #ffffff;
-    box-shadow: 0 10px 28px rgba(15, 23, 42, 0.06);
+        radial-gradient(circle at top right, rgba(37, 99, 235, .12), transparent 38%),
+        linear-gradient(135deg, #ffffff, #f8fbff);
+    box-shadow: 0 12px 30px rgba(15, 23, 42, .07);
 }
 
 .ric-heading h2 {
     margin: 5px 0 7px;
     color: #0f172a;
-    font-size: 1.7rem;
+    font-size: 1.65rem;
     font-weight: 900;
 }
 
 .ric-heading p {
     margin: 0;
     color: #64748b;
-    font-size: 0.95rem;
+    font-size: .94rem;
 }
 
 .ric-eyebrow {
     display: inline-block;
     color: #2563eb;
-    font-size: 0.72rem;
+    font-size: .72rem;
     font-weight: 900;
-    letter-spacing: 0.08em;
+    letter-spacing: .08em;
     text-transform: uppercase;
 }
 
+/* ============================================================
+   KPIs
+   ============================================================ */
+
+.ric-kpis {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(180px, 1fr));
+    gap: 14px;
+    margin-bottom: 18px;
+}
+
+.ric-kpi {
+    position: relative;
+    min-height: 128px;
+    padding: 18px 18px 17px 21px;
+    overflow: hidden;
+    border: 1px solid #dbe3ef;
+    border-radius: 18px;
+    background: #ffffff;
+    text-align: left;
+    cursor: pointer;
+    box-shadow: 0 10px 25px rgba(15, 23, 42, .06);
+    transition:
+        transform .16s ease,
+        box-shadow .16s ease,
+        border-color .16s ease;
+}
+
+.ric-kpi::before {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 5px;
+    content: "";
+}
+
+.ric-kpi:hover {
+    transform: translateY(-3px);
+    border-color: #bfdbfe;
+    box-shadow: 0 17px 36px rgba(15, 23, 42, .11);
+}
+
+.ric-kpi span,
+.ric-kpi strong,
+.ric-kpi small {
+    position: relative;
+    z-index: 1;
+    display: block;
+}
+
+.ric-kpi span {
+    color: #475569;
+    font-size: .71rem;
+    font-weight: 900;
+    letter-spacing: .035em;
+    text-transform: uppercase;
+}
+
+.ric-kpi strong {
+    margin: 12px 0 8px;
+    color: #0f172a;
+    font-size: 2rem;
+    font-weight: 950;
+    line-height: 1;
+}
+
+.ric-kpi small {
+    color: #64748b;
+    font-size: .75rem;
+    font-weight: 650;
+    line-height: 1.35;
+}
+
+.ric-kpi.primary::before { background: #2563eb; }
+.ric-kpi.success::before { background: #16a34a; }
+.ric-kpi.warning::before { background: #f59e0b; }
+.ric-kpi.danger::before { background: #ef4444; }
+.ric-kpi.purple::before { background: #8b5cf6; }
+.ric-kpi.muted::before { background: #64748b; }
+.ric-kpi.dark::before { background: #334155; }
+.ric-kpi.score::before { background: #0891b2; }
+
+.ric-kpi.primary { background: linear-gradient(135deg, #fff 65%, #eff6ff); }
+.ric-kpi.success { background: linear-gradient(135deg, #fff 65%, #f0fdf4); }
+.ric-kpi.warning { background: linear-gradient(135deg, #fff 65%, #fffbeb); }
+.ric-kpi.danger { background: linear-gradient(135deg, #fff 65%, #fef2f2); }
+.ric-kpi.purple { background: linear-gradient(135deg, #fff 65%, #faf5ff); }
+.ric-kpi.muted { background: linear-gradient(135deg, #fff 65%, #f8fafc); }
+.ric-kpi.dark { background: linear-gradient(135deg, #fff 65%, #f1f5f9); }
+.ric-kpi.score { background: linear-gradient(135deg, #fff 65%, #ecfeff); }
+
+/* ============================================================
+   FILTROS
+   ============================================================ */
+
 .ric-toolbar {
     display: grid;
-    grid-template-columns: minmax(300px, 1fr) 230px 260px 120px;
+    grid-template-columns: minmax(320px, 1fr) 235px 265px 120px;
     gap: 12px;
     align-items: center;
-    margin: 18px 0 10px;
+    margin-bottom: 12px;
     padding: 16px;
     border: 1px solid #dbe3ef;
     border-radius: 16px;
     background: #ffffff;
-    box-shadow: 0 8px 22px rgba(15, 23, 42, 0.05);
+    box-shadow: 0 8px 22px rgba(15, 23, 42, .05);
 }
 
 .ric-toolbar input,
@@ -63,17 +160,17 @@
     outline: none;
     background: #ffffff;
     color: #0f172a;
-    font-size: 0.86rem;
+    font-size: .84rem;
     font-weight: 700;
     transition:
-        border-color 0.16s ease,
-        box-shadow 0.16s ease;
+        border-color .15s ease,
+        box-shadow .15s ease;
 }
 
 .ric-toolbar input:focus,
 .ric-toolbar select:focus {
     border-color: #60a5fa;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.13);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, .13);
 }
 
 .ric-clear {
@@ -82,12 +179,12 @@
     border-radius: 11px;
     background: #0f172a;
     color: #ffffff;
-    font-size: 0.84rem;
+    font-size: .82rem;
     font-weight: 900;
     cursor: pointer;
     transition:
-        transform 0.16s ease,
-        background 0.16s ease;
+        transform .15s ease,
+        background .15s ease;
 }
 
 .ric-clear:hover {
@@ -99,9 +196,9 @@
     display: flex;
     justify-content: space-between;
     gap: 14px;
-    margin: 10px 2px 12px;
+    margin: 10px 3px 12px;
     color: #64748b;
-    font-size: 0.84rem;
+    font-size: .82rem;
     font-weight: 650;
 }
 
@@ -109,18 +206,22 @@
     color: #0f172a;
 }
 
+/* ============================================================
+   TABLA
+   ============================================================ */
+
 .ric-table-wrap {
     width: 100%;
     overflow: auto;
     border: 1px solid #dbe3ef;
     border-radius: 18px;
     background: #ffffff;
-    box-shadow: 0 14px 34px rgba(15, 23, 42, 0.07);
+    box-shadow: 0 14px 34px rgba(15, 23, 42, .07);
 }
 
 .ric-table-wrap table {
     width: 100%;
-    min-width: 1750px;
+    min-width: 1760px;
     border-spacing: 0;
     border-collapse: separate;
 }
@@ -133,9 +234,9 @@
     border-bottom: 1px solid #dbe3ef;
     background: #f8fafc;
     color: #334155;
-    font-size: 0.72rem;
-    font-weight: 900;
-    letter-spacing: 0.035em;
+    font-size: .7rem;
+    font-weight: 950;
+    letter-spacing: .035em;
     text-align: left;
     text-transform: uppercase;
     white-space: nowrap;
@@ -145,12 +246,8 @@
     padding: 14px 13px;
     border-bottom: 1px solid #eef2f7;
     color: #334155;
-    font-size: 0.83rem;
+    font-size: .81rem;
     vertical-align: middle;
-}
-
-.ric-table-wrap tbody tr {
-    transition: background 0.14s ease;
 }
 
 .ric-table-wrap tbody tr:nth-child(even) {
@@ -183,21 +280,25 @@
 .ric-stack small {
     margin-top: 4px;
     color: #94a3b8;
-    font-size: 0.73rem;
+    font-size: .71rem;
     font-weight: 650;
 }
 
+/* ============================================================
+   SCORE
+   ============================================================ */
+
 .ric-score {
     display: inline-flex;
-    width: 43px;
-    height: 43px;
+    width: 44px;
+    height: 44px;
     align-items: center;
     justify-content: center;
     border-radius: 50%;
     color: #ffffff;
-    font-size: 0.85rem;
-    font-weight: 900;
-    box-shadow: 0 7px 16px rgba(15, 23, 42, 0.16);
+    font-size: .84rem;
+    font-weight: 950;
+    box-shadow: 0 7px 17px rgba(15, 23, 42, .18);
 }
 
 .ric-score.success { background: #16a34a; }
@@ -206,18 +307,21 @@
 .ric-score.danger { background: #ef4444; }
 .ric-score.critical { background: #991b1b; }
 
+/* ============================================================
+   TAGS Y ESTADOS
+   ============================================================ */
+
 .ric-tag {
     display: inline-block;
-    max-width: 230px;
+    max-width: 225px;
     padding: 7px 10px;
     border: 1px solid #bfdbfe;
     border-radius: 10px;
     background: #eff6ff;
     color: #1d4ed8;
-    font-size: 0.75rem;
+    font-size: .73rem;
     font-weight: 750;
     line-height: 1.35;
-    white-space: normal;
 }
 
 .ric-empty {
@@ -226,7 +330,7 @@
     border-radius: 9px;
     background: #f1f5f9;
     color: #64748b;
-    font-size: 0.75rem;
+    font-size: .73rem;
     font-weight: 750;
 }
 
@@ -235,8 +339,9 @@
     max-width: 190px;
     padding: 7px 10px;
     align-items: center;
+    justify-content: center;
     border-radius: 999px;
-    font-size: 0.72rem;
+    font-size: .7rem;
     font-weight: 900;
     line-height: 1.25;
     text-align: center;
@@ -296,8 +401,12 @@
     color: #475569;
 }
 
+/* ============================================================
+   CAPACIDAD Y CONFIANZA
+   ============================================================ */
+
 .ric-capacity {
-    min-width: 90px;
+    min-width: 88px;
 }
 
 .ric-capacity strong,
@@ -313,14 +422,14 @@
 .ric-capacity small {
     margin-top: 4px;
     color: #64748b;
-    font-size: 0.74rem;
+    font-size: .72rem;
 }
 
 .ric-confidence {
     display: inline-flex;
     padding: 6px 10px;
     border-radius: 999px;
-    font-size: 0.72rem;
+    font-size: .7rem;
     font-weight: 900;
 }
 
@@ -339,19 +448,31 @@
     color: #991b1b;
 }
 
-.ric-detail-btn {
-    min-width: 92px;
-    padding: 8px 12px;
-    border: 1px solid #bfdbfe;
+/* ============================================================
+   BOTONES
+   ============================================================ */
+
+.ric-detail-btn,
+.ric-note-btn {
+    display: inline-flex;
+    min-width: 96px;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 11px;
     border-radius: 10px;
-    background: #eff6ff;
-    color: #1d4ed8;
-    font-size: 0.76rem;
+    font-size: .73rem;
     font-weight: 900;
     cursor: pointer;
     transition:
-        transform 0.15s ease,
-        background 0.15s ease;
+        transform .15s ease,
+        background .15s ease,
+        border-color .15s ease;
+}
+
+.ric-detail-btn {
+    border: 1px solid #bfdbfe;
+    background: #eff6ff;
+    color: #1d4ed8;
 }
 
 .ric-detail-btn:hover {
@@ -360,32 +481,28 @@
 }
 
 .ric-notes {
-    min-width: 115px;
+    min-width: 112px;
 }
 
 .ric-note-btn {
-    display: inline-flex;
-    min-width: 105px;
-    align-items: center;
-    justify-content: center;
-    padding: 8px 11px;
-    border: 1px solid #bfdbfe;
-    border-radius: 10px;
-    background: #ffffff;
-    color: #2563eb;
-    font-size: 0.75rem;
-    font-weight: 900;
-    cursor: pointer;
+    border: 1px solid #c7d2fe;
+    background: #eef2ff;
+    color: #4338ca;
 }
 
 .ric-note-btn:hover {
-    background: #eff6ff;
+    transform: translateY(-1px);
+    background: #e0e7ff;
 }
 
 .ric-note-btn:disabled {
     cursor: not-allowed;
-    opacity: 0.45;
+    opacity: .45;
 }
+
+/* ============================================================
+   PAGINACIÓN
+   ============================================================ */
 
 .ric-pagination {
     display: flex;
@@ -418,10 +535,12 @@
 
 .ric-pagination button:disabled {
     cursor: not-allowed;
-    opacity: 0.4;
+    opacity: .4;
 }
 
-/* Modal */
+/* ============================================================
+   MODAL
+   ============================================================ */
 
 .ric-modal-backdrop {
     position: fixed;
@@ -431,7 +550,7 @@
     align-items: center;
     justify-content: center;
     padding: 24px;
-    background: rgba(15, 23, 42, 0.68);
+    background: rgba(15, 23, 42, .68);
     backdrop-filter: blur(4px);
 }
 
@@ -440,10 +559,9 @@
     max-height: 90vh;
     overflow: auto;
     padding: 24px;
-    border: 1px solid rgba(255, 255, 255, 0.45);
     border-radius: 22px;
     background: #ffffff;
-    box-shadow: 0 35px 100px rgba(15, 23, 42, 0.38);
+    box-shadow: 0 35px 100px rgba(15, 23, 42, .38);
 }
 
 .ric-modal-header {
@@ -473,10 +591,6 @@
     cursor: pointer;
 }
 
-.ric-close:hover {
-    background: #e2e8f0;
-}
-
 .ric-detail-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -499,16 +613,16 @@
 .ric-detail-grid span,
 .ric-message span {
     color: #64748b;
-    font-size: 0.7rem;
+    font-size: .69rem;
     font-weight: 900;
-    letter-spacing: 0.04em;
+    letter-spacing: .04em;
     text-transform: uppercase;
 }
 
 .ric-detail-grid strong {
     margin-top: 5px;
     color: #0f172a;
-    font-size: 0.88rem;
+    font-size: .86rem;
 }
 
 .ric-message {
@@ -530,22 +644,32 @@
     line-height: 1.55;
 }
 
-@media (max-width: 1150px) {
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+
+@media (max-width: 1250px) {
+    .ric-kpis {
+        grid-template-columns: repeat(2, minmax(180px, 1fr));
+    }
+
     .ric-toolbar {
         grid-template-columns: 1fr 1fr;
     }
 }
 
-@media (max-width: 720px) {
-    .ric-toolbar {
+@media (max-width: 700px) {
+    .ric-heading {
+        padding: 18px;
+    }
+
+    .ric-kpis,
+    .ric-toolbar,
+    .ric-detail-grid {
         grid-template-columns: 1fr;
     }
 
     .ric-summary {
         flex-direction: column;
-    }
-
-    .ric-detail-grid {
-        grid-template-columns: 1fr;
     }
 }
