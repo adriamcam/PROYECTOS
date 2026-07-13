@@ -926,7 +926,10 @@
             return;
         }
 
-        var savedNote = note?.Trim() ?? string.Empty;
+        var savedNote =
+            !string.IsNullOrWhiteSpace(note)
+                ? note.Trim()
+                : NoteText.Trim();
 
         await ReservedInstanceService.SaveVMCoverageNoteAsync(
             SelectedNoteResource.ResourceKey,
@@ -935,14 +938,14 @@
         );
 
         SelectedNoteResource.ManualAnalysisNote = savedNote;
-        SelectedNoteResource.ManualAnalysisNoteUpdatedAt = DateTime.Now;
+        SelectedNoteResource.ManualAnalysisNoteUpdatedAt = DateTime.UtcNow;
         SelectedNoteResource.ManualAnalysisNoteUpdatedBy =
             "William Adrian Cambronero Acosta";
 
         NoteText = savedNote;
 
-        StateHasChanged();
         CloseNoteModal();
+        StateHasChanged();
     }
     private void OpenDetails(RICoverageResource item) => SelectedResource = item;
     private void CloseDetails() => SelectedResource = null;
@@ -966,6 +969,7 @@
         _ => "neutral"
     };
 }
+
 
 
 
