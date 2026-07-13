@@ -165,7 +165,11 @@ SELECT
     CoverageRecommendation,
     CompatibleReservationNames,
     Tags,
-    LastSeenAt
+    LastSeenAt,
+    ResourceKey,
+    ManualAnalysisNote,
+    ManualAnalysisNoteUpdatedAt,
+    ManualAnalysisNoteUpdatedBy
 FROM dbo.vw_RI_VMCoverageRelevant
 ORDER BY CoverageScore ASC, CustomerName, SubscriptionName, VMName;";
 
@@ -176,5 +180,7 @@ ORDER BY CoverageScore ASC, CustomerName, SubscriptionName, VMName;";
         return result.ToList();
     }
 }
+
+
 
 
