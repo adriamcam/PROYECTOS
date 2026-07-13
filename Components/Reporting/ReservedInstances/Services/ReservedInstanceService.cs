@@ -63,6 +63,26 @@ public sealed class ReservedInstanceService : IReservedInstanceService
         );
     }
 
+
+    public async Task SaveVMCoverageNoteAsync(
+        string resourceKey,
+        string? note,
+        string updatedBy)
+    {
+        using var conn = _connectionFactory.CreateConnection();
+
+        await conn.ExecuteAsync(
+            "dbo.sp_RI_SaveVMCoverageNote",
+            new
+            {
+                ResourceKey = resourceKey,
+                ManualAnalysisNote = note,
+                UpdatedBy = updatedBy
+            },
+            commandType: CommandType.StoredProcedure,
+            commandTimeout: 120
+        );
+    }
     public async Task<List<ReservedInstanceChangeHistory>> GetChangeHistoryAsync(string resourceKey)
     {
         using var conn = _connectionFactory.CreateConnection();
@@ -156,4 +176,5 @@ ORDER BY CoverageScore ASC, CustomerName, SubscriptionName, VMName;";
         return result.ToList();
     }
 }
+
 

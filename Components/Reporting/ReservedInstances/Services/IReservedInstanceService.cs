@@ -10,4 +10,9 @@ public interface IReservedInstanceService
     Task SaveManualAnalysisNoteAsync(string resourceKey, string? note, string updatedBy);
     Task<RICoverageKpi> GetCoverageKpisAsync();
     Task<List<RICoverageResource>> GetCoverageResourcesAsync();
-}
+
+    Task SaveVMCoverageNoteAsync(
+        string resourceKey,
+        string? note,
+        string updatedBy);}
+
