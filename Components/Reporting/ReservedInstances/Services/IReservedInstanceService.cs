@@ -14,5 +14,7 @@ public interface IReservedInstanceService
     Task SaveVMCoverageNoteAsync(
         string resourceKey,
         string? note,
-        string updatedBy);}
+        string updatedBy);
+}
+
 
