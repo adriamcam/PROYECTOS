@@ -1048,3 +1048,52 @@ cls
     border-color: rgba(255, 255, 255, .52);
 }
 
+
+.ri-info-modal-backdrop{
+position:fixed;
+inset:0;
+background:rgba(0,0,0,.55);
+backdrop-filter:blur(4px);
+z-index:999;
+}
+
+.ri-info-modal-shell{
+position:fixed;
+top:50%;
+left:50%;
+transform:translate(-50%,-50%);
+width:min(1500px,95vw);
+height:min(900px,92vh);
+background:#fff;
+border-radius:18px;
+overflow:auto;
+box-shadow:0 20px 60px rgba(0,0,0,.35);
+z-index:1000;
+}
+
+.ri-info-modal-header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding:18px 24px;
+border-bottom:1px solid #ddd;
+}
+
+.ri-info-modal-body{
+padding:25px;
+}
+
+.ri-info-modal-close{
+border:none;
+background:#f3f4f6;
+width:38px;
+height:38px;
+font-size:24px;
+border-radius:8px;
+cursor:pointer;
+}
+
+.ri-header-info-btn{
+margin-right:12px;
+}
+

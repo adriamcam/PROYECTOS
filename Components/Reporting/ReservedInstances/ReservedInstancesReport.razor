@@ -200,10 +200,6 @@
     {
         <RIAnalysisTable Resources="Dashboard.Resources" />
     }
-    else if (ActiveTab == "Information")
-    {
-        <RIInformation />
-    }
     else if (ActiveTab == "Coverage")
     {
         <RICoverageTable
@@ -217,7 +213,46 @@
 
 </section>
 
+
+@if (ShowInformation)
+{
+    <div class="ri-info-modal-backdrop" @onclick="CloseInformation"></div>
+
+    <div class="ri-info-modal-shell">
+
+        <div class="ri-info-modal-header">
+
+            <h2>Información del módulo</h2>
+
+            <button class="ri-info-modal-close"
+                    @onclick="CloseInformation">
+                ×
+            </button>
+
+        </div>
+
+        <div class="ri-info-modal-body">
+
+            <RIInformation />
+
+        </div>
+
+    </div>
+}
 @code {
+
+    private bool ShowInformation { get; set; }
+
+    private void OpenInformation()
+    {
+        ShowInformation = true;
+    }
+
+    private void CloseInformation()
+    {
+        ShowInformation = false;
+    }
+
     private ReservedInstanceDashboard Dashboard { get; set; } = new();
     private RICoverageKpi CoverageKpis { get; set; } = new();
     private List<RICoverageResource> CoverageResources { get; set; } = new();
@@ -291,6 +326,10 @@
         _ => "primary"
     };
 }
+
+
+
+
 
 
 
