@@ -1020,3 +1020,31 @@ cls
 ::deep .ri-category.warning{background:#fef3c7;color:#92400e;}
 ::deep .ri-category.danger{background:#fee2e2;color:#991b1b;}
 
+
+.ri-header-info-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 36px;
+    padding: 9px 16px;
+    border: 1px solid rgba(255, 255, 255, .32);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, .12);
+    color: #ffffff;
+    font-size: .8rem;
+    font-weight: 800;
+    cursor: pointer;
+    backdrop-filter: blur(8px);
+    transition:
+        transform .15s ease,
+        background .15s ease,
+        border-color .15s ease;
+}
+
+.ri-header-info-btn:hover {
+    transform: translateY(-1px);
+    background: rgba(255, 255, 255, .20);
+    border-color: rgba(255, 255, 255, .52);
+}
+

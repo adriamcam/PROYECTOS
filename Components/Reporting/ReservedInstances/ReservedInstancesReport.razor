@@ -27,7 +27,12 @@
         </div>
 
         <div class="ri-actions">
-            <button class="ri-btn ri-btn-primary" @onclick="LoadAsync" disabled="@IsLoading">
+                        <button type="button"
+                    class="ri-header-info-btn"
+                    @onclick='() => ActiveTab = "Information"'>
+                ⓘ Información
+            </button>
+<button class="ri-btn ri-btn-primary" @onclick="LoadAsync" disabled="@IsLoading">
                 @(IsLoading ? "Cargando..." : "Actualizar")
             </button>
         </div>
@@ -53,10 +58,6 @@
         <button class="@(ActiveTab == "Coverage" ? "active" : "")"
                 @onclick='() => ActiveTab = "Coverage"'>
             Cobertura IR
-        </button>
-        <button class="@(ActiveTab == "Information" ? "active" : "")"
-                @onclick='() => ActiveTab = "Information"'>
-            ⓘ Información
         </button>
     </div>
 
@@ -290,6 +291,9 @@
         _ => "primary"
     };
 }
+
+
+
 
 
 
