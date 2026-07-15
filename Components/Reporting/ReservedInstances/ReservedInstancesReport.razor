@@ -29,7 +29,7 @@
         <div class="ri-actions">
                         <button type="button"
                     class="ri-header-info-btn"
-                    @onclick='() => ActiveTab = "Information"'>
+                    @onclick="OpenInformation">
                 ⓘ Información
             </button>
 <button class="ri-btn ri-btn-primary" @onclick="LoadAsync" disabled="@IsLoading">
@@ -213,31 +213,38 @@
 
 </section>
 
-
 @if (ShowInformation)
 {
-    <div class="ri-info-modal-backdrop" @onclick="CloseInformation"></div>
+    <div class="ri-info-modal-backdrop"
+         @onclick="CloseInformation">
+    </div>
 
-    <div class="ri-info-modal-shell">
+    <section class="ri-info-modal-shell"
+             role="dialog"
+             aria-modal="true">
 
-        <div class="ri-info-modal-header">
+        <header class="ri-info-modal-header">
+            <div>
+                <span class="ri-info-modal-eyebrow">
+                    DOCUMENTACIÓN DEL MÓDULO
+                </span>
 
-            <h2>Información del módulo</h2>
+                <h2>Reporte de Instancias Reservadas</h2>
+            </div>
 
-            <button class="ri-info-modal-close"
+            <button type="button"
+                    class="ri-info-modal-close"
                     @onclick="CloseInformation">
                 ×
             </button>
+        </header>
 
-        </div>
-
-        <div class="ri-info-modal-body">
-
+        <div class="ri-info-modal-body"
+             @onclick:stopPropagation="true">
             <RIInformation />
-
         </div>
 
-    </div>
+    </section>
 }
 @code {
 
@@ -253,7 +260,7 @@
         ShowInformation = false;
     }
 
-    private ReservedInstanceDashboard Dashboard { get; set; } = new();
+private ReservedInstanceDashboard Dashboard { get; set; } = new();
     private RICoverageKpi CoverageKpis { get; set; } = new();
     private List<RICoverageResource> CoverageResources { get; set; } = new();
     private bool IsLoading { get; set; } = true;
@@ -326,6 +333,8 @@
         _ => "primary"
     };
 }
+
+
 
 
 
