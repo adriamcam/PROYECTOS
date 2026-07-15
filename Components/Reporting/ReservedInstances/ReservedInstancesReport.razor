@@ -54,6 +54,10 @@
                 @onclick='() => ActiveTab = "Coverage"'>
             Cobertura IR
         </button>
+        <button class="@(ActiveTab == "Information" ? "active" : "")"
+                @onclick='() => ActiveTab = "Information"'>
+            ⓘ Información
+        </button>
     </div>
 
     @if (IsLoading && !IsLoaded)
@@ -195,6 +199,10 @@
     {
         <RIAnalysisTable Resources="Dashboard.Resources" />
     }
+    else if (ActiveTab == "Information")
+    {
+        <RIInformation />
+    }
     else if (ActiveTab == "Coverage")
     {
         <RICoverageTable
@@ -282,6 +290,11 @@
         _ => "primary"
     };
 }
+
+
+
+
+
 
 
 

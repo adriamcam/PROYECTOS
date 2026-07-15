@@ -1,0 +1,234 @@
+<section class="ri-info">
+
+    <div class="ri-info-intro">
+        <div>
+            <span class="ri-info-eyebrow">DOCUMENTACIÓN DEL MÓDULO</span>
+            <h2>Reporte de Instancias Reservadas</h2>
+            <p>
+                Arquitectura, objetos SQL, integraciones, validaciones y flujo
+                operativo utilizado para analizar las reservas de Microsoft Azure.
+            </p>
+        </div>
+    </div>
+
+    <div class="ri-info-grid">
+
+        <article class="ri-info-card">
+            <div class="ri-info-card-title">
+                <span>📋</span>
+                <h3>Objetivo</h3>
+            </div>
+
+            <p>
+                Centralizar el inventario, conciliación, cobertura y seguimiento
+                operativo de las instancias reservadas de Microsoft Azure.
+            </p>
+
+            <p>
+                El módulo permite identificar reservas alineadas, cambios de SKU,
+                baja utilización, vencimientos, reservas sin recurso y máquinas
+                virtuales con cobertura insuficiente.
+            </p>
+        </article>
+
+        <article class="ri-info-card">
+            <div class="ri-info-card-title">
+                <span>🗄️</span>
+                <h3>Base de Datos</h3>
+            </div>
+
+            <h4>Tablas</h4>
+            <ul>
+                <li>dbo.ReporteInstanciasReservadas</li>
+                <li>dbo.RI_VMCoverageNotes</li>
+                <li>dbo.VMInventoryCurrent</li>
+            </ul>
+
+            <h4>Vistas</h4>
+            <ul>
+                <li>dbo.vw_RI_ReservationCoverageBase</li>
+                <li>dbo.vw_RI_VMCoverage</li>
+                <li>dbo.vw_RI_VMCoverageFinal</li>
+                <li>dbo.vw_RI_VMCoverageRelevant</li>
+                <li>dbo.vw_RI_VMCoverageKPI</li>
+            </ul>
+
+            <h4>Procedimientos</h4>
+            <ul>
+                <li>dbo.sp_RI_SaveManualAnalysisNote</li>
+                <li>dbo.sp_RI_SaveVMCoverageNote</li>
+                <li>dbo.sp_RI_GetChangeHistory</li>
+            </ul>
+        </article>
+
+        <article class="ri-info-card">
+            <div class="ri-info-card-title">
+                <span>☁️</span>
+                <h3>Integraciones</h3>
+            </div>
+
+            <ul class="ri-info-integrations">
+                <li>Microsoft Azure Reservations</li>
+                <li>Azure Resource Graph</li>
+                <li>Azure Automation</li>
+                <li>Azure SQL Database</li>
+                <li>Azure Key Vault</li>
+                <li>Azure Virtual Machines</li>
+                <li>Azure SQL Database</li>
+                <li>Azure Database for MySQL</li>
+                <li>Microsoft Fabric Capacity</li>
+                <li>Azure App Service</li>
+            </ul>
+        </article>
+
+    </div>
+
+    <article class="ri-info-wide-card">
+        <div class="ri-info-card-title">
+            <span>🔄</span>
+            <h3>Flujo Operativo</h3>
+        </div>
+
+        <div class="ri-flow">
+            <span>Azure Reservations</span>
+            <b>→</b>
+            <span>Azure Automation</span>
+            <b>→</b>
+            <span>Resource Graph</span>
+            <b>→</b>
+            <span>Conciliación RI</span>
+            <b>→</b>
+            <span>Azure SQL</span>
+            <b>→</b>
+            <span>Reporte RI</span>
+            <b>→</b>
+            <span>Análisis y notas</span>
+        </div>
+    </article>
+
+    <div class="ri-info-grid ri-info-grid-two">
+
+        <article class="ri-info-card">
+            <div class="ri-info-card-title">
+                <span>🔍</span>
+                <h3>Validaciones realizadas</h3>
+            </div>
+
+            <div class="ri-validation-list">
+                <div>
+                    <strong>Nombre del recurso</strong>
+                    <span>Coincidencia exacta entre la reserva y VMName.</span>
+                </div>
+
+                <div>
+                    <strong>ComputerName</strong>
+                    <span>
+                        Asociación alternativa cuando el nombre de Azure es diferente
+                        al nombre configurado dentro del sistema operativo.
+                    </span>
+                </div>
+
+                <div>
+                    <strong>SKU</strong>
+                    <span>Comparación entre el SKU reservado y el SKU actual.</span>
+                </div>
+
+                <div>
+                    <strong>Región</strong>
+                    <span>Validación de compatibilidad geográfica de la reserva.</span>
+                </div>
+
+                <div>
+                    <strong>Estado de la VM</strong>
+                    <span>
+                        Solo las máquinas en ejecución participan en el cálculo
+                        principal de cobertura.
+                    </span>
+                </div>
+
+                <div>
+                    <strong>Capacidad</strong>
+                    <span>
+                        Comparación de unidades reservadas contra recursos elegibles.
+                    </span>
+                </div>
+
+                <div>
+                    <strong>Vencimiento</strong>
+                    <span>Control de reservas activas, próximas a vencer y vencidas.</span>
+                </div>
+
+                <div>
+                    <strong>Utilización</strong>
+                    <span>Análisis de consumo a 7 y 30 días.</span>
+                </div>
+            </div>
+        </article>
+
+        <article class="ri-info-card">
+            <div class="ri-info-card-title">
+                <span>🧭</span>
+                <h3>Estados de Cobertura</h3>
+            </div>
+
+            <div class="ri-status-list">
+                <span class="success">Cubierta y alineada</span>
+                <span class="success">Cubierta por reserva compatible</span>
+                <span class="info">Probablemente cubierta sin tag</span>
+                <span class="warning">Cobertura insuficiente</span>
+                <span class="warning">Cobertura ambigua</span>
+                <span class="danger">Tag vigente sin reserva encontrada</span>
+                <span class="danger">Cambió de SKU</span>
+                <span class="danger">Tag IR vencido</span>
+                <span class="muted">Tag IR eliminado</span>
+            </div>
+        </article>
+
+    </div>
+
+    <article class="ri-info-wide-card">
+        <div class="ri-info-card-title">
+            <span>📊</span>
+            <h3>KPIs utilizados</h3>
+        </div>
+
+        <div class="ri-kpi-list">
+            <span>Total de reservas</span>
+            <span>Clientes con reservas</span>
+            <span>Health Score</span>
+            <span>Reservas saludables</span>
+            <span>Reservas con problemas</span>
+            <span>Reservas próximas a vencer</span>
+            <span>Cubiertas y alineadas</span>
+            <span>Cobertura compatible</span>
+            <span>Cobertura insuficiente</span>
+            <span>Tag vigente sin reserva</span>
+            <span>SKU cambiado</span>
+            <span>Coverage Score</span>
+        </div>
+    </article>
+
+    <article class="ri-info-wide-card">
+        <div class="ri-info-card-title">
+            <span>🧩</span>
+            <h3>Componentes del módulo</h3>
+        </div>
+
+        <div class="ri-component-list">
+            <code>ReservedInstancesReport.razor</code>
+            <code>RIKpis.razor</code>
+            <code>RIResourcesTable.razor</code>
+            <code>RIActionsTable.razor</code>
+            <code>RIAnalysisTable.razor</code>
+            <code>RICoverageTable.razor</code>
+            <code>RIInformation.razor</code>
+            <code>ReservedInstanceService.cs</code>
+        </div>
+    </article>
+
+    <footer class="ri-info-footer">
+        <strong>Versión:</strong>
+        Reporte de Instancias Reservadas v1.1 · ITQS Support Operations Center.
+    </footer>
+
+</section>

@@ -1,0 +1,250 @@
+.ri-info {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 4px 0 28px;
+    color: #14213d;
+}
+
+.ri-info-intro {
+    padding: 24px 26px;
+    border: 1px solid #d9e4f2;
+    border-radius: 18px;
+    background:
+        radial-gradient(circle at top right, rgba(37, 99, 235, .10), transparent 35%),
+        linear-gradient(135deg, #ffffff, #f7faff);
+    box-shadow: 0 12px 30px rgba(15, 23, 42, .06);
+}
+
+.ri-info-eyebrow {
+    display: inline-flex;
+    margin-bottom: 8px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: #eaf2ff;
+    color: #1d4ed8;
+    font-size: .72rem;
+    font-weight: 900;
+    letter-spacing: .06em;
+}
+
+.ri-info-intro h2 {
+    margin: 0 0 8px;
+    color: #0f172a;
+    font-size: 1.65rem;
+}
+
+.ri-info-intro p {
+    max-width: 900px;
+    margin: 0;
+    color: #50627a;
+    line-height: 1.65;
+}
+
+.ri-info-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.ri-info-grid-two {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.ri-info-card,
+.ri-info-wide-card {
+    border: 1px solid #d8e3f1;
+    border-radius: 16px;
+    background: #ffffff;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, .05);
+}
+
+.ri-info-card {
+    padding: 22px;
+}
+
+.ri-info-wide-card {
+    padding: 22px 24px;
+}
+
+.ri-info-card-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.ri-info-card-title span {
+    display: grid;
+    width: 34px;
+    height: 34px;
+    place-items: center;
+    border-radius: 10px;
+    background: #edf4ff;
+}
+
+.ri-info-card-title h3 {
+    margin: 0;
+    color: #0f172a;
+    font-size: 1.02rem;
+}
+
+.ri-info-card h4 {
+    margin: 18px 0 7px;
+    color: #1d4ed8;
+    font-size: .84rem;
+}
+
+.ri-info-card p,
+.ri-info-card li {
+    color: #465b75;
+    font-size: .89rem;
+    line-height: 1.65;
+}
+
+.ri-info-card ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.ri-info-integrations {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px 18px;
+}
+
+.ri-flow {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
+
+.ri-flow span {
+    padding: 10px 14px;
+    border: 1px solid #bcd5ff;
+    border-radius: 999px;
+    background: #eff6ff;
+    color: #1d4ed8;
+    font-size: .82rem;
+    font-weight: 800;
+}
+
+.ri-flow b {
+    color: #64748b;
+}
+
+.ri-validation-list {
+    display: grid;
+    gap: 10px;
+}
+
+.ri-validation-list div {
+    display: grid;
+    gap: 3px;
+    padding: 12px 14px;
+    border-radius: 11px;
+    background: #f8fafc;
+}
+
+.ri-validation-list strong {
+    color: #0f172a;
+    font-size: .84rem;
+}
+
+.ri-validation-list span {
+    color: #64748b;
+    font-size: .8rem;
+    line-height: 1.5;
+}
+
+.ri-status-list,
+.ri-kpi-list,
+.ri-component-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 9px;
+}
+
+.ri-status-list span,
+.ri-kpi-list span,
+.ri-component-list code {
+    padding: 9px 12px;
+    border: 1px solid #d8e3f1;
+    border-radius: 999px;
+    background: #f8fafc;
+    color: #24364f;
+    font-size: .78rem;
+    font-weight: 800;
+}
+
+.ri-status-list .success {
+    border-color: #bbf7d0;
+    background: #ecfdf3;
+    color: #15803d;
+}
+
+.ri-status-list .info {
+    border-color: #bfdbfe;
+    background: #eff6ff;
+    color: #1d4ed8;
+}
+
+.ri-status-list .warning {
+    border-color: #fde68a;
+    background: #fffbeb;
+    color: #a16207;
+}
+
+.ri-status-list .danger {
+    border-color: #fecaca;
+    background: #fef2f2;
+    color: #b91c1c;
+}
+
+.ri-status-list .muted {
+    color: #64748b;
+}
+
+.ri-component-list code {
+    border-radius: 9px;
+    color: #334155;
+    font-family: Consolas, monospace;
+    font-weight: 700;
+}
+
+.ri-info-footer {
+    padding: 14px 18px;
+    border: 1px solid #bfdbfe;
+    border-radius: 13px;
+    background: #eff6ff;
+    color: #1e40af;
+    font-size: .84rem;
+}
+
+@media (max-width: 1100px) {
+    .ri-info-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .ri-info-grid-two {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 700px) {
+    .ri-info-intro,
+    .ri-info-card,
+    .ri-info-wide-card {
+        padding: 18px;
+    }
+
+    .ri-info-integrations {
+        grid-template-columns: 1fr;
+    }
+
+    .ri-flow b {
+        display: none;
+    }
+}
+
