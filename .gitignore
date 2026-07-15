@@ -5,3 +5,7 @@ publish/
 .vscode/
 *.zip
 *.user
+
+# Local helper exports
+WebCertificates_Current_Source.txt
+_backup-*

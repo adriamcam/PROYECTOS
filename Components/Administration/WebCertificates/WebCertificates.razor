@@ -34,9 +34,9 @@
 
     <section class="cert-kpis">
         <button type="button" class="@KpiCardClass("")" @onclick='() => SetStatusFilter("")'>
-            <span>Total certificados</span>
-            <strong>@Dashboard.TotalCertificates</strong>
-            <small>Inventario actual</small>
+            <span>Certificados activos</span>
+            <strong>@Dashboard.ActiveCertificates</strong>
+            <small>Inventario operativo sin duplicados</small>
         </button>
 
         <button type="button" class="@KpiCardClass("Expired", "expired")" @onclick='() => SetStatusFilter("Expired")'>
@@ -255,6 +255,8 @@
                             <dt>NotAfter</dt><dd>@FormatDateTime(SelectedCertificate.NotAfter)</dd>
                             <dt>Días</dt><dd>@DaysText(SelectedCertificate)</dd>
                             <dt>SSL State</dt><dd>@Dash(SelectedCertificate.SslState)</dd>
+                            <dt>Uso</dt><dd>@Dash(SelectedCertificate.UsageStatus)</dd>
+                            <dt>Activo</dt><dd>@(SelectedCertificate.IsActive ? "Sí" : "No")</dd>
                             <dt>Presente</dt><dd>@(SelectedCertificate.IsPresent ? "Sí" : "No")</dd>
                         </dl>
                     </div>
@@ -292,6 +294,18 @@
                     <span>INFORMACIÓN TÉCNICA</span>
                     <h2>Certificados Web</h2>
                     <p>Arquitectura, objetos SQL, fuentes de inventario y flujo operativo del módulo.</p>
+                    <p>
+                        RunId:
+                        <strong>@Dash(Dashboard.LastRunId)</strong>
+                        · Clientes:
+                        <strong>@Dashboard.ProcessedCustomers</strong>
+                        · OK:
+                        <strong>@Dashboard.SuccessfulCustomers</strong>
+                        · Error:
+                        <strong>@Dashboard.FailedCustomers</strong>
+                        · Stored:
+                        <strong>@Dashboard.StoredCertificates</strong>
+                    </p>
                 </div>
 
                 <div class="cert-info-grid">
@@ -306,10 +320,18 @@
                         <ul>
                             <li>dbo.ITQS_APP_CertInventory_Current</li>
                             <li>dbo.ITQS_APP_CertInventory_History</li>
+                            <li>dbo.ITQS_APP_CertInventory_RunCustomers</li>
+                            <li>dbo.ITQS_APP_CertInventory_Stage</li>
                         </ul>
                         <strong>Llave operativa</strong>
                         <ul>
                             <li>SourceObjectKeyHash</li>
+                        </ul>
+
+                        <strong>Stored Procedures</strong>
+                        <ul>
+                            <li>dbo.ITQS_APP_sp_MergeCertInventoryCurrent</li>
+                            <li>dbo.ITQS_APP_sp_UpsertCertInventoryRunCustomer</li>
                         </ul>
                     </div>
 
@@ -331,7 +353,11 @@
                         <span>→</span>
                         <div>Azure Resources</div>
                         <span>→</span>
-                        <div>Azure SQL</div>
+                        <div>Stage</div>
+                        <span>→</span>
+                        <div>Run Customers</div>
+                        <span>→</span>
+                        <div>Merge Current</div>
                         <span>→</span>
                         <div>Certificados Web</div>
                         <span>→</span>
@@ -342,7 +368,10 @@
                 <div class="cert-flow-card">
                     <h3>📊 KPIs utilizados</h3>
                     <div class="cert-chip-grid">
-                        <span>Total certificados</span>
+                        <span>Certificados activos</span>
+                        <span>Stored / históricos</span>
+                        <span>Clientes procesados</span>
+                        <span>Clientes exitosos / fallidos</span>
                         <span>Vencidos</span>
                         <span>Críticos &lt; 30 días</span>
                         <span>Warning &lt; 90 días</span>
