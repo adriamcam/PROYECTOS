@@ -439,10 +439,20 @@
         using var stream = new MemoryStream(bytes);
         using var streamReference = new DotNetStreamReference(stream);
 
-        await JS.InvokeVoidAsync(
-            "downloadFileFromStream",
-            $"ri-analysis-{DateTime.Now:yyyyMMddHHmm}.csv",
-            streamReference);
+        try
+        {
+            await JS.InvokeVoidAsync(
+                "downloadFileFromStream",
+                $"ri-analysis-{DateTime.Now:yyyyMMddHHmm}.csv",
+                streamReference
+            );
+        }
+        catch (JSException ex)
+        {
+            Console.Error.WriteLine(
+                $"Error descargando CSV de Análisis IR: {ex.Message}"
+            );
+        }
     }
     private static string Csv(string? value)
     {
@@ -451,6 +461,7 @@
         return $"\"{value}\"";
     }
 }
+
 
 
 
