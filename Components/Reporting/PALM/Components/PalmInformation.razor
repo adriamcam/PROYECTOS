@@ -1,121 +1,201 @@
-@if (Visible)
-{
-    <div class="palm-info-overlay" @onclick="Close">
-        <div class="palm-info-dialog" @onclick:stopPropagation="true">
+@using ITQS.SupportOperationsCenter.Components.Reporting.PALM.Models
 
-            <div class="palm-info-header">
+<div class="palm-information">
 
-                <div>
+    <div class="palm-information-header">
+        <div>
+            <span class="palm-information-eyebrow">
+                Ejecución PALM
+            </span>
 
-                    <h3>
-                        <i class="bi bi-info-circle-fill"></i>
-                        Reporte PALM / MPOR
-                    </h3>
+            <h3>Información de la última ejecución</h3>
+        </div>
 
-                    <small>
-                        Microsoft Partner Association Lifecycle Management
-                    </small>
+        <span class="@GetStatusClass(LatestRun?.Status)">
+            @GetStatusText(LatestRun?.Status)
+        </span>
+    </div>
 
-                </div>
+    @if (LatestRun is null)
+    {
+        <div class="palm-information-empty">
+            <i class="bi bi-clock-history"></i>
 
-                <button class="btn-close"
-                        @onclick="Close">
-                </button>
-
-            </div>
-
-            <div class="palm-info-body">
-                <h5>Objetivo</h5>
+            <div>
+                <strong>Sin ejecuciones registradas</strong>
 
                 <p>
-                    Validar la correcta asociación del Partner ID
-                    de ITQS sobre todos los clientes administrados.
+                    No se encontró información de una ejecución PALM.
                 </p>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="palm-information-grid">
 
-                <hr/>
+            <div class="palm-information-item">
+                <span>Inicio</span>
 
-                <h5>Fuentes de Información</h5>
+                <strong>
+                    @FormatDateTime(LatestRun.StartedAt)
+                </strong>
+            </div>
 
-                <ul>
+            <div class="palm-information-item">
+                <span>Finalización</span>
 
-                    <li>vw_PALM_Dashboard</li>
+                <strong>
+                    @FormatDateTime(LatestRun.FinishedAt)
+                </strong>
+            </div>
 
-                    <li>vw_PALM_Results</li>
+            <div class="palm-information-item">
+                <span>Duración</span>
 
-                    <li>vw_PALM_RequiresAction</li>
+                <strong>
+                    @FormatDuration(LatestRun.DurationSeconds)
+                </strong>
+            </div>
 
-                    <li>vw_PALM_LatestRun</li>
+            <div class="palm-information-item">
+                <span>Clientes</span>
 
-                    <li>vw_PALM_RunHistory</li>
+                <strong>
+                    @LatestRun.TotalCustomers
+                </strong>
+            </div>
 
-                </ul>
+            <div class="palm-information-item">
+                <span>Suscripciones</span>
 
-                <hr/>
+                <strong>
+                    @LatestRun.TotalSubscriptions
+                </strong>
+            </div>
 
-                <h5>Estados</h5>
+            <div class="palm-information-item">
+                <span>Correctos</span>
 
-                <table class="table table-sm">
+                <strong class="text-success">
+                    @LatestRun.TotalOK
+                </strong>
+            </div>
 
-                    <thead>
+            <div class="palm-information-item">
+                <span>Con error</span>
 
-                        <tr>
+                <strong class="text-danger">
+                    @LatestRun.TotalNOK
+                </strong>
+            </div>
 
-                            <th>Estado</th>
+            <div class="palm-information-item">
+                <span>Éxito</span>
 
-                            <th>Descripción</th>
-
-                        </tr>
-
-                    </thead>
-
-                    <tbody>
-
-                        <tr>
-
-                            <td>PARTNER_ID_CORRECTO</td>
-
-                            <td>El cliente tiene asociado el Partner ID correcto.</td>
-
-                        </tr>
-
-                        <tr>
-
-                            <td>SIN_PARTNER_ID</td>
-
-                            <td>No existe ningún Partner ID asociado.</td>
-
-                        </tr>
-
-                        <tr>
-
-                            <td>PARTNER_ID_DIFERENTE</td>
-
-                            <td>Existe otro Partner ID asociado.</td>
-
-                        </tr>
-
-                    </tbody>
-
-                </table>
-
+                <strong>
+                    @LatestRun.SuccessPercent.ToString("N2")%
+                </strong>
             </div>
 
         </div>
 
-    </div>
-}
+        <div class="palm-information-run">
+            <div>
+                <span>Run ID</span>
 
-@code{
+                <code>@LatestRun.RunId</code>
+            </div>
 
-    [Parameter]
-    public bool Visible { get; set; }
+            @if (!string.IsNullOrWhiteSpace(LatestRun.Detail))
+            {
+                <div>
+                    <span>Detalle</span>
 
-    [Parameter]
-    public EventCallback OnClose { get; set; }
-
-    private async Task Close()
-    {
-        await OnClose.InvokeAsync();
+                    <p>@LatestRun.Detail</p>
+                </div>
+            }
+        </div>
     }
 
+</div>
+
+@code {
+    [Parameter]
+    public PalmRun? LatestRun { get; set; }
+
+    private static string FormatDateTime(DateTime value)
+    {
+        return value.ToString("dd/MM/yyyy HH:mm:ss");
+    }
+
+    private static string FormatDateTime(DateTime? value)
+    {
+        return value.HasValue
+            ? value.Value.ToString("dd/MM/yyyy HH:mm:ss")
+            : "En proceso";
+    }
+
+    private static string FormatDuration(int? seconds)
+    {
+        if (!seconds.HasValue)
+        {
+            return "No disponible";
+        }
+
+        var duration = TimeSpan.FromSeconds(seconds.Value);
+
+        if (duration.TotalHours >= 1)
+        {
+            return $"{(int)duration.TotalHours} h " +
+                   $"{duration.Minutes} min " +
+                   $"{duration.Seconds} s";
+        }
+
+        if (duration.TotalMinutes >= 1)
+        {
+            return $"{duration.Minutes} min " +
+                   $"{duration.Seconds} s";
+        }
+
+        return $"{duration.Seconds} s";
+    }
+
+    private static string GetStatusText(string? status)
+    {
+        if (string.IsNullOrWhiteSpace(status))
+        {
+            return "Sin estado";
+        }
+
+        return status switch
+        {
+            "Completed" => "Completado",
+            "CompletedWithErrors" => "Completado con errores",
+            "Failed" => "Fallido",
+            "Running" => "En ejecución",
+            _ => status
+        };
+    }
+
+    private static string GetStatusClass(string? status)
+    {
+        return status?.ToUpperInvariant() switch
+        {
+            "COMPLETED" =>
+                "palm-information-status status-success",
+
+            "COMPLETEDWITHERRORS" =>
+                "palm-information-status status-warning",
+
+            "FAILED" =>
+                "palm-information-status status-danger",
+
+            "RUNNING" =>
+                "palm-information-status status-info",
+
+            _ =>
+                "palm-information-status status-neutral"
+        };
+    }
 }

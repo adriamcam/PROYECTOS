@@ -1,7 +1,276 @@
 @page "/reporting/palm"
 
+@using ITQS.SupportOperationsCenter.Components.Reporting.PALM.Models
+@using ITQS.SupportOperationsCenter.Components.Reporting.PALM.Services
+@using ITQS.SupportOperationsCenter.Components.Reporting.PALM.Components
+
+@inject IPalmService PalmService
+
 <PageTitle>Reporte PALM</PageTitle>
 
-<h3>Reporte PALM</h3>
+<div class="palm-report-page">
 
-<p>Construyendo módulo...</p>
+    <header class="palm-report-header">
+        <div>
+            <div class="palm-report-eyebrow">
+                Microsoft Partner Association
+            </div>
+
+            <h1>Reporte PALM</h1>
+
+            <p>
+                Validación de asociación de Partner ID para clientes
+                y suscripciones administradas.
+            </p>
+        </div>
+
+        <div class="palm-report-header-actions">
+            <button type="button"
+                    class="btn btn-outline-primary"
+                    disabled="@isLoading"
+                    @onclick="LoadReportAsync">
+
+                @if (isLoading)
+                {
+                    <span class="spinner-border spinner-border-sm me-2"
+                          aria-hidden="true">
+                    </span>
+
+                    <span>Cargando...</span>
+                }
+                else
+                {
+                    <i class="bi bi-arrow-clockwise me-2"></i>
+                    <span>Actualizar</span>
+                }
+            </button>
+        </div>
+    </header>
+
+    @if (isLoading && reportData is null)
+    {
+        <div class="palm-loading-state">
+            <div class="spinner-border text-primary"
+                 role="status">
+                <span class="visually-hidden">Cargando...</span>
+            </div>
+
+            <h3>Cargando reporte PALM</h3>
+
+            <p>
+                Consultando información de validación desde SQL.
+            </p>
+        </div>
+    }
+    else if (!string.IsNullOrWhiteSpace(errorMessage))
+    {
+        <div class="alert alert-danger shadow-sm"
+             role="alert">
+
+            <div class="d-flex align-items-start gap-3">
+                <i class="bi bi-exclamation-octagon-fill fs-4"></i>
+
+                <div class="flex-grow-1">
+                    <h5 class="alert-heading mb-1">
+                        No fue posible cargar el reporte
+                    </h5>
+
+                    <p class="mb-3">
+                        @errorMessage
+                    </p>
+
+                    <button type="button"
+                            class="btn btn-danger"
+                            @onclick="LoadReportAsync">
+                        <i class="bi bi-arrow-clockwise me-2"></i>
+                        Reintentar
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+    else if (reportData is not null)
+    {
+        <section class="palm-execution-summary">
+            <div class="palm-execution-item">
+                <span>Última ejecución</span>
+
+                <strong>
+                    @FormatDateTime(reportData.LatestRun?.StartedAt)
+                </strong>
+            </div>
+
+            <div class="palm-execution-item">
+                <span>Estado</span>
+
+                <strong class="@GetRunStatusClass(reportData.LatestRun?.Status)">
+                    @FormatRunStatus(reportData.LatestRun?.Status)
+                </strong>
+            </div>
+
+            <div class="palm-execution-item">
+                <span>Duración</span>
+
+                <strong>
+                    @FormatDuration(reportData.LatestRun?.DurationSeconds)
+                </strong>
+            </div>
+
+            <div class="palm-execution-item">
+                <span>Run ID</span>
+
+                <strong class="palm-run-id"
+                        title="@reportData.LatestRun?.RunId">
+                    @FormatRunId(reportData.LatestRun?.RunId)
+                </strong>
+            </div>
+        </section>
+
+        <section class="palm-section">
+            <div class="palm-section-title">
+                <div>
+                    <span>Resumen ejecutivo</span>
+                    <h2>Estado general de cumplimiento</h2>
+                </div>
+
+                <i class="bi bi-speedometer2"></i>
+            </div>
+
+            <PalmDashboard Dashboard="@reportData.Dashboard" />
+        </section>
+
+        <section class="palm-section">
+            <div class="palm-section-title">
+                <div>
+                    <span>Inventario validado</span>
+                    <h2>Resultados de asociación</h2>
+                </div>
+
+                <div class="palm-section-counter">
+                    @reportData.Results.Count registros
+                </div>
+            </div>
+
+            <PalmResults Resources="@reportData.Results" />
+        </section>
+    }
+</div>
+
+@code {
+    private PalmReportData? reportData;
+    private bool isLoading;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadReportAsync();
+    }
+
+    private async Task LoadReportAsync()
+    {
+        if (isLoading)
+        {
+            return;
+        }
+
+        try
+        {
+            isLoading = true;
+            errorMessage = null;
+
+            reportData = await PalmService.GetReportAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage =
+                "Se produjo un error consultando las vistas PALM. " +
+                ex.Message;
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private static string FormatDateTime(DateTime? value)
+    {
+        return value.HasValue
+            ? value.Value.ToString("dd/MM/yyyy HH:mm:ss")
+            : "No disponible";
+    }
+
+    private static string FormatDuration(int? seconds)
+    {
+        if (!seconds.HasValue)
+        {
+            return "No disponible";
+        }
+
+        var duration = TimeSpan.FromSeconds(seconds.Value);
+
+        if (duration.TotalHours >= 1)
+        {
+            return $"{(int)duration.TotalHours} h " +
+                   $"{duration.Minutes} min " +
+                   $"{duration.Seconds} s";
+        }
+
+        if (duration.TotalMinutes >= 1)
+        {
+            return $"{duration.Minutes} min " +
+                   $"{duration.Seconds} s";
+        }
+
+        return $"{duration.Seconds} s";
+    }
+
+    private static string FormatRunId(Guid? runId)
+    {
+        if (!runId.HasValue || runId.Value == Guid.Empty)
+        {
+            return "No disponible";
+        }
+
+        var value = runId.Value.ToString();
+
+        return value.Length > 13
+            ? $"{value[..8]}...{value[^4..]}"
+            : value;
+    }
+
+    private static string FormatRunStatus(string? status)
+    {
+        return string.IsNullOrWhiteSpace(status)
+            ? "Sin ejecución"
+            : status;
+    }
+
+    private static string GetRunStatusClass(string? status)
+    {
+        if (string.Equals(
+                status,
+                "Completed",
+                StringComparison.OrdinalIgnoreCase))
+        {
+            return "text-success";
+        }
+
+        if (string.Equals(
+                status,
+                "CompletedWithErrors",
+                StringComparison.OrdinalIgnoreCase))
+        {
+            return "text-warning";
+        }
+
+        if (string.Equals(
+                status,
+                "Failed",
+                StringComparison.OrdinalIgnoreCase))
+        {
+            return "text-danger";
+        }
+
+        return "text-secondary";
+    }
+}
