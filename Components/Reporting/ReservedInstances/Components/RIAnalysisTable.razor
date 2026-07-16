@@ -1,3 +1,4 @@
+@using System.IO
 @namespace ITQS.SupportOperationsCenter.Components.Reporting.ReservedInstances.Components
 
 @using System.Text
@@ -401,30 +402,48 @@
     private async Task ExportCsvAsync()
     {
         var sb = new StringBuilder();
-        sb.AppendLine("Customer,Subscription,ResourceName,SKUReserva,CauseCode,Recommendation,PriorityLevel,OptimizationCategory");
 
-        foreach (var item in FilteredResources)
+        sb.AppendLine(
+            "Prioridad,Cliente,Suscripcion,Recurso,Servidor,ReservationName,SKUReserva," +
+            "SKUVM,Estado,Categoria,Causa,Recomendacion,Confianza," +
+            "Utilizacion30d,DiasRestantes,VencePronto,Nota"
+        );
+
+        foreach (var item in AnalysisResources)
         {
             sb.AppendLine(string.Join(",",
+                Csv(item.PriorityLevel),
                 Csv(item.Customer),
                 Csv(item.Subscription),
                 Csv(item.ResourceName),
+                Csv(item.ServerName),
+                Csv(item.ReservationName),
                 Csv(item.SKUReserva),
-
-                Csv(item.CauseCode),
-                Csv(item.AnalysisRecommendation),
-                Csv(item.PriorityLevel),
+                Csv(item.SKUVM),
+                Csv(item.OperationalStatus),
                 Csv(item.OptimizationCategory),
-
-                Csv(item.OptimizationCategory)
+                Csv(item.CauseDescription),
+                Csv(item.AnalysisRecommendation),
+                Csv(item.ConfidenceLevel),
+                Csv(item.Utilization30d?.ToString("N2")),
+                Csv(item.DaysRemaining?.ToString()),
+                Csv(item.ExpiresSoon ? "SI" : "NO"),
+                Csv(item.ManualAnalysisNote)
             ));
         }
 
-        var bytes = Encoding.UTF8.GetBytes(sb.ToString());
-        var base64 = Convert.ToBase64String(bytes);
-        await JS.InvokeVoidAsync("downloadFileFromBase64", "analisis-ir.csv", base64);
-    }
+        var csv = "\uFEFF" + sb.ToString();
 
+        var bytes = Encoding.UTF8.GetBytes(csv);
+
+        using var stream = new MemoryStream(bytes);
+        using var streamReference = new DotNetStreamReference(stream);
+
+        await JS.InvokeVoidAsync(
+            "downloadFileFromStream",
+            $"ri-analysis-{DateTime.Now:yyyyMMddHHmm}.csv",
+            streamReference);
+    }
     private static string Csv(string? value)
     {
         value ??= "";
@@ -432,6 +451,10 @@
         return $"\"{value}\"";
     }
 }
+
+
+
+
 
 
 
