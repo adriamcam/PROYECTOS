@@ -1,3 +1,7 @@
+@using System.Text
+@using Microsoft.JSInterop
+@inject IJSRuntime JS
+
 @using ITQS.SupportOperationsCenter.Components.Reporting.ReservedInstances.Models
 @using ITQS.SupportOperationsCenter.Components.Reporting.ReservedInstances.Services
 @using ITQS.SupportOperationsCenter.Components.Shared
@@ -8,6 +12,21 @@
 .ric-section {
     width: 100%;
     padding: 4px 0 32px;
+}
+
+
+.ric-export-btn{
+    background:#2563eb;
+    color:#fff;
+    border:none;
+    border-radius:10px;
+    padding:10px 18px;
+    font-weight:700;
+    cursor:pointer;
+}
+
+.ric-export-btn:hover{
+    background:#1d4ed8;
 }
 
 /* ============================================================
@@ -48,6 +67,21 @@
     font-weight: 900;
     letter-spacing: .08em;
     text-transform: uppercase;
+}
+
+
+.ric-export-btn{
+    background:#2563eb;
+    color:#fff;
+    border:none;
+    border-radius:10px;
+    padding:10px 18px;
+    font-weight:700;
+    cursor:pointer;
+}
+
+.ric-export-btn:hover{
+    background:#1d4ed8;
 }
 
 /* ============================================================
@@ -140,6 +174,21 @@
 .ric-kpi.dark { background: linear-gradient(135deg, #fff 65%, #f1f5f9); }
 .ric-kpi.score { background: linear-gradient(135deg, #fff 65%, #ecfeff); }
 
+
+.ric-export-btn{
+    background:#2563eb;
+    color:#fff;
+    border:none;
+    border-radius:10px;
+    padding:10px 18px;
+    font-weight:700;
+    cursor:pointer;
+}
+
+.ric-export-btn:hover{
+    background:#1d4ed8;
+}
+
 /* ============================================================
    FILTROS
    ============================================================ */
@@ -211,6 +260,21 @@
 
 .ric-summary strong {
     color: #0f172a;
+}
+
+
+.ric-export-btn{
+    background:#2563eb;
+    color:#fff;
+    border:none;
+    border-radius:10px;
+    padding:10px 18px;
+    font-weight:700;
+    cursor:pointer;
+}
+
+.ric-export-btn:hover{
+    background:#1d4ed8;
 }
 
 /* ============================================================
@@ -291,6 +355,21 @@
     font-weight: 650;
 }
 
+
+.ric-export-btn{
+    background:#2563eb;
+    color:#fff;
+    border:none;
+    border-radius:10px;
+    padding:10px 18px;
+    font-weight:700;
+    cursor:pointer;
+}
+
+.ric-export-btn:hover{
+    background:#1d4ed8;
+}
+
 /* ============================================================
    SCORE
    ============================================================ */
@@ -313,6 +392,21 @@
 .ric-score.warning { background: #f59e0b; }
 .ric-score.danger { background: #ef4444; }
 .ric-score.critical { background: #991b1b; }
+
+
+.ric-export-btn{
+    background:#2563eb;
+    color:#fff;
+    border:none;
+    border-radius:10px;
+    padding:10px 18px;
+    font-weight:700;
+    cursor:pointer;
+}
+
+.ric-export-btn:hover{
+    background:#1d4ed8;
+}
 
 /* ============================================================
    TAGS Y ESTADOS
@@ -408,6 +502,21 @@
     color: #475569;
 }
 
+
+.ric-export-btn{
+    background:#2563eb;
+    color:#fff;
+    border:none;
+    border-radius:10px;
+    padding:10px 18px;
+    font-weight:700;
+    cursor:pointer;
+}
+
+.ric-export-btn:hover{
+    background:#1d4ed8;
+}
+
 /* ============================================================
    CAPACIDAD Y CONFIANZA
    ============================================================ */
@@ -453,6 +562,21 @@
 .ric-confidence.low {
     background: #fee2e2;
     color: #991b1b;
+}
+
+
+.ric-export-btn{
+    background:#2563eb;
+    color:#fff;
+    border:none;
+    border-radius:10px;
+    padding:10px 18px;
+    font-weight:700;
+    cursor:pointer;
+}
+
+.ric-export-btn:hover{
+    background:#1d4ed8;
 }
 
 /* ============================================================
@@ -507,6 +631,21 @@
     opacity: .45;
 }
 
+
+.ric-export-btn{
+    background:#2563eb;
+    color:#fff;
+    border:none;
+    border-radius:10px;
+    padding:10px 18px;
+    font-weight:700;
+    cursor:pointer;
+}
+
+.ric-export-btn:hover{
+    background:#1d4ed8;
+}
+
 /* ============================================================
    PAGINACIÓN
    ============================================================ */
@@ -543,6 +682,21 @@
 .ric-pagination button:disabled {
     cursor: not-allowed;
     opacity: .4;
+}
+
+
+.ric-export-btn{
+    background:#2563eb;
+    color:#fff;
+    border:none;
+    border-radius:10px;
+    padding:10px 18px;
+    font-weight:700;
+    cursor:pointer;
+}
+
+.ric-export-btn:hover{
+    background:#1d4ed8;
 }
 
 /* ============================================================
@@ -649,6 +803,21 @@
     margin: 7px 0 0;
     color: #334155;
     line-height: 1.55;
+}
+
+
+.ric-export-btn{
+    background:#2563eb;
+    color:#fff;
+    border:none;
+    border-radius:10px;
+    padding:10px 18px;
+    font-weight:700;
+    cursor:pointer;
+}
+
+.ric-export-btn:hover{
+    background:#1d4ed8;
 }
 
 /* ============================================================
@@ -950,11 +1119,53 @@
     private void OpenDetails(RICoverageResource item) => SelectedResource = item;
     private void CloseDetails() => SelectedResource = null;
 
+
+    private static string Csv(string? value)
+    {
+        value ??= "";
+        return "\"" + value.Replace("\"","\"\"") + "\"";
+    }
+
     private static bool Contains(string? value, string search) => !string.IsNullOrWhiteSpace(value) && value.Contains(search, StringComparison.OrdinalIgnoreCase);
     private static string Normalize(string? value) => string.IsNullOrWhiteSpace(value) ? "-" : value;
     private static string NormalizePowerState(string? value) => string.IsNullOrWhiteSpace(value) ? "Estado no disponible" : value.Replace("VM ", "", StringComparison.OrdinalIgnoreCase);
     private static string GetConfidenceLabel(string? value) => value?.ToUpperInvariant() switch { "HIGH" => "Alta", "MEDIUM" => "Media", "LOW" => "Baja", _ => "Pendiente" };
     private static string GetScoreClass(int score) => score switch { >= 90 => "success", >= 70 => "info", >= 50 => "warning", >= 30 => "danger", _ => "critical" };
+
+    private async Task ExportCsvAsync()
+    {
+        var sb = new StringBuilder();
+
+        sb.AppendLine("Score,Cliente,Suscripcion,VM,SKUActual,Region,Estado,Cobertura,Capacidad,Confianza,TagIR,ReservaEsperada,Nota");
+
+        foreach(var item in FilteredResources)
+        {
+            sb.AppendLine(string.Join(",",
+                Csv(item.CoverageScore.ToString()),
+                Csv(item.CustomerName),
+                Csv(item.SubscriptionName),
+                Csv(item.VMName),
+                Csv(item.VMSize),
+                Csv(item.Location),
+                Csv(item.PowerState),
+                Csv(item.CoverageStatus),
+                Csv($"{item.ReservedQuantity}/{item.EligibleVMCount}"),
+                Csv(GetConfidenceLabel(item.CoverageConfidence)),
+                Csv(item.IRTag),
+                Csv(item.IntendedReservationName),
+                Csv(item.ManualAnalysisNote)
+            ));
+        }
+
+        var fileName=$"ri-coverage-{DateTime.Now:yyyyMMddHHmm}.csv";
+
+        var data=Uri.EscapeDataString(sb.ToString());
+
+        await JS.InvokeVoidAsync(
+            "eval",
+            $"const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,{data}';a.download='{fileName}';document.body.appendChild(a);a.click();a.remove();");
+    }
+
     private static string GetStatusClass(string? code) => code switch
     {
         "COVERED_ALIGNED" => "success",
@@ -969,6 +1180,14 @@
         _ => "neutral"
     };
 }
+
+
+
+
+
+
+
+
 
 
 
