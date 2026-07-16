@@ -1,4 +1,5 @@
 @using System.Text
+@using System.IO
 @using Microsoft.JSInterop
 @inject IJSRuntime JS
 
@@ -857,6 +858,12 @@
             <h2>Cobertura IR</h2>
             <p>Validación de VMs, SKUs, tags IR y capacidad reservada disponible.</p>
         </div>
+
+        <button type="button"
+                class="ric-export-btn"
+                @onclick="ExportCsvAsync">
+            Exportar CSV
+        </button>
     </div>
 
     <div class="ric-kpis">
@@ -1180,6 +1187,8 @@
         _ => "neutral"
     };
 }
+
+
 
 
 
