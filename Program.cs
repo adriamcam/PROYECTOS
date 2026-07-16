@@ -1,3 +1,4 @@
+using ITQS.SupportOperationsCenter.Components.Reporting.PALM.Services;
 using ITQS.SupportOperationsCenter.Components.Reporting.ReservedInstances.Services;
 using ITQS.SupportOperationsCenter.Components;
 using ITQS.SupportOperationsCenter.Data;
@@ -103,6 +104,8 @@ builder.Services.AddScoped<IHybridBenefitService, HybridBenefitService>();
 
 builder.Services.AddScoped<IReservedInstanceService, ReservedInstanceService>();
 
+builder.Services.AddScoped<IPalmService, PalmService>();
+
 var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())
@@ -124,6 +127,7 @@ app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
 app.Run();
+
 
 
 

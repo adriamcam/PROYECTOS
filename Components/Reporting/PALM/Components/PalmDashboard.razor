@@ -1,0 +1,196 @@
+@using System.Globalization
+@using ITQS.SupportOperationsCenter.Components.Reporting.PALM.Models
+
+<div class="palm-dashboard-layout">
+    <section class="palm-panel">
+        <div class="palm-panel-heading">
+            <div>
+                <span>Distribución actual</span>
+                <h3>Estado de asociación</h3>
+            </div>
+
+            <i class="bi bi-pie-chart"></i>
+        </div>
+
+        <div class="palm-status-list">
+            <div class="palm-status-row">
+                <div>
+                    <span class="palm-status-dot success"></span>
+                    Partner ID correcto
+                </div>
+
+                <strong>@FormatNumber(Dashboard.PartnerIdCorrect)</strong>
+            </div>
+
+            <div class="palm-status-row">
+                <div>
+                    <span class="palm-status-dot danger"></span>
+                    Sin Partner ID
+                </div>
+
+                <strong>@FormatNumber(Dashboard.WithoutPartnerId)</strong>
+            </div>
+
+            <div class="palm-status-row">
+                <div>
+                    <span class="palm-status-dot warning"></span>
+                    Partner ID diferente
+                </div>
+
+                <strong>@FormatNumber(Dashboard.DifferentPartnerId)</strong>
+            </div>
+        </div>
+    </section>
+
+    <section class="palm-panel">
+        <div class="palm-panel-heading">
+            <div>
+                <span>Información de inventario</span>
+                <h3>Resumen de validación</h3>
+            </div>
+
+            <i class="bi bi-clipboard-data"></i>
+        </div>
+
+        <div class="palm-summary-list">
+            <div>
+                <span>Clientes evaluados</span>
+                <strong>@FormatNumber(Dashboard.TotalCustomers)</strong>
+            </div>
+
+            <div>
+                <span>Resultados OK</span>
+                <strong>@FormatNumber(Dashboard.TotalOK)</strong>
+            </div>
+
+            <div>
+                <span>Resultados NOK</span>
+                <strong>@FormatNumber(Dashboard.TotalNOK)</strong>
+            </div>
+
+            <div>
+                <span>Registros actualizados</span>
+                <strong>@FormatNumber(Dashboard.TotalRefreshed)</strong>
+            </div>
+
+            <div>
+                <span>Suscripciones visibles</span>
+                <strong>
+                    @FormatNumber(Dashboard.TotalVisibleSubscriptions)
+                </strong>
+            </div>
+
+            <div>
+                <span>Última actualización</span>
+                <strong>
+                    @FormatNullableDateTime(Dashboard.LastUpdatedAt)
+                </strong>
+            </div>
+        </div>
+    </section>
+
+    <section class="palm-panel palm-panel-wide">
+        <div class="palm-panel-heading">
+            <div>
+                <span>Cumplimiento general</span>
+                <h3>Asociación de Partner ID</h3>
+            </div>
+
+            <i class="bi bi-speedometer2"></i>
+        </div>
+
+        <div class="palm-compliance-container">
+            <div class="palm-compliance-value">
+                <strong>
+                    @Dashboard.CompliancePercent.ToString(
+                        "N2",
+                        CultureInfo.InvariantCulture)%
+                </strong>
+
+                <span>Clientes con Partner ID correcto</span>
+            </div>
+
+            <div class="palm-progress">
+                <div class="palm-progress-bar"
+                     style="@GetComplianceStyle()">
+                </div>
+            </div>
+
+            <div class="palm-compliance-footer">
+                <span>
+                    <i class="bi bi-check-circle-fill"></i>
+                    @FormatNumber(Dashboard.PartnerIdCorrect) correctos
+                </span>
+
+                <span>
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    @FormatNumber(Dashboard.RequiresAction) requieren acción
+                </span>
+            </div>
+        </div>
+    </section>
+
+    <section class="palm-panel palm-panel-wide">
+        <div class="palm-panel-heading">
+            <div>
+                <span>Periodo evaluado</span>
+                <h3>Fechas del inventario</h3>
+            </div>
+
+            <i class="bi bi-calendar-range"></i>
+        </div>
+
+        <div class="palm-date-grid">
+            <div class="palm-date-card">
+                <i class="bi bi-calendar-minus"></i>
+
+                <div>
+                    <span>Primer análisis</span>
+                    <strong>
+                        @FormatNullableDateTime(Dashboard.FirstScanDate)
+                    </strong>
+                </div>
+            </div>
+
+            <div class="palm-date-card">
+                <i class="bi bi-calendar-check"></i>
+
+                <div>
+                    <span>Último análisis</span>
+                    <strong>
+                        @FormatNullableDateTime(Dashboard.LastScanDate)
+                    </strong>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+@code {
+    [Parameter]
+    public ITQS.SupportOperationsCenter.Components.Reporting.PALM.Models.PalmDashboard Dashboard { get; set; } = new();
+
+    private static string FormatNumber(int value)
+    {
+        return value.ToString("N0");
+    }
+
+    private static string FormatNullableDateTime(DateTime? value)
+    {
+        return value.HasValue
+            ? value.Value.ToString("dd/MM/yyyy HH:mm")
+            : "No disponible";
+    }
+
+    private string GetComplianceStyle()
+    {
+        var percentage = Math.Clamp(
+            Dashboard.CompliancePercent,
+            0m,
+            100m);
+
+        return FormattableString.Invariant(
+            $"width: {percentage}%;");
+    }
+}
+
