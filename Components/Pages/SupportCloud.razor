@@ -12,6 +12,7 @@
 @using ITQS.SupportOperationsCenter.Components.Administration.GdapAdminLinks
 @using ITQS.SupportOperationsCenter.Components.Administration.WebCertificates
 @using ITQS.SupportOperationsCenter.Components.Reporting.HybridBenefit
+@using ITQS.SupportOperationsCenter.Components.Reporting.PALM
 
 @inject AuthenticationStateProvider AuthenticationStateProvider
 
@@ -205,8 +206,7 @@
             }
             else if (CurrentModule == "ReportePALM")
             {
-                <h2>Reporte PALM</h2>
-                <p>Módulo en construcción.</p>
+                <PalmReport />
             }
             else if (CurrentModule == "SqlDashboard")
             {
@@ -431,6 +431,9 @@
         }
     }
 }
+
+
+
 
 
 
