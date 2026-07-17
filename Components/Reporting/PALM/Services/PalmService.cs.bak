@@ -1,20 +1,35 @@
 using Dapper;
+using Microsoft.Data.SqlClient;
 using ITQS.SupportOperationsCenter.Components.Reporting.PALM.Models;
-using ITQS.SupportOperationsCenter.Data;
 
 namespace ITQS.SupportOperationsCenter.Components.Reporting.PALM.Services;
 
 public sealed class PalmService : IPalmService
 {
-    private readonly ISqlConnectionFactory _connectionFactory;
+    private readonly IConfiguration _configuration;
     private readonly ILogger<PalmService> _logger;
 
     public PalmService(
-        ISqlConnectionFactory connectionFactory,
+        IConfiguration configuration,
         ILogger<PalmService> logger)
     {
-        _connectionFactory = connectionFactory;
+        _configuration = configuration;
         _logger = logger;
+    }
+
+    private SqlConnection CreateConnection()
+    {
+        var connectionString =
+            _configuration.GetConnectionString("ReportesDb");
+
+        if (string.IsNullOrWhiteSpace(connectionString))
+        {
+            throw new InvalidOperationException(
+                "No se encontró la cadena de conexión " +
+                "'ConnectionStrings:ReportesDb'.");
+        }
+
+        return new SqlConnection(connectionString);
     }
 
     public async Task<PalmReportData> GetReportAsync()
@@ -118,7 +133,9 @@ public sealed class PalmService : IPalmService
 
         try
         {
-            using var connection = _connectionFactory.CreateConnection();
+            await using var connection = CreateConnection();
+
+            await connection.OpenAsync();
 
             using var multi = await connection.QueryMultipleAsync(
                 sql,
@@ -182,7 +199,7 @@ public sealed class PalmService : IPalmService
         FROM dbo.vw_PALM_Dashboard;
         """;
 
-        using var connection = _connectionFactory.CreateConnection();
+        await using var connection = CreateConnection();
 
         return await connection.QueryFirstOrDefaultAsync<PalmDashboard>(
             sql,
@@ -219,7 +236,7 @@ public sealed class PalmService : IPalmService
             CustomerName;
         """;
 
-        using var connection = _connectionFactory.CreateConnection();
+        await using var connection = CreateConnection();
 
         var rows = await connection.QueryAsync<PalmResource>(
             sql,
@@ -228,7 +245,8 @@ public sealed class PalmService : IPalmService
         return rows.ToList();
     }
 
-    public async Task<IReadOnlyList<PalmResource>> GetRequiresActionAsync()
+    public async Task<IReadOnlyList<PalmResource>>
+        GetRequiresActionAsync()
     {
         const string sql = """
         SELECT
@@ -255,7 +273,7 @@ public sealed class PalmService : IPalmService
         ORDER BY CustomerName;
         """;
 
-        using var connection = _connectionFactory.CreateConnection();
+        await using var connection = CreateConnection();
 
         var rows = await connection.QueryAsync<PalmResource>(
             sql,
@@ -283,7 +301,7 @@ public sealed class PalmService : IPalmService
         FROM dbo.vw_PALM_LatestRun;
         """;
 
-        using var connection = _connectionFactory.CreateConnection();
+        await using var connection = CreateConnection();
 
         return await connection.QueryFirstOrDefaultAsync<PalmRun>(
             sql,
@@ -310,7 +328,7 @@ public sealed class PalmService : IPalmService
         ORDER BY StartedAt DESC;
         """;
 
-        using var connection = _connectionFactory.CreateConnection();
+        await using var connection = CreateConnection();
 
         var rows = await connection.QueryAsync<PalmRun>(
             sql,
