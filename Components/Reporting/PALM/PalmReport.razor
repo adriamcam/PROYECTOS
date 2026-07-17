@@ -210,150 +210,18 @@
                 <PalmDashboardSummary
                     Dashboard="@reportData.Dashboard" />
 
-                <section class="palm-dashboard-grid">
+                <section class="palm-dashboard-footer">
+                    <div>
+                        <span>Última ejecución</span>
+                        <strong>@FormatLatestRunDate()</strong>
+                    </div>
 
-                    <article class="palm-card">
-                        <header class="palm-card-header">
-                            <div>
-                                <span>Última ejecución</span>
-                                <h3>Información operativa</h3>
-                            </div>
-
-                            <div class="palm-card-icon palm-icon-blue">
-                                <i class="bi bi-terminal"></i>
-                            </div>
-                        </header>
-
-                        <PalmInformation
-                            LatestRun="@reportData.LatestRun" />
-                    </article>
-
-                    <article class="palm-card palm-recommendations-card">
-                        <header class="palm-card-header">
-                            <div>
-                                <span>Evaluación automática</span>
-                                <h3>Recomendaciones</h3>
-
-                                <p>
-                                    Resumen de los principales resultados
-                                    obtenidos en el último análisis.
-                                </p>
-                            </div>
-
-                            <div class="palm-card-icon palm-icon-purple">
-                                <i class="bi bi-lightbulb"></i>
-                            </div>
-                        </header>
-
-                        <div class="palm-recommendation-grid">
-
-                            <button type="button"
-                                    class="palm-recommendation success"
-                                    @onclick='() => ChangeTab("Results")'>
-
-                                <div class="palm-recommendation-icon">
-                                    <i class="bi bi-check-lg"></i>
-                                </div>
-
-                                <div>
-                                    <strong>
-                                        @reportData.Dashboard.PartnerIdCorrect.ToString("N0")
-                                    </strong>
-
-                                    <span>Partner ID correctos</span>
-
-                                    <small>
-                                        Clientes asociados correctamente.
-                                    </small>
-                                </div>
-                            </button>
-
-                            <button type="button"
-                                    class="palm-recommendation danger"
-                                    @onclick='() => ChangeTab("Action")'>
-
-                                <div class="palm-recommendation-icon">
-                                    <i class="bi bi-link-45deg"></i>
-                                </div>
-
-                                <div>
-                                    <strong>
-                                        @reportData.Dashboard.WithoutPartnerId.ToString("N0")
-                                    </strong>
-
-                                    <span>Sin Partner ID</span>
-
-                                    <small>
-                                        Requieren validación o asociación.
-                                    </small>
-                                </div>
-                            </button>
-
-                            <button type="button"
-                                    class="palm-recommendation warning"
-                                    @onclick='() => ChangeTab("Action")'>
-
-                                <div class="palm-recommendation-icon">
-                                    <i class="bi bi-arrow-left-right"></i>
-                                </div>
-
-                                <div>
-                                    <strong>
-                                        @reportData.Dashboard.DifferentPartnerId.ToString("N0")
-                                    </strong>
-
-                                    <span>Partner ID diferente</span>
-
-                                    <small>
-                                        El valor actual no coincide con el esperado.
-                                    </small>
-                                </div>
-                            </button>
-
-                            <button type="button"
-                                    class="palm-recommendation info"
-                                    @onclick='() => ChangeTab("Results")'>
-
-                                <div class="palm-recommendation-icon">
-                                    <i class="bi bi-cloud-check"></i>
-                                </div>
-
-                                <div>
-                                    <strong>
-                                        @reportData.Dashboard.TotalVisibleSubscriptions.ToString("N0")
-                                    </strong>
-
-                                    <span>Suscripciones visibles</span>
-
-                                    <small>
-                                        Suscripciones procesadas por PALM.
-                                    </small>
-                                </div>
-                            </button>
-
-                            <button type="button"
-                                    class="palm-recommendation purple"
-                                    @onclick='() => ChangeTab("Action")'>
-
-                                <div class="palm-recommendation-icon">
-                                    <i class="bi bi-exclamation-diamond"></i>
-                                </div>
-
-                                <div>
-                                    <strong>
-                                        @reportData.Dashboard.RequiresAction.ToString("N0")
-                                    </strong>
-
-                                    <span>Requieren acción</span>
-
-                                    <small>
-                                        Registros pendientes de intervención.
-                                    </small>
-                                </div>
-                            </button>
-
-                        </div>
-                    </article>
+                    <button type="button"
+                            class="palm-dashboard-history-button"
+                            @onclick='() => ChangeTab("History")'>
+                        <i class="bi bi-clock-history"></i>
+                        Consultar historial
+                    </button>
                 </section>
             </section>
         }
@@ -513,6 +381,8 @@
                     </article>
                 </div>
 
+                <PalmInformation LatestRun="@reportData.LatestRun" />
+
                 <PalmHistory Runs="@reportData.RunHistory" />
             </section>
         }
@@ -603,3 +473,5 @@
                 .ToString("dd/MM/yyyy HH:mm");
     }
 }
+
+

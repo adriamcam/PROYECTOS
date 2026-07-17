@@ -771,3 +771,61 @@
         width: 100%;
     }
 }
+
+.palm-dashboard-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 18px 20px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 18px;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, .05);
+}
+
+.palm-dashboard-footer span {
+    display: block;
+    color: #64748b;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.palm-dashboard-footer strong {
+    display: block;
+    margin-top: 4px;
+    color: #0f172a;
+    font-size: 16px;
+    font-weight: 900;
+}
+
+.palm-dashboard-history-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 42px;
+    padding: 10px 16px;
+    color: #ffffff;
+    background: #2563eb;
+    border: 0;
+    border-radius: 13px;
+    font-size: 13px;
+    font-weight: 900;
+    cursor: pointer;
+}
+
+.palm-dashboard-history-button:hover {
+    background: #1d4ed8;
+}
+
+@media (max-width: 640px) {
+    .palm-dashboard-footer {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .palm-dashboard-history-button {
+        justify-content: center;
+        width: 100%;
+    }
+}
