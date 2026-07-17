@@ -1,150 +1,506 @@
 @using ITQS.SupportOperationsCenter.Components.Reporting.PALM.Models
 
-<div class="palm-table-card">
-    <div class="palm-table-toolbar">
-        <div class="palm-search-box">
-            <i class="bi bi-search"></i>
+<section class="palm-action-results">
 
-            <input type="search"
-                   class="form-control"
-                   placeholder="Buscar cliente, tenant, suscripción o estado..."
-                   @bind="searchText"
-                   @bind:event="oninput" />
+    <div class="palm-action-toolbar">
+
+        <div class="palm-action-filter">
+            <label for="palm-action-customer">
+                Cliente o Tenant
+            </label>
+
+            <div class="palm-action-input">
+                <i class="bi bi-buildings"></i>
+
+                <input id="palm-action-customer"
+                       type="search"
+                       placeholder="Buscar cliente o Tenant ID..."
+                       value="@customerSearch"
+                       @oninput="OnCustomerSearchChanged" />
+            </div>
         </div>
 
-        <span class="badge text-bg-warning">
-            @FilteredResources.Count() pendientes
-        </span>
+        <div class="palm-action-filter">
+            <label for="palm-action-subscription">
+                Suscripción
+            </label>
+
+            <div class="palm-action-input">
+                <i class="bi bi-cloud"></i>
+
+                <input id="palm-action-subscription"
+                       type="search"
+                       placeholder="Buscar suscripción o Subscription ID..."
+                       value="@subscriptionSearch"
+                       @oninput="OnSubscriptionSearchChanged" />
+            </div>
+        </div>
+
+        <div class="palm-action-filter palm-action-select">
+            <label for="palm-action-validation">
+                Validación
+            </label>
+
+            <select id="palm-action-validation"
+                    value="@selectedValidation"
+                    @onchange="OnValidationChanged">
+
+                <option value="">Todas las validaciones</option>
+
+                @foreach (var validation in ValidationOptions)
+                {
+                    <option value="@validation">
+                        @FormatValidation(validation)
+                    </option>
+                }
+            </select>
+        </div>
+
+        <button type="button"
+                class="palm-action-clear"
+                disabled="@(!HasActiveFilters)"
+                @onclick="ClearFilters">
+
+            <i class="bi bi-x-circle"></i>
+            Limpiar
+        </button>
     </div>
 
-    <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
-            <thead>
-                <tr>
-                    <th>Cliente</th>
-                    <th>Suscripción</th>
-                    <th>Validación</th>
-                    <th>Partner actual</th>
-                    <th>Partner esperado</th>
-                    <th>Acción</th>
-                    <th>Error</th>
-                    <th>Escaneo</th>
-                </tr>
-            </thead>
+    <div class="palm-action-summary">
 
-            <tbody>
-                @if (!FilteredResources.Any())
-                {
+        <div>
+            <span>Registros encontrados</span>
+
+            <strong>
+                @FilteredResources.Count.ToString("N0")
+            </strong>
+
+            <small>
+                de @Resources.Count.ToString("N0") pendientes
+            </small>
+        </div>
+
+        <div class="palm-action-summary-pills">
+
+            <span class="palm-action-pill danger">
+                <i class="bi bi-link-45deg"></i>
+                @WithoutPartnerCount sin Partner ID
+            </span>
+
+            <span class="palm-action-pill warning">
+                <i class="bi bi-arrow-left-right"></i>
+                @DifferentPartnerCount diferentes
+            </span>
+
+            <span class="palm-action-pill info">
+                <i class="bi bi-shield-exclamation"></i>
+                @ReadErrorCount errores de lectura
+            </span>
+
+        </div>
+    </div>
+
+    <div class="palm-action-table-shell">
+        <div class="palm-action-table-scroll">
+
+            <table class="palm-action-table">
+                <thead>
                     <tr>
-                        <td colspan="8"
-                            class="text-center py-5 text-muted">
-
-                            <i class="bi bi-check-circle fs-2 d-block mb-2"></i>
-                            No existen registros pendientes con el filtro actual.
-                        </td>
+                        <th>Cliente</th>
+                        <th>Suscripción</th>
+                        <th>Validación</th>
+                        <th>Partner actual</th>
+                        <th>Partner esperado</th>
+                        <th>Acción</th>
+                        <th>Error</th>
+                        <th>Escaneo</th>
                     </tr>
-                }
-                else
-                {
-                    @foreach (var item in FilteredResources)
+                </thead>
+
+                <tbody>
+                    @if (PagedResources.Count == 0)
                     {
                         <tr>
-                            <td>
-                                <strong>@FormatText(item.CustomerName)</strong>
+                            <td colspan="8">
+                                <div class="palm-action-empty">
+                                    <div>
+                                        <i class="bi bi-check-circle-fill"></i>
+                                    </div>
 
-                                <div class="small text-muted">
-                                    @item.TenantId
+                                    <strong>
+                                        No existen registros pendientes
+                                    </strong>
+
+                                    <span>
+                                        Los tenants internos de ITQS están
+                                        excluidos automáticamente.
+                                    </span>
+
+                                    @if (HasActiveFilters)
+                                    {
+                                        <button type="button"
+                                                @onclick="ClearFilters">
+                                            Limpiar filtros
+                                        </button>
+                                    }
                                 </div>
-                            </td>
-
-                            <td>
-                                <strong>
-                                    @FormatText(item.SubscriptionName)
-                                </strong>
-
-                                <div class="small text-muted">
-                                    @FormatGuid(item.SubscriptionId)
-                                </div>
-                            </td>
-
-                            <td>
-                                <span class="@GetValidationBadge(item.PartnerValidationStatus)">
-                                    @FormatText(item.PartnerValidationStatus)
-                                </span>
-                            </td>
-
-                            <td class="text-break">
-                                @FormatText(item.PartnerIdCurrent)
-                            </td>
-
-                            <td class="text-break">
-                                @FormatText(item.PartnerIdTarget)
-                            </td>
-
-                            <td>
-                                @FormatText(item.Action)
-                            </td>
-
-                            <td class="palm-error-cell"
-                                title="@item.ErrorMessage">
-                                @FormatText(item.ErrorMessage)
-                            </td>
-
-                            <td class="text-nowrap">
-                                @item.ScanDate.ToString("dd/MM/yyyy HH:mm")
                             </td>
                         </tr>
                     }
-                }
-            </tbody>
-        </table>
+                    else
+                    {
+                        @foreach (var item in PagedResources)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="palm-action-customer">
+                                        <div class="palm-action-avatar">
+                                            @GetInitial(item.CustomerName)
+                                        </div>
+
+                                        <div>
+                                            <strong>
+                                                @FormatText(item.CustomerName)
+                                            </strong>
+
+                                            <code title="@item.TenantId">
+                                                @FormatIdentifier(item.TenantId)
+                                            </code>
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <td>
+                                    <div class="palm-action-subscription">
+                                        <strong>
+                                            @FormatText(item.SubscriptionName)
+                                        </strong>
+
+                                        <code title="@FormatGuid(item.SubscriptionId)">
+                                            @FormatIdentifier(item.SubscriptionId)
+                                        </code>
+                                    </div>
+                                </td>
+
+                                <td>
+                                    <span class="@GetValidationClass(
+                                        item.PartnerValidationStatus)">
+
+                                        @FormatValidation(
+                                            item.PartnerValidationStatus)
+                                    </span>
+                                </td>
+
+                                <td>
+                                    <span class="palm-action-partner current">
+                                        @FormatText(item.PartnerIdCurrent)
+                                    </span>
+                                </td>
+
+                                <td>
+                                    <span class="palm-action-partner target">
+                                        @FormatText(item.PartnerIdTarget)
+                                    </span>
+                                </td>
+
+                                <td>
+                                    <span class="@GetActionClass(item.Action)">
+                                        <i class="@GetActionIcon(item.Action)"></i>
+                                        @FormatAction(item.Action)
+                                    </span>
+                                </td>
+
+                                <td>
+                                    @if (string.IsNullOrWhiteSpace(
+                                        item.ErrorMessage))
+                                    {
+                                        <span class="palm-action-no-error">
+                                            Sin detalle
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <div class="palm-action-error"
+                                             title="@item.ErrorMessage">
+
+                                            <i class="bi bi-exclamation-circle-fill"></i>
+
+                                            <span>
+                                                @ShortenError(item.ErrorMessage)
+                                            </span>
+                                        </div>
+                                    }
+                                </td>
+
+                                <td>
+                                    <div class="palm-action-date">
+                                        <strong>
+                                            @item.ScanDate.ToString("dd/MM/yyyy")
+                                        </strong>
+
+                                        <span>
+                                            @item.ScanDate.ToString("HH:mm")
+                                        </span>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <footer class="palm-action-pagination">
+
+            <div>
+                <span>Filas por página</span>
+
+                <select value="@pageSize"
+                        @onchange="OnPageSizeChanged">
+
+                    <option value="10">10</option>
+                    <option value="25">25</option>
+                    <option value="50">50</option>
+                </select>
+            </div>
+
+            <span>
+                Mostrando
+                <strong>@FirstVisibleRecord</strong>
+                -
+                <strong>@LastVisibleRecord</strong>
+                de
+                <strong>@FilteredResources.Count</strong>
+            </span>
+
+            <div class="palm-action-page-buttons">
+
+                <button type="button"
+                        disabled="@(currentPage <= 1)"
+                        @onclick="PreviousPage">
+
+                    <i class="bi bi-chevron-left"></i>
+                </button>
+
+                <span>
+                    Página
+                    <strong>@currentPage</strong>
+                    de
+                    <strong>@TotalPages</strong>
+                </span>
+
+                <button type="button"
+                        disabled="@(currentPage >= TotalPages)"
+                        @onclick="NextPage">
+
+                    <i class="bi bi-chevron-right"></i>
+                </button>
+
+            </div>
+        </footer>
     </div>
-</div>
+</section>
 
 @code {
     [Parameter]
     public IReadOnlyList<PalmResource> Resources { get; set; }
         = Array.Empty<PalmResource>();
 
-    private string searchText = string.Empty;
+    private string customerSearch = string.Empty;
+    private string subscriptionSearch = string.Empty;
+    private string selectedValidation = string.Empty;
 
-    private IEnumerable<PalmResource> FilteredResources =>
+    private int currentPage = 1;
+    private int pageSize = 10;
+
+    private List<PalmResource> FilteredResources =>
         Resources
-            .Where(MatchesSearch)
+            .Where(MatchesCustomer)
+            .Where(MatchesSubscription)
+            .Where(MatchesValidation)
             .OrderBy(resource => resource.CustomerName)
-            .ThenBy(resource => resource.SubscriptionName);
+            .ThenBy(resource => resource.SubscriptionName)
+            .ToList();
 
-    private bool MatchesSearch(PalmResource resource)
+    private List<PalmResource> PagedResources =>
+        FilteredResources
+            .Skip((currentPage - 1) * pageSize)
+            .Take(pageSize)
+            .ToList();
+
+    private IReadOnlyList<string> ValidationOptions =>
+        Resources
+            .Select(resource => resource.PartnerValidationStatus)
+            .Where(value => !string.IsNullOrWhiteSpace(value))
+            .Select(value => value!.Trim())
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(value => value)
+            .ToList();
+
+    private int TotalPages =>
+        FilteredResources.Count == 0
+            ? 1
+            : (int)Math.Ceiling(
+                FilteredResources.Count / (double)pageSize);
+
+    private int FirstVisibleRecord =>
+        FilteredResources.Count == 0
+            ? 0
+            : ((currentPage - 1) * pageSize) + 1;
+
+    private int LastVisibleRecord =>
+        FilteredResources.Count == 0
+            ? 0
+            : Math.Min(
+                currentPage * pageSize,
+                FilteredResources.Count);
+
+    private int WithoutPartnerCount =>
+        FilteredResources.Count(resource =>
+            IsValidation(
+                resource.PartnerValidationStatus,
+                "SIN_PARTNER_ID",
+                "MISSING",
+                "WITHOUTPARTNERID"));
+
+    private int DifferentPartnerCount =>
+        FilteredResources.Count(resource =>
+            IsValidation(
+                resource.PartnerValidationStatus,
+                "PARTNER_ID_DIFERENTE",
+                "DIFFERENT",
+                "MISMATCH"));
+
+    private int ReadErrorCount =>
+        FilteredResources.Count(resource =>
+            string.Equals(
+                resource.Action,
+                "ReadFailed",
+                StringComparison.OrdinalIgnoreCase));
+
+    private bool HasActiveFilters =>
+        !string.IsNullOrWhiteSpace(customerSearch) ||
+        !string.IsNullOrWhiteSpace(subscriptionSearch) ||
+        !string.IsNullOrWhiteSpace(selectedValidation);
+
+    private bool MatchesCustomer(PalmResource resource)
     {
-        if (string.IsNullOrWhiteSpace(searchText))
+        if (string.IsNullOrWhiteSpace(customerSearch))
         {
             return true;
         }
 
-        var value = searchText.Trim();
+        var search = customerSearch.Trim();
 
-        return Contains(resource.CustomerName, value) ||
-               Contains(resource.TenantId.ToString(), value) ||
-               Contains(resource.SubscriptionName, value) ||
-               Contains(resource.SubscriptionId?.ToString(), value) ||
-               Contains(resource.PartnerValidationStatus, value) ||
-               Contains(resource.Action, value) ||
-               Contains(resource.ErrorMessage, value);
+        return Contains(resource.CustomerName, search) ||
+               Contains(resource.TenantId.ToString(), search);
     }
 
-    private static bool Contains(string? source, string value)
+    private bool MatchesSubscription(PalmResource resource)
+    {
+        if (string.IsNullOrWhiteSpace(subscriptionSearch))
+        {
+            return true;
+        }
+
+        var search = subscriptionSearch.Trim();
+
+        return Contains(resource.SubscriptionName, search) ||
+               Contains(resource.SubscriptionId?.ToString(), search);
+    }
+
+    private bool MatchesValidation(PalmResource resource)
+    {
+        return string.IsNullOrWhiteSpace(selectedValidation) ||
+               string.Equals(
+                   resource.PartnerValidationStatus,
+                   selectedValidation,
+                   StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool Contains(string? source, string search)
     {
         return !string.IsNullOrWhiteSpace(source) &&
                source.Contains(
-                   value,
+                   search,
                    StringComparison.OrdinalIgnoreCase);
+    }
+
+    private void OnCustomerSearchChanged(ChangeEventArgs args)
+    {
+        customerSearch = args.Value?.ToString() ?? string.Empty;
+        currentPage = 1;
+    }
+
+    private void OnSubscriptionSearchChanged(ChangeEventArgs args)
+    {
+        subscriptionSearch =
+            args.Value?.ToString() ?? string.Empty;
+
+        currentPage = 1;
+    }
+
+    private void OnValidationChanged(ChangeEventArgs args)
+    {
+        selectedValidation =
+            args.Value?.ToString() ?? string.Empty;
+
+        currentPage = 1;
+    }
+
+    private void OnPageSizeChanged(ChangeEventArgs args)
+    {
+        if (int.TryParse(
+            args.Value?.ToString(),
+            out var value))
+        {
+            pageSize = value;
+        }
+
+        currentPage = 1;
+    }
+
+    private void ClearFilters()
+    {
+        customerSearch = string.Empty;
+        subscriptionSearch = string.Empty;
+        selectedValidation = string.Empty;
+        currentPage = 1;
+    }
+
+    private void PreviousPage()
+    {
+        if (currentPage > 1)
+        {
+            currentPage--;
+        }
+    }
+
+    private void NextPage()
+    {
+        if (currentPage < TotalPages)
+        {
+            currentPage++;
+        }
+    }
+
+    private static bool IsValidation(
+        string? value,
+        params string[] options)
+    {
+        return !string.IsNullOrWhiteSpace(value) &&
+               options.Any(option =>
+                   string.Equals(
+                       value.Trim(),
+                       option,
+                       StringComparison.OrdinalIgnoreCase));
     }
 
     private static string FormatText(string? value)
     {
         return string.IsNullOrWhiteSpace(value)
             ? "No disponible"
-            : value;
+            : value.Trim();
     }
 
     private static string FormatGuid(Guid? value)
@@ -154,23 +510,113 @@
             : "No disponible";
     }
 
-    private static string GetValidationBadge(string? status)
+    private static string FormatIdentifier(Guid value)
     {
-        var normalized = status?.Trim().ToUpperInvariant();
+        return FormatIdentifier(value.ToString());
+    }
 
-        return normalized switch
+    private static string FormatIdentifier(Guid? value)
+    {
+        return value.HasValue && value.Value != Guid.Empty
+            ? FormatIdentifier(value.Value.ToString())
+            : "No disponible";
+    }
+
+    private static string FormatIdentifier(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
         {
-            "CORRECT" or "OK" or "VALID" =>
-                "badge text-bg-success",
+            return "No disponible";
+        }
 
-            "DIFFERENT" or "MISMATCH" =>
-                "badge text-bg-warning",
+        var normalized = value.Trim();
 
-            "MISSING" or "WITHOUTPARTNERID" or "NOK" =>
-                "badge text-bg-danger",
+        return normalized.Length > 20
+            ? $"{normalized[..8]}...{normalized[^6..]}"
+            : normalized;
+    }
 
-            _ =>
-                "badge text-bg-secondary"
+    private static string GetInitial(string? value)
+    {
+        return string.IsNullOrWhiteSpace(value)
+            ? "?"
+            : value.Trim()[0]
+                .ToString()
+                .ToUpperInvariant();
+    }
+
+    private static string FormatValidation(string? value)
+    {
+        return value?.Trim().ToUpperInvariant() switch
+        {
+            "PARTNER_ID_CORRECTO" => "Partner ID correcto",
+            "SIN_PARTNER_ID" => "Sin Partner ID",
+            "PARTNER_ID_DIFERENTE" => "Partner ID diferente",
+            "MISSING" => "Sin Partner ID",
+            "WITHOUTPARTNERID" => "Sin Partner ID",
+            "DIFFERENT" => "Partner diferente",
+            "MISMATCH" => "Partner diferente",
+            _ => string.IsNullOrWhiteSpace(value)
+                ? "No disponible"
+                : value.Replace("_", " ")
         };
+    }
+
+    private static string FormatAction(string? value)
+    {
+        return value?.Trim().ToUpperInvariant() switch
+        {
+            "READFAILED" => "Error de lectura",
+            "REFRESHED" => "Actualizado",
+            "UPDATED" => "Actualizado",
+            _ => string.IsNullOrWhiteSpace(value)
+                ? "Sin acción"
+                : value
+        };
+    }
+
+    private static string GetValidationClass(string? value)
+    {
+        return IsValidation(
+            value,
+            "PARTNER_ID_DIFERENTE",
+            "DIFFERENT",
+            "MISMATCH")
+                ? "palm-action-validation warning"
+                : "palm-action-validation danger";
+    }
+
+    private static string GetActionClass(string? value)
+    {
+        return string.Equals(
+            value,
+            "ReadFailed",
+            StringComparison.OrdinalIgnoreCase)
+                ? "palm-action-state danger"
+                : "palm-action-state neutral";
+    }
+
+    private static string GetActionIcon(string? value)
+    {
+        return string.Equals(
+            value,
+            "ReadFailed",
+            StringComparison.OrdinalIgnoreCase)
+                ? "bi bi-shield-exclamation"
+                : "bi bi-tools";
+    }
+
+    private static string ShortenError(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return "Sin detalle";
+        }
+
+        var normalized = value.Trim();
+
+        return normalized.Length > 75
+            ? $"{normalized[..75]}..."
+            : normalized;
     }
 }

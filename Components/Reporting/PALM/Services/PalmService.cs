@@ -6,6 +6,13 @@ namespace ITQS.SupportOperationsCenter.Components.Reporting.PALM.Services;
 
 public sealed class PalmService : IPalmService
 {
+    private static readonly HashSet<Guid> InternalTenantIds =
+    [
+        Guid.Parse("dae6c85d-d6cf-4c0c-88c0-c9ebe847f4de"),
+        Guid.Parse("cea8e8e7-5cdf-446c-8a5a-b97daea0d9f0"),
+        Guid.Parse("fd548a39-0203-4765-bb62-bd2727d07f04")
+    ];
+
     private readonly ISqlConnectionFactory _connectionFactory;
     private readonly ILogger<PalmService> _logger;
 
@@ -160,6 +167,19 @@ public sealed class PalmService : IPalmService
             var runHistory =
                 (await multi.ReadAsync<PalmRun>())
                 .ToList();
+
+            results = results
+                .Where(resource => !IsInternalTenant(resource))
+                .ToList();
+
+            requiresAction = requiresAction
+                .Where(resource => !IsInternalTenant(resource))
+                .ToList();
+
+            RecalculateDashboard(
+                dashboard,
+                results,
+                requiresAction);
 
             return new PalmReportData
             {
@@ -353,6 +373,100 @@ public sealed class PalmService : IPalmService
             commandTimeout: 120);
 
         return rows.ToList();
+    }
+
+    private static bool IsInternalTenant(PalmResource resource)
+    {
+        return resource.TenantId != Guid.Empty &&
+               InternalTenantIds.Contains(resource.TenantId);
+    }
+
+    private static void RecalculateDashboard(
+        PalmDashboard dashboard,
+        IReadOnlyCollection<PalmResource> results,
+        IReadOnlyCollection<PalmResource> requiresAction)
+    {
+        dashboard.TotalCustomers = results
+            .Select(resource => resource.TenantId)
+            .Where(tenantId => tenantId != Guid.Empty)
+            .Distinct()
+            .LongCount();
+
+        dashboard.TotalOK = results.Count(resource =>
+            string.Equals(
+                resource.Status,
+                "OK",
+                StringComparison.OrdinalIgnoreCase));
+
+        dashboard.TotalNOK = results.Count(resource =>
+            string.Equals(
+                resource.Status,
+                "NOK",
+                StringComparison.OrdinalIgnoreCase));
+
+        dashboard.TotalRefreshed = results.Count(resource =>
+            string.Equals(
+                resource.Action,
+                "Refreshed",
+                StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(
+                resource.Action,
+                "Updated",
+                StringComparison.OrdinalIgnoreCase));
+
+        dashboard.PartnerIdCorrect = results.Count(resource =>
+            IsValidation(
+                resource.PartnerValidationStatus,
+                "PARTNER_ID_CORRECTO",
+                "CORRECT",
+                "OK",
+                "VALID"));
+
+        dashboard.WithoutPartnerId = results.Count(resource =>
+            IsValidation(
+                resource.PartnerValidationStatus,
+                "SIN_PARTNER_ID",
+                "MISSING",
+                "WITHOUTPARTNERID"));
+
+        dashboard.DifferentPartnerId = results.Count(resource =>
+            IsValidation(
+                resource.PartnerValidationStatus,
+                "PARTNER_ID_DIFERENTE",
+                "DIFFERENT",
+                "MISMATCH"));
+
+        dashboard.RequiresAction = requiresAction.Count;
+
+        dashboard.TotalVisibleSubscriptions = results.Sum(resource =>
+            Math.Max(resource.VisibleSubscriptions, 0));
+
+        var evaluated =
+            dashboard.PartnerIdCorrect +
+            dashboard.WithoutPartnerId +
+            dashboard.DifferentPartnerId;
+
+        dashboard.CompliancePercent = evaluated == 0
+            ? 0m
+            : Math.Round(
+                dashboard.PartnerIdCorrect * 100m / evaluated,
+                2);
+    }
+
+    private static bool IsValidation(
+        string? value,
+        params string[] expectedValues)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return false;
+        }
+
+        return expectedValues.Any(expected =>
+            string.Equals(
+                value.Trim(),
+                expected,
+                StringComparison.OrdinalIgnoreCase));
     }
 }
 
