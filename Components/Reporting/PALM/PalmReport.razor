@@ -8,27 +8,57 @@
 
 <PageTitle>Reporte PALM</PageTitle>
 
-<div class="palm-report-page">
+<section class="palm-page">
 
-    <header class="palm-report-header">
-        <div>
-            <div class="palm-report-eyebrow">
+    <section class="palm-hero">
+        <div class="palm-hero-content">
+            <span class="palm-eyebrow">
                 Microsoft Partner Association
-            </div>
+            </span>
 
             <h1>Reporte PALM</h1>
 
             <p>
-                Validación centralizada de la asociación de Partner ID
-                para clientes y suscripciones administradas.
+                Centro ejecutivo para validar la asociación de Partner ID,
+                identificar clientes que requieren atención y consultar la
+                trazabilidad de las ejecuciones PALM.
             </p>
+
+            @if (reportData is not null)
+            {
+                <div class="palm-meta">
+                    <span>
+                        <i class="bi bi-buildings"></i>
+                        @reportData.Dashboard.TotalCustomers.ToString("N0")
+                        clientes
+                    </span>
+
+                    <span>
+                        <i class="bi bi-check-circle"></i>
+                        @reportData.Dashboard.TotalOK.ToString("N0")
+                        correctos
+                    </span>
+
+                    <span>
+                        <i class="bi bi-exclamation-triangle"></i>
+                        @reportData.Dashboard.RequiresAction.ToString("N0")
+                        requieren acción
+                    </span>
+
+                    <span>
+                        <i class="bi bi-speedometer2"></i>
+                        @reportData.Dashboard.CompliancePercent.ToString("N2")%
+                        cumplimiento
+                    </span>
+                </div>
+            }
         </div>
 
-        <div class="palm-report-header-actions">
+        <div class="palm-hero-actions">
             @if (lastLoadedAt.HasValue)
             {
-                <span class="palm-last-update">
-                    Consultado:
+                <span class="palm-consulted">
+                    Última consulta
                     <strong>
                         @lastLoadedAt.Value.ToString("dd/MM/yyyy HH:mm:ss")
                     </strong>
@@ -36,13 +66,13 @@
             }
 
             <button type="button"
-                    class="btn btn-outline-primary"
+                    class="palm-btn palm-btn-primary"
                     disabled="@isLoading"
                     @onclick="LoadReportAsync">
 
                 @if (isLoading)
                 {
-                    <span class="spinner-border spinner-border-sm me-2"
+                    <span class="spinner-border spinner-border-sm"
                           aria-hidden="true">
                     </span>
 
@@ -50,126 +80,451 @@
                 }
                 else
                 {
-                    <i class="bi bi-arrow-clockwise me-2"></i>
+                    <i class="bi bi-arrow-clockwise"></i>
                     <span>Actualizar</span>
                 }
             </button>
         </div>
-    </header>
+    </section>
+
+    <nav class="palm-tabs"
+         aria-label="Secciones del reporte PALM">
+
+        <button type="button"
+                class="@GetTabClass("Dashboard")"
+                @onclick='() => ChangeTab("Dashboard")'>
+
+            <i class="bi bi-speedometer2"></i>
+            Dashboard
+        </button>
+
+        <button type="button"
+                class="@GetTabClass("Results")"
+                @onclick='() => ChangeTab("Results")'>
+
+            <i class="bi bi-list-check"></i>
+            Resultados
+
+            @if (reportData is not null)
+            {
+                <span class="palm-tab-counter">
+                    @reportData.Results.Count
+                </span>
+            }
+        </button>
+
+        <button type="button"
+                class="@GetTabClass("Action")"
+                @onclick='() => ChangeTab("Action")'>
+
+            <i class="bi bi-exclamation-triangle"></i>
+            Requieren acción
+
+            @if (reportData is not null &&
+                 reportData.RequiresAction.Count > 0)
+            {
+                <span class="palm-tab-counter palm-tab-counter-warning">
+                    @reportData.RequiresAction.Count
+                </span>
+            }
+        </button>
+
+        <button type="button"
+                class="@GetTabClass("History")"
+                @onclick='() => ChangeTab("History")'>
+
+            <i class="bi bi-clock-history"></i>
+            Historial
+
+            @if (reportData is not null)
+            {
+                <span class="palm-tab-counter">
+                    @reportData.RunHistory.Count
+                </span>
+            }
+        </button>
+    </nav>
 
     @if (isLoading && reportData is null)
     {
-        <div class="palm-loading-state">
+        <section class="palm-state-card">
             <div class="spinner-border text-primary"
                  role="status">
+
                 <span class="visually-hidden">Cargando...</span>
             </div>
 
             <h3>Cargando reporte PALM</h3>
 
             <p>
-                Consultando el dashboard, los resultados y el historial.
+                Consultando dashboard, resultados, incidencias e historial.
             </p>
-        </div>
+        </section>
     }
     else if (!string.IsNullOrWhiteSpace(errorMessage))
     {
-        <div class="alert alert-danger shadow-sm"
-             role="alert">
-
-            <div class="d-flex align-items-start gap-3">
-                <i class="bi bi-exclamation-octagon-fill fs-4"></i>
-
-                <div class="flex-grow-1">
-                    <h5 class="alert-heading mb-1">
-                        No fue posible cargar el reporte
-                    </h5>
-
-                    <p class="mb-3">
-                        @errorMessage
-                    </p>
-
-                    <button type="button"
-                            class="btn btn-danger"
-                            disabled="@isLoading"
-                            @onclick="LoadReportAsync">
-
-                        <i class="bi bi-arrow-clockwise me-2"></i>
-                        Reintentar
-                    </button>
-                </div>
+        <section class="palm-error-card">
+            <div class="palm-error-icon">
+                <i class="bi bi-exclamation-octagon-fill"></i>
             </div>
-        </div>
+
+            <div>
+                <h3>No fue posible cargar el reporte</h3>
+
+                <p>@errorMessage</p>
+
+                <button type="button"
+                        class="palm-btn palm-btn-danger"
+                        disabled="@isLoading"
+                        @onclick="LoadReportAsync">
+
+                    <i class="bi bi-arrow-clockwise"></i>
+                    Reintentar
+                </button>
+            </div>
+        </section>
     }
     else if (reportData is not null)
     {
-        <PalmInformation LatestRun="@reportData.LatestRun" />
+        @if (activeTab == "Dashboard")
+        {
+            <section class="palm-tab-content">
 
-        <section class="palm-section">
-            <div class="palm-section-title">
-                <div>
-                    <span>Resumen ejecutivo</span>
-                    <h2>Estado general de cumplimiento</h2>
+                <div class="palm-content-heading">
+                    <div>
+                        <span>Resumen ejecutivo</span>
+                        <h2>Estado general de cumplimiento</h2>
+
+                        <p>
+                            Indicadores consolidados de clientes,
+                            suscripciones y asociación de Partner ID.
+                        </p>
+                    </div>
+
+                    <div class="@GetComplianceBadgeClass()">
+                        @reportData.Dashboard.CompliancePercent.ToString("N2")%
+                        cumplimiento
+                    </div>
                 </div>
 
-                <i class="bi bi-speedometer2"></i>
-            </div>
+                <PalmDashboardSummary
+                    Dashboard="@reportData.Dashboard" />
 
-            <PalmDashboardSummary Dashboard="@reportData.Dashboard" />
-        </section>
+                <section class="palm-dashboard-grid">
 
-        <section class="palm-section">
-            <div class="palm-section-title">
-                <div>
-                    <span>Seguimiento operativo</span>
-                    <h2>Registros que requieren acción</h2>
+                    <article class="palm-card">
+                        <header class="palm-card-header">
+                            <div>
+                                <span>Última ejecución</span>
+                                <h3>Información operativa</h3>
+                            </div>
+
+                            <div class="palm-card-icon palm-icon-blue">
+                                <i class="bi bi-terminal"></i>
+                            </div>
+                        </header>
+
+                        <PalmInformation
+                            LatestRun="@reportData.LatestRun" />
+                    </article>
+
+                    <article class="palm-card palm-recommendations-card">
+                        <header class="palm-card-header">
+                            <div>
+                                <span>Evaluación automática</span>
+                                <h3>Recomendaciones</h3>
+
+                                <p>
+                                    Resumen de los principales resultados
+                                    obtenidos en el último análisis.
+                                </p>
+                            </div>
+
+                            <div class="palm-card-icon palm-icon-purple">
+                                <i class="bi bi-lightbulb"></i>
+                            </div>
+                        </header>
+
+                        <div class="palm-recommendation-grid">
+
+                            <button type="button"
+                                    class="palm-recommendation success"
+                                    @onclick='() => ChangeTab("Results")'>
+
+                                <div class="palm-recommendation-icon">
+                                    <i class="bi bi-check-lg"></i>
+                                </div>
+
+                                <div>
+                                    <strong>
+                                        @reportData.Dashboard.PartnerIdCorrect.ToString("N0")
+                                    </strong>
+
+                                    <span>Partner ID correctos</span>
+
+                                    <small>
+                                        Clientes asociados correctamente.
+                                    </small>
+                                </div>
+                            </button>
+
+                            <button type="button"
+                                    class="palm-recommendation danger"
+                                    @onclick='() => ChangeTab("Action")'>
+
+                                <div class="palm-recommendation-icon">
+                                    <i class="bi bi-link-45deg"></i>
+                                </div>
+
+                                <div>
+                                    <strong>
+                                        @reportData.Dashboard.WithoutPartnerId.ToString("N0")
+                                    </strong>
+
+                                    <span>Sin Partner ID</span>
+
+                                    <small>
+                                        Requieren validación o asociación.
+                                    </small>
+                                </div>
+                            </button>
+
+                            <button type="button"
+                                    class="palm-recommendation warning"
+                                    @onclick='() => ChangeTab("Action")'>
+
+                                <div class="palm-recommendation-icon">
+                                    <i class="bi bi-arrow-left-right"></i>
+                                </div>
+
+                                <div>
+                                    <strong>
+                                        @reportData.Dashboard.DifferentPartnerId.ToString("N0")
+                                    </strong>
+
+                                    <span>Partner ID diferente</span>
+
+                                    <small>
+                                        El valor actual no coincide con el esperado.
+                                    </small>
+                                </div>
+                            </button>
+
+                            <button type="button"
+                                    class="palm-recommendation info"
+                                    @onclick='() => ChangeTab("Results")'>
+
+                                <div class="palm-recommendation-icon">
+                                    <i class="bi bi-cloud-check"></i>
+                                </div>
+
+                                <div>
+                                    <strong>
+                                        @reportData.Dashboard.TotalVisibleSubscriptions.ToString("N0")
+                                    </strong>
+
+                                    <span>Suscripciones visibles</span>
+
+                                    <small>
+                                        Suscripciones procesadas por PALM.
+                                    </small>
+                                </div>
+                            </button>
+
+                            <button type="button"
+                                    class="palm-recommendation purple"
+                                    @onclick='() => ChangeTab("Action")'>
+
+                                <div class="palm-recommendation-icon">
+                                    <i class="bi bi-exclamation-diamond"></i>
+                                </div>
+
+                                <div>
+                                    <strong>
+                                        @reportData.Dashboard.RequiresAction.ToString("N0")
+                                    </strong>
+
+                                    <span>Requieren acción</span>
+
+                                    <small>
+                                        Registros pendientes de intervención.
+                                    </small>
+                                </div>
+                            </button>
+
+                        </div>
+                    </article>
+                </section>
+            </section>
+        }
+        else if (activeTab == "Results")
+        {
+            <section class="palm-tab-content">
+
+                <div class="palm-content-heading">
+                    <div>
+                        <span>Inventario validado</span>
+                        <h2>Resultados de asociación</h2>
+
+                        <p>
+                            Consulta el resultado completo por cliente,
+                            tenant, suscripción y Partner ID.
+                        </p>
+                    </div>
+
+                    <div class="palm-heading-counter">
+                        @reportData.Results.Count registros
+                    </div>
                 </div>
 
-                <div class="palm-section-counter palm-counter-warning">
-                    @reportData.RequiresAction.Count registros
+                <div class="palm-summary-strip">
+                    <article>
+                        <span>Total evaluados</span>
+                        <strong>
+                            @reportData.Dashboard.TotalCustomers.ToString("N0")
+                        </strong>
+                    </article>
+
+                    <article class="success">
+                        <span>Correctos</span>
+                        <strong>
+                            @reportData.Dashboard.TotalOK.ToString("N0")
+                        </strong>
+                    </article>
+
+                    <article class="danger">
+                        <span>Con error</span>
+                        <strong>
+                            @reportData.Dashboard.TotalNOK.ToString("N0")
+                        </strong>
+                    </article>
+
+                    <article class="info">
+                        <span>Suscripciones</span>
+                        <strong>
+                            @reportData.Dashboard.TotalVisibleSubscriptions.ToString("N0")
+                        </strong>
+                    </article>
                 </div>
-            </div>
 
-            <PalmRequiresAction Resources="@reportData.RequiresAction" />
-        </section>
+                <PalmResults Resources="@reportData.Results" />
+            </section>
+        }
+        else if (activeTab == "Action")
+        {
+            <section class="palm-tab-content">
 
-        <section class="palm-section">
-            <div class="palm-section-title">
-                <div>
-                    <span>Inventario validado</span>
-                    <h2>Resultados de asociación</h2>
+                <div class="palm-content-heading">
+                    <div>
+                        <span>Seguimiento operativo</span>
+                        <h2>Registros que requieren acción</h2>
+
+                        <p>
+                            Clientes con ausencia de Partner ID,
+                            diferencias de asociación o errores de lectura.
+                        </p>
+                    </div>
+
+                    <div class="palm-heading-counter warning">
+                        @reportData.RequiresAction.Count pendientes
+                    </div>
                 </div>
 
-                <div class="palm-section-counter">
-                    @reportData.Results.Count registros
+                <div class="palm-action-banner">
+                    <div class="palm-action-banner-icon">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                    </div>
+
+                    <div>
+                        <strong>
+                            @reportData.RequiresAction.Count registros
+                            requieren revisión
+                        </strong>
+
+                        <span>
+                            Valida permisos, acceso a las suscripciones y
+                            asociación del Partner ID esperado.
+                        </span>
+                    </div>
                 </div>
-            </div>
 
-            <PalmResults Resources="@reportData.Results" />
-        </section>
+                <PalmRequiresAction
+                    Resources="@reportData.RequiresAction" />
+            </section>
+        }
+        else if (activeTab == "History")
+        {
+            <section class="palm-tab-content">
 
-        <section class="palm-section">
-            <div class="palm-section-title">
-                <div>
-                    <span>Trazabilidad</span>
-                    <h2>Historial de ejecuciones</h2>
+                <div class="palm-content-heading">
+                    <div>
+                        <span>Trazabilidad</span>
+                        <h2>Historial de ejecuciones</h2>
+
+                        <p>
+                            Consulta duración, resultados, porcentaje de éxito
+                            y estado de cada ejecución PALM.
+                        </p>
+                    </div>
+
+                    <div class="palm-heading-counter">
+                        @reportData.RunHistory.Count ejecuciones
+                    </div>
                 </div>
 
-                <div class="palm-section-counter">
-                    @reportData.RunHistory.Count ejecuciones
-                </div>
-            </div>
+                <div class="palm-history-summary">
+                    <article>
+                        <div class="palm-history-icon">
+                            <i class="bi bi-clock-history"></i>
+                        </div>
 
-            <PalmHistory Runs="@reportData.RunHistory" />
-        </section>
+                        <div>
+                            <span>Ejecuciones registradas</span>
+                            <strong>
+                                @reportData.RunHistory.Count.ToString("N0")
+                            </strong>
+                        </div>
+                    </article>
+
+                    <article>
+                        <div class="palm-history-icon success">
+                            <i class="bi bi-graph-up-arrow"></i>
+                        </div>
+
+                        <div>
+                            <span>Último porcentaje de éxito</span>
+                            <strong>
+                                @(reportData.LatestRun?.SuccessPercent.ToString("N2") ?? "0.00")%
+                            </strong>
+                        </div>
+                    </article>
+
+                    <article>
+                        <div class="palm-history-icon info">
+                            <i class="bi bi-calendar-check"></i>
+                        </div>
+
+                        <div>
+                            <span>Última ejecución</span>
+                            <strong>
+                                @FormatLatestRunDate()
+                            </strong>
+                        </div>
+                    </article>
+                </div>
+
+                <PalmHistory Runs="@reportData.RunHistory" />
+            </section>
+        }
     }
-</div>
+</section>
 
 @code {
     private PalmReportData? reportData;
     private bool isLoading;
     private string? errorMessage;
     private DateTime? lastLoadedAt;
+    private string activeTab = "Dashboard";
 
     protected override async Task OnInitializedAsync()
     {
@@ -201,5 +556,50 @@
         {
             isLoading = false;
         }
+    }
+
+    private void ChangeTab(string tab)
+    {
+        activeTab = tab;
+    }
+
+    private string GetTabClass(string tab)
+    {
+        return string.Equals(
+            activeTab,
+            tab,
+            StringComparison.OrdinalIgnoreCase)
+                ? "active"
+                : string.Empty;
+    }
+
+    private string GetComplianceBadgeClass()
+    {
+        if (reportData is null)
+        {
+            return "palm-compliance-badge neutral";
+        }
+
+        var value = reportData.Dashboard.CompliancePercent;
+
+        if (value >= 95m)
+        {
+            return "palm-compliance-badge success";
+        }
+
+        if (value >= 80m)
+        {
+            return "palm-compliance-badge warning";
+        }
+
+        return "palm-compliance-badge danger";
+    }
+
+    private string FormatLatestRunDate()
+    {
+        return reportData?.LatestRun is null
+            ? "No disponible"
+            : reportData.LatestRun.StartedAt
+                .ToString("dd/MM/yyyy HH:mm");
     }
 }
