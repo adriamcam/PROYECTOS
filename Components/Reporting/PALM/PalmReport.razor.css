@@ -856,3 +856,112 @@
         flex-direction: column;
     }
 }
+
+/* ============================================
+   PALM - INFORMACIÓN TÉCNICA
+============================================ */
+
+.palm-btn-information {
+    color: #ffffff;
+    background: rgba(255, 255, 255, .14);
+    border: 1px solid rgba(255, 255, 255, .24);
+}
+
+.palm-btn-information:hover:not(:disabled) {
+    background: rgba(255, 255, 255, .22);
+}
+
+.palm-info-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1040;
+    background: rgba(15, 23, 42, .62);
+    backdrop-filter: blur(2px);
+}
+
+.palm-info-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    z-index: 1050;
+    width: min(900px, calc(100vw - 32px));
+    max-height: calc(100vh - 42px);
+    overflow: hidden;
+    background: #ffffff;
+    border: 1px solid #dbe3ee;
+    border-radius: 20px;
+    box-shadow: 0 28px 70px rgba(15, 23, 42, .28);
+    transform: translate(-50%, -50%);
+}
+
+.palm-info-modal-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 20px;
+    background: #ffffff;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.palm-info-modal-header span {
+    display: block;
+    margin-bottom: 4px;
+    color: #64748b;
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+}
+
+.palm-info-modal-header h2 {
+    margin: 0;
+    color: #0f172a;
+    font-size: 20px;
+    font-weight: 900;
+}
+
+.palm-info-close {
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    min-width: 38px;
+    color: #334155;
+    background: #f1f5f9;
+    border: 0;
+    border-radius: 11px;
+    cursor: pointer;
+}
+
+.palm-info-close:hover {
+    color: #ffffff;
+    background: #dc2626;
+}
+
+.palm-info-modal-body {
+    max-height: calc(100vh - 145px);
+    padding: 20px;
+    overflow-y: auto;
+}
+
+@media (max-width: 640px) {
+    .palm-info-modal {
+        width: calc(100vw - 20px);
+        max-height: calc(100vh - 20px);
+        border-radius: 16px;
+    }
+
+    .palm-info-modal-header {
+        padding: 17px;
+    }
+
+    .palm-info-modal-header h2 {
+        font-size: 17px;
+    }
+
+    .palm-info-modal-body {
+        max-height: calc(100vh - 115px);
+        padding: 15px;
+    }
+}

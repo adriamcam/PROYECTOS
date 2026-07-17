@@ -1,0 +1,152 @@
+<section class="palm-tech-info">
+
+    <div class="palm-tech-grid">
+
+        <article class="palm-tech-card">
+            <div class="palm-tech-card-header">
+                <div class="palm-tech-icon primary">
+                    <i class="bi bi-table"></i>
+                </div>
+
+                <div>
+                    <span>Persistencia</span>
+                    <h3>Tablas</h3>
+                </div>
+            </div>
+
+            <ul>
+                <li>
+                    <code>dbo.MPORValidationRuns</code>
+                </li>
+
+                <li>
+                    <code>dbo.MPORValidationResults</code>
+                </li>
+            </ul>
+        </article>
+
+        <article class="palm-tech-card">
+            <div class="palm-tech-card-header">
+                <div class="palm-tech-icon info">
+                    <i class="bi bi-diagram-3"></i>
+                </div>
+
+                <div>
+                    <span>Consulta</span>
+                    <h3>Vistas</h3>
+                </div>
+            </div>
+
+            <ul>
+                <li>
+                    <code>dbo.vw_PALM_Dashboard</code>
+                </li>
+
+                <li>
+                    <code>dbo.vw_PALM_LatestRun</code>
+                </li>
+
+                <li>
+                    <code>dbo.vw_PALM_RequiresAction</code>
+                </li>
+
+                <li>
+                    <code>dbo.vw_PALM_Results</code>
+                </li>
+
+                <li>
+                    <code>dbo.vw_PALM_RunHistory</code>
+                </li>
+            </ul>
+        </article>
+
+        <article class="palm-tech-card">
+            <div class="palm-tech-card-header">
+                <div class="palm-tech-icon purple">
+                    <i class="bi bi-gear"></i>
+                </div>
+
+                <div>
+                    <span>Procesamiento</span>
+                    <h3>Procedimientos</h3>
+                </div>
+            </div>
+
+            <div class="palm-tech-empty">
+                <i class="bi bi-info-circle"></i>
+
+                <span>
+                    El reporte PALM no utiliza procedimientos
+                    almacenados directamente.
+                </span>
+            </div>
+        </article>
+
+    </div>
+
+    <section class="palm-tech-dependencies">
+        <header>
+            <div class="palm-tech-icon success">
+                <i class="bi bi-bezier2"></i>
+            </div>
+
+            <div>
+                <span>Dependencias</span>
+                <h3>Flujo de objetos</h3>
+            </div>
+        </header>
+
+        <div class="palm-tech-flow">
+
+            <div>
+                <code>dbo.MPORValidationResults</code>
+                <i class="bi bi-arrow-right"></i>
+                <code>dbo.vw_PALM_Results</code>
+            </div>
+
+            <div>
+                <code>dbo.vw_PALM_Results</code>
+                <i class="bi bi-arrow-right"></i>
+                <code>dbo.vw_PALM_Dashboard</code>
+            </div>
+
+            <div>
+                <code>dbo.vw_PALM_Results</code>
+                <i class="bi bi-arrow-right"></i>
+                <code>dbo.vw_PALM_RequiresAction</code>
+            </div>
+
+            <div>
+                <code>dbo.MPORValidationRuns</code>
+                <i class="bi bi-arrow-right"></i>
+                <code>dbo.vw_PALM_LatestRun</code>
+            </div>
+
+            <div>
+                <code>dbo.MPORValidationRuns</code>
+                <i class="bi bi-arrow-right"></i>
+                <code>dbo.vw_PALM_RunHistory</code>
+            </div>
+
+        </div>
+    </section>
+
+    <section class="palm-tech-objective">
+        <div class="palm-tech-objective-icon">
+            <i class="bi bi-bullseye"></i>
+        </div>
+
+        <div>
+            <strong>Objetivo del módulo</strong>
+
+            <p>
+                Validar la asociación del Partner ID para clientes y
+                suscripciones administradas, identificar tenants sin
+                Partner ID o con un valor diferente, mostrar los registros
+                que requieren intervención y conservar la trazabilidad de
+                cada ejecución PALM.
+            </p>
+        </div>
+    </section>
+
+</section>

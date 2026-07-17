@@ -66,6 +66,14 @@
             }
 
             <button type="button"
+                    class="palm-btn palm-btn-information"
+                    @onclick="OpenInformation">
+
+                <i class="bi bi-info-circle"></i>
+                <span>Información</span>
+            </button>
+
+            <button type="button"
                     class="palm-btn palm-btn-primary"
                     disabled="@isLoading"
                     @onclick="LoadReportAsync">
@@ -392,12 +400,50 @@
     }
 </section>
 
+@if (showInformation)
+{
+    <div class="palm-info-backdrop"
+         @onclick="CloseInformation">
+    </div>
+
+    <section class="palm-info-modal"
+             role="dialog"
+             aria-modal="true"
+             aria-labelledby="palm-info-title">
+
+        <header class="palm-info-modal-header">
+            <div>
+                <span>Información técnica</span>
+
+                <h2 id="palm-info-title">
+                    Objetos utilizados por el reporte
+                </h2>
+            </div>
+
+            <button type="button"
+                    class="palm-info-close"
+                    title="Cerrar"
+                    @onclick="CloseInformation">
+
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </header>
+
+        <div class="palm-info-modal-body"
+             @onclick:stopPropagation="true">
+
+            <PalmTechnicalInformation />
+        </div>
+    </section>
+}
+
 @code {
     private PalmReportData? reportData;
     private bool isLoading;
     private string? errorMessage;
     private DateTime? lastLoadedAt;
     private string activeTab = "Dashboard";
+    private bool showInformation;
 
     protected override async Task OnInitializedAsync()
     {
@@ -434,6 +480,16 @@
     private void ChangeTab(string tab)
     {
         activeTab = tab;
+    }
+
+    private void OpenInformation()
+    {
+        showInformation = true;
+    }
+
+    private void CloseInformation()
+    {
+        showInformation = false;
     }
 
     private string GetTabClass(string tab)
@@ -476,6 +532,7 @@
                 .ToString("dd/MM/yyyy HH:mm");
     }
 }
+
 
 
 
