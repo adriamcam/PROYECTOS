@@ -3,49 +3,97 @@
 
 <div class="palm-dashboard-layout">
 
-    <article class="palm-kpi-card">
-        <div class="palm-kpi-icon bg-primary-subtle text-primary">
+    <button type="button"
+            class="palm-kpi-card palm-kpi-primary"
+            title="Ver todos los clientes evaluados"
+            @onclick='() => NavigateAsync("Results")'>
+
+        <div class="palm-kpi-icon">
             <i class="bi bi-buildings"></i>
         </div>
 
-        <div>
+        <div class="palm-kpi-content">
             <span>Clientes evaluados</span>
-            <strong>@FormatNumber(Dashboard.TotalCustomers)</strong>
-        </div>
-    </article>
 
-    <article class="palm-kpi-card">
-        <div class="palm-kpi-icon bg-success-subtle text-success">
-            <i class="bi bi-check-circle"></i>
+            <strong>
+                @FormatNumber(Dashboard.TotalCustomers)
+            </strong>
+
+            <small>
+                Ver inventario completo
+                <i class="bi bi-arrow-right"></i>
+            </small>
+        </div>
+    </button>
+
+    <button type="button"
+            class="palm-kpi-card palm-kpi-success"
+            title="Ver resultados correctos"
+            @onclick='() => NavigateAsync("Results")'>
+
+        <div class="palm-kpi-icon">
+            <i class="bi bi-check-circle-fill"></i>
         </div>
 
-        <div>
+        <div class="palm-kpi-content">
             <span>Resultados OK</span>
-            <strong>@FormatNumber(Dashboard.TotalOK)</strong>
-        </div>
-    </article>
 
-    <article class="palm-kpi-card">
-        <div class="palm-kpi-icon bg-danger-subtle text-danger">
-            <i class="bi bi-x-circle"></i>
+            <strong>
+                @FormatNumber(Dashboard.TotalOK)
+            </strong>
+
+            <small>
+                Ver resultados correctos
+                <i class="bi bi-arrow-right"></i>
+            </small>
+        </div>
+    </button>
+
+    <button type="button"
+            class="palm-kpi-card palm-kpi-danger"
+            title="Ver resultados con error"
+            @onclick='() => NavigateAsync("Results")'>
+
+        <div class="palm-kpi-icon">
+            <i class="bi bi-x-circle-fill"></i>
         </div>
 
-        <div>
+        <div class="palm-kpi-content">
             <span>Resultados NOK</span>
-            <strong>@FormatNumber(Dashboard.TotalNOK)</strong>
-        </div>
-    </article>
 
-    <article class="palm-kpi-card">
-        <div class="palm-kpi-icon bg-warning-subtle text-warning">
-            <i class="bi bi-exclamation-triangle"></i>
+            <strong>
+                @FormatNumber(Dashboard.TotalNOK)
+            </strong>
+
+            <small>
+                Ver resultados con error
+                <i class="bi bi-arrow-right"></i>
+            </small>
+        </div>
+    </button>
+
+    <button type="button"
+            class="palm-kpi-card palm-kpi-warning"
+            title="Ver registros que requieren acción"
+            @onclick='() => NavigateAsync("Action")'>
+
+        <div class="palm-kpi-icon">
+            <i class="bi bi-exclamation-triangle-fill"></i>
         </div>
 
-        <div>
+        <div class="palm-kpi-content">
             <span>Requieren acción</span>
-            <strong>@FormatNumber(Dashboard.RequiresAction)</strong>
+
+            <strong>
+                @FormatNumber(Dashboard.RequiresAction)
+            </strong>
+
+            <small>
+                Revisar registros pendientes
+                <i class="bi bi-arrow-right"></i>
+            </small>
         </div>
-    </article>
+    </button>
 
     <section class="palm-panel">
         <div class="palm-panel-heading">
@@ -54,36 +102,67 @@
                 <h3>Estado de asociación</h3>
             </div>
 
-            <i class="bi bi-pie-chart"></i>
+            <div class="palm-panel-icon">
+                <i class="bi bi-pie-chart-fill"></i>
+            </div>
         </div>
 
         <div class="palm-status-list">
-            <div class="palm-status-row">
+
+            <button type="button"
+                    class="palm-status-row"
+                    @onclick='() => NavigateAsync("Results")'>
+
                 <div>
                     <span class="palm-status-dot success"></span>
                     Partner ID correcto
                 </div>
 
-                <strong>@FormatNumber(Dashboard.PartnerIdCorrect)</strong>
-            </div>
+                <div class="palm-status-value">
+                    <strong>
+                        @FormatNumber(Dashboard.PartnerIdCorrect)
+                    </strong>
 
-            <div class="palm-status-row">
+                    <i class="bi bi-chevron-right"></i>
+                </div>
+            </button>
+
+            <button type="button"
+                    class="palm-status-row"
+                    @onclick='() => NavigateAsync("Action")'>
+
                 <div>
                     <span class="palm-status-dot danger"></span>
                     Sin Partner ID
                 </div>
 
-                <strong>@FormatNumber(Dashboard.WithoutPartnerId)</strong>
-            </div>
+                <div class="palm-status-value">
+                    <strong>
+                        @FormatNumber(Dashboard.WithoutPartnerId)
+                    </strong>
 
-            <div class="palm-status-row">
+                    <i class="bi bi-chevron-right"></i>
+                </div>
+            </button>
+
+            <button type="button"
+                    class="palm-status-row"
+                    @onclick='() => NavigateAsync("Action")'>
+
                 <div>
                     <span class="palm-status-dot warning"></span>
                     Partner ID diferente
                 </div>
 
-                <strong>@FormatNumber(Dashboard.DifferentPartnerId)</strong>
-            </div>
+                <div class="palm-status-value">
+                    <strong>
+                        @FormatNumber(Dashboard.DifferentPartnerId)
+                    </strong>
+
+                    <i class="bi bi-chevron-right"></i>
+                </div>
+            </button>
+
         </div>
     </section>
 
@@ -94,24 +173,44 @@
                 <h3>Resumen de validación</h3>
             </div>
 
-            <i class="bi bi-clipboard-data"></i>
+            <div class="palm-panel-icon">
+                <i class="bi bi-clipboard-data-fill"></i>
+            </div>
         </div>
 
         <div class="palm-summary-list">
-            <div>
-                <span>Registros actualizados</span>
-                <strong>@FormatNumber(Dashboard.TotalRefreshed)</strong>
-            </div>
 
-            <div>
+            <button type="button"
+                    @onclick='() => NavigateAsync("Results")'>
+
+                <span>Registros actualizados</span>
+
+                <div>
+                    <strong>
+                        @FormatNumber(Dashboard.TotalRefreshed)
+                    </strong>
+
+                    <i class="bi bi-chevron-right"></i>
+                </div>
+            </button>
+
+            <button type="button"
+                    @onclick='() => NavigateAsync("Results")'>
+
                 <span>Suscripciones visibles</span>
-                <strong>
-                    @FormatNumber(Dashboard.TotalVisibleSubscriptions)
-                </strong>
-            </div>
+
+                <div>
+                    <strong>
+                        @FormatNumber(Dashboard.TotalVisibleSubscriptions)
+                    </strong>
+
+                    <i class="bi bi-chevron-right"></i>
+                </div>
+            </button>
 
             <div>
                 <span>Primer análisis</span>
+
                 <strong>
                     @FormatNullableDateTime(Dashboard.FirstScanDate)
                 </strong>
@@ -119,6 +218,7 @@
 
             <div>
                 <span>Último análisis</span>
+
                 <strong>
                     @FormatNullableDateTime(Dashboard.LastScanDate)
                 </strong>
@@ -126,10 +226,12 @@
 
             <div>
                 <span>Última actualización</span>
+
                 <strong>
                     @FormatNullableDateTime(Dashboard.LastUpdatedAt)
                 </strong>
             </div>
+
         </div>
     </section>
 
@@ -140,10 +242,13 @@
                 <h3>Asociación de Partner ID</h3>
             </div>
 
-            <i class="bi bi-speedometer2"></i>
+            <div class="palm-panel-icon">
+                <i class="bi bi-speedometer2"></i>
+            </div>
         </div>
 
         <div class="palm-compliance-container">
+
             <div class="palm-compliance-value">
                 <strong>
                     @Dashboard.CompliancePercent.ToString(
@@ -151,7 +256,9 @@
                         CultureInfo.InvariantCulture)%
                 </strong>
 
-                <span>Porcentaje general de cumplimiento</span>
+                <span>
+                    Porcentaje general de cumplimiento
+                </span>
             </div>
 
             <div class="palm-progress"
@@ -166,15 +273,35 @@
             </div>
 
             <div class="palm-compliance-footer">
-                <span>
-                    <i class="bi bi-check-circle-fill"></i>
-                    @FormatNumber(Dashboard.PartnerIdCorrect) correctos
-                </span>
 
-                <span>
+                <button type="button"
+                        class="palm-compliance-link success"
+                        @onclick='() => NavigateAsync("Results")'>
+
+                    <i class="bi bi-check-circle-fill"></i>
+
+                    <span>
+                        @FormatNumber(Dashboard.PartnerIdCorrect)
+                        correctos
+                    </span>
+
+                    <i class="bi bi-arrow-right"></i>
+                </button>
+
+                <button type="button"
+                        class="palm-compliance-link warning"
+                        @onclick='() => NavigateAsync("Action")'>
+
                     <i class="bi bi-exclamation-triangle-fill"></i>
-                    @FormatNumber(Dashboard.RequiresAction) requieren acción
-                </span>
+
+                    <span>
+                        @FormatNumber(Dashboard.RequiresAction)
+                        requieren acción
+                    </span>
+
+                    <i class="bi bi-arrow-right"></i>
+                </button>
+
             </div>
         </div>
     </section>
@@ -183,6 +310,17 @@
 @code {
     [Parameter]
     public PalmDashboard Dashboard { get; set; } = new();
+
+    [Parameter]
+    public EventCallback<string> OnNavigate { get; set; }
+
+    private async Task NavigateAsync(string tab)
+    {
+        if (OnNavigate.HasDelegate)
+        {
+            await OnNavigate.InvokeAsync(tab);
+        }
+    }
 
     private static string FormatNumber(long value)
     {
@@ -199,7 +337,10 @@
     private int GetComplianceAriaValue()
     {
         return Convert.ToInt32(
-            Math.Clamp(Dashboard.CompliancePercent, 0m, 100m));
+            Math.Clamp(
+                Dashboard.CompliancePercent,
+                0m,
+                100m));
     }
 
     private string GetComplianceStyle()

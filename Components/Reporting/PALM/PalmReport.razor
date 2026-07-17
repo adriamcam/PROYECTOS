@@ -208,7 +208,8 @@
                 </div>
 
                 <PalmDashboardSummary
-                    Dashboard="@reportData.Dashboard" />
+                    Dashboard="@reportData.Dashboard"
+                    OnNavigate="ChangeTab" />
             </section>
         }
         else if (activeTab == "Results")
@@ -475,6 +476,7 @@
                 .ToString("dd/MM/yyyy HH:mm");
     }
 }
+
 
 
 
