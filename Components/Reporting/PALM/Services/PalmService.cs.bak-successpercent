@@ -45,16 +45,7 @@ public sealed class PalmService : IPalmService
             TotalSubscriptions,
             TotalOK,
             TotalNOK,
-            CAST(
-                CASE
-                    WHEN ISNULL(TotalOK, 0) + ISNULL(TotalNOK, 0) = 0
-                        THEN 0
-                    ELSE
-                        ISNULL(TotalOK, 0) * 100.0
-                        / (ISNULL(TotalOK, 0) + ISNULL(TotalNOK, 0))
-                END
-                AS decimal(10,2)
-            ) AS SuccessPercent,
+            SuccessPercent,
             Status,
             Detail,
             CreatedAt
@@ -117,16 +108,7 @@ public sealed class PalmService : IPalmService
             TotalSubscriptions,
             TotalOK,
             TotalNOK,
-            CAST(
-                CASE
-                    WHEN ISNULL(TotalOK, 0) + ISNULL(TotalNOK, 0) = 0
-                        THEN 0
-                    ELSE
-                        ISNULL(TotalOK, 0) * 100.0
-                        / (ISNULL(TotalOK, 0) + ISNULL(TotalNOK, 0))
-                END
-                AS decimal(10,2)
-            ) AS SuccessPercent,
+            SuccessPercent,
             Status,
             Detail,
             CreatedAt
@@ -294,16 +276,7 @@ public sealed class PalmService : IPalmService
             TotalSubscriptions,
             TotalOK,
             TotalNOK,
-            CAST(
-                CASE
-                    WHEN ISNULL(TotalOK, 0) + ISNULL(TotalNOK, 0) = 0
-                        THEN 0
-                    ELSE
-                        ISNULL(TotalOK, 0) * 100.0
-                        / (ISNULL(TotalOK, 0) + ISNULL(TotalNOK, 0))
-                END
-                AS decimal(10,2)
-            ) AS SuccessPercent,
+            SuccessPercent,
             Status,
             Detail,
             CreatedAt
@@ -329,16 +302,7 @@ public sealed class PalmService : IPalmService
             TotalSubscriptions,
             TotalOK,
             TotalNOK,
-            CAST(
-                CASE
-                    WHEN ISNULL(TotalOK, 0) + ISNULL(TotalNOK, 0) = 0
-                        THEN 0
-                    ELSE
-                        ISNULL(TotalOK, 0) * 100.0
-                        / (ISNULL(TotalOK, 0) + ISNULL(TotalNOK, 0))
-                END
-                AS decimal(10,2)
-            ) AS SuccessPercent,
+            SuccessPercent,
             Status,
             Detail,
             CreatedAt
@@ -355,4 +319,3 @@ public sealed class PalmService : IPalmService
         return rows.ToList();
     }
 }
-
