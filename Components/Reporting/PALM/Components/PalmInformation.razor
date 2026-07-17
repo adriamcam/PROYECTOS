@@ -1,7 +1,6 @@
 @using ITQS.SupportOperationsCenter.Components.Reporting.PALM.Models
 
 <div class="palm-information">
-
     <div class="palm-information-header">
         <div>
             <span class="palm-information-eyebrow">
@@ -33,77 +32,56 @@
     else
     {
         <div class="palm-information-grid">
-
             <div class="palm-information-item">
                 <span>Inicio</span>
-
-                <strong>
-                    @FormatDateTime(LatestRun.StartedAt)
-                </strong>
+                <strong>@FormatDateTime(LatestRun.StartedAt)</strong>
             </div>
 
             <div class="palm-information-item">
                 <span>Finalización</span>
-
-                <strong>
-                    @FormatDateTime(LatestRun.FinishedAt)
-                </strong>
+                <strong>@FormatDateTime(LatestRun.FinishedAt)</strong>
             </div>
 
             <div class="palm-information-item">
                 <span>Duración</span>
-
-                <strong>
-                    @FormatDuration(LatestRun.DurationSeconds)
-                </strong>
+                <strong>@FormatDuration(LatestRun.DurationSeconds)</strong>
             </div>
 
             <div class="palm-information-item">
                 <span>Clientes</span>
-
-                <strong>
-                    @LatestRun.TotalCustomers
-                </strong>
+                <strong>@LatestRun.TotalCustomers.ToString("N0")</strong>
             </div>
 
             <div class="palm-information-item">
                 <span>Suscripciones</span>
-
-                <strong>
-                    @LatestRun.TotalSubscriptions
-                </strong>
+                <strong>@LatestRun.TotalSubscriptions.ToString("N0")</strong>
             </div>
 
             <div class="palm-information-item">
                 <span>Correctos</span>
-
                 <strong class="text-success">
-                    @LatestRun.TotalOK
+                    @LatestRun.TotalOK.ToString("N0")
                 </strong>
             </div>
 
             <div class="palm-information-item">
                 <span>Con error</span>
-
                 <strong class="text-danger">
-                    @LatestRun.TotalNOK
+                    @LatestRun.TotalNOK.ToString("N0")
                 </strong>
             </div>
 
             <div class="palm-information-item">
                 <span>Éxito</span>
-
                 <strong>
                     @LatestRun.SuccessPercent.ToString("N2")%
                 </strong>
             </div>
-
         </div>
 
         <div class="palm-information-run">
             <div>
                 <span>Run ID</span>
-
                 <code>@LatestRun.RunId</code>
             </div>
 
@@ -111,13 +89,11 @@
             {
                 <div>
                     <span>Detalle</span>
-
                     <p>@LatestRun.Detail</p>
                 </div>
             }
         </div>
     }
-
 </div>
 
 @code {
@@ -163,24 +139,21 @@
 
     private static string GetStatusText(string? status)
     {
-        if (string.IsNullOrWhiteSpace(status))
+        return status?.Trim().ToUpperInvariant() switch
         {
-            return "Sin estado";
-        }
-
-        return status switch
-        {
-            "Completed" => "Completado",
-            "CompletedWithErrors" => "Completado con errores",
-            "Failed" => "Fallido",
-            "Running" => "En ejecución",
-            _ => status
+            "COMPLETED" => "Completado",
+            "COMPLETEDWITHERRORS" => "Completado con errores",
+            "FAILED" => "Fallido",
+            "RUNNING" => "En ejecución",
+            _ => string.IsNullOrWhiteSpace(status)
+                ? "Sin estado"
+                : status
         };
     }
 
     private static string GetStatusClass(string? status)
     {
-        return status?.ToUpperInvariant() switch
+        return status?.Trim().ToUpperInvariant() switch
         {
             "COMPLETED" =>
                 "palm-information-status status-success",

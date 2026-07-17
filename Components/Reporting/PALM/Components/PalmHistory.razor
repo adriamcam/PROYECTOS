@@ -1,0 +1,168 @@
+@using ITQS.SupportOperationsCenter.Components.Reporting.PALM.Models
+
+<div class="palm-table-card">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Inicio</th>
+                    <th>Finalización</th>
+                    <th>Duración</th>
+                    <th>Clientes</th>
+                    <th>Suscripciones</th>
+                    <th>OK</th>
+                    <th>NOK</th>
+                    <th>Éxito</th>
+                    <th>Estado</th>
+                    <th>Run ID</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @if (Runs.Count == 0)
+                {
+                    <tr>
+                        <td colspan="10"
+                            class="text-center py-5 text-muted">
+
+                            <i class="bi bi-clock-history fs-2 d-block mb-2"></i>
+                            No existen ejecuciones registradas.
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var run in OrderedRuns)
+                    {
+                        <tr>
+                            <td class="text-nowrap">
+                                @run.StartedAt.ToString("dd/MM/yyyy HH:mm:ss")
+                            </td>
+
+                            <td class="text-nowrap">
+                                @FormatDateTime(run.FinishedAt)
+                            </td>
+
+                            <td class="text-nowrap">
+                                @FormatDuration(run.DurationSeconds)
+                            </td>
+
+                            <td>@run.TotalCustomers.ToString("N0")</td>
+
+                            <td>@run.TotalSubscriptions.ToString("N0")</td>
+
+                            <td class="text-success fw-semibold">
+                                @run.TotalOK.ToString("N0")
+                            </td>
+
+                            <td class="text-danger fw-semibold">
+                                @run.TotalNOK.ToString("N0")
+                            </td>
+
+                            <td class="fw-semibold">
+                                @run.SuccessPercent.ToString("N2")%
+                            </td>
+
+                            <td>
+                                <span class="@GetStatusBadge(run.Status)">
+                                    @GetStatusText(run.Status)
+                                </span>
+                            </td>
+
+                            <td>
+                                <code title="@run.RunId">
+                                    @FormatRunId(run.RunId)
+                                </code>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public IReadOnlyList<PalmRun> Runs { get; set; }
+        = Array.Empty<PalmRun>();
+
+    private IEnumerable<PalmRun> OrderedRuns =>
+        Runs.OrderByDescending(run => run.StartedAt);
+
+    private static string FormatDateTime(DateTime? value)
+    {
+        return value.HasValue
+            ? value.Value.ToString("dd/MM/yyyy HH:mm:ss")
+            : "En proceso";
+    }
+
+    private static string FormatDuration(int? seconds)
+    {
+        if (!seconds.HasValue)
+        {
+            return "No disponible";
+        }
+
+        var duration = TimeSpan.FromSeconds(seconds.Value);
+
+        if (duration.TotalHours >= 1)
+        {
+            return $"{(int)duration.TotalHours} h " +
+                   $"{duration.Minutes} min " +
+                   $"{duration.Seconds} s";
+        }
+
+        if (duration.TotalMinutes >= 1)
+        {
+            return $"{duration.Minutes} min " +
+                   $"{duration.Seconds} s";
+        }
+
+        return $"{duration.Seconds} s";
+    }
+
+    private static string FormatRunId(Guid runId)
+    {
+        var value = runId.ToString();
+
+        return value.Length > 13
+            ? $"{value[..8]}...{value[^4..]}"
+            : value;
+    }
+
+    private static string GetStatusText(string? status)
+    {
+        return status?.Trim().ToUpperInvariant() switch
+        {
+            "COMPLETED" => "Completado",
+            "COMPLETEDWITHERRORS" => "Completado con errores",
+            "FAILED" => "Fallido",
+            "RUNNING" => "En ejecución",
+            _ => string.IsNullOrWhiteSpace(status)
+                ? "Sin estado"
+                : status
+        };
+    }
+
+    private static string GetStatusBadge(string? status)
+    {
+        return status?.Trim().ToUpperInvariant() switch
+        {
+            "COMPLETED" =>
+                "badge text-bg-success",
+
+            "COMPLETEDWITHERRORS" =>
+                "badge text-bg-warning",
+
+            "FAILED" =>
+                "badge text-bg-danger",
+
+            "RUNNING" =>
+                "badge text-bg-info",
+
+            _ =>
+                "badge text-bg-secondary"
+        };
+    }
+}

@@ -1,154 +1,236 @@
 @using ITQS.SupportOperationsCenter.Components.Reporting.PALM.Models
 
-<div class="card shadow-sm border-0 mt-4">
+<div class="palm-table-card">
+    <div class="palm-table-toolbar">
+        <div class="palm-search-box">
+            <i class="bi bi-search"></i>
 
-    <div class="card-header bg-white">
-
-        <div class="d-flex justify-content-between align-items-center">
-
-            <div>
-
-                <h5 class="mb-0">
-                    <i class="bi bi-table me-2"></i>
-                    Resultados PALM
-                </h5>
-
-                <small class="text-muted">
-                    Clientes analizados durante la última ejecución.
-                </small>
-
-            </div>
-
-            <span class="badge bg-primary">
-                @Resources.Count registros
-            </span>
-
+            <input type="search"
+                   class="form-control"
+                   placeholder="Buscar cliente, tenant, suscripción o Partner ID..."
+                   @bind="searchText"
+                   @bind:event="oninput" />
         </div>
 
+        <select class="form-select palm-status-filter"
+                @bind="selectedStatus">
+
+            <option value="">Todos los estados</option>
+            <option value="OK">OK</option>
+            <option value="NOK">NOK</option>
+        </select>
+
+        <span class="badge text-bg-primary">
+            @FilteredResources.Count() registros
+        </span>
     </div>
 
     <div class="table-responsive">
-
-        <table class="table table-hover table-sm align-middle mb-0">
-
-            <thead class="table-light">
-
+        <table class="table table-hover align-middle mb-0">
+            <thead>
                 <tr>
-
                     <th>Cliente</th>
-
-                    <th>Status</th>
-
+                    <th>Suscripción</th>
+                    <th>Estado</th>
+                    <th>Validación</th>
+                    <th>Partner anterior</th>
+                    <th>Partner actual</th>
+                    <th>Partner esperado</th>
                     <th>Acción</th>
-
-                    <th>Partner Actual</th>
-
-                    <th>Partner Esperado</th>
-
-                    <th>Suscripciones</th>
-
                     <th>Escaneo</th>
-
                 </tr>
-
             </thead>
 
             <tbody>
-
-                @if (Resources.Count == 0)
+                @if (!FilteredResources.Any())
                 {
                     <tr>
+                        <td colspan="9"
+                            class="text-center py-5 text-muted">
 
-                        <td colspan="7" class="text-center p-5 text-muted">
-
-                            No existen registros.
-
+                            <i class="bi bi-inbox fs-2 d-block mb-2"></i>
+                            No existen registros con los filtros actuales.
                         </td>
-
                     </tr>
                 }
                 else
                 {
-                    @foreach (var item in Resources)
+                    @foreach (var item in FilteredResources)
                     {
-                        <tr>
-
+                        <tr class="@GetRowClass(item)">
                             <td>
-
-                                <strong>@item.CustomerName</strong>
+                                <strong>@FormatText(item.CustomerName)</strong>
 
                                 <div class="small text-muted">
-
                                     @item.TenantId
-
                                 </div>
-
                             </td>
 
                             <td>
+                                <strong>
+                                    @FormatText(item.SubscriptionName)
+                                </strong>
 
-                                @if (item.Status == "OK")
+                                <div class="small text-muted">
+                                    @FormatGuid(item.SubscriptionId)
+                                </div>
+                            </td>
+
+                            <td>
+                                <span class="@GetStatusBadge(item.Status)">
+                                    @FormatText(item.Status)
+                                </span>
+                            </td>
+
+                            <td>
+                                <span class="@GetValidationBadge(item.PartnerValidationStatus)">
+                                    @FormatText(item.PartnerValidationStatus)
+                                </span>
+                            </td>
+
+                            <td class="text-break">
+                                @FormatText(item.PartnerIdBefore)
+                            </td>
+
+                            <td class="text-break">
+                                @FormatText(item.PartnerIdCurrent)
+                            </td>
+
+                            <td class="text-break">
+                                @FormatText(item.PartnerIdTarget)
+                            </td>
+
+                            <td>
+                                @FormatText(item.Action)
+
+                                @if (!string.IsNullOrWhiteSpace(item.ErrorMessage))
                                 {
-                                    <span class="badge bg-success">
-                                        OK
-                                    </span>
+                                    <div class="small text-danger mt-1"
+                                         title="@item.ErrorMessage">
+
+                                        <i class="bi bi-exclamation-circle me-1"></i>
+                                        @item.ErrorMessage
+                                    </div>
                                 }
-                                else
-                                {
-                                    <span class="badge bg-danger">
-                                        NOK
-                                    </span>
-                                }
-
                             </td>
 
-                            <td>
-
-                                @item.Action
-
-                            </td>
-
-                            <td>
-
-                                @item.PartnerIdCurrent
-
-                            </td>
-
-                            <td>
-
-                                @item.PartnerIdTarget
-
-                            </td>
-
-                            <td>
-
-                                @item.VisibleSubscriptions
-
-                            </td>
-
-                            <td>
-
+                            <td class="text-nowrap">
                                 @item.ScanDate.ToString("dd/MM/yyyy HH:mm")
-
                             </td>
-
                         </tr>
                     }
                 }
-
             </tbody>
-
         </table>
-
     </div>
-
 </div>
 
 @code {
-
     [Parameter]
-
     public IReadOnlyList<PalmResource> Resources { get; set; }
         = Array.Empty<PalmResource>();
 
+    private string searchText = string.Empty;
+    private string selectedStatus = string.Empty;
+
+    private IEnumerable<PalmResource> FilteredResources =>
+        Resources
+            .Where(MatchesStatus)
+            .Where(MatchesSearch)
+            .OrderBy(resource => resource.CustomerName)
+            .ThenBy(resource => resource.SubscriptionName);
+
+    private bool MatchesStatus(PalmResource resource)
+    {
+        return string.IsNullOrWhiteSpace(selectedStatus) ||
+               string.Equals(
+                   resource.Status,
+                   selectedStatus,
+                   StringComparison.OrdinalIgnoreCase);
+    }
+
+    private bool MatchesSearch(PalmResource resource)
+    {
+        if (string.IsNullOrWhiteSpace(searchText))
+        {
+            return true;
+        }
+
+        var value = searchText.Trim();
+
+        return Contains(resource.CustomerName, value) ||
+               Contains(resource.TenantId.ToString(), value) ||
+               Contains(resource.SubscriptionName, value) ||
+               Contains(resource.SubscriptionId?.ToString(), value) ||
+               Contains(resource.PartnerIdBefore, value) ||
+               Contains(resource.PartnerIdCurrent, value) ||
+               Contains(resource.PartnerIdTarget, value) ||
+               Contains(resource.PartnerValidationStatus, value) ||
+               Contains(resource.Action, value) ||
+               Contains(resource.ErrorMessage, value);
+    }
+
+    private static bool Contains(string? source, string value)
+    {
+        return !string.IsNullOrWhiteSpace(source) &&
+               source.Contains(
+                   value,
+                   StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static string FormatText(string? value)
+    {
+        return string.IsNullOrWhiteSpace(value)
+            ? "No disponible"
+            : value;
+    }
+
+    private static string FormatGuid(Guid? value)
+    {
+        return value.HasValue && value.Value != Guid.Empty
+            ? value.Value.ToString()
+            : "No disponible";
+    }
+
+    private static string GetRowClass(PalmResource resource)
+    {
+        return resource.RequiresAction
+            ? "palm-row-requires-action"
+            : string.Empty;
+    }
+
+    private static string GetStatusBadge(string? status)
+    {
+        return status?.Trim().ToUpperInvariant() switch
+        {
+            "OK" =>
+                "badge text-bg-success",
+
+            "NOK" =>
+                "badge text-bg-danger",
+
+            _ =>
+                "badge text-bg-secondary"
+        };
+    }
+
+    private static string GetValidationBadge(string? status)
+    {
+        var normalized = status?.Trim().ToUpperInvariant();
+
+        return normalized switch
+        {
+            "CORRECT" or "OK" or "VALID" =>
+                "badge text-bg-success",
+
+            "DIFFERENT" or "MISMATCH" =>
+                "badge text-bg-warning",
+
+            "MISSING" or "WITHOUTPARTNERID" or "NOK" =>
+                "badge text-bg-danger",
+
+            _ =>
+                "badge text-bg-secondary"
+        };
+    }
 }

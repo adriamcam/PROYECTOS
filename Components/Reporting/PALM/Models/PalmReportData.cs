@@ -2,8 +2,7 @@ namespace ITQS.SupportOperationsCenter.Components.Reporting.PALM.Models;
 
 public sealed class PalmReportData
 {
-    public PalmDashboard Dashboard { get; set; }
-        = new();
+    public PalmDashboard Dashboard { get; set; } = new();
 
     public PalmRun? LatestRun { get; set; }
 

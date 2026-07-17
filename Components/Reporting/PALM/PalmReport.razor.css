@@ -1,0 +1,136 @@
+.palm-report-page {
+    display: grid;
+    gap: 1.5rem;
+    padding: 1.5rem;
+    background: #f8fafc;
+}
+
+.palm-report-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1.5rem;
+    padding: 1.5rem;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05);
+}
+
+.palm-report-eyebrow {
+    margin-bottom: 0.35rem;
+    color: #2563eb;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.palm-report-header h1 {
+    margin: 0;
+    color: #0f172a;
+    font-size: 1.85rem;
+}
+
+.palm-report-header p {
+    max-width: 720px;
+    margin: 0.5rem 0 0;
+    color: #64748b;
+}
+
+.palm-report-header-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.8rem;
+}
+
+.palm-last-update {
+    color: #64748b;
+    font-size: 0.8rem;
+}
+
+.palm-loading-state {
+    display: grid;
+    place-items: center;
+    min-height: 320px;
+    padding: 2rem;
+    text-align: center;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+}
+
+.palm-loading-state h3 {
+    margin: 1rem 0 0.3rem;
+}
+
+.palm-loading-state p {
+    margin: 0;
+    color: #64748b;
+}
+
+.palm-section {
+    display: grid;
+    gap: 1rem;
+}
+
+.palm-section-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+}
+
+.palm-section-title span {
+    color: #64748b;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.palm-section-title h2 {
+    margin: 0.15rem 0 0;
+    color: #0f172a;
+    font-size: 1.25rem;
+}
+
+.palm-section-title > i {
+    color: #2563eb;
+    font-size: 1.4rem;
+}
+
+.palm-section-counter {
+    padding: 0.35rem 0.75rem;
+    color: #1d4ed8;
+    background: #dbeafe;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+.palm-counter-warning {
+    color: #92400e;
+    background: #fef3c7;
+}
+
+@media (max-width: 760px) {
+    .palm-report-page {
+        padding: 1rem;
+    }
+
+    .palm-report-header {
+        flex-direction: column;
+    }
+
+    .palm-report-header-actions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .palm-section-title {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}

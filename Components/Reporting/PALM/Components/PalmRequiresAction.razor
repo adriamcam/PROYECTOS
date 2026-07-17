@@ -1,0 +1,176 @@
+@using ITQS.SupportOperationsCenter.Components.Reporting.PALM.Models
+
+<div class="palm-table-card">
+    <div class="palm-table-toolbar">
+        <div class="palm-search-box">
+            <i class="bi bi-search"></i>
+
+            <input type="search"
+                   class="form-control"
+                   placeholder="Buscar cliente, tenant, suscripción o estado..."
+                   @bind="searchText"
+                   @bind:event="oninput" />
+        </div>
+
+        <span class="badge text-bg-warning">
+            @FilteredResources.Count() pendientes
+        </span>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Cliente</th>
+                    <th>Suscripción</th>
+                    <th>Validación</th>
+                    <th>Partner actual</th>
+                    <th>Partner esperado</th>
+                    <th>Acción</th>
+                    <th>Error</th>
+                    <th>Escaneo</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @if (!FilteredResources.Any())
+                {
+                    <tr>
+                        <td colspan="8"
+                            class="text-center py-5 text-muted">
+
+                            <i class="bi bi-check-circle fs-2 d-block mb-2"></i>
+                            No existen registros pendientes con el filtro actual.
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var item in FilteredResources)
+                    {
+                        <tr>
+                            <td>
+                                <strong>@FormatText(item.CustomerName)</strong>
+
+                                <div class="small text-muted">
+                                    @item.TenantId
+                                </div>
+                            </td>
+
+                            <td>
+                                <strong>
+                                    @FormatText(item.SubscriptionName)
+                                </strong>
+
+                                <div class="small text-muted">
+                                    @FormatGuid(item.SubscriptionId)
+                                </div>
+                            </td>
+
+                            <td>
+                                <span class="@GetValidationBadge(item.PartnerValidationStatus)">
+                                    @FormatText(item.PartnerValidationStatus)
+                                </span>
+                            </td>
+
+                            <td class="text-break">
+                                @FormatText(item.PartnerIdCurrent)
+                            </td>
+
+                            <td class="text-break">
+                                @FormatText(item.PartnerIdTarget)
+                            </td>
+
+                            <td>
+                                @FormatText(item.Action)
+                            </td>
+
+                            <td class="palm-error-cell"
+                                title="@item.ErrorMessage">
+                                @FormatText(item.ErrorMessage)
+                            </td>
+
+                            <td class="text-nowrap">
+                                @item.ScanDate.ToString("dd/MM/yyyy HH:mm")
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public IReadOnlyList<PalmResource> Resources { get; set; }
+        = Array.Empty<PalmResource>();
+
+    private string searchText = string.Empty;
+
+    private IEnumerable<PalmResource> FilteredResources =>
+        Resources
+            .Where(MatchesSearch)
+            .OrderBy(resource => resource.CustomerName)
+            .ThenBy(resource => resource.SubscriptionName);
+
+    private bool MatchesSearch(PalmResource resource)
+    {
+        if (string.IsNullOrWhiteSpace(searchText))
+        {
+            return true;
+        }
+
+        var value = searchText.Trim();
+
+        return Contains(resource.CustomerName, value) ||
+               Contains(resource.TenantId.ToString(), value) ||
+               Contains(resource.SubscriptionName, value) ||
+               Contains(resource.SubscriptionId?.ToString(), value) ||
+               Contains(resource.PartnerValidationStatus, value) ||
+               Contains(resource.Action, value) ||
+               Contains(resource.ErrorMessage, value);
+    }
+
+    private static bool Contains(string? source, string value)
+    {
+        return !string.IsNullOrWhiteSpace(source) &&
+               source.Contains(
+                   value,
+                   StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static string FormatText(string? value)
+    {
+        return string.IsNullOrWhiteSpace(value)
+            ? "No disponible"
+            : value;
+    }
+
+    private static string FormatGuid(Guid? value)
+    {
+        return value.HasValue && value.Value != Guid.Empty
+            ? value.Value.ToString()
+            : "No disponible";
+    }
+
+    private static string GetValidationBadge(string? status)
+    {
+        var normalized = status?.Trim().ToUpperInvariant();
+
+        return normalized switch
+        {
+            "CORRECT" or "OK" or "VALID" =>
+                "badge text-bg-success",
+
+            "DIFFERENT" or "MISMATCH" =>
+                "badge text-bg-warning",
+
+            "MISSING" or "WITHOUTPARTNERID" or "NOK" =>
+                "badge text-bg-danger",
+
+            _ =>
+                "badge text-bg-secondary"
+        };
+    }
+}

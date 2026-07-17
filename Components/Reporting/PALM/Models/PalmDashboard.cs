@@ -2,7 +2,7 @@ namespace ITQS.SupportOperationsCenter.Components.Reporting.PALM.Models;
 
 public sealed class PalmDashboard
 {
-    public int TotalCustomers { get; set; }
+    public long TotalCustomers { get; set; }
 
     public int TotalOK { get; set; }
 
@@ -26,5 +26,4 @@ public sealed class PalmDashboard
 
     public DateTime? LastScanDate { get; set; }
 
-    public DateTime? LastUpdatedAt { get; set; }
-}
+    public DateTime? LastUpdatedAt { get; set; }}
