@@ -772,60 +772,87 @@
     }
 }
 
-.palm-dashboard-footer {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 18px;
-    padding: 18px 20px;
+
+
+
+
+
+
+
+
+
+
+@media (max-width: 640px) {
+    
+
+    
+}
+
+/* ============================================
+   PALM - ÚLTIMA EJECUCIÓN EN HISTORIAL
+============================================ */
+
+.palm-history-latest {
+    padding: 21px;
     background: #ffffff;
     border: 1px solid #e2e8f0;
-    border-radius: 18px;
-    box-shadow: 0 8px 24px rgba(15, 23, 42, .05);
+    border-radius: 22px;
+    box-shadow: 0 12px 30px rgba(15, 23, 42, .06);
 }
 
-.palm-dashboard-footer span {
+.palm-history-section-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 18px;
+    margin-bottom: 18px;
+}
+
+.palm-history-section-heading span {
     display: block;
+    margin-bottom: 4px;
     color: #64748b;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 800;
+    letter-spacing: .08em;
+    text-transform: uppercase;
 }
 
-.palm-dashboard-footer strong {
-    display: block;
-    margin-top: 4px;
+.palm-history-section-heading h3 {
+    margin: 0;
     color: #0f172a;
-    font-size: 16px;
+    font-size: 18px;
     font-weight: 900;
 }
 
-.palm-dashboard-history-button {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    min-height: 42px;
-    padding: 10px 16px;
-    color: #ffffff;
-    background: #2563eb;
-    border: 0;
-    border-radius: 13px;
+.palm-history-section-heading p {
+    max-width: 760px;
+    margin: 5px 0 0;
+    color: #64748b;
     font-size: 13px;
-    font-weight: 900;
-    cursor: pointer;
+    line-height: 1.55;
 }
 
-.palm-dashboard-history-button:hover {
-    background: #1d4ed8;
+.palm-history-section-heading > i {
+    display: grid;
+    place-items: center;
+    width: 45px;
+    height: 45px;
+    min-width: 45px;
+    color: #1d4ed8;
+    background: #dbeafe;
+    border-radius: 14px;
+    font-size: 20px;
+}
+
+.palm-history-latest ::deep .palm-information {
+    border: 0;
+    border-radius: 16px;
+    box-shadow: none;
 }
 
 @media (max-width: 640px) {
-    .palm-dashboard-footer {
-        align-items: stretch;
+    .palm-history-section-heading {
         flex-direction: column;
-    }
-
-    .palm-dashboard-history-button {
-        justify-content: center;
-        width: 100%;
     }
 }

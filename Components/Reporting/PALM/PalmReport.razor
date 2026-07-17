@@ -209,20 +209,6 @@
 
                 <PalmDashboardSummary
                     Dashboard="@reportData.Dashboard" />
-
-                <section class="palm-dashboard-footer">
-                    <div>
-                        <span>Última ejecución</span>
-                        <strong>@FormatLatestRunDate()</strong>
-                    </div>
-
-                    <button type="button"
-                            class="palm-dashboard-history-button"
-                            @onclick='() => ChangeTab("History")'>
-                        <i class="bi bi-clock-history"></i>
-                        Consultar historial
-                    </button>
-                </section>
             </section>
         }
         else if (activeTab == "Results")
@@ -340,6 +326,24 @@
                     </div>
                 </div>
 
+                                <section class="palm-history-latest">
+                    <div class="palm-history-section-heading">
+                        <div>
+                            <span>Información operativa</span>
+                            <h3>Última ejecución PALM</h3>
+
+                            <p>
+                                Detalle completo de la ejecución más reciente,
+                                su duración, estado y resultados procesados.
+                            </p>
+                        </div>
+
+                        <i class="bi bi-terminal"></i>
+                    </div>
+
+                    <PalmInformation LatestRun="@reportData.LatestRun" />
+                </section>
+
                 <div class="palm-history-summary">
                     <article>
                         <div class="palm-history-icon">
@@ -380,8 +384,6 @@
                         </div>
                     </article>
                 </div>
-
-                <PalmInformation LatestRun="@reportData.LatestRun" />
 
                 <PalmHistory Runs="@reportData.RunHistory" />
             </section>
@@ -473,5 +475,6 @@
                 .ToString("dd/MM/yyyy HH:mm");
     }
 }
+
 
 
