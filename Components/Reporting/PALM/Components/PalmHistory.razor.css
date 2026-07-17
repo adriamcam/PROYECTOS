@@ -1,68 +1,293 @@
-.palm-table-card {
-    overflow: hidden;
-    background: #ffffff;
-    border: 1px solid #e5e7eb;
-    border-radius: 14px;
-    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05);
+.palm-history-table {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
 }
 
-.palm-table-toolbar {
+.palm-history-toolbar {
     display: flex;
     align-items: center;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-    padding: 1rem;
-    border-bottom: 1px solid #e5e7eb;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 14px 17px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
 }
 
-.palm-search-box {
-    position: relative;
-    flex: 1 1 320px;
+.palm-history-toolbar > div:first-child {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
 }
 
-.palm-search-box i {
-    position: absolute;
-    top: 50%;
-    left: 0.85rem;
-    z-index: 2;
+.palm-history-toolbar span {
     color: #64748b;
-    transform: translateY(-50%);
+    font-size: 12px;
+    font-weight: 700;
 }
 
-.palm-search-box input {
-    padding-left: 2.4rem;
+.palm-history-toolbar strong {
+    color: #0f172a;
+    font-size: 18px;
+    font-weight: 900;
 }
 
-.palm-status-filter {
-    width: auto;
-    min-width: 180px;
+.palm-history-toolbar-status {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
 }
 
-.table {
-    font-size: 0.86rem;
+.palm-history-toolbar-status span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 900;
 }
 
-.table thead th {
-    padding: 0.85rem;
-    color: #475569;
+.palm-history-toolbar-status .success {
+    color: #166534;
+    background: #dcfce7;
+}
+
+.palm-history-toolbar-status .warning {
+    color: #92400e;
+    background: #fef3c7;
+}
+
+.palm-history-toolbar-status .danger {
+    color: #991b1b;
+    background: #fee2e2;
+}
+
+.palm-history-table-shell {
+    overflow: hidden;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 18px;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, .06);
+}
+
+.palm-history-table-scroll {
+    overflow: auto;
+}
+
+.palm-history-table table {
+    width: 100%;
+    min-width: 1200px;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.palm-history-table thead {
+    position: sticky;
+    top: 0;
+    z-index: 4;
+}
+
+.palm-history-table th {
+    padding: 14px 15px;
+    color: #334155;
     background: #f8fafc;
-    border-bottom-width: 1px;
+    border-bottom: 1px solid #dbe3ee;
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: .055em;
+    text-align: left;
+    text-transform: uppercase;
     white-space: nowrap;
 }
 
-.table tbody td {
-    padding: 0.85rem;
+.palm-history-table td {
+    padding: 14px 15px;
+    color: #334155;
+    background: #ffffff;
+    border-bottom: 1px solid #edf2f7;
+    font-size: 12px;
     vertical-align: middle;
 }
 
-.palm-row-requires-action {
-    background: rgba(245, 158, 11, 0.06);
+.palm-history-table tbody tr:hover td {
+    background: #f8fafc;
 }
 
-.palm-error-cell {
-    max-width: 280px;
-    overflow: hidden;
-    color: #b91c1c;
-    text-overflow: ellipsis;
+.palm-history-date {
+    min-width: 105px;
+}
+
+.palm-history-date strong {
+    display: block;
+    color: #0f172a;
+    font-size: 11px;
+    font-weight: 900;
+}
+
+.palm-history-date span {
+    display: block;
+    margin-top: 3px;
+    color: #64748b;
+    font-size: 10px;
+}
+
+.palm-history-duration {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 9px;
+    color: #7e22ce;
+    background: #f3e8ff;
+    border-radius: 9px;
+    font-size: 10px;
+    font-weight: 900;
     white-space: nowrap;
+}
+
+.palm-history-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 38px;
+    padding: 6px 9px;
+    color: #1d4ed8;
+    background: #dbeafe;
+    border-radius: 9px;
+    font-size: 11px;
+    font-weight: 900;
+}
+
+.palm-history-count.info {
+    color: #0891b2;
+    background: #cffafe;
+}
+
+.palm-history-count.success {
+    color: #166534;
+    background: #dcfce7;
+}
+
+.palm-history-count.danger {
+    color: #991b1b;
+    background: #fee2e2;
+}
+
+.palm-history-success {
+    min-width: 110px;
+}
+
+.palm-history-success strong {
+    display: block;
+    margin-bottom: 6px;
+    color: #0f172a;
+    font-size: 11px;
+    font-weight: 900;
+}
+
+.palm-history-success > div {
+    width: 100%;
+    height: 7px;
+    overflow: hidden;
+    background: #e2e8f0;
+    border-radius: 999px;
+}
+
+.palm-history-success > div > span {
+    display: block;
+    height: 100%;
+    background:
+        linear-gradient(
+            90deg,
+            #2563eb,
+            #16a34a
+        );
+    border-radius: inherit;
+}
+
+.palm-history-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 900;
+    white-space: nowrap;
+}
+
+.palm-history-status.success {
+    color: #166534;
+    background: #dcfce7;
+}
+
+.palm-history-status.warning {
+    color: #92400e;
+    background: #fef3c7;
+}
+
+.palm-history-status.danger {
+    color: #991b1b;
+    background: #fee2e2;
+}
+
+.palm-history-status.info {
+    color: #1e40af;
+    background: #dbeafe;
+}
+
+.palm-history-status.neutral {
+    color: #475569;
+    background: #e2e8f0;
+}
+
+.palm-history-table code {
+    display: inline-flex;
+    padding: 6px 9px;
+    color: #334155;
+    background: #f1f5f9;
+    border-radius: 9px;
+    font-family: inherit;
+    font-size: 10px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.palm-history-empty {
+    display: grid;
+    place-items: center;
+    min-height: 260px;
+    padding: 35px;
+    text-align: center;
+}
+
+.palm-history-empty > div {
+    display: grid;
+    place-items: center;
+    width: 56px;
+    height: 56px;
+    margin-bottom: 13px;
+    color: #64748b;
+    background: #f1f5f9;
+    border-radius: 18px;
+    font-size: 22px;
+}
+
+.palm-history-empty strong {
+    color: #0f172a;
+    font-size: 15px;
+}
+
+.palm-history-empty span {
+    margin-top: 5px;
+    color: #64748b;
+    font-size: 12px;
+}
+
+@media (max-width: 760px) {
+    .palm-history-toolbar {
+        align-items: flex-start;
+        flex-direction: column;
+    }
 }

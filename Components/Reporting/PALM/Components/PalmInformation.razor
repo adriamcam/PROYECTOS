@@ -1,100 +1,185 @@
 @using ITQS.SupportOperationsCenter.Components.Reporting.PALM.Models
 
-<div class="palm-information">
-    <div class="palm-information-header">
-        <div>
-            <span class="palm-information-eyebrow">
-                Ejecución PALM
-            </span>
+<section class="palm-run-card">
 
-            <h3>Información de la última ejecución</h3>
+    <header class="palm-run-header">
+        <div class="palm-run-title">
+            <div class="palm-run-icon">
+                <i class="bi bi-terminal-fill"></i>
+            </div>
+
+            <div>
+                <span>Ejecución PALM</span>
+                <h3>Información de la última ejecución</h3>
+
+                <p>
+                    Resumen operativo de la ejecución más reciente.
+                </p>
+            </div>
         </div>
 
         <span class="@GetStatusClass(LatestRun?.Status)">
+            <i class="@GetStatusIcon(LatestRun?.Status)"></i>
             @GetStatusText(LatestRun?.Status)
         </span>
-    </div>
+    </header>
 
     @if (LatestRun is null)
     {
-        <div class="palm-information-empty">
-            <i class="bi bi-clock-history"></i>
-
+        <div class="palm-run-empty">
             <div>
-                <strong>Sin ejecuciones registradas</strong>
-
-                <p>
-                    No se encontró información de una ejecución PALM.
-                </p>
+                <i class="bi bi-clock-history"></i>
             </div>
+
+            <strong>Sin ejecuciones registradas</strong>
+
+            <span>
+                No se encontró información de una ejecución PALM.
+            </span>
         </div>
     }
     else
     {
-        <div class="palm-information-grid">
-            <div class="palm-information-item">
-                <span>Inicio</span>
-                <strong>@FormatDateTime(LatestRun.StartedAt)</strong>
-            </div>
+        <div class="palm-run-metrics">
 
-            <div class="palm-information-item">
-                <span>Finalización</span>
-                <strong>@FormatDateTime(LatestRun.FinishedAt)</strong>
-            </div>
+            <article>
+                <div class="palm-run-metric-icon primary">
+                    <i class="bi bi-play-circle-fill"></i>
+                </div>
 
-            <div class="palm-information-item">
-                <span>Duración</span>
-                <strong>@FormatDuration(LatestRun.DurationSeconds)</strong>
-            </div>
+                <div>
+                    <span>Inicio</span>
 
-            <div class="palm-information-item">
-                <span>Clientes</span>
-                <strong>@LatestRun.TotalCustomers.ToString("N0")</strong>
-            </div>
+                    <strong>
+                        @FormatDateTime(LatestRun.StartedAt)
+                    </strong>
+                </div>
+            </article>
 
-            <div class="palm-information-item">
-                <span>Suscripciones</span>
-                <strong>@LatestRun.TotalSubscriptions.ToString("N0")</strong>
-            </div>
+            <article>
+                <div class="palm-run-metric-icon info">
+                    <i class="bi bi-stop-circle-fill"></i>
+                </div>
 
-            <div class="palm-information-item">
-                <span>Correctos</span>
-                <strong class="text-success">
-                    @LatestRun.TotalOK.ToString("N0")
-                </strong>
-            </div>
+                <div>
+                    <span>Finalización</span>
 
-            <div class="palm-information-item">
-                <span>Con error</span>
-                <strong class="text-danger">
-                    @LatestRun.TotalNOK.ToString("N0")
-                </strong>
-            </div>
+                    <strong>
+                        @FormatDateTime(LatestRun.FinishedAt)
+                    </strong>
+                </div>
+            </article>
 
-            <div class="palm-information-item">
-                <span>Éxito</span>
-                <strong>
-                    @LatestRun.SuccessPercent.ToString("N2")%
-                </strong>
-            </div>
+            <article>
+                <div class="palm-run-metric-icon purple">
+                    <i class="bi bi-stopwatch-fill"></i>
+                </div>
+
+                <div>
+                    <span>Duración</span>
+
+                    <strong>
+                        @FormatDuration(LatestRun.DurationSeconds)
+                    </strong>
+                </div>
+            </article>
+
+            <article>
+                <div class="palm-run-metric-icon blue">
+                    <i class="bi bi-buildings-fill"></i>
+                </div>
+
+                <div>
+                    <span>Clientes</span>
+
+                    <strong>
+                        @LatestRun.TotalCustomers.ToString("N0")
+                    </strong>
+                </div>
+            </article>
+
+            <article>
+                <div class="palm-run-metric-icon cyan">
+                    <i class="bi bi-cloud-fill"></i>
+                </div>
+
+                <div>
+                    <span>Suscripciones</span>
+
+                    <strong>
+                        @LatestRun.TotalSubscriptions.ToString("N0")
+                    </strong>
+                </div>
+            </article>
+
+            <article>
+                <div class="palm-run-metric-icon success">
+                    <i class="bi bi-check-circle-fill"></i>
+                </div>
+
+                <div>
+                    <span>Correctos</span>
+
+                    <strong>
+                        @LatestRun.TotalOK.ToString("N0")
+                    </strong>
+                </div>
+            </article>
+
+            <article>
+                <div class="palm-run-metric-icon danger">
+                    <i class="bi bi-x-circle-fill"></i>
+                </div>
+
+                <div>
+                    <span>Con error</span>
+
+                    <strong>
+                        @LatestRun.TotalNOK.ToString("N0")
+                    </strong>
+                </div>
+            </article>
+
+            <article>
+                <div class="palm-run-metric-icon warning">
+                    <i class="bi bi-speedometer2"></i>
+                </div>
+
+                <div>
+                    <span>Éxito</span>
+
+                    <strong>
+                        @LatestRun.SuccessPercent.ToString("N2")%
+                    </strong>
+                </div>
+            </article>
+
         </div>
 
-        <div class="palm-information-run">
-            <div>
+        <div class="palm-run-details">
+
+            <div class="palm-run-detail">
                 <span>Run ID</span>
-                <code>@LatestRun.RunId</code>
+
+                <div>
+                    <code title="@LatestRun.RunId">
+                        @LatestRun.RunId
+                    </code>
+                </div>
             </div>
 
             @if (!string.IsNullOrWhiteSpace(LatestRun.Detail))
             {
-                <div>
+                <div class="palm-run-detail">
                     <span>Detalle</span>
+
                     <p>@LatestRun.Detail</p>
                 </div>
             }
+
         </div>
     }
-</div>
+</section>
 
 @code {
     [Parameter]
@@ -156,19 +241,40 @@
         return status?.Trim().ToUpperInvariant() switch
         {
             "COMPLETED" =>
-                "palm-information-status status-success",
+                "palm-run-status success",
 
             "COMPLETEDWITHERRORS" =>
-                "palm-information-status status-warning",
+                "palm-run-status warning",
 
             "FAILED" =>
-                "palm-information-status status-danger",
+                "palm-run-status danger",
 
             "RUNNING" =>
-                "palm-information-status status-info",
+                "palm-run-status info",
 
             _ =>
-                "palm-information-status status-neutral"
+                "palm-run-status neutral"
+        };
+    }
+
+    private static string GetStatusIcon(string? status)
+    {
+        return status?.Trim().ToUpperInvariant() switch
+        {
+            "COMPLETED" =>
+                "bi bi-check-circle-fill",
+
+            "COMPLETEDWITHERRORS" =>
+                "bi bi-exclamation-triangle-fill",
+
+            "FAILED" =>
+                "bi bi-x-octagon-fill",
+
+            "RUNNING" =>
+                "bi bi-arrow-repeat",
+
+            _ =>
+                "bi bi-dash-circle-fill"
         };
     }
 }

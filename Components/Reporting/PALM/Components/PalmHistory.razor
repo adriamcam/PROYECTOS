@@ -1,86 +1,170 @@
 @using ITQS.SupportOperationsCenter.Components.Reporting.PALM.Models
 
-<div class="palm-table-card">
-    <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
-            <thead>
-                <tr>
-                    <th>Inicio</th>
-                    <th>Finalización</th>
-                    <th>Duración</th>
-                    <th>Clientes</th>
-                    <th>Suscripciones</th>
-                    <th>OK</th>
-                    <th>NOK</th>
-                    <th>Éxito</th>
-                    <th>Estado</th>
-                    <th>Run ID</th>
-                </tr>
-            </thead>
+<section class="palm-history-table">
 
-            <tbody>
-                @if (Runs.Count == 0)
-                {
+    <div class="palm-history-toolbar">
+        <div>
+            <span>Historial consolidado</span>
+
+            <strong>
+                @Runs.Count.ToString("N0") ejecuciones
+            </strong>
+        </div>
+
+        <div class="palm-history-toolbar-status">
+
+            <span class="success">
+                <i class="bi bi-check-circle-fill"></i>
+                @CompletedCount completadas
+            </span>
+
+            <span class="warning">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                @CompletedWithErrorsCount con errores
+            </span>
+
+            <span class="danger">
+                <i class="bi bi-x-octagon-fill"></i>
+                @FailedCount fallidas
+            </span>
+
+        </div>
+    </div>
+
+    <div class="palm-history-table-shell">
+
+        <div class="palm-history-table-scroll">
+            <table>
+                <thead>
                     <tr>
-                        <td colspan="10"
-                            class="text-center py-5 text-muted">
-
-                            <i class="bi bi-clock-history fs-2 d-block mb-2"></i>
-                            No existen ejecuciones registradas.
-                        </td>
+                        <th>Inicio</th>
+                        <th>Finalización</th>
+                        <th>Duración</th>
+                        <th>Clientes</th>
+                        <th>Suscripciones</th>
+                        <th>OK</th>
+                        <th>NOK</th>
+                        <th>Éxito</th>
+                        <th>Estado</th>
+                        <th>Run ID</th>
                     </tr>
-                }
-                else
-                {
-                    @foreach (var run in OrderedRuns)
+                </thead>
+
+                <tbody>
+                    @if (Runs.Count == 0)
                     {
                         <tr>
-                            <td class="text-nowrap">
-                                @run.StartedAt.ToString("dd/MM/yyyy HH:mm:ss")
-                            </td>
+                            <td colspan="10">
+                                <div class="palm-history-empty">
+                                    <div>
+                                        <i class="bi bi-clock-history"></i>
+                                    </div>
 
-                            <td class="text-nowrap">
-                                @FormatDateTime(run.FinishedAt)
-                            </td>
+                                    <strong>
+                                        No existen ejecuciones registradas
+                                    </strong>
 
-                            <td class="text-nowrap">
-                                @FormatDuration(run.DurationSeconds)
-                            </td>
-
-                            <td>@run.TotalCustomers.ToString("N0")</td>
-
-                            <td>@run.TotalSubscriptions.ToString("N0")</td>
-
-                            <td class="text-success fw-semibold">
-                                @run.TotalOK.ToString("N0")
-                            </td>
-
-                            <td class="text-danger fw-semibold">
-                                @run.TotalNOK.ToString("N0")
-                            </td>
-
-                            <td class="fw-semibold">
-                                @run.SuccessPercent.ToString("N2")%
-                            </td>
-
-                            <td>
-                                <span class="@GetStatusBadge(run.Status)">
-                                    @GetStatusText(run.Status)
-                                </span>
-                            </td>
-
-                            <td>
-                                <code title="@run.RunId">
-                                    @FormatRunId(run.RunId)
-                                </code>
+                                    <span>
+                                        El historial se mostrará después de
+                                        la primera ejecución PALM.
+                                    </span>
+                                </div>
                             </td>
                         </tr>
                     }
-                }
-            </tbody>
-        </table>
+                    else
+                    {
+                        @foreach (var run in OrderedRuns)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="palm-history-date">
+                                        <strong>
+                                            @run.StartedAt.ToString("dd/MM/yyyy")
+                                        </strong>
+
+                                        <span>
+                                            @run.StartedAt.ToString("HH:mm:ss")
+                                        </span>
+                                    </div>
+                                </td>
+
+                                <td>
+                                    <div class="palm-history-date">
+                                        <strong>
+                                            @FormatDate(run.FinishedAt)
+                                        </strong>
+
+                                        <span>
+                                            @FormatTime(run.FinishedAt)
+                                        </span>
+                                    </div>
+                                </td>
+
+                                <td>
+                                    <span class="palm-history-duration">
+                                        <i class="bi bi-stopwatch"></i>
+                                        @FormatDuration(run.DurationSeconds)
+                                    </span>
+                                </td>
+
+                                <td>
+                                    <span class="palm-history-count">
+                                        @run.TotalCustomers.ToString("N0")
+                                    </span>
+                                </td>
+
+                                <td>
+                                    <span class="palm-history-count info">
+                                        @run.TotalSubscriptions.ToString("N0")
+                                    </span>
+                                </td>
+
+                                <td>
+                                    <span class="palm-history-count success">
+                                        @run.TotalOK.ToString("N0")
+                                    </span>
+                                </td>
+
+                                <td>
+                                    <span class="palm-history-count danger">
+                                        @run.TotalNOK.ToString("N0")
+                                    </span>
+                                </td>
+
+                                <td>
+                                    <div class="palm-history-success">
+                                        <strong>
+                                            @run.SuccessPercent.ToString("N2")%
+                                        </strong>
+
+                                        <div>
+                                            <span style="@GetSuccessStyle(run.SuccessPercent)">
+                                            </span>
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <td>
+                                    <span class="@GetStatusClass(run.Status)">
+                                        <i class="@GetStatusIcon(run.Status)"></i>
+                                        @GetStatusText(run.Status)
+                                    </span>
+                                </td>
+
+                                <td>
+                                    <code title="@run.RunId">
+                                        @FormatRunId(run.RunId)
+                                    </code>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
     </div>
-</div>
+</section>
 
 @code {
     [Parameter]
@@ -90,11 +174,39 @@
     private IEnumerable<PalmRun> OrderedRuns =>
         Runs.OrderByDescending(run => run.StartedAt);
 
-    private static string FormatDateTime(DateTime? value)
+    private int CompletedCount =>
+        Runs.Count(run =>
+            string.Equals(
+                run.Status,
+                "Completed",
+                StringComparison.OrdinalIgnoreCase));
+
+    private int CompletedWithErrorsCount =>
+        Runs.Count(run =>
+            string.Equals(
+                run.Status,
+                "CompletedWithErrors",
+                StringComparison.OrdinalIgnoreCase));
+
+    private int FailedCount =>
+        Runs.Count(run =>
+            string.Equals(
+                run.Status,
+                "Failed",
+                StringComparison.OrdinalIgnoreCase));
+
+    private static string FormatDate(DateTime? value)
     {
         return value.HasValue
-            ? value.Value.ToString("dd/MM/yyyy HH:mm:ss")
+            ? value.Value.ToString("dd/MM/yyyy")
             : "En proceso";
+    }
+
+    private static string FormatTime(DateTime? value)
+    {
+        return value.HasValue
+            ? value.Value.ToString("HH:mm:ss")
+            : string.Empty;
     }
 
     private static string FormatDuration(int? seconds)
@@ -126,9 +238,17 @@
     {
         var value = runId.ToString();
 
-        return value.Length > 13
-            ? $"{value[..8]}...{value[^4..]}"
+        return value.Length > 16
+            ? $"{value[..8]}...{value[^6..]}"
             : value;
+    }
+
+    private static string GetSuccessStyle(decimal value)
+    {
+        var normalized = Math.Clamp(value, 0m, 100m);
+
+        return FormattableString.Invariant(
+            $"width: {normalized}%;");
     }
 
     private static string GetStatusText(string? status)
@@ -145,24 +265,45 @@
         };
     }
 
-    private static string GetStatusBadge(string? status)
+    private static string GetStatusClass(string? status)
     {
         return status?.Trim().ToUpperInvariant() switch
         {
             "COMPLETED" =>
-                "badge text-bg-success",
+                "palm-history-status success",
 
             "COMPLETEDWITHERRORS" =>
-                "badge text-bg-warning",
+                "palm-history-status warning",
 
             "FAILED" =>
-                "badge text-bg-danger",
+                "palm-history-status danger",
 
             "RUNNING" =>
-                "badge text-bg-info",
+                "palm-history-status info",
 
             _ =>
-                "badge text-bg-secondary"
+                "palm-history-status neutral"
+        };
+    }
+
+    private static string GetStatusIcon(string? status)
+    {
+        return status?.Trim().ToUpperInvariant() switch
+        {
+            "COMPLETED" =>
+                "bi bi-check-circle-fill",
+
+            "COMPLETEDWITHERRORS" =>
+                "bi bi-exclamation-triangle-fill",
+
+            "FAILED" =>
+                "bi bi-x-octagon-fill",
+
+            "RUNNING" =>
+                "bi bi-arrow-repeat",
+
+            _ =>
+                "bi bi-dash-circle-fill"
         };
     }
 }
