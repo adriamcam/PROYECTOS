@@ -1,0 +1,196 @@
+@page "/clients/workspace"
+@using ITQS.SupportOperationsCenter.Components.Clients.ClientsWorkspace.Tabs
+
+<PageTitle>Clientes Workspace</PageTitle>
+
+<div class="client-workspace">
+
+    <section class="workspace-header">
+
+        <div class="workspace-title">
+            <div>
+                <h1>Clientes Workspace</h1>
+                <p>Centro operativo de clientes y suscripciones Azure.</p>
+            </div>
+        </div>
+
+        <div class="workspace-selector">
+
+            <div class="workspace-field">
+                <label>Cliente</label>
+
+                <select @bind="SelectedCustomerId">
+                    <option value="">Seleccione un cliente</option>
+                </select>
+            </div>
+
+            <div class="workspace-field">
+                <label>Suscripción</label>
+
+                <select @bind="SelectedSubscriptionId"
+                        disabled="@string.IsNullOrWhiteSpace(SelectedCustomerId)">
+                    <option value="">Seleccione una suscripción</option>
+                </select>
+            </div>
+
+            <button class="workspace-refresh-button"
+                    type="button"
+                    @onclick="RefreshAsync">
+                Actualizar
+            </button>
+
+        </div>
+
+        <div class="workspace-context">
+
+            <div>
+                <span>Cliente</span>
+                <strong>@DisplayCustomerName</strong>
+            </div>
+
+            <div>
+                <span>Tenant</span>
+                <strong>@DisplayTenantId</strong>
+            </div>
+
+            <div>
+                <span>Partner</span>
+                <strong>@DisplayPartnerTenant</strong>
+            </div>
+
+            <div>
+                <span>Suscripción</span>
+                <strong>@DisplaySubscriptionName</strong>
+            </div>
+
+            <div>
+                <span>Estado</span>
+                <strong>@DisplaySubscriptionState</strong>
+            </div>
+
+        </div>
+
+    </section>
+
+    <nav class="workspace-tabs">
+
+        <button class="@GetTabClass("overview")"
+                @onclick='() => SelectTab("overview")'>
+            Overview
+        </button>
+
+        <button class="@GetTabClass("resources")"
+                @onclick='() => SelectTab("resources")'>
+            Recursos
+        </button>
+
+        <button class="@GetTabClass("metrics")"
+                @onclick='() => SelectTab("metrics")'>
+            Métricas
+        </button>
+
+        <button class="@GetTabClass("backups")"
+                @onclick='() => SelectTab("backups")'>
+            Backups
+        </button>
+
+        <button class="@GetTabClass("orphans")"
+                @onclick='() => SelectTab("orphans")'>
+            Recursos huérfanos
+        </button>
+
+        <button class="@GetTabClass("advisor")"
+                @onclick='() => SelectTab("advisor")'>
+            Advisor
+        </button>
+
+        <button class="@GetTabClass("inventory")"
+                @onclick='() => SelectTab("inventory")'>
+            Inventario
+        </button>
+
+        <button class="@GetTabClass("costs")"
+                @onclick='() => SelectTab("costs")'>
+            Costos
+        </button>
+
+    </nav>
+
+    <section class="workspace-content">
+
+        @switch (SelectedTab)
+        {
+            case "resources":
+                <ClientResources />
+                break;
+
+            case "metrics":
+                <ClientMetrics />
+                break;
+
+            case "backups":
+                <ClientBackups />
+                break;
+
+            case "orphans":
+                <ClientOrphanResources />
+                break;
+
+            case "advisor":
+                <ClientAdvisor />
+                break;
+
+            case "inventory":
+                <ClientInventory />
+                break;
+
+            case "costs":
+                <ClientCosts />
+                break;
+
+            default:
+                <ClientOverview />
+                break;
+        }
+
+    </section>
+
+</div>
+
+@code {
+    private string SelectedCustomerId = string.Empty;
+    private string SelectedSubscriptionId = string.Empty;
+    private string SelectedTab = "overview";
+
+    private string DisplayCustomerName =>
+        string.IsNullOrWhiteSpace(SelectedCustomerId)
+            ? "No seleccionado"
+            : SelectedCustomerId;
+
+    private string DisplayTenantId => "-";
+    private string DisplayPartnerTenant => "-";
+
+    private string DisplaySubscriptionName =>
+        string.IsNullOrWhiteSpace(SelectedSubscriptionId)
+            ? "No seleccionada"
+            : SelectedSubscriptionId;
+
+    private string DisplaySubscriptionState => "-";
+
+    private void SelectTab(string tab)
+    {
+        SelectedTab = tab;
+    }
+
+    private string GetTabClass(string tab)
+    {
+        return SelectedTab == tab
+            ? "workspace-tab active"
+            : "workspace-tab";
+    }
+
+    private Task RefreshAsync()
+    {
+        return Task.CompletedTask;
+    }
+}

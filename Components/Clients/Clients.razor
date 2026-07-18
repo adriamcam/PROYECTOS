@@ -1,0 +1,37 @@
+@page "/clients"
+@using Microsoft.AspNetCore.Components
+
+<PageTitle>Clientes</PageTitle>
+
+<div class="clients-module">
+
+    <div class="clients-module-header">
+        <div>
+            <h1>Clientes</h1>
+            <p>Administración y consulta centralizada de clientes y suscripciones.</p>
+        </div>
+    </div>
+
+    <div class="clients-module-options">
+
+        <NavLink class="clients-module-card"
+                 href="/clients/workspace">
+
+            <div class="clients-module-card-icon">
+                🏢
+            </div>
+
+            <div class="clients-module-card-content">
+                <h3>Clientes Workspace</h3>
+
+                <p>
+                    Consulta toda la información operativa de un cliente y sus
+                    suscripciones desde un único módulo.
+                </p>
+            </div>
+
+        </NavLink>
+
+    </div>
+
+</div>
