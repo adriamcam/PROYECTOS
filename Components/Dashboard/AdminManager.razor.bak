@@ -8,19 +8,7 @@
 @inject IAdminManagerService AdminService
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager NavigationManager
-@if (HasAdminAccess is null)
-{
-    <section class="admin-loading-page">
-        <div class="admin-loading-card">
-            <div class="admin-spinner"></div>
-            <h3>Cargando Admin / Manager View...</h3>
-        </div>
-    </section>
-
-    return;
-}
-
-@if (HasAdminAccess == false)
+@if (!HasAdminAccess)
 {
     <section class="admin-denied-page">
 
@@ -78,6 +66,7 @@
 
     return;
 }
+
 <div class="module-title-row">
     <button class="primary-btn config-button" type="button" @onclick="OpenUserConfigAsync">⚙ Configuración</button>
     <OperationalInfoButton
@@ -252,7 +241,7 @@
 
 
 @code {
-    private bool? HasAdminAccess = null;
+    private bool HasAdminAccess;
     private bool IsLoading;
     private bool ShowUserConfigModal;
     private string Message = string.Empty;
