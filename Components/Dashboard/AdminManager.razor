@@ -300,12 +300,18 @@
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
 
-        UserEmail = user.FindFirst(ClaimTypes.Email)?.Value ?? user.FindFirst("preferred_username")?.Value ?? user.Identity?.Name ?? string.Empty;
+        UserEmail =
+            user.FindFirst(ClaimTypes.Email)?.Value
+            ?? user.FindFirst("email")?.Value
+            ?? user.FindFirst("preferred_username")?.Value
+            ?? user.FindFirst("upn")?.Value
+            ?? user.Identity?.Name
+            ?? string.Empty;
         UserName = user.FindFirst("name")?.Value ?? user.Identity?.Name ?? UserEmail;
 
         HasAdminAccess = await AdminService.CanAccessAdminManagerAsync(UserEmail);
 
-        if (!HasAdminAccess)
+        if (HasAdminAccess != true)
         {
             return;
         }
@@ -503,6 +509,9 @@
 
     private string FormatDate(DateTime? value) => value.HasValue ? value.Value.ToString("dd/MM/yyyy HH:mm") : "-";
 }
+
+
+
 
 
 
