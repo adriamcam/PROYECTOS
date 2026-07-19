@@ -4,9 +4,22 @@ public sealed class ClientWorkspaceCustomer
 {
     public Guid TenantId { get; set; }
 
+    /// <summary>
+    /// Nombre comercial obtenido desde dbo.CRM_Customers.AccountNameCRM.
+    /// </summary>
     public string CustomerName { get; set; } = string.Empty;
 
+    /// <summary>
+    /// Nombre histórico proveniente de dbo.ITQS_Customers.
+    /// Se conserva por compatibilidad con otros componentes.
+    /// </summary>
     public string CustomerNamePortal { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Nombre corto mostrado como Suscripción.
+    /// Se obtiene principalmente de dbo.CRM_Customers.CustomerDomainPc.
+    /// </summary>
+    public string SubscriptionName { get; set; } = string.Empty;
 
     public bool IsActive { get; set; }
 
@@ -18,8 +31,11 @@ public sealed class ClientWorkspaceCustomer
 
     public DateTime? LastOperationalUpdate { get; set; }
 
+    /// <summary>
+    /// Nombre mostrado en el selector de clientes.
+    /// </summary>
     public string DisplayName =>
-        !string.IsNullOrWhiteSpace(CustomerNamePortal)
-            ? CustomerNamePortal
-            : CustomerName;
+        !string.IsNullOrWhiteSpace(CustomerName)
+            ? CustomerName
+            : "Cliente sin nombre";
 }

@@ -136,72 +136,31 @@ public sealed class ClientWorkspaceService : IClientWorkspaceService
             PartnerSource AS
             (
                 SELECT
-                    TRY_CONVERT(
-                        uniqueidentifier,
-                        PC.CustomerTenantId
-                    ) AS TenantId,
-                    PC.CustomerName AS PartnerCenterCustomerName,
-                    PC.PartnerTenant,
-                    PC.StatusFound,
-                    CRM.AccountNameCRM,
-                    CRM.CustomerDomainPc,
+                    TRY_CONVERT(uniqueidentifier, CustomerTenantId)
+                        AS TenantId,
+                    PartnerTenant,
+                    StatusFound,
                     ROW_NUMBER() OVER
                     (
                         PARTITION BY
                             TRY_CONVERT(
                                 uniqueidentifier,
-                                PC.CustomerTenantId
+                                CustomerTenantId
                             )
                         ORDER BY
-                            PC.ExecutionDate DESC,
-                            PC.Id DESC
+                            ExecutionDate DESC,
+                            Id DESC
                     ) AS RowNumber
-                FROM dbo.PartnerCenterCustomers AS PC
-                LEFT JOIN dbo.CRM_Customers AS CRM
-                    ON TRY_CONVERT(
-                           uniqueidentifier,
-                           CRM.MicrosoftID
-                       ) =
-                       TRY_CONVERT(
-                           uniqueidentifier,
-                           PC.CustomerTenantId
-                       )
+                FROM dbo.PartnerCenterCustomers
                 WHERE TRY_CONVERT(
                           uniqueidentifier,
-                          PC.CustomerTenantId
+                          CustomerTenantId
                       ) IS NOT NULL
             )
             SELECT
                 C.TenantId,
-
-                COALESCE(
-                    NULLIF(LTRIM(RTRIM(P.AccountNameCRM)), ''),
-                    NULLIF(LTRIM(RTRIM(C.CustomerNamePortal)), ''),
-                    NULLIF(LTRIM(RTRIM(C.CustomerName)), ''),
-                    'Cliente sin nombre'
-                ) AS CustomerName,
-
+                C.CustomerName,
                 ISNULL(C.CustomerNamePortal, '') AS CustomerNamePortal,
-
-                COALESCE(
-                    NULLIF(LTRIM(RTRIM(P.CustomerDomainPc)), ''),
-                    NULLIF(
-                        LTRIM(
-                            RTRIM(
-                                REPLACE(
-                                    P.PartnerCenterCustomerName,
-                                    ' Tenant',
-                                    ''
-                                )
-                            )
-                        ),
-                        ''
-                    ),
-                    NULLIF(LTRIM(RTRIM(C.CustomerNamePortal)), ''),
-                    NULLIF(LTRIM(RTRIM(C.CustomerName)), ''),
-                    'Sin suscripción'
-                ) AS SubscriptionName,
-
                 CONVERT(bit, ISNULL(C.IsActive, 0)) AS IsActive,
                 ISNULL(P.PartnerTenant, '') AS PartnerTenant,
                 ISNULL(P.StatusFound, '') AS GdapStatus,
@@ -218,9 +177,8 @@ public sealed class ClientWorkspaceService : IClientWorkspaceService
             WHERE ISNULL(C.IsActive, 0) = 1
             ORDER BY
                 COALESCE(
-                    NULLIF(LTRIM(RTRIM(P.AccountNameCRM)), ''),
-                    NULLIF(LTRIM(RTRIM(C.CustomerNamePortal)), ''),
-                    NULLIF(LTRIM(RTRIM(C.CustomerName)), '')
+                    NULLIF(C.CustomerNamePortal, ''),
+                    C.CustomerName
                 );
             """;
 
@@ -765,5 +723,4 @@ public sealed class ClientWorkspaceService : IClientWorkspaceService
             command);
     }
 }
-
 
