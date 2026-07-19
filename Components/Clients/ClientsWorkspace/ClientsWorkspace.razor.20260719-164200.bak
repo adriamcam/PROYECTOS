@@ -255,7 +255,7 @@
                     break;
 
                 case "advisor":
-                    <ClientAdvisor Context="WorkspaceContext" />
+                    <ClientAdvisor />
                     break;
 
                 case "inventory":
@@ -696,7 +696,6 @@
             : "workspace-tab";
     }
 }
-
 
 
 
