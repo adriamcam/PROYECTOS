@@ -1,6 +1,5 @@
 @using ITQS.SupportOperationsCenter.Components.Reporting.ReservedInstances
 @page "/support-cloud"
-@using ITQS.SupportOperationsCenter.Components.Clients.ClientsWorkspace
 @rendermode @(new InteractiveServerRenderMode())
 
 @using System.Security.Claims
@@ -90,24 +89,6 @@
                 </div>
             }
 
-            @if (IsAdmin)
-            {
-                <div class="menu-group">
-                    <button type="button"
-                            class="menu-title menu-button"
-                            @onclick="SelectClients">
-                        👥 Clientes
-                    </button>
-
-                    <div class="menu-links @(ShowClientsMenu ? "show" : "")">
-                        <button type="button"
-                                class="menu-link menu-link-child"
-                                @onclick='() => SelectModule("ClientsWorkspace")'>
-                            • Clientes Workspace
-                        </button>
-                    </div>
-                </div>
-            }
             @if (IsAdmin)
             {
                 <div class="menu-group">
@@ -259,10 +240,7 @@
             {
                 <CriticalAlerts />
             }
-            else if (CurrentModule == "ClientsWorkspace")
-            {
-                <ClientsWorkspace />
-            }            else if (CurrentModule == "Clientes")
+            else if (CurrentModule == "Clientes")
             {
                 <CustomerDashboard />
             }
@@ -291,7 +269,6 @@
     private bool ShowAdministrationMenu = false;
     private bool ShowMaintenanceMenu = false;
     private bool ShowReporteriaMenu = false;
-    private bool ShowClientsMenu = false;
     private bool ShowSqlMenu = false;
 
     private string UserName = "";
@@ -316,8 +293,6 @@
             "ReporteBeneficioHibrido" => "Reportería / Reporte Beneficio Híbrido",
             "ReporteInstanciasReservadas" => "Reportería / Reporte Instancias Reservadas",
             "ReportePALM" => "Reportería / Reporte PALM",
-
-            "ClientsWorkspace" => "Clientes / Clientes Workspace",
 
             "SqlDashboard" => "Mantenimiento / SQL / Dashboard",
             "SqlMaintenance" => "Mantenimiento / SQL / Mantenimiento",
@@ -455,12 +430,7 @@
             ShowSqlMenu = false;
         }
     }
-
-    private void SelectClients()
-    {
-        ShowClientsMenu = !ShowClientsMenu;
-    }}
-
+}
 
 
 
