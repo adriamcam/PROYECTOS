@@ -1,4 +1,3 @@
-using ITQS.SupportOperationsCenter.Components.Clients.ClientsWorkspace.Services;
 using ITQS.SupportOperationsCenter.Components.Reporting.PALM.Services;
 using ITQS.SupportOperationsCenter.Components.Reporting.ReservedInstances.Services;
 using ITQS.SupportOperationsCenter.Components;
@@ -60,8 +59,6 @@ builder.Services
         options.Filters.Add(new AuthorizeFilter(policy));
     })
     .AddMicrosoftIdentityUI();
-
-builder.Services.AddScoped<IClientWorkspaceService, ClientWorkspaceService>();
 
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
@@ -130,7 +127,6 @@ app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
 app.Run();
-
 
 
 

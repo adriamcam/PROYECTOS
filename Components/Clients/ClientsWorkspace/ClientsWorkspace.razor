@@ -1,5 +1,10 @@
 @page "/clients/workspace"
+
+@using ITQS.SupportOperationsCenter.Components.Clients.ClientsWorkspace.Models
+@using ITQS.SupportOperationsCenter.Components.Clients.ClientsWorkspace.Services
 @using ITQS.SupportOperationsCenter.Components.Clients.ClientsWorkspace.Tabs
+
+@inject IClientWorkspaceService WorkspaceService
 
 <PageTitle>Clientes Workspace</PageTitle>
 
@@ -10,33 +15,89 @@
         <div class="workspace-title">
             <div>
                 <h1>Clientes Workspace</h1>
-                <p>Centro operativo de clientes y suscripciones Azure.</p>
+                <p>
+                    Centro operativo unificado de clientes,
+                    suscripciones y servicios Azure.
+                </p>
             </div>
+
+            @if (IsLoading)
+            {
+                <span class="workspace-loading">
+                    Cargando...
+                </span>
+            }
         </div>
+
+        @if (!string.IsNullOrWhiteSpace(ErrorMessage))
+        {
+            <div class="workspace-error">
+                @ErrorMessage
+            </div>
+        }
 
         <div class="workspace-selector">
 
             <div class="workspace-field">
-                <label>Cliente</label>
+                <label for="workspace-customer">
+                    Cliente
+                </label>
 
-                <select @bind="SelectedCustomerId">
-                    <option value="">Seleccione un cliente</option>
+                <select id="workspace-customer"
+                        value="@SelectedCustomerId"
+                        @onchange="OnCustomerChangedAsync"
+                        disabled="@IsLoading">
+
+                    <option value="">
+                        Seleccione un cliente
+                    </option>
+
+                    @foreach (var customer in Customers)
+                    {
+                        <option value="@customer.TenantId">
+                            @customer.DisplayName
+                            (@customer.SubscriptionCount)
+                        </option>
+                    }
+
                 </select>
             </div>
 
             <div class="workspace-field">
-                <label>Suscripción</label>
+                <label for="workspace-subscription">
+                    Suscripción
+                </label>
 
-                <select @bind="SelectedSubscriptionId"
-                        disabled="@string.IsNullOrWhiteSpace(SelectedCustomerId)">
-                    <option value="">Seleccione una suscripción</option>
+                <select id="workspace-subscription"
+                        value="@SelectedSubscriptionId"
+                        @onchange="OnSubscriptionChangedAsync"
+                        disabled="@(
+                            IsLoading ||
+                            !WorkspaceContext.HasCustomer
+                        )">
+
+                    <option value="">
+                        Todas las suscripciones
+                    </option>
+
+                    @foreach (var subscription in Subscriptions)
+                    {
+                        <option value="@subscription.SubscriptionId">
+                            @subscription.DisplayName
+                        </option>
+                    }
+
                 </select>
             </div>
 
             <button class="workspace-refresh-button"
                     type="button"
-                    @onclick="RefreshAsync">
-                Actualizar
+                    @onclick="RefreshAsync"
+                    disabled="@(
+                        IsLoading ||
+                        !WorkspaceContext.HasCustomer
+                    )">
+                @(IsLoading ? "Actualizando..." : "Actualizar")
             </button>
 
         </div>
@@ -69,6 +130,59 @@
             </div>
 
         </div>
+
+        @if (WorkspaceContext.HasCustomer)
+        {
+            <div class="workspace-context">
+
+                <div>
+                    <span>Suscripciones</span>
+                    <strong>@Overview.TotalSubscriptions</strong>
+                </div>
+
+                <div>
+                    <span>Máquinas virtuales</span>
+                    <strong>@Overview.TotalVirtualMachines</strong>
+                </div>
+
+                <div>
+                    <span>Discos</span>
+                    <strong>@Overview.TotalDisks</strong>
+                </div>
+
+                <div>
+                    <span>Advisor</span>
+                    <strong>@Overview.TotalAdvisorRecommendations</strong>
+                </div>
+
+                <div>
+                    <span>Cobertura Backup</span>
+                    <strong>
+                        @Overview.BackupCoveragePercentage.ToString("N2")%
+                    </strong>
+                </div>
+
+                <div>
+                    <span>Recursos huérfanos</span>
+                    <strong>@Overview.OrphanResources</strong>
+                </div>
+
+                <div>
+                    <span>CPU promedio 7 días</span>
+                    <strong>
+                        @Overview.AverageCpuPercent.ToString("N2")%
+                    </strong>
+                </div>
+
+                <div>
+                    <span>Disponibilidad</span>
+                    <strong>
+                        @Overview.AverageAvailabilityPercent.ToString("N2")%
+                    </strong>
+                </div>
+
+            </div>
+        }
 
     </section>
 
@@ -118,39 +232,48 @@
 
     <section class="workspace-content">
 
-        @switch (SelectedTab)
+        @if (!WorkspaceContext.HasCustomer)
         {
-            case "resources":
-                <ClientResources />
-                break;
+            <div>
+                Seleccione un cliente para cargar el Workspace.
+            </div>
+        }
+        else
+        {
+            @switch (SelectedTab)
+            {
+                case "resources":
+                    <ClientResources />
+                    break;
 
-            case "metrics":
-                <ClientMetrics />
-                break;
+                case "metrics":
+                    <ClientMetrics />
+                    break;
 
-            case "backups":
-                <ClientBackups />
-                break;
+                case "backups":
+                    <ClientBackups />
+                    break;
 
-            case "orphans":
-                <ClientOrphanResources />
-                break;
+                case "orphans":
+                    <ClientOrphanResources />
+                    break;
 
-            case "advisor":
-                <ClientAdvisor />
-                break;
+                case "advisor":
+                    <ClientAdvisor />
+                    break;
 
-            case "inventory":
-                <ClientInventory />
-                break;
+                case "inventory":
+                    <ClientInventory />
+                    break;
 
-            case "costs":
-                <ClientCosts />
-                break;
+                case "costs":
+                    <ClientCosts />
+                    break;
 
-            default:
-                <ClientOverview />
-                break;
+                default:
+                    <ClientOverview />
+                    break;
+            }
         }
 
     </section>
@@ -158,24 +281,250 @@
 </div>
 
 @code {
-    private string SelectedCustomerId = string.Empty;
-    private string SelectedSubscriptionId = string.Empty;
-    private string SelectedTab = "overview";
+    private IReadOnlyList<ClientWorkspaceCustomer> Customers =
+        Array.Empty<ClientWorkspaceCustomer>();
+
+    private IReadOnlyList<ClientWorkspaceSubscription> Subscriptions =
+        Array.Empty<ClientWorkspaceSubscription>();
+
+    private ClientWorkspaceContext WorkspaceContext { get; } = new();
+
+    private ClientWorkspaceOverview Overview { get; set; } = new();
+
+    private string SelectedCustomerId { get; set; } = string.Empty;
+
+    private string SelectedSubscriptionId { get; set; } = string.Empty;
+
+    private string SelectedTab { get; set; } = "overview";
+
+    private bool IsLoading { get; set; }
+
+    private string ErrorMessage { get; set; } = string.Empty;
 
     private string DisplayCustomerName =>
-        string.IsNullOrWhiteSpace(SelectedCustomerId)
-            ? "No seleccionado"
-            : SelectedCustomerId;
+        WorkspaceContext.HasCustomer
+            ? (
+                !string.IsNullOrWhiteSpace(
+                    WorkspaceContext.CustomerNamePortal
+                )
+                    ? WorkspaceContext.CustomerNamePortal
+                    : WorkspaceContext.CustomerName
+              )
+            : "No seleccionado";
 
-    private string DisplayTenantId => "-";
-    private string DisplayPartnerTenant => "-";
+    private string DisplayTenantId =>
+        WorkspaceContext.TenantId?.ToString()
+        ?? "-";
+
+    private string DisplayPartnerTenant =>
+        string.IsNullOrWhiteSpace(
+            WorkspaceContext.PartnerTenant
+        )
+            ? "-"
+            : WorkspaceContext.PartnerTenant;
 
     private string DisplaySubscriptionName =>
-        string.IsNullOrWhiteSpace(SelectedSubscriptionId)
-            ? "No seleccionada"
-            : SelectedSubscriptionId;
+        WorkspaceContext.HasSubscription
+            ? WorkspaceContext.SubscriptionName
+            : (
+                WorkspaceContext.HasCustomer
+                    ? "Todas las suscripciones"
+                    : "No seleccionada"
+              );
 
-    private string DisplaySubscriptionState => "-";
+    private string DisplaySubscriptionState =>
+        WorkspaceContext.HasSubscription
+            ? (
+                string.IsNullOrWhiteSpace(
+                    WorkspaceContext.SubscriptionState
+                )
+                    ? "Disponible"
+                    : WorkspaceContext.SubscriptionState
+              )
+            : (
+                WorkspaceContext.HasCustomer
+                    ? Overview.OverallStatus
+                    : "-"
+              );
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadCustomersAsync();
+    }
+
+    private async Task LoadCustomersAsync()
+    {
+        IsLoading = true;
+        ErrorMessage = string.Empty;
+
+        try
+        {
+            Customers =
+                await WorkspaceService.GetCustomersAsync();
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage =
+                $"No fue posible cargar los clientes: {ex.Message}";
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private async Task OnCustomerChangedAsync(ChangeEventArgs args)
+    {
+        SelectedCustomerId =
+            Convert.ToString(args.Value) ?? string.Empty;
+
+        SelectedSubscriptionId = string.Empty;
+        Subscriptions =
+            Array.Empty<ClientWorkspaceSubscription>();
+
+        WorkspaceContext.Clear();
+        Overview = new ClientWorkspaceOverview();
+
+        if (!Guid.TryParse(
+                SelectedCustomerId,
+                out var tenantId))
+        {
+            return;
+        }
+
+        var customer =
+            Customers.FirstOrDefault(
+                item => item.TenantId == tenantId);
+
+        if (customer is null)
+        {
+            return;
+        }
+
+        WorkspaceContext.TenantId = customer.TenantId;
+        WorkspaceContext.CustomerName = customer.CustomerName;
+        WorkspaceContext.CustomerNamePortal =
+            customer.CustomerNamePortal;
+        WorkspaceContext.PartnerTenant =
+            customer.PartnerTenant;
+        WorkspaceContext.GdapStatus =
+            customer.GdapStatus;
+
+        await LoadCustomerDataAsync();
+    }
+
+    private async Task OnSubscriptionChangedAsync(
+        ChangeEventArgs args)
+    {
+        SelectedSubscriptionId =
+            Convert.ToString(args.Value) ?? string.Empty;
+
+        WorkspaceContext.SubscriptionId = null;
+        WorkspaceContext.SubscriptionName = string.Empty;
+        WorkspaceContext.SubscriptionState = string.Empty;
+
+        if (Guid.TryParse(
+                SelectedSubscriptionId,
+                out var subscriptionId))
+        {
+            var subscription =
+                Subscriptions.FirstOrDefault(
+                    item =>
+                        item.SubscriptionId == subscriptionId);
+
+            if (subscription is not null)
+            {
+                WorkspaceContext.SubscriptionId =
+                    subscription.SubscriptionId;
+
+                WorkspaceContext.SubscriptionName =
+                    subscription.SubscriptionName;
+
+                WorkspaceContext.SubscriptionState =
+                    subscription.State;
+            }
+        }
+
+        await LoadOverviewAsync();
+    }
+
+    private async Task LoadCustomerDataAsync()
+    {
+        if (!WorkspaceContext.TenantId.HasValue)
+        {
+            return;
+        }
+
+        IsLoading = true;
+        ErrorMessage = string.Empty;
+
+        try
+        {
+            Subscriptions =
+                await WorkspaceService.GetSubscriptionsAsync(
+                    WorkspaceContext.TenantId.Value);
+
+            await LoadOverviewInternalAsync();
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage =
+                $"No fue posible cargar el Workspace: {ex.Message}";
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private async Task LoadOverviewAsync()
+    {
+        if (!WorkspaceContext.TenantId.HasValue)
+        {
+            return;
+        }
+
+        IsLoading = true;
+        ErrorMessage = string.Empty;
+
+        try
+        {
+            await LoadOverviewInternalAsync();
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage =
+                $"No fue posible cargar el resumen: {ex.Message}";
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private async Task LoadOverviewInternalAsync()
+    {
+        if (!WorkspaceContext.TenantId.HasValue)
+        {
+            return;
+        }
+
+        Overview =
+            await WorkspaceService.GetOverviewAsync(
+                WorkspaceContext.TenantId.Value,
+                WorkspaceContext.SubscriptionId);
+    }
+
+    private async Task RefreshAsync()
+    {
+        if (!WorkspaceContext.TenantId.HasValue)
+        {
+            await LoadCustomersAsync();
+            return;
+        }
+
+        await LoadCustomerDataAsync();
+    }
 
     private void SelectTab(string tab)
     {
@@ -187,10 +536,5 @@
         return SelectedTab == tab
             ? "workspace-tab active"
             : "workspace-tab";
-    }
-
-    private Task RefreshAsync()
-    {
-        return Task.CompletedTask;
     }
 }
