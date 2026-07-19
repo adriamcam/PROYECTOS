@@ -43,23 +43,24 @@
                     Cliente
                 </label>
 
-                <input id="workspace-customer"
-                       type="text"
-                       list="workspace-customer-list"
-                       value="@CustomerInputText"
-                       @onchange="OnCustomerInputChangedAsync"
-                       placeholder="Digite o seleccione un cliente..."
-                       autocomplete="off"
-                       disabled="@IsLoading" />
+                <select id="workspace-customer"
+                        value="@SelectedCustomerId"
+                        @onchange="OnCustomerChangedAsync"
+                        disabled="@IsLoading">
 
-                <datalist id="workspace-customer-list">
-                    @foreach (var customer in FilteredCustomers)
+                    <option value="">
+                        Seleccione un cliente
+                    </option>
+
+                    @foreach (var customer in Customers)
                     {
-                        <option value="@customer.DisplayName">
-                            @GetCustomerOptionDescription(customer)
+                        <option value="@customer.TenantId">
+                            @customer.DisplayName
+                            (@customer.SubscriptionCount)
                         </option>
                     }
-                </datalist>
+
+                </select>
             </div>
 
             <div class="workspace-field">
@@ -89,20 +90,6 @@
                 </select>
             </div>
 
-            <div class="workspace-field">
-                <label for="workspace-search">
-                    Buscar
-                </label>
-
-                <input id="workspace-search"
-                       type="search"
-                       value="@SearchText"
-                       @oninput="OnSearchChanged"
-                       placeholder="Cliente, suscripción, tenant..."
-                       autocomplete="off"
-                       disabled="@IsLoading" />
-            </div>
-
             <button class="workspace-refresh-button"
                     type="button"
                     @onclick="RefreshAsync"
@@ -123,7 +110,7 @@
             </div>
 
             <div>
-                <span>Tenant ID</span>
+                <span>Tenant</span>
                 <strong>@DisplayTenantId</strong>
             </div>
 
@@ -307,10 +294,6 @@
 
     private string SelectedCustomerId { get; set; } = string.Empty;
 
-    private string CustomerInputText { get; set; } = string.Empty;
-
-    private string SearchText { get; set; } = string.Empty;
-
     private string SelectedSubscriptionId { get; set; } = string.Empty;
 
     private string SelectedTab { get; set; } = "overview";
@@ -319,62 +302,13 @@
 
     private string ErrorMessage { get; set; } = string.Empty;
 
-    private IEnumerable<ClientWorkspaceCustomer> FilteredCustomers
-    {
-        get
-        {
-            if (string.IsNullOrWhiteSpace(SearchText))
-            {
-                return Customers
-                    .OrderBy(customer => customer.DisplayName);
-            }
-
-            var search =
-                SearchText.Trim();
-
-            return Customers
-                .Where(customer =>
-                    ContainsIgnoreCase(
-                        customer.CustomerName,
-                        search
-                    )
-                    ||
-                    ContainsIgnoreCase(
-                        customer.CustomerNamePortal,
-                        search
-                    )
-                    ||
-                    ContainsIgnoreCase(
-                        customer.SubscriptionName,
-                        search
-                    )
-                    ||
-                    ContainsIgnoreCase(
-                        customer.TenantId.ToString(),
-                        search
-                    )
-                    ||
-                    ContainsIgnoreCase(
-                        customer.PartnerTenant,
-                        search
-                    )
-                    ||
-                    ContainsIgnoreCase(
-                        customer.GdapStatus,
-                        search
-                    )
-                )
-                .OrderBy(customer => customer.DisplayName);
-        }
-    }
-
     private string DisplayCustomerName =>
         WorkspaceContext.HasCustomer
             ? (
-                string.IsNullOrWhiteSpace(
-                    WorkspaceContext.CustomerName
+                !string.IsNullOrWhiteSpace(
+                    WorkspaceContext.CustomerNamePortal
                 )
-                    ? "Cliente sin nombre"
+                    ? WorkspaceContext.CustomerNamePortal
                     : WorkspaceContext.CustomerName
               )
             : "No seleccionado";
@@ -440,125 +374,44 @@
         }
     }
 
-    private async Task OnCustomerInputChangedAsync(
-        ChangeEventArgs args)
+    private async Task OnCustomerChangedAsync(ChangeEventArgs args)
     {
-        CustomerInputText =
-            Convert.ToString(args.Value)?.Trim()
-            ?? string.Empty;
+        SelectedCustomerId =
+            Convert.ToString(args.Value) ?? string.Empty;
 
-        if (string.IsNullOrWhiteSpace(CustomerInputText))
+        SelectedSubscriptionId = string.Empty;
+        Subscriptions =
+            Array.Empty<ClientWorkspaceSubscription>();
+
+        WorkspaceContext.Clear();
+        Overview = new ClientWorkspaceOverview();
+
+        if (!Guid.TryParse(
+                SelectedCustomerId,
+                out var tenantId))
         {
-            ClearCustomerSelection();
             return;
         }
 
         var customer =
-            Customers.FirstOrDefault(item =>
-                string.Equals(
-                    item.DisplayName,
-                    CustomerInputText,
-                    StringComparison.OrdinalIgnoreCase
-                )
-                ||
-                string.Equals(
-                    item.TenantId.ToString(),
-                    CustomerInputText,
-                    StringComparison.OrdinalIgnoreCase
-                )
-            );
+            Customers.FirstOrDefault(
+                item => item.TenantId == tenantId);
 
         if (customer is null)
         {
-            var matches =
-                FilteredCustomers
-                    .Where(item =>
-                        ContainsIgnoreCase(
-                            item.DisplayName,
-                            CustomerInputText
-                        )
-                        ||
-                        ContainsIgnoreCase(
-                            item.SubscriptionName,
-                            CustomerInputText
-                        )
-                    )
-                    .Take(2)
-                    .ToList();
-
-            if (matches.Count == 1)
-            {
-                customer = matches[0];
-            }
-        }
-
-        if (customer is null)
-        {
-            ErrorMessage =
-                "Seleccione un cliente de la lista de resultados.";
-
             return;
         }
 
-        await SelectCustomerAsync(customer);
-    }
-
-    private async Task SelectCustomerAsync(
-        ClientWorkspaceCustomer customer)
-    {
-        ErrorMessage = string.Empty;
-
-        SelectedCustomerId =
-            customer.TenantId.ToString();
-
-        CustomerInputText =
-            customer.DisplayName;
-
-        SelectedSubscriptionId = string.Empty;
-
-        Subscriptions =
-            Array.Empty<ClientWorkspaceSubscription>();
-
-        WorkspaceContext.Clear();
-        Overview = new ClientWorkspaceOverview();
-
-        WorkspaceContext.TenantId =
-            customer.TenantId;
-
-        WorkspaceContext.CustomerName =
-            customer.CustomerName;
-
+        WorkspaceContext.TenantId = customer.TenantId;
+        WorkspaceContext.CustomerName = customer.CustomerName;
         WorkspaceContext.CustomerNamePortal =
             customer.CustomerNamePortal;
-
         WorkspaceContext.PartnerTenant =
             customer.PartnerTenant;
-
         WorkspaceContext.GdapStatus =
             customer.GdapStatus;
 
         await LoadCustomerDataAsync();
-    }
-
-    private void ClearCustomerSelection()
-    {
-        SelectedCustomerId = string.Empty;
-        CustomerInputText = string.Empty;
-        SelectedSubscriptionId = string.Empty;
-
-        Subscriptions =
-            Array.Empty<ClientWorkspaceSubscription>();
-
-        WorkspaceContext.Clear();
-        Overview = new ClientWorkspaceOverview();
-        ErrorMessage = string.Empty;
-    }
-
-    private void OnSearchChanged(ChangeEventArgs args)
-    {
-        SearchText =
-            Convert.ToString(args.Value)
-            ?? string.Empty;
     }
 
     private async Task OnSubscriptionChangedAsync(
@@ -674,33 +527,6 @@
         await LoadCustomerDataAsync();
     }
 
-    private static bool ContainsIgnoreCase(
-        string? source,
-        string search)
-    {
-        return !string.IsNullOrWhiteSpace(source)
-            && source.Contains(
-                search,
-                StringComparison.OrdinalIgnoreCase
-            );
-    }
-
-    private static string GetCustomerOptionDescription(
-        ClientWorkspaceCustomer customer)
-    {
-        var subscription =
-            string.IsNullOrWhiteSpace(customer.SubscriptionName)
-                ? "Sin suscripción"
-                : customer.SubscriptionName;
-
-        var partner =
-            string.IsNullOrWhiteSpace(customer.PartnerTenant)
-                ? "Sin partner"
-                : customer.PartnerTenant;
-
-        return $"{subscription} | {partner}";
-    }
-
     private void SelectTab(string tab)
     {
         SelectedTab = tab;
@@ -713,4 +539,3 @@
             : "workspace-tab";
     }
 }
-
