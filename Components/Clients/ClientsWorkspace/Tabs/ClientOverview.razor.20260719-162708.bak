@@ -22,6 +22,61 @@
             </div>
         </div>
     </header>
+<div class="overview-kpi-grid">
+
+        
+
+        <article class="overview-kpi-card">
+            <div class="overview-icon overview-icon-purple">▣</div>
+            <div class="overview-kpi-content">
+                <span>Máquinas virtuales</span>
+                <strong>@Overview.TotalVirtualMachines.ToString("N0")</strong>
+                <small>Inventario actual</small>
+            </div>
+        </article>
+
+        <article class="overview-kpi-card">
+            <div class="overview-icon overview-icon-cyan">◉</div>
+            <div class="overview-kpi-content">
+                <span>Discos administrados</span>
+                <strong>@Overview.TotalDisks.ToString("N0")</strong>
+                <small>OS y datos</small>
+            </div>
+        </article>
+
+        <article class="overview-kpi-card">
+    <div class="overview-icon overview-icon-green">✓</div>
+    <div class="overview-kpi-content">
+        <span>Cobertura de backup</span>
+        <strong>@FormatPercent(Overview.BackupCoveragePercentage)</strong>
+        <small>
+            @Overview.VirtualMachinesWithBackup.ToString("N0")
+            de
+            @Overview.TotalBackupVirtualMachines.ToString("N0")
+            VMs protegidas
+        </small>
+    </div>
+</article>
+
+        <article class="overview-kpi-card">
+            <div class="overview-icon overview-icon-amber">◇</div>
+            <div class="overview-kpi-content">
+                <span>Recomendaciones Advisor</span>
+                <strong>@Overview.TotalAdvisorRecommendations.ToString("N0")</strong>
+                <small>Oportunidades identificadas</small>
+            </div>
+        </article>
+
+        <article class="overview-kpi-card">
+    <div class="overview-icon overview-icon-cyan">◇</div>
+    <div class="overview-kpi-content">
+        <span>Recursos huérfanos</span>
+        <strong>@Overview.OrphanResources.ToString("N0")</strong>
+        <small>Recursos sin asociación operativa</small>
+    </div>
+</article>
+
+    </div>
 
     <div class="overview-section-grid">
 
@@ -397,7 +452,6 @@
             ? "risk-success"
             : "risk-warning";
 }
-
 
 
 
