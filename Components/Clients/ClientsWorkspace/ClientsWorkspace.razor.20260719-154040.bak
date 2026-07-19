@@ -89,6 +89,20 @@
                 </select>
             </div>
 
+            <div class="workspace-field">
+                <label for="workspace-search">
+                    Buscar
+                </label>
+
+                <input id="workspace-search"
+                       type="search"
+                       value="@SearchText"
+                       @oninput="OnSearchChanged"
+                       placeholder="Cliente, suscripción, tenant..."
+                       autocomplete="off"
+                       disabled="@IsLoading" />
+            </div>
+
             <button class="workspace-refresh-button"
                     type="button"
                     @onclick="RefreshAsync"
@@ -699,5 +713,4 @@
             : "workspace-tab";
     }
 }
-
 
