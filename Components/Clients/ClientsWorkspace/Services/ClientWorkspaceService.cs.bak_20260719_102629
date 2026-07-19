@@ -1,20 +1,20 @@
 using System.Data;
 using Dapper;
-using ITQS.SupportOperationsCenter.Data;
+using Microsoft.Data.SqlClient;
 using ITQS.SupportOperationsCenter.Components.Clients.ClientsWorkspace.Models;
 
 namespace ITQS.SupportOperationsCenter.Components.Clients.ClientsWorkspace.Services;
 
 public sealed class ClientWorkspaceService : IClientWorkspaceService
 {
-    private readonly ISqlConnectionFactory _connectionFactory;
+    private readonly string _connectionString;
 
-    public ClientWorkspaceService(
-        ISqlConnectionFactory connectionFactory)
+    public ClientWorkspaceService(IConfiguration configuration)
     {
-        _connectionFactory = connectionFactory
-            ?? throw new ArgumentNullException(
-                nameof(connectionFactory));
+        _connectionString =
+            configuration.GetConnectionString("Reportes")
+            ?? throw new InvalidOperationException(
+                "No se encontró ConnectionStrings:Reportes.");
     }
 
     public async Task<IReadOnlyList<ClientWorkspaceCustomer>> GetCustomersAsync(
@@ -182,8 +182,8 @@ public sealed class ClientWorkspaceService : IClientWorkspaceService
                 );
             """;
 
-        using var connection =
-            _connectionFactory.CreateConnection();
+        await using var connection =
+            new SqlConnection(_connectionString);
 
         var command = new CommandDefinition(
             sql,
@@ -358,8 +358,8 @@ public sealed class ClientWorkspaceService : IClientWorkspaceService
                 SubscriptionName;
             """;
 
-        using var connection =
-            _connectionFactory.CreateConnection();
+        await using var connection =
+            new SqlConnection(_connectionString);
 
         var command = new CommandDefinition(
             sql,
@@ -705,8 +705,8 @@ public sealed class ClientWorkspaceService : IClientWorkspaceService
                 );
             """;
 
-        using var connection =
-            _connectionFactory.CreateConnection();
+        await using var connection =
+            new SqlConnection(_connectionString);
 
         var command = new CommandDefinition(
             sql,
@@ -723,4 +723,3 @@ public sealed class ClientWorkspaceService : IClientWorkspaceService
             command);
     }
 }
-
