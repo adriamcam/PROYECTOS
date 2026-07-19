@@ -163,16 +163,6 @@
                     <strong>@Overview.OrphanResources</strong>
                 </div>
 
-                <div>
-                    <span>Estado GDAP</span>
-                    <strong>@WorkspaceContext.GdapStatus</strong>
-                </div>
-
-                <div>
-                    <span>Última actualización</span>
-                    <strong>@DateTime.Now.ToString("dd/MM/yyyy HH:mm")</strong>
-                </div>
-
                 
 
                 
@@ -696,7 +686,6 @@
             : "workspace-tab";
     }
 }
-
 
 
 
