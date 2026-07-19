@@ -10,6 +10,10 @@
     padding: 24px;
 }
 
+/*============================================================
+HEADER
+============================================================*/
+
 .workspace-header {
     background: #ffffff;
     border-radius: 14px;
@@ -31,10 +35,14 @@
     font-size: 15px;
 }
 
+/*============================================================
+SELECTORES
+============================================================*/
+
 .workspace-selector {
     display: grid;
-    grid-template-columns: minmax(260px,1fr) minmax(300px,1.4fr) minmax(240px,320px) 150px;
-    gap: 18px;
+    grid-template-columns: 1fr 1fr auto;
+    gap: 20px;
     margin-top: 30px;
     align-items: end;
 }
@@ -43,7 +51,6 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
-    min-width: 0;
 }
 
 .workspace-field label {
@@ -52,44 +59,39 @@
     color: #475569;
 }
 
-.workspace-field select,
-.workspace-field input {
-    width: 100%;
+.workspace-field select {
     height: 46px;
-    box-sizing: border-box;
     border-radius: 10px;
     border: 1px solid #cbd5e1;
     padding: 0 14px;
     font-size: 14px;
-    background: #ffffff;
-    color: #0f172a;
+    background: white;
     transition: .2s;
 }
 
-.workspace-field select:hover,
-.workspace-field input:hover {
+.workspace-field select:hover {
     border-color: #2563eb;
 }
 
-.workspace-field select:focus,
-.workspace-field input:focus {
+.workspace-field select:focus {
     outline: none;
     border-color: #2563eb;
     box-shadow: 0 0 0 3px rgba(37,99,235,.15);
 }
 
+/*============================================================
+BOTÓN
+============================================================*/
+
 .workspace-refresh-button {
-    width: 150px;
     height: 46px;
     border: none;
     border-radius: 10px;
     background: #2563eb;
-    color: #ffffff;
-    padding: 0 20px;
+    color: white;
+    padding: 0 24px;
     font-weight: 600;
     cursor: pointer;
-    white-space: nowrap;
-    justify-self: end;
     transition: .2s;
 }
 
@@ -98,95 +100,134 @@
     transform: translateY(-1px);
 }
 
+/*============================================================
+RESUMEN
+============================================================*/
+
 .workspace-context {
     margin-top: 28px;
+
     display: grid;
     grid-template-columns: repeat(auto-fit,minmax(180px,1fr));
     gap: 18px;
 }
 
 .workspace-context > div {
+
     background: #f8fafc;
+
     border: 1px solid #e2e8f0;
+
     border-radius: 12px;
+
     padding: 18px;
 }
 
 .workspace-context span {
+
     display: block;
+
     color: #64748b;
+
     font-size: 12px;
+
     text-transform: uppercase;
+
     letter-spacing: .05em;
+
     margin-bottom: 6px;
 }
 
 .workspace-context strong {
+
     color: #0f172a;
+
     font-size: 16px;
 }
 
+/*============================================================
+TABS
+============================================================*/
+
 .workspace-tabs {
+
     display: flex;
+
     gap: 10px;
+
     flex-wrap: wrap;
 }
 
 .workspace-tab {
-    background: #ffffff;
+
+    border: none;
+
+    background: white;
+
     border-radius: 10px;
+
     border: 1px solid #dbe4ef;
+
     padding: 12px 20px;
+
     cursor: pointer;
+
     font-weight: 600;
+
     color: #334155;
+
     transition: .2s;
 }
 
 .workspace-tab:hover {
+
     border-color: #2563eb;
+
     color: #2563eb;
 }
 
 .workspace-tab.active {
+
     background: #2563eb;
-    color: #ffffff;
+
+    color: white;
+
     border-color: #2563eb;
 }
 
+/*============================================================
+CONTENIDO
+============================================================*/
+
 .workspace-content {
-    background: #ffffff;
+
+    background: white;
+
     border-radius: 14px;
+
     border: 1px solid #e5e7eb;
+
     padding: 28px;
+
     min-height: 420px;
+
     box-shadow: 0 8px 24px rgba(0,0,0,.05);
 }
 
-@media (max-width: 1250px) {
-    .workspace-selector {
-        grid-template-columns: 1fr 1fr;
+/*============================================================
+RESPONSIVE
+============================================================*/
+
+@media (max-width:900px){
+
+    .workspace-selector{
+
+        grid-template-columns:1fr;
     }
 
-    .workspace-refresh-button {
-        justify-self: start;
-    }
-}
+    .workspace-refresh-button{
 
-@media (max-width: 760px) {
-    .client-workspace {
-        padding: 12px;
+        width:100%;
     }
 
-    .workspace-header {
-        padding: 20px;
-    }
-
-    .workspace-selector {
-        grid-template-columns: 1fr;
-    }
-
-    .workspace-refresh-button {
-        width: 100%;
-    }
 }
