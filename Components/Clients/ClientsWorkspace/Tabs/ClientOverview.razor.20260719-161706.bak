@@ -24,7 +24,14 @@
     </header>
 <div class="overview-kpi-grid">
 
-        
+        <article class="overview-kpi-card">
+            <div class="overview-icon overview-icon-blue">☁</div>
+            <div class="overview-kpi-content">
+                <span>Suscripciones</span>
+                <strong>@Overview.TotalSubscriptions.ToString("N0")</strong>
+                <small>Alcance seleccionado</small>
+            </div>
+        </article>
 
         <article class="overview-kpi-card">
             <div class="overview-icon overview-icon-purple">▣</div>
@@ -452,7 +459,6 @@
             ? "risk-success"
             : "risk-warning";
 }
-
 
 
 

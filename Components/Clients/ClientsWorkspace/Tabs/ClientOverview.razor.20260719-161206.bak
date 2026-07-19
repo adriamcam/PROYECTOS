@@ -7,7 +7,7 @@
     <header class="overview-heading">
         <div>
             <span class="overview-eyebrow">RESUMEN OPERATIVO</span>
-            <h2>@SubscriptionDisplayName</h2>
+            <h2>@CustomerDisplayName</h2>
             <p>
                 Vista consolidada de infraestructura, protección,
                 optimización y salud operativa.
@@ -24,7 +24,14 @@
     </header>
 <div class="overview-kpi-grid">
 
-        
+        <article class="overview-kpi-card">
+            <div class="overview-icon overview-icon-blue">☁</div>
+            <div class="overview-kpi-content">
+                <span>Suscripciones</span>
+                <strong>@Overview.TotalSubscriptions.ToString("N0")</strong>
+                <small>Alcance seleccionado</small>
+            </div>
+        </article>
 
         <article class="overview-kpi-card">
             <div class="overview-icon overview-icon-purple">▣</div>
@@ -47,14 +54,9 @@
         <article class="overview-kpi-card">
     <div class="overview-icon overview-icon-green">✓</div>
     <div class="overview-kpi-content">
-        <span>Cobertura de backup</span>
-        <strong>@FormatPercent(Overview.BackupCoveragePercentage)</strong>
-        <small>
-            @Overview.VirtualMachinesWithBackup.ToString("N0")
-            de
-            @Overview.TotalBackupVirtualMachines.ToString("N0")
-            VMs protegidas
-        </small>
+        <span>Estado GDAP</span>
+        <strong>@DisplayValue(Context.GdapStatus)</strong>
+        <small>Estado actual de la relación GDAP</small>
     </div>
 </article>
 
@@ -67,12 +69,12 @@
             </div>
         </article>
 
-        <article class="overview-kpi-card">
-    <div class="overview-icon overview-icon-cyan">◇</div>
+        <article class="overview-kpi-card overview-kpi-highlight">
+    <div class="overview-icon overview-icon-money">↻</div>
     <div class="overview-kpi-content">
-        <span>Recursos huérfanos</span>
-        <strong>@Overview.OrphanResources.ToString("N0")</strong>
-        <small>Recursos sin asociación operativa</small>
+        <span>Última actualización</span>
+        <strong>@LastUpdateText</strong>
+        <small>Fecha de actualización de la información</small>
     </div>
 </article>
 
@@ -452,7 +454,4 @@
             ? "risk-success"
             : "risk-warning";
 }
-
-
-
 
