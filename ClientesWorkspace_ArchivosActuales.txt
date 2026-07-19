@@ -1,0 +1,874 @@
+
+================================================================================
+ARCHIVO: .\Components\Clients\ClientsWorkspace\ClientsWorkspace.razor
+================================================================================
+@page "/clients/workspace"
+
+@using ITQS.SupportOperationsCenter.Components.Clients.ClientsWorkspace.Models
+@using ITQS.SupportOperationsCenter.Components.Clients.ClientsWorkspace.Services
+@using ITQS.SupportOperationsCenter.Components.Clients.ClientsWorkspace.Tabs
+
+@inject IClientWorkspaceService WorkspaceService
+
+<PageTitle>Clientes Workspace</PageTitle>
+
+<div class="client-workspace">
+
+    <section class="workspace-header">
+
+        <div class="workspace-title">
+            <div>
+                <h1>Clientes Workspace</h1>
+                <p>
+                    Centro operativo unificado de clientes,
+                    suscripciones y servicios Azure.
+                </p>
+            </div>
+
+            @if (IsLoading)
+            {
+                <span class="workspace-loading">
+                    Cargando...
+                </span>
+            }
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(ErrorMessage))
+        {
+            <div class="workspace-error">
+                @ErrorMessage
+            </div>
+        }
+
+        <div class="workspace-selector">
+
+            <div class="workspace-field">
+                <label for="workspace-customer">
+                    Cliente
+                </label>
+
+                <select id="workspace-customer"
+                        value="@SelectedCustomerId"
+                        @onchange="OnCustomerChangedAsync"
+                        disabled="@IsLoading">
+
+                    <option value="">
+                        Seleccione un cliente
+                    </option>
+
+                    @foreach (var customer in Customers)
+                    {
+                        <option value="@customer.TenantId">
+                            @customer.DisplayName
+                            (@customer.SubscriptionCount)
+                        </option>
+                    }
+
+                </select>
+            </div>
+
+            <div class="workspace-field">
+                <label for="workspace-subscription">
+                    Suscripción
+                </label>
+
+                <select id="workspace-subscription"
+                        value="@SelectedSubscriptionId"
+                        @onchange="OnSubscriptionChangedAsync"
+                        disabled="@(
+                            IsLoading ||
+                            !WorkspaceContext.HasCustomer
+                        )">
+
+                    <option value="">
+                        Todas las suscripciones
+                    </option>
+
+                    @foreach (var subscription in Subscriptions)
+                    {
+                        <option value="@subscription.SubscriptionId">
+                            @subscription.DisplayName
+                        </option>
+                    }
+
+                </select>
+            </div>
+
+            <button class="workspace-refresh-button"
+                    type="button"
+                    @onclick="RefreshAsync"
+                    disabled="@(
+                        IsLoading ||
+                        !WorkspaceContext.HasCustomer
+                    )">
+                @(IsLoading ? "Actualizando..." : "Actualizar")
+            </button>
+
+        </div>
+
+        <div class="workspace-context">
+
+            <div>
+                <span>Cliente</span>
+                <strong>@DisplayCustomerName</strong>
+            </div>
+
+            <div>
+                <span>Tenant</span>
+                <strong>@DisplayTenantId</strong>
+            </div>
+
+            <div>
+                <span>Partner</span>
+                <strong>@DisplayPartnerTenant</strong>
+            </div>
+
+            <div>
+                <span>Suscripción</span>
+                <strong>@DisplaySubscriptionName</strong>
+            </div>
+
+            <div>
+                <span>Estado</span>
+                <strong>@DisplaySubscriptionState</strong>
+            </div>
+
+        </div>
+
+        @if (WorkspaceContext.HasCustomer)
+        {
+            <div class="workspace-context">
+
+                <div>
+                    <span>Suscripciones</span>
+                    <strong>@Overview.TotalSubscriptions</strong>
+                </div>
+
+                <div>
+                    <span>Máquinas virtuales</span>
+                    <strong>@Overview.TotalVirtualMachines</strong>
+                </div>
+
+                <div>
+                    <span>Discos</span>
+                    <strong>@Overview.TotalDisks</strong>
+                </div>
+
+                <div>
+                    <span>Advisor</span>
+                    <strong>@Overview.TotalAdvisorRecommendations</strong>
+                </div>
+
+                <div>
+                    <span>Cobertura Backup</span>
+                    <strong>
+                        @Overview.BackupCoveragePercentage.ToString("N2")%
+                    </strong>
+                </div>
+
+                <div>
+                    <span>Recursos huérfanos</span>
+                    <strong>@Overview.OrphanResources</strong>
+                </div>
+
+                <div>
+                    <span>CPU promedio 7 días</span>
+                    <strong>
+                        @Overview.AverageCpuPercent.ToString("N2")%
+                    </strong>
+                </div>
+
+                <div>
+                    <span>Disponibilidad</span>
+                    <strong>
+                        @Overview.AverageAvailabilityPercent.ToString("N2")%
+                    </strong>
+                </div>
+
+            </div>
+        }
+
+    </section>
+
+    <nav class="workspace-tabs">
+
+        <button class="@GetTabClass("overview")"
+                @onclick='() => SelectTab("overview")'>
+            Overview
+        </button>
+
+        <button class="@GetTabClass("resources")"
+                @onclick='() => SelectTab("resources")'>
+            Recursos
+        </button>
+
+        <button class="@GetTabClass("metrics")"
+                @onclick='() => SelectTab("metrics")'>
+            Métricas
+        </button>
+
+        <button class="@GetTabClass("backups")"
+                @onclick='() => SelectTab("backups")'>
+            Backups
+        </button>
+
+        <button class="@GetTabClass("orphans")"
+                @onclick='() => SelectTab("orphans")'>
+            Recursos huérfanos
+        </button>
+
+        <button class="@GetTabClass("advisor")"
+                @onclick='() => SelectTab("advisor")'>
+            Advisor
+        </button>
+
+        <button class="@GetTabClass("inventory")"
+                @onclick='() => SelectTab("inventory")'>
+            Inventario
+        </button>
+
+        <button class="@GetTabClass("costs")"
+                @onclick='() => SelectTab("costs")'>
+            Costos
+        </button>
+
+    </nav>
+
+    <section class="workspace-content">
+
+        @if (!WorkspaceContext.HasCustomer)
+        {
+            <div>
+                Seleccione un cliente para cargar el Workspace.
+            </div>
+        }
+        else
+        {
+            @switch (SelectedTab)
+            {
+                case "resources":
+                    <ClientResources />
+                    break;
+
+                case "metrics":
+                    <ClientMetrics />
+                    break;
+
+                case "backups":
+                    <ClientBackups />
+                    break;
+
+                case "orphans":
+                    <ClientOrphanResources />
+                    break;
+
+                case "advisor":
+                    <ClientAdvisor />
+                    break;
+
+                case "inventory":
+                    <ClientInventory />
+                    break;
+
+                case "costs":
+                    <ClientCosts />
+                    break;
+
+                default:
+                    <ClientOverview />
+                    break;
+            }
+        }
+
+    </section>
+
+</div>
+
+@code {
+    private IReadOnlyList<ClientWorkspaceCustomer> Customers =
+        Array.Empty<ClientWorkspaceCustomer>();
+
+    private IReadOnlyList<ClientWorkspaceSubscription> Subscriptions =
+        Array.Empty<ClientWorkspaceSubscription>();
+
+    private ClientWorkspaceContext WorkspaceContext { get; } = new();
+
+    private ClientWorkspaceOverview Overview { get; set; } = new();
+
+    private string SelectedCustomerId { get; set; } = string.Empty;
+
+    private string SelectedSubscriptionId { get; set; } = string.Empty;
+
+    private string SelectedTab { get; set; } = "overview";
+
+    private bool IsLoading { get; set; }
+
+    private string ErrorMessage { get; set; } = string.Empty;
+
+    private string DisplayCustomerName =>
+        WorkspaceContext.HasCustomer
+            ? (
+                !string.IsNullOrWhiteSpace(
+                    WorkspaceContext.CustomerNamePortal
+                )
+                    ? WorkspaceContext.CustomerNamePortal
+                    : WorkspaceContext.CustomerName
+              )
+            : "No seleccionado";
+
+    private string DisplayTenantId =>
+        WorkspaceContext.TenantId?.ToString()
+        ?? "-";
+
+    private string DisplayPartnerTenant =>
+        string.IsNullOrWhiteSpace(
+            WorkspaceContext.PartnerTenant
+        )
+            ? "-"
+            : WorkspaceContext.PartnerTenant;
+
+    private string DisplaySubscriptionName =>
+        WorkspaceContext.HasSubscription
+            ? WorkspaceContext.SubscriptionName
+            : (
+                WorkspaceContext.HasCustomer
+                    ? "Todas las suscripciones"
+                    : "No seleccionada"
+              );
+
+    private string DisplaySubscriptionState =>
+        WorkspaceContext.HasSubscription
+            ? (
+                string.IsNullOrWhiteSpace(
+                    WorkspaceContext.SubscriptionState
+                )
+                    ? "Disponible"
+                    : WorkspaceContext.SubscriptionState
+              )
+            : (
+                WorkspaceContext.HasCustomer
+                    ? Overview.OverallStatus
+                    : "-"
+              );
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadCustomersAsync();
+    }
+
+    private async Task LoadCustomersAsync()
+    {
+        IsLoading = true;
+        ErrorMessage = string.Empty;
+
+        try
+        {
+            Customers =
+                await WorkspaceService.GetCustomersAsync();
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage =
+                $"No fue posible cargar los clientes: {ex.Message}";
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private async Task OnCustomerChangedAsync(ChangeEventArgs args)
+    {
+        SelectedCustomerId =
+            Convert.ToString(args.Value) ?? string.Empty;
+
+        SelectedSubscriptionId = string.Empty;
+        Subscriptions =
+            Array.Empty<ClientWorkspaceSubscription>();
+
+        WorkspaceContext.Clear();
+        Overview = new ClientWorkspaceOverview();
+
+        if (!Guid.TryParse(
+                SelectedCustomerId,
+                out var tenantId))
+        {
+            return;
+        }
+
+        var customer =
+            Customers.FirstOrDefault(
+                item => item.TenantId == tenantId);
+
+        if (customer is null)
+        {
+            return;
+        }
+
+        WorkspaceContext.TenantId = customer.TenantId;
+        WorkspaceContext.CustomerName = customer.CustomerName;
+        WorkspaceContext.CustomerNamePortal =
+            customer.CustomerNamePortal;
+        WorkspaceContext.PartnerTenant =
+            customer.PartnerTenant;
+        WorkspaceContext.GdapStatus =
+            customer.GdapStatus;
+
+        await LoadCustomerDataAsync();
+    }
+
+    private async Task OnSubscriptionChangedAsync(
+        ChangeEventArgs args)
+    {
+        SelectedSubscriptionId =
+            Convert.ToString(args.Value) ?? string.Empty;
+
+        WorkspaceContext.SubscriptionId = null;
+        WorkspaceContext.SubscriptionName = string.Empty;
+        WorkspaceContext.SubscriptionState = string.Empty;
+
+        if (Guid.TryParse(
+                SelectedSubscriptionId,
+                out var subscriptionId))
+        {
+            var subscription =
+                Subscriptions.FirstOrDefault(
+                    item =>
+                        item.SubscriptionId == subscriptionId);
+
+            if (subscription is not null)
+            {
+                WorkspaceContext.SubscriptionId =
+                    subscription.SubscriptionId;
+
+                WorkspaceContext.SubscriptionName =
+                    subscription.SubscriptionName;
+
+                WorkspaceContext.SubscriptionState =
+                    subscription.State;
+            }
+        }
+
+        await LoadOverviewAsync();
+    }
+
+    private async Task LoadCustomerDataAsync()
+    {
+        if (!WorkspaceContext.TenantId.HasValue)
+        {
+            return;
+        }
+
+        IsLoading = true;
+        ErrorMessage = string.Empty;
+
+        try
+        {
+            Subscriptions =
+                await WorkspaceService.GetSubscriptionsAsync(
+                    WorkspaceContext.TenantId.Value);
+
+            await LoadOverviewInternalAsync();
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage =
+                $"No fue posible cargar el Workspace: {ex.Message}";
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private async Task LoadOverviewAsync()
+    {
+        if (!WorkspaceContext.TenantId.HasValue)
+        {
+            return;
+        }
+
+        IsLoading = true;
+        ErrorMessage = string.Empty;
+
+        try
+        {
+            await LoadOverviewInternalAsync();
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage =
+                $"No fue posible cargar el resumen: {ex.Message}";
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private async Task LoadOverviewInternalAsync()
+    {
+        if (!WorkspaceContext.TenantId.HasValue)
+        {
+            return;
+        }
+
+        Overview =
+            await WorkspaceService.GetOverviewAsync(
+                WorkspaceContext.TenantId.Value,
+                WorkspaceContext.SubscriptionId);
+    }
+
+    private async Task RefreshAsync()
+    {
+        if (!WorkspaceContext.TenantId.HasValue)
+        {
+            await LoadCustomersAsync();
+            return;
+        }
+
+        await LoadCustomerDataAsync();
+    }
+
+    private void SelectTab(string tab)
+    {
+        SelectedTab = tab;
+    }
+
+    private string GetTabClass(string tab)
+    {
+        return SelectedTab == tab
+            ? "workspace-tab active"
+            : "workspace-tab";
+    }
+}
+
+================================================================================
+ARCHIVO: .\Components\Clients\ClientsWorkspace\ClientsWorkspace.razor.css
+================================================================================
+/* ===========================================================
+   CLIENTS WORKSPACE
+   ITQS Support Operations Center
+=========================================================== */
+
+.client-workspace {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    padding: 24px;
+}
+
+/*============================================================
+HEADER
+============================================================*/
+
+.workspace-header {
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 28px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 10px 30px rgba(0,0,0,.06);
+}
+
+.workspace-title h1 {
+    margin: 0;
+    font-size: 34px;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.workspace-title p {
+    margin-top: 8px;
+    color: #64748b;
+    font-size: 15px;
+}
+
+/*============================================================
+SELECTORES
+============================================================*/
+
+.workspace-selector {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap: 20px;
+    margin-top: 30px;
+    align-items: end;
+}
+
+.workspace-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.workspace-field label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #475569;
+}
+
+.workspace-field select {
+    height: 46px;
+    border-radius: 10px;
+    border: 1px solid #cbd5e1;
+    padding: 0 14px;
+    font-size: 14px;
+    background: white;
+    transition: .2s;
+}
+
+.workspace-field select:hover {
+    border-color: #2563eb;
+}
+
+.workspace-field select:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37,99,235,.15);
+}
+
+/*============================================================
+BOTÓN
+============================================================*/
+
+.workspace-refresh-button {
+    height: 46px;
+    border: none;
+    border-radius: 10px;
+    background: #2563eb;
+    color: white;
+    padding: 0 24px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: .2s;
+}
+
+.workspace-refresh-button:hover {
+    background: #1d4ed8;
+    transform: translateY(-1px);
+}
+
+/*============================================================
+RESUMEN
+============================================================*/
+
+.workspace-context {
+    margin-top: 28px;
+
+    display: grid;
+    grid-template-columns: repeat(auto-fit,minmax(180px,1fr));
+    gap: 18px;
+}
+
+.workspace-context > div {
+
+    background: #f8fafc;
+
+    border: 1px solid #e2e8f0;
+
+    border-radius: 12px;
+
+    padding: 18px;
+}
+
+.workspace-context span {
+
+    display: block;
+
+    color: #64748b;
+
+    font-size: 12px;
+
+    text-transform: uppercase;
+
+    letter-spacing: .05em;
+
+    margin-bottom: 6px;
+}
+
+.workspace-context strong {
+
+    color: #0f172a;
+
+    font-size: 16px;
+}
+
+/*============================================================
+TABS
+============================================================*/
+
+.workspace-tabs {
+
+    display: flex;
+
+    gap: 10px;
+
+    flex-wrap: wrap;
+}
+
+.workspace-tab {
+
+    border: none;
+
+    background: white;
+
+    border-radius: 10px;
+
+    border: 1px solid #dbe4ef;
+
+    padding: 12px 20px;
+
+    cursor: pointer;
+
+    font-weight: 600;
+
+    color: #334155;
+
+    transition: .2s;
+}
+
+.workspace-tab:hover {
+
+    border-color: #2563eb;
+
+    color: #2563eb;
+}
+
+.workspace-tab.active {
+
+    background: #2563eb;
+
+    color: white;
+
+    border-color: #2563eb;
+}
+
+/*============================================================
+CONTENIDO
+============================================================*/
+
+.workspace-content {
+
+    background: white;
+
+    border-radius: 14px;
+
+    border: 1px solid #e5e7eb;
+
+    padding: 28px;
+
+    min-height: 420px;
+
+    box-shadow: 0 8px 24px rgba(0,0,0,.05);
+}
+
+/*============================================================
+RESPONSIVE
+============================================================*/
+
+@media (max-width:900px){
+
+    .workspace-selector{
+
+        grid-template-columns:1fr;
+    }
+
+    .workspace-refresh-button{
+
+        width:100%;
+    }
+
+}
+
+================================================================================
+ARCHIVO: .\Components\Clients\ClientsWorkspace\Models\ClientWorkspaceContext.cs
+================================================================================
+namespace ITQS.SupportOperationsCenter.Components.Clients.ClientsWorkspace.Models;
+
+public sealed class ClientWorkspaceContext
+{
+    public Guid? TenantId { get; set; }
+
+    public Guid? SubscriptionId { get; set; }
+
+    public string CustomerName { get; set; } = string.Empty;
+
+    public string CustomerNamePortal { get; set; } = string.Empty;
+
+    public string SubscriptionName { get; set; } = string.Empty;
+
+    public string SubscriptionState { get; set; } = string.Empty;
+
+    public string PartnerTenant { get; set; } = string.Empty;
+
+    public string GdapStatus { get; set; } = string.Empty;
+
+    public bool HasCustomer => TenantId.HasValue;
+
+    public bool HasSubscription => SubscriptionId.HasValue;
+
+    public void Clear()
+    {
+        TenantId = null;
+        SubscriptionId = null;
+        CustomerName = string.Empty;
+        CustomerNamePortal = string.Empty;
+        SubscriptionName = string.Empty;
+        SubscriptionState = string.Empty;
+        PartnerTenant = string.Empty;
+        GdapStatus = string.Empty;
+    }
+}
+
+================================================================================
+ARCHIVO: .\Components\Clients\ClientsWorkspace\Models\ClientWorkspaceOverview.cs
+================================================================================
+namespace ITQS.SupportOperationsCenter.Components.Clients.ClientsWorkspace.Models;
+
+public sealed class ClientWorkspaceOverview
+{
+    public int TotalSubscriptions { get; set; }
+
+    public int TotalVirtualMachines { get; set; }
+
+    public int TotalDisks { get; set; }
+
+    public int TotalAdvisorRecommendations { get; set; }
+
+    public decimal AnnualAdvisorSavings { get; set; }
+
+    public int TotalBackupVirtualMachines { get; set; }
+
+    public int VirtualMachinesWithBackup { get; set; }
+
+    public int VirtualMachinesWithoutBackup { get; set; }
+
+    public decimal BackupCoveragePercentage { get; set; }
+
+    public int OrphanResources { get; set; }
+
+    public int ResourcesWithoutTags { get; set; }
+
+    public decimal AverageCpuPercent { get; set; }
+
+    public decimal AverageMemoryPercent { get; set; }
+
+    public decimal AverageAvailabilityPercent { get; set; }
+
+    public string OverallStatus { get; set; } = "Sin datos";
+
+    public DateTime? LastOperationalUpdate { get; set; }
+}
+
+================================================================================
+ARCHIVO: .\Components\Clients\ClientsWorkspace\Tabs\ClientOverview.razor
+================================================================================
+<section class="workspace-empty-state">
+    <div class="workspace-empty-icon">📊</div>
+
+    <h2>Overview</h2>
+
+    <p>
+        Seleccione un cliente y una suscripción para consultar la información.
+    </p>
+</section>
