@@ -123,7 +123,10 @@
                 <strong>@DisplaySubscriptionName</strong>
             </div>
 
-            
+            <div>
+                <span>Estado</span>
+                <strong>@DisplaySubscriptionState</strong>
+            </div>
 
         </div>
 
@@ -163,9 +166,19 @@
                     <strong>@Overview.OrphanResources</strong>
                 </div>
 
-                
+                <div>
+                    <span>CPU promedio 7 días</span>
+                    <strong>
+                        @Overview.AverageCpuPercent.ToString("N2")%
+                    </strong>
+                </div>
 
-                
+                <div>
+                    <span>Disponibilidad</span>
+                    <strong>
+                        @Overview.AverageAvailabilityPercent.ToString("N2")%
+                    </strong>
+                </div>
 
             </div>
         }
@@ -686,6 +699,5 @@
             : "workspace-tab";
     }
 }
-
 
 
