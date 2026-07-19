@@ -22,7 +22,30 @@
             </div>
         </div>
     </header>
-<div class="overview-kpi-grid">
+
+    <div class="overview-meta">
+        <div class="overview-meta-item">
+            <span>Suscripción</span>
+            <strong>@SubscriptionDisplayName</strong>
+        </div>
+
+        <div class="overview-meta-item">
+            <span>Partner tenant</span>
+            <strong>@DisplayValue(Context.PartnerTenant)</strong>
+        </div>
+
+        <div class="overview-meta-item">
+            <span>Estado GDAP</span>
+            <strong>@DisplayValue(Context.GdapStatus)</strong>
+        </div>
+
+        <div class="overview-meta-item">
+            <span>Última actualización</span>
+            <strong>@LastUpdateText</strong>
+        </div>
+    </div>
+
+    <div class="overview-kpi-grid">
 
         <article class="overview-kpi-card">
             <div class="overview-icon overview-icon-blue">☁</div>
@@ -52,13 +75,18 @@
         </article>
 
         <article class="overview-kpi-card">
-    <div class="overview-icon overview-icon-green">✓</div>
-    <div class="overview-kpi-content">
-        <span>Estado GDAP</span>
-        <strong>@DisplayValue(Context.GdapStatus)</strong>
-        <small>Estado actual de la relación GDAP</small>
-    </div>
-</article>
+            <div class="overview-icon overview-icon-green">✓</div>
+            <div class="overview-kpi-content">
+                <span>Cobertura de backup</span>
+                <strong>@FormatPercent(Overview.BackupCoveragePercentage)</strong>
+                <small>
+                    @Overview.VirtualMachinesWithBackup.ToString("N0")
+                    de
+                    @Overview.TotalBackupVirtualMachines.ToString("N0")
+                    VMs protegidas
+                </small>
+            </div>
+        </article>
 
         <article class="overview-kpi-card">
             <div class="overview-icon overview-icon-amber">◇</div>
@@ -70,13 +98,13 @@
         </article>
 
         <article class="overview-kpi-card overview-kpi-highlight">
-    <div class="overview-icon overview-icon-money">↻</div>
-    <div class="overview-kpi-content">
-        <span>Última actualización</span>
-        <strong>@LastUpdateText</strong>
-        <small>Fecha de actualización de la información</small>
-    </div>
-</article>
+            <div class="overview-icon overview-icon-money">$</div>
+            <div class="overview-kpi-content">
+                <span>Ahorro anual estimado</span>
+                <strong>@FormatMoney(Overview.AnnualAdvisorSavings)</strong>
+                <small>Valoración de recomendaciones</small>
+            </div>
+        </article>
 
     </div>
 
@@ -454,4 +482,3 @@
             ? "risk-success"
             : "risk-warning";
 }
-
