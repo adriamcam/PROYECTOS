@@ -511,3 +511,219 @@
     color: #2563eb;
     opacity: 1;
 }
+
+/* ==========================================================
+   PANEL LATERAL DE DETALLE ADVISOR
+   ========================================================== */
+
+.advisor-data-row {
+    cursor: pointer;
+    transition: background-color .12s ease;
+}
+
+.advisor-data-row:hover {
+    background: #f1f6ff !important;
+}
+
+.advisor-detail-backdrop {
+    position: fixed;
+    z-index: 2000;
+    inset: 0;
+    display: flex;
+    justify-content: flex-end;
+    background: rgba(15, 23, 42, .38);
+    backdrop-filter: blur(1px);
+}
+
+.advisor-detail-drawer {
+    display: flex;
+    width: min(620px, 94vw);
+    height: 100%;
+    flex-direction: column;
+    overflow: hidden;
+    background: #ffffff;
+    box-shadow: -12px 0 35px rgba(15, 23, 42, .18);
+    animation: advisor-drawer-enter .18s ease-out;
+}
+
+.advisor-detail-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 22px 24px 18px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.advisor-detail-header h2 {
+    margin: 5px 0 7px;
+    color: #17233c;
+    font-size: 19px;
+    line-height: 1.35;
+}
+
+.advisor-detail-header p {
+    margin: 0;
+    color: #64748b;
+    font-size: 11px;
+}
+
+.advisor-detail-close {
+    display: inline-flex;
+    width: 34px;
+    height: 34px;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #cbd5e1;
+    border-radius: 7px;
+    background: #ffffff;
+    color: #475569;
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.advisor-detail-close:hover {
+    border-color: #2563eb;
+    background: #eff6ff;
+    color: #2563eb;
+}
+
+.advisor-detail-body {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 20px 24px 30px;
+    overflow-y: auto;
+}
+
+.advisor-detail-section {
+    padding: 16px;
+    border: 1px solid #e2e8f0;
+    border-radius: 9px;
+    background: #ffffff;
+}
+
+.advisor-detail-section h3 {
+    margin: 0 0 13px;
+    color: #1e293b;
+    font-size: 13px;
+}
+
+.advisor-detail-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.advisor-detail-grid > div {
+    display: flex;
+    min-height: 65px;
+    flex-direction: column;
+    gap: 6px;
+    padding: 11px;
+    border-radius: 7px;
+    background: #f8fafc;
+}
+
+.advisor-detail-grid span,
+.advisor-detail-list dt {
+    color: #64748b;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.advisor-detail-grid strong {
+    color: #1e293b;
+    font-size: 12px;
+}
+
+.advisor-detail-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin: 0;
+}
+
+.advisor-detail-list > div {
+    display: grid;
+    grid-template-columns: 130px minmax(0, 1fr);
+    gap: 12px;
+}
+
+.advisor-detail-list dd {
+    margin: 0;
+    color: #334155;
+    font-size: 11px;
+    overflow-wrap: anywhere;
+}
+
+.advisor-resource-id {
+    font-family: Consolas, monospace;
+    font-size: 10px !important;
+}
+
+.advisor-detail-text {
+    margin: 0;
+    color: #475569;
+    font-size: 12px;
+    line-height: 1.65;
+    white-space: pre-line;
+}
+
+.advisor-detail-savings {
+    display: flex;
+    flex-direction: column;
+    padding: 17px;
+    border: 1px solid #bfdbfe;
+    border-radius: 9px;
+    background: #eff6ff;
+}
+
+.advisor-detail-savings span {
+    color: #1d4ed8;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.advisor-detail-savings strong {
+    margin-top: 7px;
+    color: #047857;
+    font-size: 25px;
+}
+
+.advisor-detail-savings small {
+    margin-top: 3px;
+    color: #64748b;
+    font-size: 10px;
+}
+
+@keyframes advisor-drawer-enter {
+    from {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@media (max-width: 620px) {
+    .advisor-detail-drawer {
+        width: 100%;
+    }
+
+    .advisor-detail-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .advisor-detail-list > div {
+        grid-template-columns: 1fr;
+        gap: 4px;
+    }
+}

@@ -419,6 +419,199 @@
 
 </section>
 
+
+@if (SelectedRecommendation is not null)
+{
+    <div class="advisor-detail-backdrop"
+         @onclick="CloseRecommendation">
+
+        <aside class="advisor-detail-drawer"
+               role="dialog"
+               aria-modal="true"
+               aria-label="Detalle de recomendación"
+               @onclick:stopPropagation="true">
+
+            <header class="advisor-detail-header">
+                <div>
+                    <span class="advisor-eyebrow">
+                        Detalle de Azure Advisor
+                    </span>
+
+                    <h2>
+                        @SelectedRecommendation.RecommendationSpanish
+                    </h2>
+
+                    <p>
+                        @Display(SelectedRecommendation.SubscriptionName)
+                    </p>
+                </div>
+
+                <button type="button"
+                        class="advisor-detail-close"
+                        title="Cerrar"
+                        aria-label="Cerrar detalle"
+                        @onclick="CloseRecommendation">
+                    ×
+                </button>
+            </header>
+
+            <div class="advisor-detail-body">
+
+                <section class="advisor-detail-section">
+                    <h3>Clasificación</h3>
+
+                    <div class="advisor-detail-grid">
+                        <div>
+                            <span>Categoría</span>
+                            <strong>
+                                @TranslateCategory(
+                                    SelectedRecommendation.AzureCategory)
+                            </strong>
+                        </div>
+
+                        <div>
+                            <span>Impacto</span>
+                            <strong>
+                                @SelectedRecommendation.Impact
+                            </strong>
+                        </div>
+
+                        <div>
+                            <span>Complejidad</span>
+                            <strong>
+                                @Display(
+                                    SelectedRecommendation.Complexity)
+                            </strong>
+                        </div>
+
+                        <div>
+                            <span>Ventana de mantenimiento</span>
+                            <strong>
+                                @(SelectedRecommendation
+                                    .RequiresMaintenanceWindow
+                                        ? "Sí"
+                                        : "No")
+                            </strong>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="advisor-detail-section">
+                    <h3>Recurso afectado</h3>
+
+                    <dl class="advisor-detail-list">
+                        <div>
+                            <dt>Recurso</dt>
+                            <dd>
+                                @Display(
+                                    SelectedRecommendation.ResourceName)
+                            </dd>
+                        </div>
+
+                        <div>
+                            <dt>Grupo de recursos</dt>
+                            <dd>
+                                @Display(
+                                    SelectedRecommendation.ResourceGroup)
+                            </dd>
+                        </div>
+
+                        <div>
+                            <dt>Suscripción</dt>
+                            <dd>
+                                @Display(
+                                    SelectedRecommendation.SubscriptionName)
+                            </dd>
+                        </div>
+
+                        <div>
+                            <dt>Resource ID</dt>
+                            <dd class="advisor-resource-id">
+                                @Display(
+                                    SelectedRecommendation.AffectedResource)
+                            </dd>
+                        </div>
+                    </dl>
+                </section>
+
+                <section class="advisor-detail-section">
+                    <h3>Descripción</h3>
+
+                    <p class="advisor-detail-text">
+                        @Display(
+                            SelectedRecommendation.DescriptionSpanish)
+                    </p>
+                </section>
+
+                <section class="advisor-detail-section">
+                    <h3>Remediación recomendada</h3>
+
+                    <p class="advisor-detail-text">
+                        @Display(
+                            SelectedRecommendation.RemediationAzure)
+                    </p>
+                </section>
+
+                <section class="advisor-detail-section">
+                    <h3>Estimación operativa</h3>
+
+                    <div class="advisor-detail-grid">
+                        <div>
+                            <span>Tiempo estimado</span>
+                            <strong>
+                                @FormatImplementationTime(
+                                    SelectedRecommendation)
+                            </strong>
+                        </div>
+
+                        <div>
+                            <span>Ventana</span>
+                            <strong>
+                                @Display(
+                                    SelectedRecommendation
+                                        .MaintenanceWindowText)
+                            </strong>
+                        </div>
+
+                        <div>
+                            <span>Clasificación de costo</span>
+                            <strong>
+                                @Display(
+                                    SelectedRecommendation
+                                        .CostClassification)
+                            </strong>
+                        </div>
+
+                        <div>
+                            <span>Actualización</span>
+                            <strong>
+                                @FormatDetailDate(
+                                    SelectedRecommendation
+                                        .AdvisorUpdatedAt)
+                            </strong>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="advisor-detail-savings">
+                    <span>Ahorro anual potencial</span>
+
+                    <strong>
+                        @FormatMoney(
+                            SelectedRecommendation
+                                .AnnualSavingsAmount)
+                    </strong>
+
+                    <small>
+                        @Display(SelectedRecommendation.Currency)
+                    </small>
+                </section>
+
+            </div>
+
+        </aside>
+    </div>
+}
 @code {
     [Parameter]
     public ClientWorkspaceContext? Context { get; set; }
@@ -430,6 +623,8 @@
         Array.Empty<ClientAdvisorScore>();
 
     private ClientSecurityScore? SecurityScore;
+
+    private ClientAdvisorRecommendation? SelectedRecommendation;
 
     private bool IsLoading;
 
@@ -726,9 +921,6 @@
             SummaryFilter = "all";
             SortColumn = string.Empty;
             SortAscending = true;
-            SummaryFilter = "all";
-            SortColumn = string.Empty;
-            SortAscending = true;
             CurrentPage = 1;
         }
         catch (Exception ex)
@@ -740,6 +932,8 @@
                 Array.Empty<ClientAdvisorScore>();
 
             SecurityScore = null;
+
+        SelectedRecommendation = null;
 
             ErrorMessage = ex.Message;
         }
@@ -758,6 +952,8 @@
             Array.Empty<ClientAdvisorScore>();
 
         SecurityScore = null;
+
+        SelectedRecommendation = null;
 
         LoadedTenantId = null;
         LoadedSubscriptionId = null;
@@ -809,7 +1005,7 @@
                 ? "advisor-summary-card advisor-summary-card-active"
                 : "advisor-summary-card";
     }
-        private void SortBy(string column)
+    private void SortBy(string column)
     {
         if (!string.Equals(
             SortColumn,
@@ -887,6 +1083,44 @@
 
             _ => 5
         };
+    }
+    private void OpenRecommendation(
+        ClientAdvisorRecommendation recommendation)
+    {
+        SelectedRecommendation = recommendation;
+    }
+
+    private void CloseRecommendation()
+    {
+        SelectedRecommendation = null;
+    }
+
+    private static string FormatImplementationTime(
+        ClientAdvisorRecommendation recommendation)
+    {
+        if (recommendation.ImplementationHours > 0)
+        {
+            return recommendation.ImplementationHours == 1
+                ? "1 hora"
+                : $"{recommendation.ImplementationHours:N2} horas";
+        }
+
+        if (recommendation.ImplementationMinutes > 0)
+        {
+            return recommendation.ImplementationMinutes == 1
+                ? "1 minuto"
+                : $"{recommendation.ImplementationMinutes} minutos";
+        }
+
+        return "Sin estimación";
+    }
+
+    private static string FormatDetailDate(DateTime? value)
+    {
+        return value.HasValue
+            ? value.Value.ToLocalTime()
+                .ToString("dd/MM/yyyy HH:mm")
+            : "Sin datos";
     }
     private void PreviousPage()
     {
@@ -987,8 +1221,6 @@
         };
     }
 }
-
-
 
 
 
