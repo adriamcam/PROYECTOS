@@ -137,41 +137,25 @@
 
         <div class="advisor-summary-grid">
 
-            <article class='@GetSummaryCardClass("all")'
-                     role="button"
-                     tabindex="0"
-                     title="Mostrar todas las recomendaciones"
-                     @onclick='() => ApplySummaryFilter("all")'>
+            <article class="advisor-summary-card">
                 <span>Total recomendaciones</span>
                 <strong>@Recommendations.Count</strong>
                 <small>Todas las recomendaciones disponibles</small>
             </article>
 
-            <article class='@GetSummaryCardClass("savings")'
-                     role="button"
-                     tabindex="0"
-                     title="Ordenar por mayor ahorro anual"
-                     @onclick='() => ApplySummaryFilter("savings")'>
+            <article class="advisor-summary-card">
                 <span>Ahorro anual potencial</span>
                 <strong>@FormatMoney(TotalSavings)</strong>
                 <small>Suma total, no solamente Top 10</small>
             </article>
 
-            <article class='@GetSummaryCardClass("resources")'
-                     role="button"
-                     tabindex="0"
-                     title="Mostrar recursos afectados únicos"
-                     @onclick='() => ApplySummaryFilter("resources")'>
+            <article class="advisor-summary-card">
                 <span>Recursos afectados</span>
                 <strong>@AffectedResources</strong>
                 <small>Recursos únicos con recomendaciones</small>
             </article>
 
-            <article class='@GetSummaryCardClass("valued")'
-                     role="button"
-                     tabindex="0"
-                     title="Mostrar únicamente recomendaciones valorizadas"
-                     @onclick='() => ApplySummaryFilter("valued")'>
+            <article class="advisor-summary-card">
                 <span>Con ahorro estimado</span>
                 <strong>@RecommendationsWithSavings</strong>
                 <small>Recomendaciones valorizadas</small>
@@ -447,8 +431,6 @@
 
     private bool OnlyWithSavings;
 
-    private string SummaryFilter = "all";
-
     private string SortColumn = string.Empty;
 
     private bool SortAscending = true;
@@ -497,35 +479,7 @@
         get
         {
             IEnumerable<ClientAdvisorRecommendation> query =
-                SummaryFilter switch
-                {
-                    "resources" =>
-                        Recommendations
-                            .Where(
-                                x =>
-                                    !string.IsNullOrWhiteSpace(
-                                        x.AffectedResource))
-                            .GroupBy(
-                                x => x.AffectedResource,
-                                StringComparer.OrdinalIgnoreCase)
-                            .Select(
-                                group =>
-                                    group
-                                        .OrderByDescending(
-                                            x =>
-                                                x.AnnualSavingsAmount)
-                                        .ThenBy(
-                                            x =>
-                                                x.RecommendationSpanish)
-                                        .First()),
-
-                    "valued" =>
-                        Recommendations.Where(
-                            x => x.AnnualSavingsAmount > 0),
-
-                    _ =>
-                        Recommendations
-                };
+                Recommendations;
 
             if (!string.IsNullOrWhiteSpace(SearchText))
             {
@@ -723,9 +677,6 @@
             LoadedTenantId = tenantId;
             LoadedSubscriptionId = Context.SubscriptionId;
 
-            SummaryFilter = "all";
-            SortColumn = string.Empty;
-            SortAscending = true;
             CurrentPage = 1;
         }
         catch (Exception ex)
@@ -763,49 +714,6 @@
         CurrentPage = 1;
     }
 
-    private void ApplySummaryFilter(string filter)
-    {
-        SummaryFilter = filter;
-
-        SearchText = string.Empty;
-        SelectedCategory = string.Empty;
-        SelectedImpact = string.Empty;
-        OnlyWithSavings = false;
-        CurrentPage = 1;
-
-        switch (filter)
-        {
-            case "savings":
-                SortColumn = "savings";
-                SortAscending = false;
-                break;
-
-            case "resources":
-                SortColumn = "resource";
-                SortAscending = true;
-                break;
-
-            case "valued":
-                SortColumn = "savings";
-                SortAscending = false;
-                break;
-
-            default:
-                SortColumn = string.Empty;
-                SortAscending = true;
-                break;
-        }
-    }
-
-    private string GetSummaryCardClass(string filter)
-    {
-        return string.Equals(
-            SummaryFilter,
-            filter,
-            StringComparison.OrdinalIgnoreCase)
-                ? "advisor-summary-card advisor-summary-card-active"
-                : "advisor-summary-card";
-    }
     private void SortBy(string column)
     {
         if (!string.Equals(
@@ -984,6 +892,5 @@
         };
     }
 }
-
 
 
