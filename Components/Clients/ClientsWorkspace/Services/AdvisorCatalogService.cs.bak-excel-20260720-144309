@@ -1,0 +1,425 @@
+using System.Data;
+using Dapper;
+using ITQS.SupportOperationsCenter.Data;
+using ITQS.SupportOperationsCenter.Components.Clients.ClientsWorkspace.Models;
+
+namespace ITQS.SupportOperationsCenter.Components.Clients.ClientsWorkspace.Services;
+
+public sealed class AdvisorCatalogService : IAdvisorCatalogService
+{
+    private readonly ISqlConnectionFactory _connectionFactory;
+
+    public AdvisorCatalogService(ISqlConnectionFactory connectionFactory)
+    {
+        _connectionFactory = connectionFactory
+            ?? throw new ArgumentNullException(nameof(connectionFactory));
+    }
+
+    private IDbConnection CreateConnection() =>
+        _connectionFactory.CreateConnection();
+
+    public async Task<IReadOnlyList<AdvisorCatalogItem>> GetAllAsync()
+    {
+        const string sql = """
+        SELECT Id, Recommendation, RecommendationSpanish,
+               DescriptionSpanish, CostClassification,
+               RequiresMaintenanceWindow, ImplementationMinutes,
+               ImplementationHours, Category, Complexity, Notes,
+               IsActive, UpdatedAt, RowVersion
+        FROM dbo.AdvisorRecommendationCatalog
+        ORDER BY IsActive DESC, Category, RecommendationSpanish;
+        """;
+
+        using var connection = CreateConnection();
+        var rows = await connection.QueryAsync<AdvisorCatalogItem>(sql);
+        return rows.AsList();
+    }
+
+    public async Task<AdvisorCatalogSaveResult> InsertAsync(AdvisorCatalogItem item)
+    {
+        ValidateItem(item.Recommendation, item.RecommendationSpanish,
+            item.Complexity, item.CostClassification,
+            item.ImplementationHours ?? 0, item.ImplementationMinutes);
+
+        const string sql = """
+        IF EXISTS
+        (
+            SELECT 1
+            FROM dbo.AdvisorRecommendationCatalog
+            WHERE LTRIM(RTRIM(Recommendation)) = LTRIM(RTRIM(@Recommendation))
+        )
+        BEGIN
+            SELECT CAST(NULL AS int) AS Id,
+                   CAST(NULL AS varbinary(8)) AS RowVersion,
+                   CAST(NULL AS datetime2) AS UpdatedAt;
+            RETURN;
+        END;
+
+        INSERT INTO dbo.AdvisorRecommendationCatalog
+        (
+            Recommendation, RecommendationSpanish, DescriptionSpanish,
+            CostClassification, RequiresMaintenanceWindow,
+            ImplementationMinutes, ImplementationHours, Category,
+            Complexity, Notes, IsActive, UpdatedAt
+        )
+        OUTPUT INSERTED.Id, INSERTED.RowVersion, INSERTED.UpdatedAt
+        VALUES
+        (
+            @Recommendation, @RecommendationSpanish, @DescriptionSpanish,
+            @CostClassification, @RequiresMaintenanceWindow,
+            @ImplementationMinutes, @ImplementationHours, @Category,
+            @Complexity, @Notes, @IsActive, SYSUTCDATETIME()
+        );
+        """;
+
+        using var connection = CreateConnection();
+        var output = await connection.QuerySingleAsync<SaveOutput>(sql, Parameters(item));
+
+        if (output.Id is null)
+        {
+            return new AdvisorCatalogSaveResult
+            {
+                Success = false,
+                Message = "Ya existe una recomendación con el mismo texto original."
+            };
+        }
+
+        return new AdvisorCatalogSaveResult
+        {
+            Success = true,
+            Id = output.Id.Value,
+            Message = "Insertado.",
+            RowVersion = output.RowVersion ?? Array.Empty<byte>(),
+            UpdatedAt = output.UpdatedAt ?? DateTime.UtcNow
+        };
+    }
+
+    public async Task<AdvisorCatalogSaveResult> UpdateAsync(AdvisorCatalogItem item)
+    {
+        ValidateItem(item.Recommendation, item.RecommendationSpanish,
+            item.Complexity, item.CostClassification,
+            item.ImplementationHours ?? 0, item.ImplementationMinutes);
+
+        const string sql = """
+        UPDATE dbo.AdvisorRecommendationCatalog
+        SET RecommendationSpanish = @RecommendationSpanish,
+            DescriptionSpanish = @DescriptionSpanish,
+            CostClassification = @CostClassification,
+            RequiresMaintenanceWindow = @RequiresMaintenanceWindow,
+            ImplementationMinutes = @ImplementationMinutes,
+            ImplementationHours = @ImplementationHours,
+            Category = @Category,
+            Complexity = @Complexity,
+            Notes = @Notes,
+            IsActive = @IsActive,
+            UpdatedAt = SYSUTCDATETIME()
+        OUTPUT INSERTED.Id, INSERTED.RowVersion, INSERTED.UpdatedAt
+        WHERE Id = @Id AND RowVersion = @RowVersion;
+        """;
+
+        using var connection = CreateConnection();
+        var output = await connection.QuerySingleOrDefaultAsync<SaveOutput>(
+            sql, Parameters(item));
+
+        if (output?.Id is null)
+        {
+            return new AdvisorCatalogSaveResult
+            {
+                Success = false,
+                Message = "El registro cambió en la base de datos. Actualice la pantalla e inténtelo otra vez."
+            };
+        }
+
+        return new AdvisorCatalogSaveResult
+        {
+            Success = true,
+            Id = output.Id.Value,
+            Message = "Guardado.",
+            RowVersion = output.RowVersion ?? Array.Empty<byte>(),
+            UpdatedAt = output.UpdatedAt ?? DateTime.UtcNow
+        };
+    }
+
+    public async Task<AdvisorCatalogImportPreview> PreviewImportAsync(
+        IReadOnlyList<AdvisorCatalogImportRow> rows)
+    {
+        var errors = ValidateRows(rows);
+        var existing = await GetImportSnapshotAsync();
+        var duplicateRows = rows
+            .Where(x => !string.IsNullOrWhiteSpace(x.Recommendation))
+            .GroupBy(x => NormalizeKey(x.Recommendation))
+            .Where(x => x.Count() > 1)
+            .SelectMany(x => x.Skip(1));
+
+        foreach (var row in duplicateRows)
+        {
+            errors.Add(new AdvisorCatalogImportError
+            {
+                RowNumber = row.RowNumber,
+                Message = "La recomendación está duplicada dentro del Excel."
+            });
+        }
+
+        var invalidRows = errors.Select(x => x.RowNumber).ToHashSet();
+        var newRows = 0;
+        var updatedRows = 0;
+        var unchangedRows = 0;
+
+        foreach (var row in rows.Where(x => !invalidRows.Contains(x.RowNumber)))
+        {
+            if (!existing.TryGetValue(NormalizeKey(row.Recommendation), out var current))
+            {
+                newRows++;
+            }
+            else if (HasChanges(current, row))
+            {
+                updatedRows++;
+            }
+            else
+            {
+                unchangedRows++;
+            }
+        }
+
+        return new AdvisorCatalogImportPreview
+        {
+            TotalRows = rows.Count,
+            NewRows = newRows,
+            UpdatedRows = updatedRows,
+            UnchangedRows = unchangedRows,
+            Errors = errors.OrderBy(x => x.RowNumber).ToList()
+        };
+    }
+
+    public async Task<AdvisorCatalogImportResult> ImportAsync(
+        IReadOnlyList<AdvisorCatalogImportRow> rows)
+    {
+        var preview = await PreviewImportAsync(rows);
+        if (preview.ErrorRows > 0)
+        {
+            throw new InvalidOperationException(
+                "La importación contiene errores. Corrija el Excel antes de continuar.");
+        }
+
+        using var connection = CreateConnection();
+        if (connection.State != ConnectionState.Open) connection.Open();
+        using var transaction = connection.BeginTransaction();
+
+        try
+        {
+            var existing = (await connection.QueryAsync<ImportSnapshot>(
+                SnapshotSql, transaction: transaction))
+                .ToDictionary(x => NormalizeKey(x.Recommendation), StringComparer.OrdinalIgnoreCase);
+
+            var inserted = 0;
+            var updated = 0;
+            var unchanged = 0;
+
+            foreach (var row in rows)
+            {
+                var key = NormalizeKey(row.Recommendation);
+                if (!existing.TryGetValue(key, out var current))
+                {
+                    await connection.ExecuteAsync(InsertImportSql, ImportParameters(row), transaction);
+                    inserted++;
+                }
+                else if (HasChanges(current, row))
+                {
+                    await connection.ExecuteAsync(UpdateImportSql,
+                        new
+                        {
+                            current.Id,
+                            RecommendationSpanish = row.RecommendationSpanish.Trim(),
+                            DescriptionSpanish = NullIfEmpty(row.DescriptionSpanish),
+                            Complexity = NullIfEmpty(row.Complexity),
+                            ImplementationHours = Math.Max(0, row.ImplementationHours),
+                            ImplementationMinutes = Math.Max(0, row.ImplementationMinutes),
+                            CostClassification = NormalizeCost(row.CostClassification),
+                            row.RequiresMaintenanceWindow,
+                            Notes = NullIfEmpty(row.Notes),
+                            row.IsActive
+                        }, transaction);
+                    updated++;
+                }
+                else
+                {
+                    unchanged++;
+                }
+            }
+
+            transaction.Commit();
+            return new AdvisorCatalogImportResult
+            {
+                InsertedRows = inserted,
+                UpdatedRows = updated,
+                UnchangedRows = unchanged,
+                ErrorRows = 0
+            };
+        }
+        catch
+        {
+            transaction.Rollback();
+            throw;
+        }
+    }
+
+    private async Task<Dictionary<string, ImportSnapshot>> GetImportSnapshotAsync()
+    {
+        using var connection = CreateConnection();
+        var rows = await connection.QueryAsync<ImportSnapshot>(SnapshotSql);
+        return rows.ToDictionary(
+            x => NormalizeKey(x.Recommendation),
+            StringComparer.OrdinalIgnoreCase);
+    }
+
+    private static List<AdvisorCatalogImportError> ValidateRows(
+        IReadOnlyList<AdvisorCatalogImportRow> rows)
+    {
+        var errors = new List<AdvisorCatalogImportError>();
+        foreach (var row in rows)
+        {
+            try
+            {
+                ValidateItem(row.Recommendation, row.RecommendationSpanish,
+                    row.Complexity, row.CostClassification,
+                    row.ImplementationHours, row.ImplementationMinutes);
+            }
+            catch (Exception ex)
+            {
+                errors.Add(new AdvisorCatalogImportError
+                {
+                    RowNumber = row.RowNumber,
+                    Message = ex.Message
+                });
+            }
+        }
+        return errors;
+    }
+
+    private static void ValidateItem(string recommendation, string spanish,
+        string? complexity, string cost, decimal hours, int minutes)
+    {
+        if (string.IsNullOrWhiteSpace(recommendation))
+            throw new InvalidOperationException("Recommendation es obligatoria.");
+        if (string.IsNullOrWhiteSpace(spanish))
+            throw new InvalidOperationException("RecommendationSpanish es obligatoria.");
+        if (hours < 0) throw new InvalidOperationException("ImplementationHours no puede ser negativo.");
+        if (minutes < 0) throw new InvalidOperationException("ImplementationMinutes no puede ser negativo.");
+
+        if (!string.IsNullOrWhiteSpace(complexity) &&
+            !new[] { "Baja", "Media", "Alta" }.Contains(complexity.Trim(), StringComparer.OrdinalIgnoreCase))
+            throw new InvalidOperationException("Complexity debe ser Baja, Media o Alta.");
+
+        if (!new[] { "Por validar", "Con costo", "Sin costo", "Mixto" }
+            .Contains(NormalizeCost(cost), StringComparer.OrdinalIgnoreCase))
+            throw new InvalidOperationException("CostClassification no es válido.");
+    }
+
+    private static bool HasChanges(ImportSnapshot current, AdvisorCatalogImportRow row) =>
+        !Same(current.RecommendationSpanish, row.RecommendationSpanish) ||
+        !Same(current.DescriptionSpanish, row.DescriptionSpanish) ||
+        !Same(current.Complexity, row.Complexity) ||
+        current.ImplementationHours != Math.Max(0, row.ImplementationHours) ||
+        current.ImplementationMinutes != Math.Max(0, row.ImplementationMinutes) ||
+        !Same(current.CostClassification, NormalizeCost(row.CostClassification)) ||
+        current.RequiresMaintenanceWindow != row.RequiresMaintenanceWindow ||
+        !Same(current.Notes, row.Notes) ||
+        current.IsActive != row.IsActive;
+
+    private static bool Same(string? left, string? right) =>
+        string.Equals(left?.Trim() ?? string.Empty, right?.Trim() ?? string.Empty,
+            StringComparison.OrdinalIgnoreCase);
+
+    private static object Parameters(AdvisorCatalogItem item) => new
+    {
+        item.Id,
+        Recommendation = item.Recommendation.Trim(),
+        RecommendationSpanish = item.RecommendationSpanish.Trim(),
+        DescriptionSpanish = NullIfEmpty(item.DescriptionSpanish),
+        CostClassification = NormalizeCost(item.CostClassification),
+        item.RequiresMaintenanceWindow,
+        ImplementationMinutes = Math.Max(0, item.ImplementationMinutes),
+        ImplementationHours = Math.Max(0, item.ImplementationHours ?? 0),
+        Category = NullIfEmpty(item.Category),
+        Complexity = NullIfEmpty(item.Complexity),
+        Notes = NullIfEmpty(item.Notes),
+        item.IsActive,
+        item.RowVersion
+    };
+
+    private static object ImportParameters(AdvisorCatalogImportRow row) => new
+    {
+        Recommendation = row.Recommendation.Trim(),
+        RecommendationSpanish = row.RecommendationSpanish.Trim(),
+        DescriptionSpanish = NullIfEmpty(row.DescriptionSpanish),
+        Complexity = NullIfEmpty(row.Complexity),
+        ImplementationHours = Math.Max(0, row.ImplementationHours),
+        ImplementationMinutes = Math.Max(0, row.ImplementationMinutes),
+        CostClassification = NormalizeCost(row.CostClassification),
+        row.RequiresMaintenanceWindow,
+        Notes = NullIfEmpty(row.Notes),
+        row.IsActive
+    };
+
+    private static string NormalizeCost(string? value) =>
+        string.IsNullOrWhiteSpace(value) ? "Por validar" : value.Trim();
+    private static string NormalizeKey(string value) => value.Trim().ToUpperInvariant();
+    private static string? NullIfEmpty(string? value) =>
+        string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+
+    private const string SnapshotSql = """
+        SELECT Id, Recommendation, RecommendationSpanish, DescriptionSpanish,
+               Complexity, ISNULL(ImplementationHours, 0) AS ImplementationHours,
+               ISNULL(ImplementationMinutes, 0) AS ImplementationMinutes,
+               CostClassification, RequiresMaintenanceWindow, Notes, IsActive
+        FROM dbo.AdvisorRecommendationCatalog;
+        """;
+
+    private const string InsertImportSql = """
+        INSERT INTO dbo.AdvisorRecommendationCatalog
+        (Recommendation, RecommendationSpanish, DescriptionSpanish,
+         CostClassification, RequiresMaintenanceWindow, ImplementationMinutes,
+         ImplementationHours, Complexity, Notes, IsActive, UpdatedAt)
+        VALUES
+        (@Recommendation, @RecommendationSpanish, @DescriptionSpanish,
+         @CostClassification, @RequiresMaintenanceWindow, @ImplementationMinutes,
+         @ImplementationHours, @Complexity, @Notes, @IsActive, SYSUTCDATETIME());
+        """;
+
+    private const string UpdateImportSql = """
+        UPDATE dbo.AdvisorRecommendationCatalog
+        SET RecommendationSpanish = @RecommendationSpanish,
+            DescriptionSpanish = @DescriptionSpanish,
+            Complexity = @Complexity,
+            ImplementationHours = @ImplementationHours,
+            ImplementationMinutes = @ImplementationMinutes,
+            CostClassification = @CostClassification,
+            RequiresMaintenanceWindow = @RequiresMaintenanceWindow,
+            Notes = @Notes,
+            IsActive = @IsActive,
+            UpdatedAt = SYSUTCDATETIME()
+        WHERE Id = @Id;
+        """;
+
+    private sealed class SaveOutput
+    {
+        public int? Id { get; set; }
+        public byte[]? RowVersion { get; set; }
+        public DateTime? UpdatedAt { get; set; }
+    }
+
+    private sealed class ImportSnapshot
+    {
+        public int Id { get; set; }
+        public string Recommendation { get; set; } = string.Empty;
+        public string RecommendationSpanish { get; set; } = string.Empty;
+        public string? DescriptionSpanish { get; set; }
+        public string? Complexity { get; set; }
+        public decimal ImplementationHours { get; set; }
+        public int ImplementationMinutes { get; set; }
+        public string CostClassification { get; set; } = string.Empty;
+        public bool RequiresMaintenanceWindow { get; set; }
+        public string? Notes { get; set; }
+        public bool IsActive { get; set; }
+    }
+}

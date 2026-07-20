@@ -1,0 +1,14 @@
+using ITQS.SupportOperationsCenter.Components.Clients.ClientsWorkspace.Models;
+
+namespace ITQS.SupportOperationsCenter.Components.Clients.ClientsWorkspace.Services;
+
+public interface IAdvisorCatalogService
+{
+    Task<IReadOnlyList<AdvisorCatalogItem>> GetAllAsync();
+    Task<AdvisorCatalogSaveResult> InsertAsync(AdvisorCatalogItem item);
+    Task<AdvisorCatalogSaveResult> UpdateAsync(AdvisorCatalogItem item);
+    Task<AdvisorCatalogImportPreview> PreviewImportAsync(
+        IReadOnlyList<AdvisorCatalogImportRow> rows);
+    Task<AdvisorCatalogImportResult> ImportAsync(
+        IReadOnlyList<AdvisorCatalogImportRow> rows);
+}

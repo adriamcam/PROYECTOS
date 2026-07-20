@@ -1,0 +1,89 @@
+namespace ITQS.SupportOperationsCenter.Components.Clients.ClientsWorkspace.Models;
+
+public sealed class AdvisorCatalogItem
+{
+    public int Id { get; set; }
+    public string Recommendation { get; set; } = string.Empty;
+    public string RecommendationSpanish { get; set; } = string.Empty;
+    public string? DescriptionSpanish { get; set; }
+    public string CostClassification { get; set; } = "Por validar";
+    public bool RequiresMaintenanceWindow { get; set; }
+    public int ImplementationMinutes { get; set; }
+    public decimal? ImplementationHours { get; set; }
+    public string? Category { get; set; }
+    public string? Complexity { get; set; }
+    public string? Notes { get; set; }
+    public bool IsActive { get; set; }
+    public DateTime UpdatedAt { get; set; }
+    public byte[] RowVersion { get; set; } = Array.Empty<byte>();
+    public bool IsEditing { get; set; }
+    public bool IsSaving { get; set; }
+    public string StatusMessage { get; set; } = string.Empty;
+
+    public AdvisorCatalogItem Clone() => new()
+    {
+        Id = Id,
+        Recommendation = Recommendation,
+        RecommendationSpanish = RecommendationSpanish,
+        DescriptionSpanish = DescriptionSpanish,
+        CostClassification = CostClassification,
+        RequiresMaintenanceWindow = RequiresMaintenanceWindow,
+        ImplementationMinutes = ImplementationMinutes,
+        ImplementationHours = ImplementationHours,
+        Category = Category,
+        Complexity = Complexity,
+        Notes = Notes,
+        IsActive = IsActive,
+        UpdatedAt = UpdatedAt,
+        RowVersion = RowVersion.ToArray()
+    };
+}
+
+public sealed class AdvisorCatalogSaveResult
+{
+    public bool Success { get; init; }
+    public int Id { get; init; }
+    public string Message { get; init; } = string.Empty;
+    public byte[] RowVersion { get; init; } = Array.Empty<byte>();
+    public DateTime UpdatedAt { get; init; }
+}
+
+public sealed class AdvisorCatalogImportRow
+{
+    public int RowNumber { get; set; }
+    public string Recommendation { get; set; } = string.Empty;
+    public string RecommendationSpanish { get; set; } = string.Empty;
+    public string? DescriptionSpanish { get; set; }
+    public string? Complexity { get; set; }
+    public decimal ImplementationHours { get; set; }
+    public int ImplementationMinutes { get; set; }
+    public string CostClassification { get; set; } = "Por validar";
+    public bool RequiresMaintenanceWindow { get; set; }
+    public string? Notes { get; set; }
+    public bool IsActive { get; set; } = true;
+}
+
+public sealed class AdvisorCatalogImportError
+{
+    public int RowNumber { get; init; }
+    public string Message { get; init; } = string.Empty;
+}
+
+public sealed class AdvisorCatalogImportPreview
+{
+    public int TotalRows { get; init; }
+    public int NewRows { get; init; }
+    public int UpdatedRows { get; init; }
+    public int UnchangedRows { get; init; }
+    public int ErrorRows => Errors.Count;
+    public IReadOnlyList<AdvisorCatalogImportError> Errors { get; init; } =
+        Array.Empty<AdvisorCatalogImportError>();
+}
+
+public sealed class AdvisorCatalogImportResult
+{
+    public int InsertedRows { get; init; }
+    public int UpdatedRows { get; init; }
+    public int UnchangedRows { get; init; }
+    public int ErrorRows { get; init; }
+}

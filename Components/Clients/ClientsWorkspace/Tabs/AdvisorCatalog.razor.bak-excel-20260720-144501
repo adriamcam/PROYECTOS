@@ -1,0 +1,1054 @@
+@using ITQS.SupportOperationsCenter.Components.Clients.ClientsWorkspace.Models
+@using ITQS.SupportOperationsCenter.Components.Clients.ClientsWorkspace.Services
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.JSInterop
+@using ClosedXML.Excel
+@inject IAdvisorCatalogService AdvisorCatalogService
+@inject IJSRuntime JS
+
+<div class="advisor-catalog">
+    <div class="catalog-header">
+        <div>
+            <h2>Configuración Advisor</h2>
+            <p>
+                Edición del catálogo de recomendaciones,
+                traducciones, complejidad y tiempo estimado.
+            </p>
+        </div>
+
+        <div class="catalog-header-actions">
+            <button type="button"
+                    class="secondary-button"
+                    @onclick="NewRecommendation"
+                    disabled="@(IsLoading || IsImporting)">
+                ＋ Nueva recomendación
+            </button>
+
+            <label class="secondary-button file-button">
+                📥 Importar Excel
+                <InputFile OnChange="OnExcelSelectedAsync"
+                           accept=".xlsx"
+                           disabled="@(IsLoading || IsImporting)" />
+            </label>
+
+            <button type="button"
+                    class="secondary-button"
+                    @onclick="DownloadTemplateAsync"
+                    disabled="@(IsLoading || IsImporting)">
+                📄 Descargar plantilla
+            </button>
+
+            <button type="button"
+                    class="secondary-button"
+                    @onclick="ExportCatalogAsync"
+                    disabled="@(IsLoading || IsImporting || Items.Count == 0)">
+                📤 Exportar catálogo
+            </button>
+
+            <button type="button"
+                    class="primary-button"
+                    @onclick="LoadAsync"
+                    disabled="@(IsLoading || IsImporting)">
+                @(IsLoading ? "Cargando..." : "Actualizar")
+            </button>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(PageMessage))
+    {
+        <div class="@PageMessageClass">@PageMessage</div>
+    }
+
+    @if (ImportPreview is not null)
+    {
+        <section class="import-panel">
+            <div class="import-panel-header">
+                <div>
+                    <h3>Vista previa de importación</h3>
+                    <p>@SelectedExcelName</p>
+                </div>
+                <button type="button"
+                        class="close-button"
+                        @onclick="ClearImportPreview"
+                        disabled="@IsImporting">
+                    ✕
+                </button>
+            </div>
+
+            <div class="import-summary-grid">
+                <div><span>Leídas</span><strong>@ImportPreview.TotalRows</strong></div>
+                <div><span>Nuevas</span><strong>@ImportPreview.NewRows</strong></div>
+                <div><span>Actualizar</span><strong>@ImportPreview.UpdatedRows</strong></div>
+                <div><span>Sin cambios</span><strong>@ImportPreview.UnchangedRows</strong></div>
+                <div class="@(ImportPreview.ErrorRows > 0 ? "summary-error" : string.Empty)">
+                    <span>Errores</span><strong>@ImportPreview.ErrorRows</strong>
+                </div>
+            </div>
+
+            @if (ImportPreview.Errors.Count > 0)
+            {
+                <div class="import-errors">
+                    <strong>Errores encontrados</strong>
+                    @foreach (var error in ImportPreview.Errors.Take(20))
+                    {
+                        <div>Fila @error.RowNumber: @error.Message</div>
+                    }
+                    @if (ImportPreview.Errors.Count > 20)
+                    {
+                        <div>… y @(ImportPreview.Errors.Count - 20) errores adicionales.</div>
+                    }
+                </div>
+            }
+
+            <div class="import-actions">
+                <button type="button"
+                        class="secondary-button"
+                        @onclick="ClearImportPreview"
+                        disabled="@IsImporting">
+                    Cancelar
+                </button>
+                <button type="button"
+                        class="primary-button"
+                        @onclick="ConfirmImportAsync"
+                        disabled="@(IsImporting || ImportPreview.TotalRows == 0 || ImportPreview.ErrorRows > 0)">
+                    @(IsImporting ? "Importando..." : "Confirmar importación")
+                </button>
+            </div>
+        </section>
+    }
+
+    <div class="catalog-kpis">
+        <div><span>Total</span><strong>@Items.Count</strong></div>
+        <div><span>Activos</span><strong>@Items.Count(x => x.IsActive)</strong></div>
+        <div>
+            <span>Sin complejidad</span>
+            <strong>@Items.Count(x => string.IsNullOrWhiteSpace(x.Complexity))</strong>
+        </div>
+        <div>
+            <span>Sin tiempo</span>
+            <strong>
+                @Items.Count(x =>
+                    x.ImplementationMinutes <= 0 &&
+                    (!x.ImplementationHours.HasValue ||
+                     x.ImplementationHours <= 0))
+            </strong>
+        </div>
+    </div>
+
+    <div class="catalog-filters">
+        <input type="search"
+               @bind="SearchText"
+               @bind:event="oninput"
+               placeholder="Buscar recomendación o descripción..." />
+
+        <select @bind="ComplexityFilter">
+            <option value="">Todas las complejidades</option>
+            <option value="Baja">Baja</option>
+            <option value="Media">Media</option>
+            <option value="Alta">Alta</option>
+        </select>
+
+        <select @bind="StatusFilter">
+            <option value="">Todos los estados</option>
+            <option value="active">Activos</option>
+            <option value="inactive">Inactivos</option>
+        </select>
+
+        <select @bind="PageSize">
+            <option value="10">10 por página</option>
+            <option value="20">20 por página</option>
+            <option value="50">50 por página</option>
+            <option value="100">100 por página</option>
+        </select>
+    </div>
+
+    @if (IsLoading)
+    {
+        <div class="catalog-state">Cargando catálogo...</div>
+    }
+    else
+    {
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>
+                            <button type="button"
+                                    class="sort-header"
+                                    @onclick='() => SortBy("id")'>
+                                ID @GetSortIcon("id")
+                            </button>
+                        </th>
+                        <th>
+                            <button type="button"
+                                    class="sort-header"
+                                    @onclick='() => SortBy("recommendation")'>
+                                Recomendación original @GetSortIcon("recommendation")
+                            </button>
+                        </th>
+                        <th>
+                            <button type="button"
+                                    class="sort-header"
+                                    @onclick='() => SortBy("translation")'>
+                                Traducción / descripción @GetSortIcon("translation")
+                            </button>
+                        </th>
+                        <th>
+                            <button type="button"
+                                    class="sort-header"
+                                    @onclick='() => SortBy("complexity")'>
+                                Complejidad @GetSortIcon("complexity")
+                            </button>
+                        </th>
+                        <th>
+                            <button type="button"
+                                    class="sort-header"
+                                    @onclick='() => SortBy("hours")'>
+                                Horas @GetSortIcon("hours")
+                            </button>
+                        </th>
+                        <th>
+                            <button type="button"
+                                    class="sort-header"
+                                    @onclick='() => SortBy("minutes")'>
+                                Minutos @GetSortIcon("minutes")
+                            </button>
+                        </th>
+                        <th>
+                            <button type="button"
+                                    class="sort-header"
+                                    @onclick='() => SortBy("cost")'>
+                                Costo @GetSortIcon("cost")
+                            </button>
+                        </th>
+                        <th>
+                            <button type="button"
+                                    class="sort-header"
+                                    @onclick='() => SortBy("window")'>
+                                Ventana @GetSortIcon("window")
+                            </button>
+                        </th>
+                        <th>
+                            <button type="button"
+                                    class="sort-header"
+                                    @onclick='() => SortBy("active")'>
+                                Activo @GetSortIcon("active")
+                            </button>
+                        </th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in PagedItems)
+                    {
+                        <tr>
+                            <td>@item.Id</td>
+                            <td class="original-cell">
+                                @if (item.IsEditing && item.Id == 0)
+                                {
+                                    <textarea rows="4"
+                                              placeholder="Recomendación original en inglés"
+                                              @bind="item.Recommendation"></textarea>
+                                }
+                                else
+                                {
+                                    <strong>@item.Recommendation</strong>
+                                    <small>
+                                        @item.UpdatedAt.ToLocalTime()
+                                            .ToString("dd/MM/yyyy HH:mm")
+                                    </small>
+                                }
+                            </td>
+                            <td>
+                                @if (item.IsEditing)
+                                {
+                                    <textarea rows="3"
+                                              @bind="item.RecommendationSpanish"></textarea>
+                                    <textarea rows="3"
+                                              placeholder="Descripción"
+                                              @bind="item.DescriptionSpanish"></textarea>
+                                    <textarea rows="2"
+                                              placeholder="Notas"
+                                              @bind="item.Notes"></textarea>
+                                }
+                                else
+                                {
+                                    <strong>@item.RecommendationSpanish</strong>
+                                    <p>@item.DescriptionSpanish</p>
+                                    <small>@item.Notes</small>
+                                }
+                            </td>
+                            <td>
+                                @if (item.IsEditing)
+                                {
+                                    <select @bind="item.Complexity">
+                                        <option value="">Sin definir</option>
+                                        <option value="Baja">Baja</option>
+                                        <option value="Media">Media</option>
+                                        <option value="Alta">Alta</option>
+                                    </select>
+                                }
+                                else
+                                {
+                                    @TextOrDash(item.Complexity)
+                                }
+                            </td>
+                            <td>
+                                @if (item.IsEditing)
+                                {
+                                    <input type="number"
+                                           min="0"
+                                           step="0.25"
+                                           @bind="item.ImplementationHours" />
+                                }
+                                else
+                                {
+                                    @(item.ImplementationHours?.ToString("N2") ?? "0")
+                                }
+                            </td>
+                            <td>
+                                @if (item.IsEditing)
+                                {
+                                    <input type="number"
+                                           min="0"
+                                           @bind="item.ImplementationMinutes" />
+                                }
+                                else
+                                {
+                                    @item.ImplementationMinutes
+                                }
+                            </td>
+                            <td>
+                                @if (item.IsEditing)
+                                {
+                                    <select @bind="item.CostClassification">
+                                        <option value="Por validar">Por validar</option>
+                                        <option value="Con costo">Con costo</option>
+                                        <option value="Sin costo">Sin costo</option>
+                                        <option value="Mixto">Mixto</option>
+                                    </select>
+                                }
+                                else
+                                {
+                                    @item.CostClassification
+                                }
+                            </td>
+                            <td>
+                                <input type="checkbox"
+                                       @bind="item.RequiresMaintenanceWindow"
+                                       disabled="@(!item.IsEditing)" />
+                            </td>
+                            <td>
+                                <input type="checkbox"
+                                       @bind="item.IsActive"
+                                       disabled="@(!item.IsEditing)" />
+                            </td>
+                            <td class="actions">
+                                @if (item.IsEditing)
+                                {
+                                    <button type="button"
+                                            class="save-button"
+                                            @onclick="() => SaveAsync(item)"
+                                            disabled="@item.IsSaving">
+                                        @(item.IsSaving ? "Guardando..." : "Guardar")
+                                    </button>
+                                    <button type="button"
+                                            @onclick="() => Cancel(item)"
+                                            disabled="@item.IsSaving">
+                                        Cancelar
+                                    </button>
+                                }
+                                else
+                                {
+                                    <button type="button"
+                                            @onclick="() => Edit(item)">
+                                        Editar
+                                    </button>
+                                }
+                                <small>@item.StatusMessage</small>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="pagination">
+            <span>
+                Mostrando @FirstRecord-@LastRecord
+                de @Filtered.Count
+            </span>
+            <div>
+                <button type="button"
+                        @onclick="Previous"
+                        disabled="@(CurrentPage <= 1)">
+                    Anterior
+                </button>
+                <strong>Página @CurrentPage de @TotalPages</strong>
+                <button type="button"
+                        @onclick="Next"
+                        disabled="@(CurrentPage >= TotalPages)">
+                    Siguiente
+                </button>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private List<AdvisorCatalogItem> Items { get; set; } = new();
+    private Dictionary<int, AdvisorCatalogItem> Backups { get; } = new();
+
+    private string SearchText { get; set; } = string.Empty;
+    private string CategoryFilter { get; set; } = string.Empty;
+    private string ComplexityFilter { get; set; } = string.Empty;
+    private string StatusFilter { get; set; } = string.Empty;
+    private string PageMessage { get; set; } = string.Empty;
+    private bool PageMessageIsError { get; set; }
+    private bool IsLoading { get; set; }
+    private bool IsImporting { get; set; }
+    private string SelectedExcelName { get; set; } = string.Empty;
+    private List<AdvisorCatalogImportRow> PendingImportRows { get; set; } = new();
+    private AdvisorCatalogImportPreview? ImportPreview { get; set; }
+
+    private int CurrentPage { get; set; } = 1;
+    private int _pageSize = 20;
+
+    private string SortColumn { get; set; } = "active";
+    private bool SortAscending { get; set; } = false;
+
+    private int PageSize
+    {
+        get => _pageSize;
+        set
+        {
+            _pageSize = value;
+            CurrentPage = 1;
+        }
+    }
+
+    private string PageMessageClass =>
+        PageMessageIsError ? "message error" : "message success";
+
+    private IEnumerable<string> Categories =>
+        Items
+            .Select(x => x.Category)
+            .Where(x => !string.IsNullOrWhiteSpace(x))
+            .Select(x => x!)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(x => x);
+
+    private List<AdvisorCatalogItem> Filtered
+    {
+        get
+        {
+            var query = Items.AsEnumerable();
+
+            if (!string.IsNullOrWhiteSpace(SearchText))
+            {
+                var search = SearchText.Trim();
+
+                query = query.Where(x =>
+                    Has(x.Recommendation, search) ||
+                    Has(x.RecommendationSpanish, search) ||
+                    Has(x.DescriptionSpanish, search) ||
+                    Has(x.Category, search) ||
+                    Has(x.Notes, search));
+            }
+
+            if (!string.IsNullOrWhiteSpace(CategoryFilter))
+            {
+                query = query.Where(x =>
+                    string.Equals(
+                        x.Category,
+                        CategoryFilter,
+                        StringComparison.OrdinalIgnoreCase));
+            }
+
+            if (!string.IsNullOrWhiteSpace(ComplexityFilter))
+            {
+                query = query.Where(x =>
+                    string.Equals(
+                        x.Complexity,
+                        ComplexityFilter,
+                        StringComparison.OrdinalIgnoreCase));
+            }
+
+            query = StatusFilter switch
+            {
+                "active" => query.Where(x => x.IsActive),
+                "inactive" => query.Where(x => !x.IsActive),
+                _ => query
+            };
+
+            query = SortColumn switch
+            {
+                "id" => SortAscending
+                    ? query.OrderBy(x => x.Id)
+                    : query.OrderByDescending(x => x.Id),
+
+                "recommendation" => SortAscending
+                    ? query.OrderBy(x => x.Recommendation)
+                    : query.OrderByDescending(x => x.Recommendation),
+
+                "translation" => SortAscending
+                    ? query.OrderBy(x => x.RecommendationSpanish)
+                    : query.OrderByDescending(x => x.RecommendationSpanish),
+
+                "complexity" => SortAscending
+                    ? query.OrderBy(x => ComplexityOrder(x.Complexity))
+                        .ThenBy(x => x.RecommendationSpanish)
+                    : query.OrderByDescending(x => ComplexityOrder(x.Complexity))
+                        .ThenBy(x => x.RecommendationSpanish),
+
+                "hours" => SortAscending
+                    ? query.OrderBy(x => x.ImplementationHours ?? 0)
+                    : query.OrderByDescending(x => x.ImplementationHours ?? 0),
+
+                "minutes" => SortAscending
+                    ? query.OrderBy(x => x.ImplementationMinutes)
+                    : query.OrderByDescending(x => x.ImplementationMinutes),
+
+                "cost" => SortAscending
+                    ? query.OrderBy(x => x.CostClassification)
+                    : query.OrderByDescending(x => x.CostClassification),
+
+                "window" => SortAscending
+                    ? query.OrderBy(x => x.RequiresMaintenanceWindow)
+                    : query.OrderByDescending(x => x.RequiresMaintenanceWindow),
+
+                "active" => SortAscending
+                    ? query.OrderBy(x => x.IsActive)
+                    : query.OrderByDescending(x => x.IsActive),
+
+                _ => query.OrderByDescending(x => x.IsActive)
+                    .ThenBy(x => x.RecommendationSpanish)
+            };
+
+            return query.ToList();
+        }
+    }
+
+    private IEnumerable<AdvisorCatalogItem> PagedItems
+    {
+        get
+        {
+            ValidatePage();
+
+            return Filtered
+                .Skip((CurrentPage - 1) * PageSize)
+                .Take(PageSize);
+        }
+    }
+
+    private int TotalPages =>
+        Math.Max(
+            1,
+            (int)Math.Ceiling(Filtered.Count / (double)PageSize));
+
+    private int FirstRecord =>
+        Filtered.Count == 0
+            ? 0
+            : ((CurrentPage - 1) * PageSize) + 1;
+
+    private int LastRecord =>
+        Math.Min(CurrentPage * PageSize, Filtered.Count);
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        IsLoading = true;
+        PageMessage = string.Empty;
+
+        try
+        {
+            Items = (await AdvisorCatalogService.GetAllAsync()).ToList();
+            Backups.Clear();
+            CurrentPage = 1;
+        }
+        catch (Exception ex)
+        {
+            SetMessage(
+                $"No fue posible cargar el catálogo: {ex.Message}",
+                true);
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private void Edit(AdvisorCatalogItem item)
+    {
+        Backups[item.Id] = item.Clone();
+        item.IsEditing = true;
+        item.StatusMessage = string.Empty;
+    }
+
+    private void Cancel(AdvisorCatalogItem item)
+    {
+        if (item.Id == 0)
+        {
+            Items.Remove(item);
+            return;
+        }
+
+        if (Backups.TryGetValue(item.Id, out var backup))
+        {
+            CopyValues(backup, item);
+            item.RowVersion = backup.RowVersion.ToArray();
+            item.UpdatedAt = backup.UpdatedAt;
+        }
+
+        item.IsEditing = false;
+        item.IsSaving = false;
+        item.StatusMessage = string.Empty;
+        Backups.Remove(item.Id);
+    }
+
+    private async Task SaveAsync(AdvisorCatalogItem item)
+    {
+        if (string.IsNullOrWhiteSpace(item.Recommendation))
+        {
+            item.StatusMessage = "La recomendación original es obligatoria.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(item.RecommendationSpanish))
+        {
+            item.StatusMessage = "La traducción es obligatoria.";
+            return;
+        }
+
+        item.IsSaving = true;
+        item.StatusMessage = string.Empty;
+
+        try
+        {
+            var isNew = item.Id == 0;
+            var result = isNew
+                ? await AdvisorCatalogService.InsertAsync(item)
+                : await AdvisorCatalogService.UpdateAsync(item);
+
+            item.StatusMessage = result.Message;
+
+            if (!result.Success)
+            {
+                return;
+            }
+
+            item.Id = result.Id > 0 ? result.Id : item.Id;
+            item.RowVersion = result.RowVersion;
+            item.UpdatedAt = result.UpdatedAt;
+            item.IsEditing = false;
+            Backups.Remove(item.Id);
+
+            SetMessage(
+                isNew
+                    ? $"Recomendación {item.Id} insertada."
+                    : $"Registro {item.Id} actualizado.",
+                false);
+        }
+        catch (Exception ex)
+        {
+            item.StatusMessage = ex.Message;
+        }
+        finally
+        {
+            item.IsSaving = false;
+        }
+    }
+
+    private void NewRecommendation()
+    {
+        if (Items.Any(x => x.Id == 0))
+        {
+            SetMessage("Ya existe una recomendación nueva pendiente de guardar.", true);
+            return;
+        }
+
+        Items.Insert(0, new AdvisorCatalogItem
+        {
+            Id = 0,
+            Recommendation = string.Empty,
+            RecommendationSpanish = string.Empty,
+            CostClassification = "Por validar",
+            Complexity = "Baja",
+            IsActive = true,
+            IsEditing = true,
+            UpdatedAt = DateTime.UtcNow
+        });
+
+        SearchText = string.Empty;
+        ComplexityFilter = string.Empty;
+        StatusFilter = string.Empty;
+        SortColumn = "id";
+        SortAscending = true;
+        CurrentPage = 1;
+        SetMessage("Complete la nueva recomendación y presione Guardar.", false);
+    }
+
+    private async Task OnExcelSelectedAsync(InputFileChangeEventArgs args)
+    {
+        IsImporting = true;
+        PageMessage = string.Empty;
+        ClearImportPreview();
+
+        try
+        {
+            var file = args.File;
+            SelectedExcelName = file.Name;
+
+            if (!file.Name.EndsWith(".xlsx", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidOperationException("Seleccione un archivo Excel con extensión .xlsx.");
+            }
+
+            await using var stream = file.OpenReadStream(10 * 1024 * 1024);
+            using var workbook = new XLWorkbook(stream);
+            var worksheet = workbook.Worksheets.FirstOrDefault()
+                ?? throw new InvalidOperationException("El archivo no contiene hojas.");
+
+            PendingImportRows = ReadImportRows(worksheet);
+            ImportPreview = await AdvisorCatalogService.PreviewImportAsync(PendingImportRows);
+
+            SetMessage(
+                $"Archivo {file.Name} validado: {ImportPreview.TotalRows} registros.",
+                ImportPreview.ErrorRows > 0);
+        }
+        catch (Exception ex)
+        {
+            PendingImportRows.Clear();
+            ImportPreview = null;
+            SetMessage($"No fue posible leer el Excel: {ex.Message}", true);
+        }
+        finally
+        {
+            IsImporting = false;
+        }
+    }
+
+    private async Task ConfirmImportAsync()
+    {
+        if (ImportPreview is null || PendingImportRows.Count == 0)
+        {
+            return;
+        }
+
+        IsImporting = true;
+
+        try
+        {
+            var result = await AdvisorCatalogService.ImportAsync(PendingImportRows);
+
+            SetMessage(
+                $"Importación finalizada. Insertadas: {result.InsertedRows}; " +
+                $"actualizadas: {result.UpdatedRows}; sin cambios: {result.UnchangedRows}; " +
+                $"errores: {result.ErrorRows}.",
+                result.ErrorRows > 0);
+
+            ClearImportPreview();
+            await LoadAsync();
+        }
+        catch (Exception ex)
+        {
+            SetMessage($"La importación falló: {ex.Message}", true);
+        }
+        finally
+        {
+            IsImporting = false;
+        }
+    }
+
+    private void ClearImportPreview()
+    {
+        PendingImportRows = new();
+        ImportPreview = null;
+        SelectedExcelName = string.Empty;
+    }
+
+    private async Task DownloadTemplateAsync()
+    {
+        using var workbook = new XLWorkbook();
+        var sheet = workbook.Worksheets.Add("AdvisorCatalog");
+        WriteExcelHeaders(sheet);
+
+        sheet.Cell(2, 1).Value = "[Enable if required] Example recommendation";
+        sheet.Cell(2, 2).Value = "[Habilitar si es necesario] Recomendación de ejemplo";
+        sheet.Cell(2, 3).Value = "Descripción de la recomendación.";
+        sheet.Cell(2, 4).Value = "Baja";
+        sheet.Cell(2, 5).Value = 0.5;
+        sheet.Cell(2, 6).Value = 30;
+        sheet.Cell(2, 7).Value = "Mixto";
+        sheet.Cell(2, 8).Value = false;
+        sheet.Cell(2, 9).Value = "Notas opcionales";
+        sheet.Cell(2, 10).Value = true;
+        sheet.Columns().AdjustToContents();
+
+        await DownloadWorkbookAsync(workbook, "Plantilla-Advisor-Catalog.xlsx");
+    }
+
+    private async Task ExportCatalogAsync()
+    {
+        using var workbook = new XLWorkbook();
+        var sheet = workbook.Worksheets.Add("AdvisorCatalog");
+        WriteExcelHeaders(sheet);
+
+        var row = 2;
+        foreach (var item in Items.OrderBy(x => x.Id))
+        {
+            sheet.Cell(row, 1).Value = item.Recommendation;
+            sheet.Cell(row, 2).Value = item.RecommendationSpanish;
+            sheet.Cell(row, 3).Value = item.DescriptionSpanish ?? string.Empty;
+            sheet.Cell(row, 4).Value = item.Complexity ?? string.Empty;
+            sheet.Cell(row, 5).Value = item.ImplementationHours ?? 0;
+            sheet.Cell(row, 6).Value = item.ImplementationMinutes;
+            sheet.Cell(row, 7).Value = item.CostClassification;
+            sheet.Cell(row, 8).Value = item.RequiresMaintenanceWindow;
+            sheet.Cell(row, 9).Value = item.Notes ?? string.Empty;
+            sheet.Cell(row, 10).Value = item.IsActive;
+            row++;
+        }
+
+        sheet.Columns().AdjustToContents();
+        await DownloadWorkbookAsync(
+            workbook,
+            $"Advisor-Catalog-{DateTime.Now:yyyyMMdd-HHmm}.xlsx");
+    }
+
+    private async Task DownloadWorkbookAsync(XLWorkbook workbook, string fileName)
+    {
+        using var stream = new MemoryStream();
+        workbook.SaveAs(stream);
+        var base64 = Convert.ToBase64String(stream.ToArray());
+
+        await JS.InvokeVoidAsync(
+            "eval",
+            $"(function(){{const a=document.createElement('a');" +
+            $"a.href='data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{base64}';" +
+            $"a.download='{fileName}';document.body.appendChild(a);a.click();a.remove();}})()");
+    }
+
+    private static void WriteExcelHeaders(IXLWorksheet sheet)
+    {
+        var headers = new[]
+        {
+            "Recommendation",
+            "RecommendationSpanish",
+            "DescriptionSpanish",
+            "Complexity",
+            "ImplementationHours",
+            "ImplementationMinutes",
+            "CostClassification",
+            "RequiresMaintenanceWindow",
+            "Notes",
+            "IsActive"
+        };
+
+        for (var i = 0; i < headers.Length; i++)
+        {
+            sheet.Cell(1, i + 1).Value = headers[i];
+            sheet.Cell(1, i + 1).Style.Font.Bold = true;
+        }
+
+        sheet.SheetView.FreezeRows(1);
+        sheet.Range(1, 1, 1, headers.Length).SetAutoFilter();
+    }
+
+    private static List<AdvisorCatalogImportRow> ReadImportRows(IXLWorksheet sheet)
+    {
+        var headerMap = sheet.Row(1)
+            .CellsUsed()
+            .ToDictionary(
+                cell => cell.GetString().Trim(),
+                cell => cell.Address.ColumnNumber,
+                StringComparer.OrdinalIgnoreCase);
+
+        var requiredHeaders = new[]
+        {
+            "Recommendation",
+            "RecommendationSpanish",
+            "Complexity",
+            "ImplementationHours",
+            "ImplementationMinutes",
+            "CostClassification",
+            "RequiresMaintenanceWindow",
+            "IsActive"
+        };
+
+        var missing = requiredHeaders.Where(x => !headerMap.ContainsKey(x)).ToList();
+        if (missing.Count > 0)
+        {
+            throw new InvalidOperationException(
+                "Faltan columnas obligatorias: " + string.Join(", ", missing));
+        }
+
+        string Text(IXLRow row, string name) =>
+            headerMap.TryGetValue(name, out var column)
+                ? row.Cell(column).GetFormattedString().Trim()
+                : string.Empty;
+
+        var rows = new List<AdvisorCatalogImportRow>();
+        var lastRow = sheet.LastRowUsed()?.RowNumber() ?? 1;
+
+        for (var rowNumber = 2; rowNumber <= lastRow; rowNumber++)
+        {
+            var row = sheet.Row(rowNumber);
+            if (row.IsEmpty())
+            {
+                continue;
+            }
+
+            rows.Add(new AdvisorCatalogImportRow
+            {
+                RowNumber = rowNumber,
+                Recommendation = Text(row, "Recommendation"),
+                RecommendationSpanish = Text(row, "RecommendationSpanish"),
+                DescriptionSpanish = NullIfEmpty(Text(row, "DescriptionSpanish")),
+                Complexity = NullIfEmpty(Text(row, "Complexity")),
+                ImplementationHours = ParseDecimal(Text(row, "ImplementationHours")),
+                ImplementationMinutes = ParseInt(Text(row, "ImplementationMinutes")),
+                CostClassification = Text(row, "CostClassification"),
+                RequiresMaintenanceWindow = ParseBoolean(Text(row, "RequiresMaintenanceWindow")),
+                Notes = NullIfEmpty(Text(row, "Notes")),
+                IsActive = ParseBoolean(Text(row, "IsActive"), true)
+            });
+        }
+
+        return rows;
+    }
+
+    private static decimal ParseDecimal(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return 0;
+        if (decimal.TryParse(value, out var result)) return result;
+        if (decimal.TryParse(value, System.Globalization.NumberStyles.Any,
+            System.Globalization.CultureInfo.InvariantCulture, out result)) return result;
+        throw new InvalidOperationException($"Valor decimal inválido: {value}");
+    }
+
+    private static int ParseInt(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return 0;
+        if (int.TryParse(value, out var result)) return result;
+        throw new InvalidOperationException($"Valor entero inválido: {value}");
+    }
+
+    private static bool ParseBoolean(string value, bool defaultValue = false)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return defaultValue;
+        return value.Trim().ToUpperInvariant() switch
+        {
+            "TRUE" or "VERDADERO" or "SI" or "SÍ" or "1" or "YES" => true,
+            "FALSE" or "FALSO" or "NO" or "0" => false,
+            _ => throw new InvalidOperationException($"Valor booleano inválido: {value}")
+        };
+    }
+
+    private static string? NullIfEmpty(string? value) =>
+        string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+
+    private void SortBy(string column)
+    {
+        if (string.Equals(
+            SortColumn,
+            column,
+            StringComparison.OrdinalIgnoreCase))
+        {
+            SortAscending = !SortAscending;
+        }
+        else
+        {
+            SortColumn = column;
+            SortAscending = true;
+        }
+
+        CurrentPage = 1;
+    }
+
+    private string GetSortIcon(string column)
+    {
+        if (!string.Equals(
+            SortColumn,
+            column,
+            StringComparison.OrdinalIgnoreCase))
+        {
+            return "↕";
+        }
+
+        return SortAscending ? "▲" : "▼";
+    }
+
+    private static int ComplexityOrder(string? complexity)
+    {
+        return complexity?.Trim().ToUpperInvariant() switch
+        {
+            "BAJA" => 1,
+            "MEDIA" => 2,
+            "ALTA" => 3,
+            _ => 4
+        };
+    }
+
+    private void Previous()
+    {
+        if (CurrentPage > 1)
+        {
+            CurrentPage--;
+        }
+    }
+
+    private void Next()
+    {
+        if (CurrentPage < TotalPages)
+        {
+            CurrentPage++;
+        }
+    }
+
+    private void ValidatePage()
+    {
+        CurrentPage = Math.Clamp(
+            CurrentPage,
+            1,
+            TotalPages);
+    }
+
+    private void SetMessage(string value, bool error)
+    {
+        PageMessage = value;
+        PageMessageIsError = error;
+    }
+
+    private static bool Has(string? value, string search) =>
+        !string.IsNullOrWhiteSpace(value) &&
+        value.Contains(search, StringComparison.OrdinalIgnoreCase);
+
+    private static string TextOrDash(string? value) =>
+        string.IsNullOrWhiteSpace(value) ? "-" : value;
+
+    private static void CopyValues(
+        AdvisorCatalogItem source,
+        AdvisorCatalogItem target)
+    {
+        target.RecommendationSpanish = source.RecommendationSpanish;
+        target.DescriptionSpanish = source.DescriptionSpanish;
+        target.CostClassification = source.CostClassification;
+        target.RequiresMaintenanceWindow = source.RequiresMaintenanceWindow;
+        target.ImplementationMinutes = source.ImplementationMinutes;
+        target.ImplementationHours = source.ImplementationHours;
+        target.Category = source.Category;
+        target.Complexity = source.Complexity;
+        target.Notes = source.Notes;
+        target.IsActive = source.IsActive;
+    }
+}
+
+
+
+
+
