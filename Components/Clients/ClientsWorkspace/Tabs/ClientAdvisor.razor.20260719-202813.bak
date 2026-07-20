@@ -222,93 +222,14 @@
                 <table class="advisor-table">
                     <thead>
                         <tr>
-                            <th>
-                                <button type="button"
-                                        class='@GetSortButtonClass("recommendation")'
-                                        @onclick='() => SortBy("recommendation")'>
-                                    <span>Recomendación</span>
-                                    <span class="sort-icon">
-                                        @GetSortIcon("recommendation")
-                                    </span>
-                                </button>
-                            </th>
-
-                            <th>
-                                <button type="button"
-                                        class='@GetSortButtonClass("category")'
-                                        @onclick='() => SortBy("category")'>
-                                    <span>Categoría</span>
-                                    <span class="sort-icon">
-                                        @GetSortIcon("category")
-                                    </span>
-                                </button>
-                            </th>
-
-                            <th>
-                                <button type="button"
-                                        class='@GetSortButtonClass("impact")'
-                                        @onclick='() => SortBy("impact")'>
-                                    <span>Impacto</span>
-                                    <span class="sort-icon">
-                                        @GetSortIcon("impact")
-                                    </span>
-                                </button>
-                            </th>
-
-                            <th>
-                                <button type="button"
-                                        class='@GetSortButtonClass("resource")'
-                                        @onclick='() => SortBy("resource")'>
-                                    <span>Recurso</span>
-                                    <span class="sort-icon">
-                                        @GetSortIcon("resource")
-                                    </span>
-                                </button>
-                            </th>
-
-                            <th>
-                                <button type="button"
-                                        class='@GetSortButtonClass("resourceGroup")'
-                                        @onclick='() => SortBy("resourceGroup")'>
-                                    <span>Grupo de recursos</span>
-                                    <span class="sort-icon">
-                                        @GetSortIcon("resourceGroup")
-                                    </span>
-                                </button>
-                            </th>
-
-                            <th>
-                                <button type="button"
-                                        class='@GetSortButtonClass("complexity")'
-                                        @onclick='() => SortBy("complexity")'>
-                                    <span>Complejidad</span>
-                                    <span class="sort-icon">
-                                        @GetSortIcon("complexity")
-                                    </span>
-                                </button>
-                            </th>
-
-                            <th>
-                                <button type="button"
-                                        class='@GetSortButtonClass("maintenance")'
-                                        @onclick='() => SortBy("maintenance")'>
-                                    <span>Ventana</span>
-                                    <span class="sort-icon">
-                                        @GetSortIcon("maintenance")
-                                    </span>
-                                </button>
-                            </th>
-
-                            <th class="money-column">
-                                <button type="button"
-                                        class='@GetSortButtonClass("savings")'
-                                        @onclick='() => SortBy("savings")'>
-                                    <span>Ahorro anual</span>
-                                    <span class="sort-icon">
-                                        @GetSortIcon("savings")
-                                    </span>
-                                </button>
-                            </th>
+                            <th>Recomendación</th>
+                            <th>Categoría</th>
+                            <th>Impacto</th>
+                            <th>Recurso</th>
+                            <th>Grupo de recursos</th>
+                            <th>Complejidad</th>
+                            <th>Ventana</th>
+                            <th class="money-column">Ahorro anual</th>
                         </tr>
                     </thead>
 
@@ -431,10 +352,6 @@
 
     private bool OnlyWithSavings;
 
-    private string SortColumn = string.Empty;
-
-    private bool SortAscending = true;
-
     private int CurrentPage = 1;
 
     private const int PageSize = 25;
@@ -522,85 +439,6 @@
         }
     }
 
-    private IEnumerable<ClientAdvisorRecommendation>
-        OrderedRecommendations
-    {
-        get
-        {
-            var source =
-                FilteredRecommendations.AsEnumerable();
-
-            return SortColumn switch
-            {
-                "recommendation" =>
-                    SortAscending
-                        ? source.OrderBy(
-                            x => x.RecommendationSpanish,
-                            StringComparer.OrdinalIgnoreCase)
-                        : source.OrderByDescending(
-                            x => x.RecommendationSpanish,
-                            StringComparer.OrdinalIgnoreCase),
-
-                "category" =>
-                    SortAscending
-                        ? source.OrderBy(
-                            x => x.AzureCategory,
-                            StringComparer.OrdinalIgnoreCase)
-                        : source.OrderByDescending(
-                            x => x.AzureCategory,
-                            StringComparer.OrdinalIgnoreCase),
-
-                "impact" =>
-                    SortAscending
-                        ? source.OrderBy(
-                            x => GetImpactOrder(x.Impact))
-                        : source.OrderByDescending(
-                            x => GetImpactOrder(x.Impact)),
-
-                "resource" =>
-                    SortAscending
-                        ? source.OrderBy(
-                            x => x.ResourceName,
-                            StringComparer.OrdinalIgnoreCase)
-                        : source.OrderByDescending(
-                            x => x.ResourceName,
-                            StringComparer.OrdinalIgnoreCase),
-
-                "resourceGroup" =>
-                    SortAscending
-                        ? source.OrderBy(
-                            x => x.ResourceGroup,
-                            StringComparer.OrdinalIgnoreCase)
-                        : source.OrderByDescending(
-                            x => x.ResourceGroup,
-                            StringComparer.OrdinalIgnoreCase),
-
-                "complexity" =>
-                    SortAscending
-                        ? source.OrderBy(
-                            x => GetComplexityOrder(x.Complexity))
-                        : source.OrderByDescending(
-                            x => GetComplexityOrder(x.Complexity)),
-
-                "maintenance" =>
-                    SortAscending
-                        ? source.OrderBy(
-                            x => x.RequiresMaintenanceWindow)
-                        : source.OrderByDescending(
-                            x => x.RequiresMaintenanceWindow),
-
-                "savings" =>
-                    SortAscending
-                        ? source.OrderBy(
-                            x => x.AnnualSavingsAmount)
-                        : source.OrderByDescending(
-                            x => x.AnnualSavingsAmount),
-
-                _ => source
-            };
-        }
-    }
-
     private int TotalPages =>
         Math.Max(
             1,
@@ -613,7 +451,7 @@
 
     private IReadOnlyList<ClientAdvisorRecommendation>
         PagedRecommendations =>
-            OrderedRecommendations
+            FilteredRecommendations
                 .Skip((EffectivePage - 1) * PageSize)
                 .Take(PageSize)
                 .ToArray();
@@ -714,85 +552,6 @@
         CurrentPage = 1;
     }
 
-    private void SortBy(string column)
-    {
-        if (!string.Equals(
-            SortColumn,
-            column,
-            StringComparison.OrdinalIgnoreCase))
-        {
-            SortColumn = column;
-            SortAscending = true;
-        }
-        else if (SortAscending)
-        {
-            SortAscending = false;
-        }
-        else
-        {
-            SortColumn = string.Empty;
-            SortAscending = true;
-        }
-
-        CurrentPage = 1;
-    }
-
-    private string GetSortIcon(string column)
-    {
-        if (!string.Equals(
-            SortColumn,
-            column,
-            StringComparison.OrdinalIgnoreCase))
-        {
-            return "⇅";
-        }
-
-        return SortAscending
-            ? "▲"
-            : "▼";
-    }
-
-    private string GetSortButtonClass(string column)
-    {
-        return string.Equals(
-            SortColumn,
-            column,
-            StringComparison.OrdinalIgnoreCase)
-                ? "advisor-sort-button active"
-                : "advisor-sort-button";
-    }
-
-    private static int GetImpactOrder(string? impact)
-    {
-        return impact?.Trim().ToUpperInvariant() switch
-        {
-            "HIGH" => 1,
-            "MEDIUM" => 2,
-            "LOW" => 3,
-            _ => 4
-        };
-    }
-
-    private static int GetComplexityOrder(string? complexity)
-    {
-        return complexity?.Trim().ToUpperInvariant() switch
-        {
-            "BAJA" => 1,
-            "LOW" => 1,
-
-            "MEDIA" => 2,
-            "MEDIUM" => 2,
-
-            "ALTA" => 3,
-            "HIGH" => 3,
-
-            "CRÍTICA" => 4,
-            "CRITICA" => 4,
-            "CRITICAL" => 4,
-
-            _ => 5
-        };
-    }
     private void PreviousPage()
     {
         CurrentPage = Math.Max(1, EffectivePage - 1);
@@ -892,5 +651,4 @@
         };
     }
 }
-
 
