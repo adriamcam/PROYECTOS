@@ -726,9 +726,6 @@
             SummaryFilter = "all";
             SortColumn = string.Empty;
             SortAscending = true;
-            SummaryFilter = "all";
-            SortColumn = string.Empty;
-            SortAscending = true;
             CurrentPage = 1;
         }
         catch (Exception ex)
@@ -809,7 +806,7 @@
                 ? "advisor-summary-card advisor-summary-card-active"
                 : "advisor-summary-card";
     }
-        private void SortBy(string column)
+    private void SortBy(string column)
     {
         if (!string.Equals(
             SortColumn,
@@ -987,9 +984,6 @@
         };
     }
 }
-
-
-
 
 
 

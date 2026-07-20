@@ -809,7 +809,50 @@
                 ? "advisor-summary-card advisor-summary-card-active"
                 : "advisor-summary-card";
     }
-        private void SortBy(string column)
+    private void ApplySummaryFilter(string filter)
+    {
+        SummaryFilter = filter;
+
+        SearchText = string.Empty;
+        SelectedCategory = string.Empty;
+        SelectedImpact = string.Empty;
+        OnlyWithSavings = false;
+        CurrentPage = 1;
+
+        switch (filter)
+        {
+            case "savings":
+                SortColumn = "savings";
+                SortAscending = false;
+                break;
+
+            case "resources":
+                SortColumn = "resource";
+                SortAscending = true;
+                break;
+
+            case "valued":
+                SortColumn = "savings";
+                SortAscending = false;
+                break;
+
+            default:
+                SortColumn = string.Empty;
+                SortAscending = true;
+                break;
+        }
+    }
+
+    private string GetSummaryCardClass(string filter)
+    {
+        return string.Equals(
+            SummaryFilter,
+            filter,
+            StringComparison.OrdinalIgnoreCase)
+                ? "advisor-summary-card advisor-summary-card-active"
+                : "advisor-summary-card";
+    }
+    private void SortBy(string column)
     {
         if (!string.Equals(
             SortColumn,
@@ -987,8 +1030,6 @@
         };
     }
 }
-
-
 
 
 

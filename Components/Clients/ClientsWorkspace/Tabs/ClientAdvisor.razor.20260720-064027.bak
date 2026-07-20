@@ -809,7 +809,16 @@
                 ? "advisor-summary-card advisor-summary-card-active"
                 : "advisor-summary-card";
     }
-        private void SortBy(string column)
+    private string GetSummaryCardClass(string filter)
+    {
+        return string.Equals(
+            SummaryFilter,
+            filter,
+            StringComparison.OrdinalIgnoreCase)
+                ? "advisor-summary-card advisor-summary-card-active"
+                : "advisor-summary-card";
+    }
+    private void SortBy(string column)
     {
         if (!string.Equals(
             SortColumn,
@@ -987,7 +996,6 @@
         };
     }
 }
-
 
 
 
