@@ -213,7 +213,13 @@
                 @onclick='() => SelectTab("advisor")'>
             Advisor
         </button>
-<button class="@GetTabClass("inventory")"
+
+        <button class="@GetTabClass("advisor-catalog")"
+                @onclick='() => SelectTab("advisor-catalog")'>
+            Configuración Advisor
+        </button>
+
+        <button class="@GetTabClass("inventory")"
                 @onclick='() => SelectTab("inventory")'>
             Inventario
         </button>
@@ -256,7 +262,12 @@
                 case "advisor":
                     <ClientAdvisor Context="WorkspaceContext" />
                     break;
-case "inventory":
+
+                case "advisor-catalog":
+                    <AdvisorCatalog />
+                    break;
+
+                case "inventory":
                     <ClientInventory />
                     break;
 
@@ -694,7 +705,6 @@ case "inventory":
             : "workspace-tab";
     }
 }
-
 
 
 

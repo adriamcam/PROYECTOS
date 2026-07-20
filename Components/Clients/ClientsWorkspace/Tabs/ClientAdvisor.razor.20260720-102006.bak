@@ -22,40 +22,15 @@
             </p>
         </div>
 
-        <div style="display:flex; gap:.65rem; align-items:center;">
-
-            @if (ShowAdvisorCatalog)
-            {
-                <button type="button"
-                        class="advisor-refresh-button"
-                        @onclick="CloseAdvisorCatalog">
-                    ← Volver
-                </button>
-            }
-            else
-            {
-                <button type="button"
-                        class="advisor-refresh-button"
-                        @onclick="OpenAdvisorCatalog">
-                    ⚙ Configuración
-                </button>
-
-                <button type="button"
-                        class="advisor-refresh-button"
-                        disabled="@(IsLoading || Context?.HasCustomer != true)"
-                        @onclick="LoadDataAsync">
-                    ↻ Actualizar
-                </button>
-            }
-
-        </div>
+        <button type="button"
+                class="advisor-refresh-button"
+                disabled="@(IsLoading || Context?.HasCustomer != true)"
+                @onclick="LoadDataAsync">
+            ↻ Actualizar
+        </button>
     </header>
 
-    @if (ShowAdvisorCatalog)
-    {
-        <AdvisorCatalog />
-    }
-    else if (Context?.HasCustomer != true)
+    @if (Context?.HasCustomer != true)
     {
         <div class="advisor-state">
             <h3>Seleccione un cliente</h3>
@@ -780,20 +755,7 @@
 
     private bool IsLoading;
 
-    private bool ShowAdvisorCatalog;
-
     private string? ErrorMessage;
-
-    private void OpenAdvisorCatalog()
-    {
-        SelectedRecommendation = null;
-        ShowAdvisorCatalog = true;
-    }
-
-    private void CloseAdvisorCatalog()
-    {
-        ShowAdvisorCatalog = false;
-    }
 
     private Guid? LoadedTenantId;
 
@@ -1386,9 +1348,6 @@
         };
     }
 }
-
-
-
 
 
 
