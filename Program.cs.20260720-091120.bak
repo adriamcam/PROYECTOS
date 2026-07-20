@@ -62,7 +62,6 @@ builder.Services
     .AddMicrosoftIdentityUI();
 
 builder.Services.AddScoped<IClientWorkspaceService, ClientWorkspaceService>();
-builder.Services.AddScoped<IAdvisorCatalogService, AdvisorCatalogService>();
 
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
@@ -131,7 +130,6 @@ app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
 app.Run();
-
 
 
 
