@@ -47,7 +47,15 @@
         <input type="search"
                @bind="SearchText"
                @bind:event="oninput"
-               placeholder="Buscar recomendación o descripción..." />
+               placeholder="Buscar recomendación, descripción o categoría..." />
+
+        <select @bind="CategoryFilter">
+            <option value="">Todas las categorías</option>
+            @foreach (var value in Categories)
+            {
+                <option value="@value">@value</option>
+            }
+        </select>
 
         <select @bind="ComplexityFilter">
             <option value="">Todas las complejidades</option>
@@ -83,6 +91,7 @@
                         <th>ID</th>
                         <th>Recomendación original</th>
                         <th>Traducción / descripción</th>
+                        <th>Categoría</th>
                         <th>Complejidad</th>
                         <th>Horas</th>
                         <th>Minutos</th>
@@ -121,6 +130,16 @@
                                     <strong>@item.RecommendationSpanish</strong>
                                     <p>@item.DescriptionSpanish</p>
                                     <small>@item.Notes</small>
+                                }
+                            </td>
+                            <td>
+                                @if (item.IsEditing)
+                                {
+                                    <input @bind="item.Category" />
+                                }
+                                else
+                                {
+                                    @TextOrDash(item.Category)
                                 }
                             </td>
                             <td>
@@ -498,4 +517,3 @@
         target.IsActive = source.IsActive;
     }
 }
-
