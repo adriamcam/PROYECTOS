@@ -36,6 +36,7 @@ public sealed class AdvisorCatalogService : IAdvisorCatalogService
             CostClassification=@CostClassification,
             RequiresMaintenanceWindow=@RequiresMaintenanceWindow,
             ImplementationMinutes=@ImplementationMinutes,
+            ImplementationHours=@ImplementationHours,
             Complexity=@Complexity,
             Notes=@Notes,
             IsActive=@IsActive,
@@ -55,12 +56,12 @@ public sealed class AdvisorCatalogService : IAdvisorCatalogService
         const string sql = """
         INSERT dbo.AdvisorRecommendationCatalog
         (Recommendation, RecommendationSpanish, DescriptionSpanish, CostClassification,
-         RequiresMaintenanceWindow, ImplementationMinutes,
+         RequiresMaintenanceWindow, ImplementationMinutes, ImplementationHours,
          Complexity, Notes, IsActive, UpdatedAt)
         OUTPUT INSERTED.RowVersion, INSERTED.UpdatedAt
         VALUES
         (@Recommendation, @RecommendationSpanish, @DescriptionSpanish, @CostClassification,
-         @RequiresMaintenanceWindow, @ImplementationMinutes,
+         @RequiresMaintenanceWindow, @ImplementationMinutes, @ImplementationHours,
          @Complexity, @Notes, @IsActive, SYSUTCDATETIME());
         """;
         using var connection = CreateConnection();
@@ -105,17 +106,17 @@ public sealed class AdvisorCatalogService : IAdvisorCatalogService
             UPDATE dbo.AdvisorRecommendationCatalog SET
                 RecommendationSpanish=@RecommendationSpanish, DescriptionSpanish=@DescriptionSpanish,
                 CostClassification=@CostClassification, RequiresMaintenanceWindow=@RequiresMaintenanceWindow,
-                ImplementationMinutes=@ImplementationMinutes,
+                ImplementationMinutes=@ImplementationMinutes, ImplementationHours=@ImplementationHours,
                 Complexity=@Complexity, Notes=@Notes, IsActive=@IsActive, UpdatedAt=SYSUTCDATETIME()
             WHERE Recommendation=@Recommendation;
             """;
             const string insertSql = """
             INSERT dbo.AdvisorRecommendationCatalog
             (Recommendation, RecommendationSpanish, DescriptionSpanish, CostClassification,
-             RequiresMaintenanceWindow, ImplementationMinutes,
+             RequiresMaintenanceWindow, ImplementationMinutes, ImplementationHours,
              Complexity, Notes, IsActive, UpdatedAt)
             VALUES (@Recommendation, @RecommendationSpanish, @DescriptionSpanish, @CostClassification,
-                    @RequiresMaintenanceWindow, @ImplementationMinutes,
+                    @RequiresMaintenanceWindow, @ImplementationMinutes, @ImplementationHours,
                     @Complexity, @Notes, @IsActive, SYSUTCDATETIME());
             """;
             foreach (var row in valid)
@@ -164,4 +165,3 @@ public sealed class AdvisorCatalogService : IAdvisorCatalogService
     private static string? NullIfEmpty(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
     private sealed class SaveOutput { public byte[] RowVersion { get; set; } = Array.Empty<byte>(); public DateTime UpdatedAt { get; set; } }
 }
-
