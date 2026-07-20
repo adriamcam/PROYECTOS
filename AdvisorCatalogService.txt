@@ -1,26 +1,30 @@
 using Dapper;
-using System.Data;
-using ITQS.SupportOperationsCenter.Data;
+using Microsoft.Data.SqlClient;
 using ITQS.SupportOperationsCenter.Components.Clients.ClientsWorkspace.Models;
 
 namespace ITQS.SupportOperationsCenter.Components.Clients.ClientsWorkspace.Services;
 
 public sealed class AdvisorCatalogService : IAdvisorCatalogService
 {
-    private readonly ISqlConnectionFactory _connectionFactory;
+    private readonly IConfiguration _configuration;
 
-    public AdvisorCatalogService(
-    ISqlConnectionFactory connectionFactory)
-{
-    _connectionFactory = connectionFactory
-        ?? throw new ArgumentNullException(
-            nameof(connectionFactory));
-}
+    public AdvisorCatalogService(IConfiguration configuration)
+    {
+        _configuration = configuration;
+    }
 
-    private IDbConnection CreateConnection()
-{
-    return _connectionFactory.CreateConnection();
-}
+    private SqlConnection CreateConnection()
+    {
+        var value = _configuration.GetConnectionString("ReportesDb");
+
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            throw new InvalidOperationException(
+                "No se encontró ConnectionStrings:ReportesDb.");
+        }
+
+        return new SqlConnection(value);
+    }
 
     public async Task<IReadOnlyList<AdvisorCatalogItem>> GetAllAsync()
     {
@@ -47,7 +51,7 @@ public sealed class AdvisorCatalogService : IAdvisorCatalogService
             RecommendationSpanish;
         """;
 
-        using var connection = CreateConnection();
+        await using var connection = CreateConnection();
         var rows = await connection.QueryAsync<AdvisorCatalogItem>(sql);
         return rows.AsList();
     }
@@ -76,7 +80,7 @@ public sealed class AdvisorCatalogService : IAdvisorCatalogService
           AND RowVersion = @RowVersion;
         """;
 
-        using var connection = CreateConnection();
+        await using var connection = CreateConnection();
 
         var output = await connection.QuerySingleOrDefaultAsync<SaveOutput>(
             sql,
@@ -129,9 +133,3 @@ public sealed class AdvisorCatalogService : IAdvisorCatalogService
         public DateTime UpdatedAt { get; set; }
     }
 }
-
-
-
-
-
-
