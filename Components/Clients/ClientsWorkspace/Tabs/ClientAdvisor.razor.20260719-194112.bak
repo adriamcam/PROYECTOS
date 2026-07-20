@@ -1,0 +1,334 @@
+@using ITQS.SupportOperationsCenter.Components.Clients.ClientsWorkspace.Models
+@using ITQS.SupportOperationsCenter.Components.Clients.ClientsWorkspace.Services
+@inject IClientWorkspaceService WorkspaceService
+
+<section class="advisor-page">
+
+    <header class="advisor-header">
+        <div>
+            <span class="advisor-eyebrow">
+                Optimización y costos
+            </span>
+
+            <h2>Azure Advisor</h2>
+
+            <p>
+                Principales recomendaciones de optimización para el
+                cliente y la suscripción seleccionados.
+            </p>
+        </div>
+
+        @if (Context?.HasCustomer == true)
+        {
+            <button class="advisor-refresh-button"
+                    type="button"
+                    disabled="@IsLoading"
+                    @onclick="LoadRecommendationsAsync">
+                <span aria-hidden="true">↻</span>
+                Actualizar
+            </button>
+        }
+    </header>
+
+    @if (Context?.HasCustomer != true)
+    {
+        <div class="advisor-state">
+            <div class="advisor-state-icon">📊</div>
+
+            <h3>Seleccione un cliente</h3>
+
+            <p>
+                Seleccione un cliente y una suscripción para consultar
+                las recomendaciones de Azure Advisor.
+            </p>
+        </div>
+    }
+    else if (IsLoading)
+    {
+        <div class="advisor-state">
+            <div class="advisor-loader"></div>
+
+            <h3>Cargando recomendaciones</h3>
+
+            <p>
+                Consultando la información disponible en Azure Advisor.
+            </p>
+        </div>
+    }
+    else if (!string.IsNullOrWhiteSpace(ErrorMessage))
+    {
+        <div class="advisor-state advisor-state-error">
+            <div class="advisor-state-icon">⚠</div>
+
+            <h3>No fue posible cargar Azure Advisor</h3>
+
+            <p>@ErrorMessage</p>
+
+            <button type="button"
+                    class="advisor-retry-button"
+                    @onclick="LoadRecommendationsAsync">
+                Reintentar
+            </button>
+        </div>
+    }
+    else
+    {
+        <div class="advisor-summary-grid">
+
+            <article class="advisor-summary-card">
+                <span>Recomendaciones mostradas</span>
+                <strong>@Recommendations.Count</strong>
+                <small>Top 10 con mayor ahorro</small>
+            </article>
+
+            <article class="advisor-summary-card">
+                <span>Ahorro anual potencial</span>
+                <strong>@FormatMoney(TotalAnnualSavings)</strong>
+                <small>Estimación de las recomendaciones mostradas</small>
+            </article>
+
+            <article class="advisor-summary-card">
+                <span>Promedio por recomendación</span>
+                <strong>@FormatMoney(AverageAnnualSavings)</strong>
+                <small>Ahorro anual promedio</small>
+            </article>
+
+        </div>
+
+        @if (Recommendations.Count == 0)
+        {
+            <div class="advisor-state">
+                <div class="advisor-state-icon">✓</div>
+
+                <h3>Sin recomendaciones disponibles</h3>
+
+                <p>
+                    No se encontraron recomendaciones de Azure Advisor
+                    para la selección actual.
+                </p>
+            </div>
+        }
+        else
+        {
+            <section class="advisor-table-card">
+
+                <div class="advisor-table-header">
+                    <div>
+                        <span class="advisor-eyebrow">
+                            Prioridad operativa
+                        </span>
+
+                        <h3>Top 10 recomendaciones</h3>
+                    </div>
+
+                    <span class="advisor-result-count">
+                        @Recommendations.Count resultados
+                    </span>
+                </div>
+
+                <div class="advisor-table-container">
+                    <table class="advisor-table">
+                        <thead>
+                            <tr>
+                                <th>Recomendación</th>
+                                <th>Categoría</th>
+                                <th>Impacto</th>
+                                <th>Recurso</th>
+                                <th class="advisor-money-column">
+                                    Ahorro anual
+                                </th>
+                                <th>Actualización</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            @foreach (var recommendation in Recommendations)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="advisor-recommendation-title">
+                                            @recommendation.Title
+                                        </div>
+                                    </td>
+
+                                    <td>
+                                        <span class="advisor-category">
+                                            @recommendation.Category
+                                        </span>
+                                    </td>
+
+                                    <td>
+                                        <span class="@GetImpactClass(
+                                            recommendation.Impact)">
+                                            @recommendation.Impact
+                                        </span>
+                                    </td>
+
+                                    <td>
+                                        <span class="advisor-resource"
+                                              title="@recommendation.ResourceName">
+                                            @recommendation.ResourceName
+                                        </span>
+                                    </td>
+
+                                    <td class="advisor-money-column">
+                                        <strong>
+                                            @FormatMoney(
+                                                recommendation
+                                                    .AnnualSavingsAmount)
+                                        </strong>
+                                    </td>
+
+                                    <td>
+                                        @FormatDate(
+                                            recommendation.UpdatedAt)
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+            </section>
+        }
+    }
+
+</section>
+
+@code {
+    [Parameter]
+    public ClientWorkspaceContext? Context { get; set; }
+
+    private IReadOnlyList<ClientAdvisorRecommendation> Recommendations =
+        Array.Empty<ClientAdvisorRecommendation>();
+
+    private bool IsLoading;
+
+    private string? ErrorMessage;
+
+    private Guid? LoadedTenantId;
+
+    private Guid? LoadedSubscriptionId;
+
+    private decimal TotalAnnualSavings =>
+        Recommendations.Sum(
+            recommendation =>
+                recommendation.AnnualSavingsAmount);
+
+    private decimal AverageAnnualSavings =>
+        Recommendations.Count == 0
+            ? 0
+            : TotalAnnualSavings / Recommendations.Count;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var tenantId = Context?.TenantId;
+        var subscriptionId = Context?.SubscriptionId;
+
+        if (!tenantId.HasValue)
+        {
+            Recommendations =
+                Array.Empty<ClientAdvisorRecommendation>();
+
+            LoadedTenantId = null;
+            LoadedSubscriptionId = null;
+            ErrorMessage = null;
+
+            return;
+        }
+
+        if (
+            LoadedTenantId == tenantId &&
+            LoadedSubscriptionId == subscriptionId
+        )
+        {
+            return;
+        }
+
+        await LoadRecommendationsAsync();
+    }
+
+    private async Task LoadRecommendationsAsync()
+    {
+        if (Context?.TenantId is not Guid tenantId)
+        {
+            Recommendations =
+                Array.Empty<ClientAdvisorRecommendation>();
+
+            return;
+        }
+
+        IsLoading = true;
+        ErrorMessage = null;
+
+        try
+        {
+            Recommendations =
+                await WorkspaceService
+                    .GetTopAdvisorRecommendationsAsync(
+                        tenantId,
+                        Context.SubscriptionId,
+                        10);
+
+            LoadedTenantId = tenantId;
+            LoadedSubscriptionId =
+                Context.SubscriptionId;
+        }
+        catch (Exception exception)
+        {
+            Recommendations =
+                Array.Empty<ClientAdvisorRecommendation>();
+
+            ErrorMessage =
+                "Ocurrió un error al consultar las recomendaciones. " +
+                exception.Message;
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private static string FormatMoney(decimal amount)
+    {
+        return amount.ToString(
+            "C2",
+            System.Globalization.CultureInfo
+                .GetCultureInfo("en-US"));
+    }
+
+    private static string FormatDate(DateTime? value)
+    {
+        return value.HasValue
+            ? value.Value.ToLocalTime()
+                .ToString("dd/MM/yyyy HH:mm")
+            : "Sin fecha";
+    }
+
+    private static string GetImpactClass(string? impact)
+    {
+        var normalized =
+            impact?.Trim().ToLowerInvariant() ?? string.Empty;
+
+        if (
+            normalized.Contains("high") ||
+            normalized.Contains("alto") ||
+            normalized.Contains("critical") ||
+            normalized.Contains("crítico") ||
+            normalized.Contains("critico")
+        )
+        {
+            return "advisor-impact advisor-impact-high";
+        }
+
+        if (
+            normalized.Contains("medium") ||
+            normalized.Contains("medio")
+        )
+        {
+            return "advisor-impact advisor-impact-medium";
+        }
+
+        return "advisor-impact advisor-impact-low";
+    }
+}
