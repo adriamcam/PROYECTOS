@@ -315,10 +315,6 @@
                                 </button>
                             </th>
 
-                            <th>
-                                <span>Tiempo estimado</span>
-                            </th>
-
                             <th class="money-column">
                                 <button type="button"
                                         class='@GetSortButtonClass("savings")'
@@ -388,10 +384,6 @@
                                     @(item.RequiresMaintenanceWindow
                                         ? "Sí"
                                         : "No")
-                                </td>
-
-                                <td>
-                                    @FormatImplementationTime(item)
                                 </td>
 
                                 <td class="money-column">
@@ -1231,7 +1223,6 @@
         };
     }
 }
-
 
 
 
