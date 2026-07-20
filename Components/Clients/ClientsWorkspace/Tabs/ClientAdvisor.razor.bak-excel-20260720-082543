@@ -1,10 +1,6 @@
 @using ITQS.SupportOperationsCenter.Components.Clients.ClientsWorkspace.Models
 @using ITQS.SupportOperationsCenter.Components.Clients.ClientsWorkspace.Services
-@using Microsoft.JSInterop
-@using System.Text
-@using System.Globalization
 @inject IClientWorkspaceService WorkspaceService
-@inject IJSRuntime JS
 
 <section class="advisor-page">
 
@@ -194,18 +190,9 @@
                     <h3>Todas las recomendaciones</h3>
                 </div>
 
-                <div class="advisor-heading-actions">
-                    <span class="advisor-result-count">
-                        @FilteredRecommendations.Count resultados
-                    </span>
-
-                    <button type="button"
-                            class="advisor-refresh-button"
-                            disabled="@(FilteredRecommendations.Count == 0)"
-                            @onclick="ExportRecommendationsAsync">
-                        ↓ Exportar a Excel
-                    </button>
-                </div>
+                <span class="advisor-result-count">
+                    @FilteredRecommendations.Count resultados
+                </span>
             </div>
 
             <div class="advisor-filters">
@@ -636,110 +623,6 @@
     </div>
 }
 @code {
-    private async Task ExportRecommendationsAsync()
-    {
-        var rows = FilteredRecommendations.ToList();
-
-        if (rows.Count == 0)
-        {
-            return;
-        }
-
-        var csv = new StringBuilder();
-
-        // BOM para que Excel reconozca correctamente tildes y caracteres UTF-8.
-        csv.Append('\uFEFF');
-
-        csv.AppendLine(
-            "Suscripción;" +
-            "Recomendación;" +
-            "Descripción;" +
-            "Categoría;" +
-            "Impacto;" +
-            "Recurso;" +
-            "Resource ID;" +
-            "Grupo de recursos;" +
-            "Complejidad;" +
-            "Ventana de mantenimiento;" +
-            "Detalle de ventana;" +
-            "Tiempo estimado;" +
-            "Horas estimadas;" +
-            "Minutos estimados;" +
-            "Ahorro anual;" +
-            "Moneda;" +
-            "Fecha de actualización");
-
-        foreach (var item in rows)
-        {
-            var values = new[]
-            {
-                item.SubscriptionName,
-                item.RecommendationSpanish,
-                item.DescriptionSpanish,
-                TranslateCategory(item.AzureCategory),
-                item.Impact,
-                item.ResourceName,
-                item.AffectedResource,
-                item.ResourceGroup,
-                item.Complexity,
-                item.RequiresMaintenanceWindow ? "Sí" : "No",
-                item.MaintenanceWindowText,
-                FormatImplementationTime(item),
-                item.ImplementationHours.ToString(
-                    "0.##",
-                    CultureInfo.InvariantCulture),
-                item.ImplementationMinutes.ToString(
-                    CultureInfo.InvariantCulture),
-                item.AnnualSavingsAmount.ToString(
-                    "0.00",
-                    CultureInfo.InvariantCulture),
-                item.Currency,
-                item.AdvisorUpdatedAt?.ToString(
-                    "yyyy-MM-dd HH:mm:ss",
-                    CultureInfo.InvariantCulture)
-                    ?? string.Empty
-            };
-
-            csv.AppendLine(
-                string.Join(
-                    ";",
-                    values.Select(EscapeCsvValue)));
-        }
-
-        var bytes = Encoding.UTF8.GetBytes(csv.ToString());
-
-        await using var stream = new MemoryStream(bytes);
-        using var streamReference = new DotNetStreamReference(stream);
-
-        var timestamp = DateTime.Now.ToString(
-            "yyyyMMdd-HHmmss",
-            CultureInfo.InvariantCulture);
-
-        var fileName =
-            $"Azure-Advisor-Recomendaciones-{timestamp}.csv";
-
-        await JS.InvokeVoidAsync(
-            "downloadFileFromStream",
-            fileName,
-            streamReference);
-    }
-
-    private static string EscapeCsvValue(object? value)
-    {
-        var text = Convert.ToString(
-                value,
-                CultureInfo.InvariantCulture)
-            ?? string.Empty;
-
-        text = text
-            .Replace("\r\n", " ")
-            .Replace("\n", " ")
-            .Replace("\r", " ")
-            .Replace("\"", "\"\"");
-
-        return $"\"{text}\"";
-    }
-
     [Parameter]
     public ClientWorkspaceContext? Context { get; set; }
 
@@ -1348,7 +1231,6 @@
         };
     }
 }
-
 
 
 
