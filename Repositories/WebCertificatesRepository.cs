@@ -65,6 +65,11 @@ Operational AS
     WHERE C.IsPresent = 1
       AND C.IsActive = 1
       AND ISNULL(C.UsageStatus, 'Unknown') = 'Active'
+      AND
+      (
+          C.NotAfter IS NULL
+          OR C.NotAfter >= DATEADD(MONTH, -6, SYSUTCDATETIME())
+      )
       AND NOT
       (
           C.Source = 'AppServiceCertificateResource'
@@ -93,6 +98,11 @@ StoredSummary AS
     WHERE IsPresent = 1
       AND ISNULL(IsActive, 0) = 0
       AND ISNULL(UsageStatus, 'Unknown') IN ('Stored', 'Historical')
+      AND
+      (
+          NotAfter IS NULL
+          OR NotAfter >= DATEADD(MONTH, -6, SYSUTCDATETIME())
+      )
 )
 SELECT
     COUNT(O.CurrentId) AS TotalCertificates,
@@ -230,6 +240,11 @@ FROM dbo.ITQS_APP_CertInventory_Current C
 WHERE C.IsPresent = 1
   AND C.IsActive = 1
   AND ISNULL(C.UsageStatus, 'Unknown') = 'Active'
+  AND
+  (
+      C.NotAfter IS NULL
+      OR C.NotAfter >= DATEADD(MONTH, -6, SYSUTCDATETIME())
+  )
 
   AND NOT
   (
