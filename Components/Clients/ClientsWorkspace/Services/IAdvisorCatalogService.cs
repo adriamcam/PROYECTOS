@@ -5,8 +5,9 @@ namespace ITQS.SupportOperationsCenter.Components.Clients.ClientsWorkspace.Servi
 public interface IAdvisorCatalogService
 {
     Task<IReadOnlyList<AdvisorCatalogItem>> GetAllAsync();
-    Task<AdvisorCatalogSaveResult> UpdateAsync(AdvisorCatalogItem item);
     Task<AdvisorCatalogSaveResult> CreateAsync(AdvisorCatalogItem item);
-    Task<AdvisorCatalogImportPreview> PreviewImportAsync(IReadOnlyList<AdvisorCatalogImportRow> rows);
-    Task<AdvisorCatalogImportResult> ImportAsync(IReadOnlyList<AdvisorCatalogImportRow> rows);
+    Task<AdvisorCatalogSaveResult> UpdateAsync(AdvisorCatalogItem item);
+    Task<AdvisorCatalogImportPreview> PreviewImportAsync(IReadOnlyCollection<AdvisorCatalogImportRow> rows);
+    Task<AdvisorCatalogImportResult> ImportAsync(IReadOnlyCollection<AdvisorCatalogImportRow> rows);
+    Task<AdvisorCatalogDeleteResult> DeleteManyAsync(IReadOnlyCollection<int> ids);
 }

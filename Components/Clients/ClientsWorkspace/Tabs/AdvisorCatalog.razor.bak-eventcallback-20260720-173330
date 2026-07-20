@@ -262,7 +262,7 @@
 
 @if (ShowImportModal)
 {
-    <div class="modal-backdrop" @onclick="() => CloseImport()">
+    <div class="modal-backdrop" @onclick="CloseImport">
         <div class="modal-panel wide" @onclick:stopPropagation="true">
             <div class="modal-header">
                 <div>
@@ -270,7 +270,7 @@
                     <h3>Importar catálogo desde Excel</h3>
                     <p>@SelectedExcelFileName</p>
                 </div>
-                <button type="button" class="icon-button" @onclick="() => CloseImport()">✕</button>
+                <button type="button" class="icon-button" @onclick="CloseImport">✕</button>
             </div>
 
             <div class="modal-body">
@@ -315,7 +315,7 @@
                     <button type="button" @onclick="DownloadTemplateAsync">Descargar plantilla</button>
                 </div>
                 <div>
-                    <button type="button" @onclick="() => CloseImport()" disabled="@IsImporting">Cancelar</button>
+                    <button type="button" @onclick="CloseImport" disabled="@IsImporting">Cancelar</button>
                     <button type="button" class="primary-button" @onclick="ConfirmImportAsync" disabled="@(!CanConfirmImport)">
                         @(IsImporting ? "Importando..." : $"Confirmar importación ({ImportPreview?.ValidChangeCount ?? 0})")
                     </button>
@@ -833,4 +833,3 @@
         target.IsActive = source.IsActive;
     }
 }
-
