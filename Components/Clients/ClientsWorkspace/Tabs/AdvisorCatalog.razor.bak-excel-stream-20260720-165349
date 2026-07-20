@@ -663,13 +663,8 @@
 
         try
         {
-            await using var uploadStream = e.File.OpenReadStream(20 * 1024 * 1024);
-            using var memoryStream = new MemoryStream();
-
-            await uploadStream.CopyToAsync(memoryStream);
-            memoryStream.Position = 0;
-
-            using var workbook = new XLWorkbook(memoryStream);
+            await using var stream = e.File.OpenReadStream(20 * 1024 * 1024);
+            using var workbook = new XLWorkbook(stream);
             var ws = workbook.Worksheets.First();
             var headers = ws.Row(1).CellsUsed().ToDictionary(c => c.GetString().Trim(), c => c.Address.ColumnNumber, StringComparer.OrdinalIgnoreCase);
             string[] required = ["Recommendation", "RecommendationSpanish"];
@@ -831,8 +826,6 @@
         target.IsActive = source.IsActive;
     }
 }
-
-
 
 
 
