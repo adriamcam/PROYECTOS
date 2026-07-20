@@ -13,9 +13,10 @@ public sealed class AdvisorCatalogItem
     public string? Category { get; set; }
     public string? Complexity { get; set; }
     public string? Notes { get; set; }
-    public bool IsActive { get; set; } = true;
+    public bool IsActive { get; set; }
     public DateTime UpdatedAt { get; set; }
     public byte[] RowVersion { get; set; } = Array.Empty<byte>();
+
     public bool IsEditing { get; set; }
     public bool IsSaving { get; set; }
     public string StatusMessage { get; set; } = string.Empty;
@@ -45,38 +46,4 @@ public sealed class AdvisorCatalogSaveResult
     public string Message { get; init; } = string.Empty;
     public byte[] RowVersion { get; init; } = Array.Empty<byte>();
     public DateTime UpdatedAt { get; init; }
-}
-
-public sealed class AdvisorCatalogImportRow
-{
-    public int ExcelRow { get; set; }
-    public string Recommendation { get; set; } = string.Empty;
-    public string RecommendationSpanish { get; set; } = string.Empty;
-    public string? DescriptionSpanish { get; set; }
-    public string CostClassification { get; set; } = "Por validar";
-    public bool RequiresMaintenanceWindow { get; set; }
-    public int ImplementationMinutes { get; set; }
-    public decimal? ImplementationHours { get; set; }
-    public string? Complexity { get; set; }
-    public string? Notes { get; set; }
-    public bool IsActive { get; set; } = true;
-    public string Action { get; set; } = string.Empty;
-    public string Error { get; set; } = string.Empty;
-}
-
-public sealed class AdvisorCatalogImportPreview
-{
-    public List<AdvisorCatalogImportRow> Rows { get; init; } = new();
-    public int Inserts => Rows.Count(x => x.Action == "Insertar");
-    public int Updates => Rows.Count(x => x.Action == "Actualizar");
-    public int Unchanged => Rows.Count(x => x.Action == "Sin cambios");
-    public int Errors => Rows.Count(x => !string.IsNullOrWhiteSpace(x.Error));
-}
-
-public sealed class AdvisorCatalogImportResult
-{
-    public int Inserted { get; init; }
-    public int Updated { get; init; }
-    public int Unchanged { get; init; }
-    public int Errors { get; init; }
 }

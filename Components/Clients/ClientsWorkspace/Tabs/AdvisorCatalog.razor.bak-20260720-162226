@@ -1,10 +1,6 @@
 @using ITQS.SupportOperationsCenter.Components.Clients.ClientsWorkspace.Models
 @using ITQS.SupportOperationsCenter.Components.Clients.ClientsWorkspace.Services
-@using Microsoft.AspNetCore.Components.Forms
-@using Microsoft.JSInterop
-@using ClosedXML.Excel
 @inject IAdvisorCatalogService AdvisorCatalogService
-@inject IJSRuntime JS
 
 <div class="advisor-catalog">
     <div class="catalog-header">
@@ -16,60 +12,17 @@
             </p>
         </div>
 
-        <div class="catalog-toolbar">
-            <button type="button" @onclick="OpenNew">＋ Nueva</button>
-            <label class="file-button">📥 Importar Excel<InputFile OnChange="ReadExcelAsync" accept=".xlsx" /></label>
-            <button type="button" @onclick="DownloadTemplateAsync">📄 Descargar plantilla</button>
-            <button type="button" @onclick="ExportCatalogAsync">📤 Exportar catálogo</button>
-            <button type="button" class="primary-button" @onclick="LoadAsync" disabled="@IsLoading">
-                @(IsLoading ? "Cargando..." : "Actualizar")
-            </button>
-        </div>
+        <button type="button"
+                class="primary-button"
+                @onclick="LoadAsync"
+                disabled="@IsLoading">
+            @(IsLoading ? "Cargando..." : "Actualizar")
+        </button>
     </div>
 
     @if (!string.IsNullOrWhiteSpace(PageMessage))
     {
         <div class="@PageMessageClass">@PageMessage</div>
-    }
-
-    @if (ShowNewForm)
-    {
-        <div class="catalog-panel">
-            <div class="panel-header"><h3>Nueva recomendación</h3><button type="button" @onclick="CloseNew">✕</button></div>
-            <div class="form-grid">
-                <label>Recomendación original<input @bind="NewItem.Recommendation" /></label>
-                <label>Traducción<input @bind="NewItem.RecommendationSpanish" /></label>
-                <label class="wide">Descripción<textarea rows="3" @bind="NewItem.DescriptionSpanish"></textarea></label>
-                <label>Complejidad<select @bind="NewItem.Complexity"><option value="">Sin definir</option><option>Baja</option><option>Media</option><option>Alta</option></select></label>
-                <label>Horas<input type="number" min="0" step="0.25" @bind="NewItem.ImplementationHours" /></label>
-                <label>Minutos<input type="number" min="0" @bind="NewItem.ImplementationMinutes" /></label>
-                <label>Costo<select @bind="NewItem.CostClassification"><option>Por validar</option><option>Con costo</option><option>Sin costo</option><option>Mixto</option></select></label>
-                <label><input type="checkbox" @bind="NewItem.RequiresMaintenanceWindow" /> Requiere ventana</label>
-                <label><input type="checkbox" @bind="NewItem.IsActive" /> Activo</label>
-            </div>
-            <div class="panel-actions"><button type="button" class="primary-button" @onclick="CreateAsync">Guardar</button><button type="button" @onclick="CloseNew">Cancelar</button></div>
-        </div>
-    }
-
-    @if (ImportPreview is not null)
-    {
-        <div class="catalog-panel">
-            <div class="panel-header"><h3>Vista previa de importación</h3><button type="button" @onclick="ClearImport">✕</button></div>
-            <div class="import-summary">
-                <span>Insertar <strong>@ImportPreview.Inserts</strong></span>
-                <span>Actualizar <strong>@ImportPreview.Updates</strong></span>
-                <span>Sin cambios <strong>@ImportPreview.Unchanged</strong></span>
-                <span>Errores <strong>@ImportPreview.Errors</strong></span>
-            </div>
-            <div class="import-table"><table><thead><tr><th>Fila</th><th>Recomendación</th><th>Traducción</th><th>Acción</th><th>Error</th></tr></thead><tbody>
-            @foreach (var row in ImportPreview.Rows.Take(100))
-            {<tr><td>@row.ExcelRow</td><td>@row.Recommendation</td><td>@row.RecommendationSpanish</td><td>@row.Action</td><td class="error-text">@row.Error</td></tr>}
-            </tbody></table></div>
-            <div class="panel-actions">
-                <button type="button" class="primary-button" @onclick="ConfirmImportAsync" disabled="@(ImportPreview.Errors > 0 || IsImporting)">@(IsImporting ? "Importando..." : "Confirmar importación")</button>
-                <button type="button" @onclick="ClearImport">Cancelar</button>
-            </div>
-        </div>
     }
 
     <div class="catalog-kpis">
@@ -201,7 +154,8 @@
                             <td class="original-cell">
                                 <strong>@item.Recommendation</strong>
                                 <small>
-                                    @(item.UpdatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm"))
+                                    @item.UpdatedAt.ToLocalTime()
+                                        .ToString("dd/MM/yyyy HH:mm")
                                 </small>
                             </td>
                             <td>
@@ -343,10 +297,6 @@
 @code {
     private List<AdvisorCatalogItem> Items { get; set; } = new();
     private Dictionary<int, AdvisorCatalogItem> Backups { get; } = new();
-    private AdvisorCatalogItem NewItem { get; set; } = NewCatalogItem();
-    private bool ShowNewForm { get; set; }
-    private bool IsImporting { get; set; }
-    private AdvisorCatalogImportPreview? ImportPreview { get; set; }
 
     private string SearchText { get; set; } = string.Empty;
     private string CategoryFilter { get; set; } = string.Empty;
@@ -590,90 +540,6 @@
         {
             item.IsSaving = false;
         }
-    }
-
-
-    private static AdvisorCatalogItem NewCatalogItem() => new() { IsActive = true, CostClassification = "Por validar" };
-
-    private void OpenNew() { NewItem = NewCatalogItem(); ShowNewForm = true; PageMessage = string.Empty; }
-    private void CloseNew() { ShowNewForm = false; NewItem = NewCatalogItem(); }
-
-    private async Task CreateAsync()
-    {
-        if (string.IsNullOrWhiteSpace(NewItem.Recommendation) || string.IsNullOrWhiteSpace(NewItem.RecommendationSpanish))
-        { SetMessage("Recomendación original y traducción son obligatorias.", true); return; }
-        var result = await AdvisorCatalogService.CreateAsync(NewItem);
-        SetMessage(result.Message, !result.Success);
-        if (result.Success) { CloseNew(); await LoadAsync(); }
-    }
-
-    private async Task ReadExcelAsync(InputFileChangeEventArgs e)
-    {
-        PageMessage = string.Empty;
-        try
-        {
-            await using var stream = e.File.OpenReadStream(20 * 1024 * 1024);
-            using var workbook = new XLWorkbook(stream);
-            var ws = workbook.Worksheets.First();
-            var headers = ws.Row(1).CellsUsed().ToDictionary(c => c.GetString().Trim(), c => c.Address.ColumnNumber, StringComparer.OrdinalIgnoreCase);
-            string[] required = ["Recommendation", "RecommendationSpanish"];
-            var missing = required.Where(x => !headers.ContainsKey(x)).ToArray();
-            if (missing.Length > 0) throw new InvalidOperationException($"Faltan columnas: {string.Join(", ", missing)}");
-            var rows = new List<AdvisorCatalogImportRow>();
-            foreach (var r in ws.RowsUsed().Skip(1))
-            {
-                if (r.IsEmpty()) continue;
-                string S(string name) => headers.TryGetValue(name, out var col) ? r.Cell(col).GetString().Trim() : string.Empty;
-                bool B(string name, bool def=false) { var v=S(name); return string.IsNullOrWhiteSpace(v)?def:v.Equals("true",StringComparison.OrdinalIgnoreCase)||v.Equals("si",StringComparison.OrdinalIgnoreCase)||v=="1"; }
-                int I(string name) => int.TryParse(S(name), out var v) ? v : 0;
-                decimal? D(string name) => decimal.TryParse(S(name), out var v) ? v : null;
-                rows.Add(new() { ExcelRow=r.RowNumber(), Recommendation=S("Recommendation"), RecommendationSpanish=S("RecommendationSpanish"), DescriptionSpanish=S("DescriptionSpanish"), CostClassification=string.IsNullOrWhiteSpace(S("CostClassification"))?"Por validar":S("CostClassification"), RequiresMaintenanceWindow=B("RequiresMaintenanceWindow"), ImplementationMinutes=I("ImplementationMinutes"), ImplementationHours=D("ImplementationHours"), Complexity=S("Complexity"), Notes=S("Notes"), IsActive=B("IsActive", true) });
-            }
-            ImportPreview = await AdvisorCatalogService.PreviewImportAsync(rows);
-        }
-        catch (Exception ex) { SetMessage($"No fue posible leer el Excel: {ex.Message}", true); }
-    }
-
-    private async Task ConfirmImportAsync()
-    {
-        if (ImportPreview is null) return;
-        IsImporting = true;
-        try
-        {
-            var result = await AdvisorCatalogService.ImportAsync(ImportPreview.Rows);
-            SetMessage($"Importación completada: {result.Inserted} insertados, {result.Updated} actualizados, {result.Unchanged} sin cambios y {result.Errors} errores.", false);
-            ImportPreview = null;
-            await LoadAsync();
-        }
-        catch (Exception ex) { SetMessage($"La importación falló y fue revertida: {ex.Message}", true); }
-        finally { IsImporting = false; }
-    }
-
-    private void ClearImport() => ImportPreview = null;
-
-    private async Task DownloadTemplateAsync()
-    {
-        using var wb = new XLWorkbook(); var ws = wb.AddWorksheet("Catalogo");
-        var headers = new[] { "Recommendation","RecommendationSpanish","DescriptionSpanish","Complexity","ImplementationHours","ImplementationMinutes","CostClassification","RequiresMaintenanceWindow","IsActive","Notes" };
-        for (var i=0;i<headers.Length;i++) ws.Cell(1,i+1).Value=headers[i];
-        ws.Cell(2,1).Value="Recommendation example"; ws.Cell(2,2).Value="Recomendación de ejemplo"; ws.Cell(2,4).Value="Baja"; ws.Cell(2,5).Value=0.5; ws.Cell(2,6).Value=30; ws.Cell(2,7).Value="Mixto"; ws.Cell(2,8).Value=false; ws.Cell(2,9).Value=true;
-        ws.Columns().AdjustToContents(); await DownloadWorkbookAsync(wb,"Plantilla-AdvisorCatalog.xlsx");
-    }
-
-    private async Task ExportCatalogAsync()
-    {
-        using var wb = new XLWorkbook(); var ws = wb.AddWorksheet("Catalogo");
-        var headers = new[] { "Id","Recommendation","RecommendationSpanish","DescriptionSpanish","Complexity","ImplementationHours","ImplementationMinutes","CostClassification","RequiresMaintenanceWindow","IsActive","Notes","UpdatedAt" };
-        for (var i=0;i<headers.Length;i++) ws.Cell(1,i+1).Value=headers[i];
-        var row=2; foreach(var x in Items) { ws.Cell(row,1).Value=x.Id; ws.Cell(row,2).Value=x.Recommendation; ws.Cell(row,3).Value=x.RecommendationSpanish; ws.Cell(row,4).Value=x.DescriptionSpanish; ws.Cell(row,5).Value=x.Complexity; ws.Cell(row,6).Value=x.ImplementationHours; ws.Cell(row,7).Value=x.ImplementationMinutes; ws.Cell(row,8).Value=x.CostClassification; ws.Cell(row,9).Value=x.RequiresMaintenanceWindow; ws.Cell(row,10).Value=x.IsActive; ws.Cell(row,11).Value=x.Notes; ws.Cell(row,12).Value=x.UpdatedAt; row++; }
-        ws.Columns().AdjustToContents(); await DownloadWorkbookAsync(wb,$"AdvisorCatalog-{DateTime.Now:yyyyMMdd-HHmm}.xlsx");
-    }
-
-    private async Task DownloadWorkbookAsync(XLWorkbook wb, string fileName)
-    {
-        using var ms = new MemoryStream(); wb.SaveAs(ms);
-        using var streamRef = new DotNetStreamReference(new MemoryStream(ms.ToArray()));
-        await JS.InvokeVoidAsync("advisorCatalogDownload", fileName, streamRef);
     }
 
     private void SortBy(string column)

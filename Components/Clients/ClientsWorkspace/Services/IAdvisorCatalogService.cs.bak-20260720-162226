@@ -6,7 +6,4 @@ public interface IAdvisorCatalogService
 {
     Task<IReadOnlyList<AdvisorCatalogItem>> GetAllAsync();
     Task<AdvisorCatalogSaveResult> UpdateAsync(AdvisorCatalogItem item);
-    Task<AdvisorCatalogSaveResult> CreateAsync(AdvisorCatalogItem item);
-    Task<AdvisorCatalogImportPreview> PreviewImportAsync(IReadOnlyList<AdvisorCatalogImportRow> rows);
-    Task<AdvisorCatalogImportResult> ImportAsync(IReadOnlyList<AdvisorCatalogImportRow> rows);
 }
