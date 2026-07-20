@@ -80,69 +80,15 @@
             <table>
                 <thead>
                     <tr>
-                        <th>
-                            <button type="button"
-                                    class="sort-header"
-                                    @onclick='() => SortBy("id")'>
-                                ID @GetSortIcon("id")
-                            </button>
-                        </th>
-                        <th>
-                            <button type="button"
-                                    class="sort-header"
-                                    @onclick='() => SortBy("recommendation")'>
-                                Recomendación original @GetSortIcon("recommendation")
-                            </button>
-                        </th>
-                        <th>
-                            <button type="button"
-                                    class="sort-header"
-                                    @onclick='() => SortBy("translation")'>
-                                Traducción / descripción @GetSortIcon("translation")
-                            </button>
-                        </th>
-                        <th>
-                            <button type="button"
-                                    class="sort-header"
-                                    @onclick='() => SortBy("complexity")'>
-                                Complejidad @GetSortIcon("complexity")
-                            </button>
-                        </th>
-                        <th>
-                            <button type="button"
-                                    class="sort-header"
-                                    @onclick='() => SortBy("hours")'>
-                                Horas @GetSortIcon("hours")
-                            </button>
-                        </th>
-                        <th>
-                            <button type="button"
-                                    class="sort-header"
-                                    @onclick='() => SortBy("minutes")'>
-                                Minutos @GetSortIcon("minutes")
-                            </button>
-                        </th>
-                        <th>
-                            <button type="button"
-                                    class="sort-header"
-                                    @onclick='() => SortBy("cost")'>
-                                Costo @GetSortIcon("cost")
-                            </button>
-                        </th>
-                        <th>
-                            <button type="button"
-                                    class="sort-header"
-                                    @onclick='() => SortBy("window")'>
-                                Ventana @GetSortIcon("window")
-                            </button>
-                        </th>
-                        <th>
-                            <button type="button"
-                                    class="sort-header"
-                                    @onclick='() => SortBy("active")'>
-                                Activo @GetSortIcon("active")
-                            </button>
-                        </th>
+                        <th>ID</th>
+                        <th>Recomendación original</th>
+                        <th>Traducción / descripción</th>
+                        <th>Complejidad</th>
+                        <th>Horas</th>
+                        <th>Minutos</th>
+                        <th>Costo</th>
+                        <th>Ventana</th>
+                        <th>Activo</th>
                         <th>Acciones</th>
                     </tr>
                 </thead>
@@ -309,9 +255,6 @@
     private int CurrentPage { get; set; } = 1;
     private int _pageSize = 20;
 
-    private string SortColumn { get; set; } = "active";
-    private bool SortAscending { get; set; } = false;
-
     private int PageSize
     {
         get => _pageSize;
@@ -376,51 +319,11 @@
                 _ => query
             };
 
-            query = SortColumn switch
-            {
-                "id" => SortAscending
-                    ? query.OrderBy(x => x.Id)
-                    : query.OrderByDescending(x => x.Id),
-
-                "recommendation" => SortAscending
-                    ? query.OrderBy(x => x.Recommendation)
-                    : query.OrderByDescending(x => x.Recommendation),
-
-                "translation" => SortAscending
-                    ? query.OrderBy(x => x.RecommendationSpanish)
-                    : query.OrderByDescending(x => x.RecommendationSpanish),
-
-                "complexity" => SortAscending
-                    ? query.OrderBy(x => ComplexityOrder(x.Complexity))
-                        .ThenBy(x => x.RecommendationSpanish)
-                    : query.OrderByDescending(x => ComplexityOrder(x.Complexity))
-                        .ThenBy(x => x.RecommendationSpanish),
-
-                "hours" => SortAscending
-                    ? query.OrderBy(x => x.ImplementationHours ?? 0)
-                    : query.OrderByDescending(x => x.ImplementationHours ?? 0),
-
-                "minutes" => SortAscending
-                    ? query.OrderBy(x => x.ImplementationMinutes)
-                    : query.OrderByDescending(x => x.ImplementationMinutes),
-
-                "cost" => SortAscending
-                    ? query.OrderBy(x => x.CostClassification)
-                    : query.OrderByDescending(x => x.CostClassification),
-
-                "window" => SortAscending
-                    ? query.OrderBy(x => x.RequiresMaintenanceWindow)
-                    : query.OrderByDescending(x => x.RequiresMaintenanceWindow),
-
-                "active" => SortAscending
-                    ? query.OrderBy(x => x.IsActive)
-                    : query.OrderByDescending(x => x.IsActive),
-
-                _ => query.OrderByDescending(x => x.IsActive)
-                    .ThenBy(x => x.RecommendationSpanish)
-            };
-
-            return query.ToList();
+            return query
+                .OrderByDescending(x => x.IsActive)
+                .ThenBy(x => x.Category)
+                .ThenBy(x => x.RecommendationSpanish)
+                .ToList();
         }
     }
 
@@ -542,48 +445,6 @@
         }
     }
 
-    private void SortBy(string column)
-    {
-        if (string.Equals(
-            SortColumn,
-            column,
-            StringComparison.OrdinalIgnoreCase))
-        {
-            SortAscending = !SortAscending;
-        }
-        else
-        {
-            SortColumn = column;
-            SortAscending = true;
-        }
-
-        CurrentPage = 1;
-    }
-
-    private string GetSortIcon(string column)
-    {
-        if (!string.Equals(
-            SortColumn,
-            column,
-            StringComparison.OrdinalIgnoreCase))
-        {
-            return "↕";
-        }
-
-        return SortAscending ? "▲" : "▼";
-    }
-
-    private static int ComplexityOrder(string? complexity)
-    {
-        return complexity?.Trim().ToUpperInvariant() switch
-        {
-            "BAJA" => 1,
-            "MEDIA" => 2,
-            "ALTA" => 3,
-            _ => 4
-        };
-    }
-
     private void Previous()
     {
         if (CurrentPage > 1)
@@ -637,8 +498,4 @@
         target.IsActive = source.IsActive;
     }
 }
-
-
-
-
 
