@@ -331,9 +331,7 @@
                     <tbody>
                         @foreach (var item in PagedRecommendations)
                         {
-                            <tr class="advisor-data-row"
-                                title="Abrir detalle de la recomendación"
-                                @onclick='() => OpenRecommendation(item)'>
+                            <tr>
                                 <td>
                                     <strong class="recommendation-title">
                                         @item.RecommendationSpanish
@@ -1223,7 +1221,6 @@
         };
     }
 }
-
 
 
 
