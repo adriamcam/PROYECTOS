@@ -618,11 +618,10 @@
     {
         var width = Math.Clamp(score, 0, 100);
 
-        var widthText = width.ToString(
-            "0.##",
-            System.Globalization.CultureInfo.InvariantCulture);
-
-        return "width:" + widthText + "%;";
+        return
+            $"width:{width.ToString(
+                "0.##",
+                System.Globalization.CultureInfo.InvariantCulture)}%;";
     }
 
     private static string GetScoreBadgeClass(decimal score)
@@ -651,4 +650,3 @@
         };
     }
 }
-

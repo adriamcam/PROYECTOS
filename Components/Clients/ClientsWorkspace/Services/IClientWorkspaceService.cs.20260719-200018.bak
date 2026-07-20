@@ -15,20 +15,9 @@ public interface IClientWorkspaceService
         Guid tenantId,
         Guid? subscriptionId,
         CancellationToken cancellationToken = default);
-
-    Task<IReadOnlyList<ClientAdvisorRecommendation>>
-        GetAdvisorRecommendationsAsync(
-            Guid tenantId,
-            Guid? subscriptionId,
-            CancellationToken cancellationToken = default);
-
-    Task<IReadOnlyList<ClientAdvisorScore>> GetAdvisorScoresAsync(
+    Task<IReadOnlyList<ClientAdvisorRecommendation>> GetTopAdvisorRecommendationsAsync(
         Guid tenantId,
         Guid? subscriptionId,
-        CancellationToken cancellationToken = default);
-
-    Task<ClientSecurityScore?> GetSecurityScoreAsync(
-        Guid tenantId,
-        Guid? subscriptionId,
+        int top = 10,
         CancellationToken cancellationToken = default);
 }
