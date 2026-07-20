@@ -17,62 +17,14 @@
         </div>
 
         <div class="catalog-toolbar">
-            <button type="button"
-                    class="toolbar-button"
-                    @onclick="OpenNew">
-                <span class="toolbar-icon">＋</span>
-                Nueva
-            </button>
-
-            <label class="toolbar-button file-button">
-                <span class="toolbar-icon">📥</span>
-                Importar Excel
-
-                <InputFile class="file-input"
-                           OnChange="ReadExcelAsync"
-                           accept=".xlsx" />
-            </label>
-
-            <button type="button"
-                    class="toolbar-button"
-                    @onclick="DownloadTemplateAsync">
-                <span class="toolbar-icon">📄</span>
-                Descargar plantilla
-            </button>
-
-            <button type="button"
-                    class="toolbar-button"
-                    @onclick="ExportCatalogAsync">
-                <span class="toolbar-icon">📤</span>
-                Exportar catálogo
-            </button>
-
-            <button type="button"
-                    class="toolbar-button primary-button"
-                    @onclick="LoadAsync"
-                    disabled="@IsLoading">
-                <span class="toolbar-icon">↻</span>
+            <button type="button" @onclick="OpenNew">＋ Nueva</button>
+            <label class="file-button">📥 Importar Excel<InputFile OnChange="ReadExcelAsync" accept=".xlsx" /></label>
+            <button type="button" @onclick="DownloadTemplateAsync">📄 Descargar plantilla</button>
+            <button type="button" @onclick="ExportCatalogAsync">📤 Exportar catálogo</button>
+            <button type="button" class="primary-button" @onclick="LoadAsync" disabled="@IsLoading">
                 @(IsLoading ? "Cargando..." : "Actualizar")
             </button>
         </div>
-
-        @if (!string.IsNullOrWhiteSpace(SelectedExcelFileName))
-        {
-            <div class="selected-file">
-                <span class="selected-file-icon">📊</span>
-
-                <div>
-                    <strong>Archivo seleccionado</strong>
-                    <span>@SelectedExcelFileName</span>
-                </div>
-
-                <button type="button"
-                        title="Quitar archivo"
-                        @onclick="ClearImport">
-                    ✕
-                </button>
-            </div>
-        }
     </div>
 
     @if (!string.IsNullOrWhiteSpace(PageMessage))
@@ -395,7 +347,6 @@
     private bool ShowNewForm { get; set; }
     private bool IsImporting { get; set; }
     private AdvisorCatalogImportPreview? ImportPreview { get; set; }
-    private string SelectedExcelFileName { get; set; } = string.Empty;
 
     private string SearchText { get; set; } = string.Empty;
     private string CategoryFilter { get; set; } = string.Empty;
@@ -659,8 +610,6 @@
     private async Task ReadExcelAsync(InputFileChangeEventArgs e)
     {
         PageMessage = string.Empty;
-        SelectedExcelFileName = e.File.Name;
-
         try
         {
             await using var stream = e.File.OpenReadStream(20 * 1024 * 1024);
@@ -700,11 +649,7 @@
         finally { IsImporting = false; }
     }
 
-    private void ClearImport()
-    {
-        ImportPreview = null;
-        SelectedExcelFileName = string.Empty;
-    }
+    private void ClearImport() => ImportPreview = null;
 
     private async Task DownloadTemplateAsync()
     {
@@ -826,7 +771,6 @@
         target.IsActive = source.IsActive;
     }
 }
-
 
 
 
