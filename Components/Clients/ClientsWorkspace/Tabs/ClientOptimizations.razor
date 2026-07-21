@@ -1,0 +1,149 @@
+@using ITQS.SupportOperationsCenter.Components.Clients.ClientsWorkspace.Models
+
+<section class="client-optimizations">
+    <div class="client-optimizations-header">
+        <div>
+            <span class="client-optimizations-eyebrow">
+                RECOMENDACIONES CONSOLIDADAS
+            </span>
+
+            <h2>Optimizaciones</h2>
+
+            <p>
+                Oportunidades priorizadas para mejorar costos,
+                rendimiento, seguridad y gobernanza del cliente.
+            </p>
+        </div>
+    </div>
+
+    <div class="client-optimizations-grid">
+        <article class="client-optimization-card">
+            <span class="client-optimization-category">
+                COSTOS
+            </span>
+
+            <h3>Optimización financiera</h3>
+
+            <p>
+                Identificación de recursos sobredimensionados,
+                reservas, Savings Plan y Azure Hybrid Benefit.
+            </p>
+        </article>
+
+        <article class="client-optimization-card">
+            <span class="client-optimization-category">
+                RENDIMIENTO
+            </span>
+
+            <h3>Mejoras de rendimiento</h3>
+
+            <p>
+                Revisión de CPU, memoria, discos y capacidad
+                para detectar recursos subutilizados o saturados.
+            </p>
+        </article>
+
+        <article class="client-optimization-card">
+            <span class="client-optimization-category">
+                SEGURIDAD
+            </span>
+
+            <h3>Fortalecimiento de seguridad</h3>
+
+            <p>
+                Validación de Defender, backup, AMA, JIT,
+                Trusted Launch y configuraciones recomendadas.
+            </p>
+        </article>
+
+        <article class="client-optimization-card">
+            <span class="client-optimization-category">
+                GOBERNANZA
+            </span>
+
+            <h3>Mejoras de gobernanza</h3>
+
+            <p>
+                Recursos sin tags, recursos huérfanos,
+                configuraciones inconsistentes y control operativo.
+            </p>
+        </article>
+    </div>
+</section>
+
+<style>
+    .client-optimizations {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .client-optimizations-header {
+        padding: 22px 24px;
+        border: 1px solid #dbe4f0;
+        border-radius: 12px;
+        background: #ffffff;
+    }
+
+    .client-optimizations-eyebrow {
+        display: block;
+        margin-bottom: 6px;
+        color: #2563eb;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+    }
+
+    .client-optimizations-header h2 {
+        margin: 0;
+        color: #172033;
+        font-size: 25px;
+    }
+
+    .client-optimizations-header p {
+        margin: 8px 0 0;
+        color: #667085;
+        font-size: 14px;
+    }
+
+    .client-optimizations-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+    }
+
+    .client-optimization-card {
+        padding: 20px;
+        border: 1px solid #dbe4f0;
+        border-radius: 12px;
+        background: #ffffff;
+    }
+
+    .client-optimization-category {
+        display: block;
+        margin-bottom: 8px;
+        color: #2563eb;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+    }
+
+    .client-optimization-card h3 {
+        margin: 0;
+        color: #172033;
+        font-size: 17px;
+    }
+
+    .client-optimization-card p {
+        margin: 10px 0 0;
+        color: #667085;
+        font-size: 13px;
+        line-height: 1.55;
+    }
+
+    @@media (max-width: 900px) {
+        .client-optimizations-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>

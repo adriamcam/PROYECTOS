@@ -211,7 +211,7 @@
         </button>
 <button class="@GetTabClass("inventory")"
                 @onclick='() => SelectTab("inventory")'>
-            Inventario
+            Optimizaciones
         </button>
 
         <button class="@GetTabClass("costs")"
@@ -253,7 +253,7 @@
                     <ClientAdvisor Context="WorkspaceContext" />
                     break;
 case "inventory":
-                    <ClientInventory />
+                    <ClientOptimizations />
                     break;
 
                 case "costs":
@@ -740,6 +740,7 @@ case "inventory":
             : "workspace-tab";
     }
 }
+
 
 
 
