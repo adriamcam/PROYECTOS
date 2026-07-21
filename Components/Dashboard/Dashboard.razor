@@ -1,0 +1,1529 @@
+@using ITQS.SupportOperationsCenter.Components.Clients.ClientsWorkspace.Tabs
+@using ITQS.SupportOperationsCenter.Components.Clients.ClientsWorkspace.Models
+@using ITQS.SupportOperationsCenter.Components.Clients.ClientsWorkspace.Services
+@using Microsoft.JSInterop
+@using System.Text
+@using System.Globalization
+@inject IClientWorkspaceService WorkspaceService
+@inject IJSRuntime JS
+
+<section class="advisor-page">
+
+    <header class="advisor-header">
+        <div>
+            <span class="advisor-eyebrow">
+                Optimización, confiabilidad y seguridad
+            </span>
+
+            <h2>Azure Advisor</h2>
+
+            <p>
+                Scores, recomendaciones, ahorro potencial y Secure Score
+                para la selección actual.
+            </p>
+        </div>
+
+        <div style="display:flex; gap:.65rem; align-items:center;">
+
+            @if (ShowAdvisorCatalog)
+            {
+                <button type="button"
+                        class="advisor-refresh-button"
+                        @onclick="CloseAdvisorCatalog">
+                    ← Volver
+                </button>
+            }
+            else
+            {
+                <button type="button"
+                        class="advisor-refresh-button"
+                        @onclick="OpenAdvisorCatalog">
+                    ⚙ Configuración
+                </button>
+
+                <button type="button"
+                        class="advisor-refresh-button"
+                        disabled="@(IsLoading || Context?.HasCustomer != true)"
+                        @onclick="LoadDataAsync">
+                    ↻ Actualizar
+                </button>
+            }
+
+        </div>
+    </header>
+
+    @if (ShowAdvisorCatalog)
+    {
+        <AdvisorCatalog />
+    }
+    else if (Context?.HasCustomer != true)
+    {
+        <div class="advisor-state">
+            <h3>Seleccione un cliente</h3>
+            <p>
+                Seleccione un cliente para consultar Azure Advisor.
+            </p>
+        </div>
+    }
+    else if (IsLoading)
+    {
+        <div class="advisor-state">
+            <div class="advisor-loader"></div>
+            <h3>Cargando Azure Advisor</h3>
+            <p>Consultando scores y recomendaciones.</p>
+        </div>
+    }
+    else if (!string.IsNullOrWhiteSpace(ErrorMessage))
+    {
+        <div class="advisor-state advisor-error">
+            <h3>Error al consultar Azure Advisor</h3>
+            <p>@ErrorMessage</p>
+        </div>
+    }
+    else
+    {
+        <section class="advisor-panel">
+
+            <div class="advisor-panel-heading">
+                <div>
+                    <span class="advisor-eyebrow">Evaluación</span>
+                    <h3>Scores de Azure</h3>
+                </div>
+
+                <span class="@GetScoreBadgeClass(AdvisorGeneralScore)">
+                    Advisor general:
+                    @FormatPercent(AdvisorGeneralScore)
+                </span>
+            </div>
+
+            <div class="advisor-score-grid">
+
+                @foreach (var score in AdvisorScores)
+                {
+                    <article class="advisor-score-card">
+                        <div class="advisor-score-header">
+                            <span>@TranslateScore(score.ScoreName)</span>
+                            <strong>@FormatPercent(score.Score)</strong>
+                        </div>
+
+                        <div class="advisor-score-track">
+                            <div class="advisor-score-fill"
+                                 style="@GetWidthStyle(score.Score)">
+                            </div>
+                        </div>
+
+                        <div class="advisor-score-footer">
+                            <span>
+                                Recursos:
+                                <strong>@score.ImpactedResourceCount</strong>
+                            </span>
+
+                            <span>
+                                Mejora:
+                                <strong>
+                                    @FormatPercent(
+                                        score.PotentialScoreIncrease)
+                                </strong>
+                            </span>
+                        </div>
+                    </article>
+                }
+
+                <article class="advisor-score-card security-score">
+                    <div class="advisor-score-header">
+                        <span>Defender Secure Score</span>
+
+                        <strong>
+                            @FormatPercent(SecurityScore?.Score ?? 0)
+                        </strong>
+                    </div>
+
+                    <div class="advisor-score-track">
+                        <div class="advisor-score-fill"
+                             style="@GetWidthStyle(
+                                 SecurityScore?.Score ?? 0)">
+                        </div>
+                    </div>
+
+                    <div class="advisor-score-footer">
+                        <span>
+                            Suscripciones:
+                            <strong>
+                                @(SecurityScore?.SubscriptionCount ?? 0)
+                            </strong>
+                        </span>
+
+                        <span>
+                            Actualización:
+                            <strong>
+                                @FormatDate(SecurityScore?.UpdatedAt)
+                            </strong>
+                        </span>
+                    </div>
+                </article>
+
+            </div>
+        </section>
+
+        <div class="advisor-summary-grid">
+
+            <article class='@GetSummaryCardClass("all")'
+                     role="button"
+                     tabindex="0"
+                     title="Mostrar todas las recomendaciones"
+                     @onclick='() => ApplySummaryFilter("all")'>
+                <span>Total recomendaciones</span>
+                <strong>@Recommendations.Count</strong>
+                <small>Todas las recomendaciones disponibles</small>
+            </article>
+
+            <article class='@GetSummaryCardClass("savings")'
+                     role="button"
+                     tabindex="0"
+                     title="Ordenar por mayor ahorro anual"
+                     @onclick='() => ApplySummaryFilter("savings")'>
+                <span>Ahorro anual potencial</span>
+                <strong>@FormatMoney(TotalSavings)</strong>
+                <small>Suma total, no solamente Top 10</small>
+            </article>
+
+            <article class='@GetSummaryCardClass("resources")'
+                     role="button"
+                     tabindex="0"
+                     title="Mostrar recursos afectados únicos"
+                     @onclick='() => ApplySummaryFilter("resources")'>
+                <span>Recursos afectados</span>
+                <strong>@AffectedResources</strong>
+                <small>Recursos únicos con recomendaciones</small>
+            </article>
+
+            <article class="advisor-summary-card advisor-category-card">
+                <div class="advisor-category-heading">
+                    <span>Distribución por categoría</span>
+                    <small>@Recommendations.Count recomendaciones</small>
+                </div>
+
+                <div class="advisor-category-content">
+                    <div class="advisor-category-donut"
+                         style="@($"background: {CategoryDonutGradient}")">
+                        <div class="advisor-category-donut-center">
+                            <strong>@CategoryChartItems.Count</strong>
+                            <span>Categorías</span>
+                        </div>
+                    </div>
+
+                    <div class="advisor-category-legend">
+                        @foreach (var category in CategoryChartItems)
+                        {
+                            <button type="button"
+                                    title="Filtrar por @category.Name"
+                                    @onclick="() => ApplyCategoryFilter(category.Name)">
+                                <span class="advisor-category-color"
+                                      style="@($"background-color: {category.Color}")">
+                                </span>
+
+                                <span class="advisor-category-name">
+                                    @category.Name
+                                </span>
+
+                                <strong>@category.Count</strong>
+                            </button>
+                        }
+                    </div>
+                </div>
+            </article>
+
+            
+
+        </div>
+
+        <section class="advisor-panel">
+
+            <div class="advisor-panel-heading">
+                <div>
+                    <span class="advisor-eyebrow">
+                        Inventario completo
+                    </span>
+
+                    <h3>Todas las recomendaciones</h3>
+                </div>
+
+                <div class="advisor-heading-actions">
+                    <span class="advisor-result-count">
+                        @FilteredRecommendations.Count resultados
+                    </span>
+
+                    <button type="button"
+                            class="advisor-refresh-button"
+                            disabled="@(FilteredRecommendations.Count == 0)"
+                            @onclick="ExportRecommendationsAsync">
+                        ↓ Exportar a Excel
+                    </button>
+                </div>
+            </div>
+
+            <div class="advisor-filters">
+
+                <input type="search"
+                       class="advisor-input"
+                       placeholder="Buscar recomendación, recurso o grupo..."
+                       @bind="SearchText"
+                       @bind:event="oninput" />
+
+                <select class="advisor-select"
+                        @bind="SelectedCategory">
+                    <option value="">Todas las categorías</option>
+
+                    @foreach (var category in Categories)
+                    {
+                        <option value="@category">
+                            @TranslateCategory(category)
+                        </option>
+                    }
+                </select>
+
+                <select class="advisor-select"
+                        @bind="SelectedImpact">
+                    <option value="">Todos los impactos</option>
+
+                    @foreach (var impact in Impacts)
+                    {
+                        <option value="@impact">@impact</option>
+                    }
+                </select>
+
+                <label class="advisor-checkbox">
+                    <input type="checkbox"
+                           @bind="OnlyWithSavings" />
+
+                    Solo con ahorro
+                </label>
+
+            </div>
+
+            <div class="advisor-table-wrapper">
+                <table class="advisor-table">
+                    <thead>
+                        <tr>
+                            <th>
+                                <button type="button"
+                                        class='@GetSortButtonClass("recommendation")'
+                                        @onclick='() => SortBy("recommendation")'>
+                                    <span>Recomendación</span>
+                                    <span class="sort-icon">
+                                        @GetSortIcon("recommendation")
+                                    </span>
+                                </button>
+                            </th>
+
+                            <th>
+                                <button type="button"
+                                        class='@GetSortButtonClass("category")'
+                                        @onclick='() => SortBy("category")'>
+                                    <span>Categoría</span>
+                                    <span class="sort-icon">
+                                        @GetSortIcon("category")
+                                    </span>
+                                </button>
+                            </th>
+
+                            <th>
+                                <button type="button"
+                                        class='@GetSortButtonClass("impact")'
+                                        @onclick='() => SortBy("impact")'>
+                                    <span>Impacto</span>
+                                    <span class="sort-icon">
+                                        @GetSortIcon("impact")
+                                    </span>
+                                </button>
+                            </th>
+
+                            <th>
+                                <button type="button"
+                                        class='@GetSortButtonClass("resource")'
+                                        @onclick='() => SortBy("resource")'>
+                                    <span>Recurso</span>
+                                    <span class="sort-icon">
+                                        @GetSortIcon("resource")
+                                    </span>
+                                </button>
+                            </th>
+
+                            <th>
+                                <button type="button"
+                                        class='@GetSortButtonClass("resourceGroup")'
+                                        @onclick='() => SortBy("resourceGroup")'>
+                                    <span>Grupo de recursos</span>
+                                    <span class="sort-icon">
+                                        @GetSortIcon("resourceGroup")
+                                    </span>
+                                </button>
+                            </th>
+
+                            <th>
+                                <button type="button"
+                                        class='@GetSortButtonClass("complexity")'
+                                        @onclick='() => SortBy("complexity")'>
+                                    <span>Complejidad</span>
+                                    <span class="sort-icon">
+                                        @GetSortIcon("complexity")
+                                    </span>
+                                </button>
+                            </th>
+
+                            <th>
+                                <button type="button"
+                                        class='@GetSortButtonClass("maintenance")'
+                                        @onclick='() => SortBy("maintenance")'>
+                                    <span>Ventana</span>
+                                    <span class="sort-icon">
+                                        @GetSortIcon("maintenance")
+                                    </span>
+                                </button>
+                            </th>
+
+                            <th>
+                                <span>Tiempo estimado</span>
+                            </th>
+
+                            <th class="money-column">
+                                <button type="button"
+                                        class='@GetSortButtonClass("savings")'
+                                        @onclick='() => SortBy("savings")'>
+                                    <span>Ahorro anual</span>
+                                    <span class="sort-icon">
+                                        @GetSortIcon("savings")
+                                    </span>
+                                </button>
+                            </th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @foreach (var item in PagedRecommendations)
+                        {
+                            <tr class="advisor-data-row"
+                                title="Abrir detalle de la recomendación"
+                                @onclick='() => OpenRecommendation(item)'>
+                                <td>
+                                    <strong class="recommendation-title">
+                                        @item.RecommendationSpanish
+                                    </strong>
+
+                                    @if (
+                                        !string.IsNullOrWhiteSpace(
+                                            item.DescriptionSpanish)
+                                    )
+                                    {
+                                        <div class="recommendation-description">
+                                            @item.DescriptionSpanish
+                                        </div>
+                                    }
+
+                                    <small class="subscription-name">
+                                        @item.SubscriptionName
+                                    </small>
+                                </td>
+
+                                <td>
+                                    <span class="category-badge">
+                                        @TranslateCategory(
+                                            item.AzureCategory)
+                                    </span>
+                                </td>
+
+                                <td>
+                                    <span class="@GetImpactClass(
+                                        item.Impact)">
+                                        @item.Impact
+                                    </span>
+                                </td>
+
+                                <td title="@item.AffectedResource">
+                                    @Display(item.ResourceName)
+                                </td>
+
+                                <td>
+                                    @Display(item.ResourceGroup)
+                                </td>
+
+                                <td>
+                                    @Display(item.Complexity)
+                                </td>
+
+                                <td>
+                                    @(item.RequiresMaintenanceWindow
+                                        ? "Sí"
+                                        : "No")
+                                </td>
+
+                                <td>
+                                    @FormatImplementationTime(item)
+                                </td>
+
+                                <td class="money-column">
+                                    @FormatMoney(
+                                        item.AnnualSavingsAmount)
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <footer class="advisor-pagination">
+                <span>
+                    Página @EffectivePage de @TotalPages
+                </span>
+
+                <div>
+                    <button type="button"
+                            disabled="@(EffectivePage <= 1)"
+                            @onclick="PreviousPage">
+                        Anterior
+                    </button>
+
+                    <button type="button"
+                            disabled="@(EffectivePage >= TotalPages)"
+                            @onclick="NextPage">
+                        Siguiente
+                    </button>
+                </div>
+            </footer>
+
+        </section>
+    }
+
+</section>
+
+
+@if (SelectedRecommendation is not null)
+{
+    <div class="advisor-detail-backdrop"
+         @onclick="CloseRecommendation">
+
+        <aside class="advisor-detail-drawer"
+               role="dialog"
+               aria-modal="true"
+               aria-label="Detalle de recomendación"
+               @onclick:stopPropagation="true">
+
+            <header class="advisor-detail-header">
+                <div>
+                    <span class="advisor-eyebrow">
+                        Detalle de Azure Advisor
+                    </span>
+
+                    <h2>
+                        @SelectedRecommendation.RecommendationSpanish
+                    </h2>
+
+                    <p>
+                        @Display(SelectedRecommendation.SubscriptionName)
+                    </p>
+                </div>
+
+                <button type="button"
+                        class="advisor-detail-close"
+                        title="Cerrar"
+                        aria-label="Cerrar detalle"
+                        @onclick="CloseRecommendation">
+                    ×
+                </button>
+            </header>
+
+            <div class="advisor-detail-body">
+
+                <section class="advisor-detail-section">
+                    <h3>Clasificación</h3>
+
+                    <div class="advisor-detail-grid">
+                        <div>
+                            <span>Categoría</span>
+                            <strong>
+                                @TranslateCategory(
+                                    SelectedRecommendation.AzureCategory)
+                            </strong>
+                        </div>
+
+                        <div>
+                            <span>Impacto</span>
+                            <strong>
+                                @SelectedRecommendation.Impact
+                            </strong>
+                        </div>
+
+                        <div>
+                            <span>Complejidad</span>
+                            <strong>
+                                @Display(
+                                    SelectedRecommendation.Complexity)
+                            </strong>
+                        </div>
+
+                        <div>
+                            <span>Ventana de mantenimiento</span>
+                            <strong>
+                                @(SelectedRecommendation
+                                    .RequiresMaintenanceWindow
+                                        ? "Sí"
+                                        : "No")
+                            </strong>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="advisor-detail-section">
+                    <h3>Recurso afectado</h3>
+
+                    <dl class="advisor-detail-list">
+                        <div>
+                            <dt>Recurso</dt>
+                            <dd>
+                                @Display(
+                                    SelectedRecommendation.ResourceName)
+                            </dd>
+                        </div>
+
+                        <div>
+                            <dt>Grupo de recursos</dt>
+                            <dd>
+                                @Display(
+                                    SelectedRecommendation.ResourceGroup)
+                            </dd>
+                        </div>
+
+                        <div>
+                            <dt>Suscripción</dt>
+                            <dd>
+                                @Display(
+                                    SelectedRecommendation.SubscriptionName)
+                            </dd>
+                        </div>
+
+                        <div>
+                            <dt>Resource ID</dt>
+                            <dd class="advisor-resource-id">
+                                @Display(
+                                    SelectedRecommendation.AffectedResource)
+                            </dd>
+                        </div>
+                    </dl>
+                </section>
+
+                <section class="advisor-detail-section">
+                    <h3>Descripción</h3>
+
+                    <p class="advisor-detail-text">
+                        @Display(
+                            SelectedRecommendation.DescriptionSpanish)
+                    </p>
+                </section>
+
+                <section class="advisor-detail-section">
+                    <h3>Remediación recomendada</h3>
+
+                    <p class="advisor-detail-text">
+                        @Display(
+                            SelectedRecommendation.RemediationAzure)
+                    </p>
+                </section>
+
+                <section class="advisor-detail-section">
+                    <h3>Estimación operativa</h3>
+
+                    <div class="advisor-detail-grid">
+                        <div>
+                            <span>Tiempo estimado</span>
+                            <strong>
+                                @FormatImplementationTime(
+                                    SelectedRecommendation)
+                            </strong>
+                        </div>
+
+                        <div>
+                            <span>Ventana</span>
+                            <strong>
+                                @Display(
+                                    SelectedRecommendation
+                                        .MaintenanceWindowText)
+                            </strong>
+                        </div>
+
+                        <div>
+                            <span>Clasificación de costo</span>
+                            <strong>
+                                @Display(
+                                    SelectedRecommendation
+                                        .CostClassification)
+                            </strong>
+                        </div>
+
+                        <div>
+                            <span>Actualización</span>
+                            <strong>
+                                @FormatDetailDate(
+                                    SelectedRecommendation
+                                        .AdvisorUpdatedAt)
+                            </strong>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="advisor-detail-savings">
+                    <span>Ahorro anual potencial</span>
+
+                    <strong>
+                        @FormatMoney(
+                            SelectedRecommendation
+                                .AnnualSavingsAmount)
+                    </strong>
+
+                    <small>
+                        @Display(SelectedRecommendation.Currency)
+                    </small>
+                </section>
+
+            </div>
+
+        </aside>
+    </div>
+}
+@code {
+    private async Task ExportRecommendationsAsync()
+    {
+        var rows = FilteredRecommendations.ToList();
+
+        if (rows.Count == 0)
+        {
+            return;
+        }
+
+        var csv = new StringBuilder();
+
+        // BOM para que Excel reconozca correctamente tildes y caracteres UTF-8.
+        csv.Append('\uFEFF');
+
+        csv.AppendLine(
+            "Suscripción;" +
+            "Recomendación;" +
+            "Descripción;" +
+            "Categoría;" +
+            "Impacto;" +
+            "Recurso;" +
+            "Resource ID;" +
+            "Grupo de recursos;" +
+            "Complejidad;" +
+            "Ventana de mantenimiento;" +
+            "Detalle de ventana;" +
+            "Tiempo estimado;" +
+            "Horas estimadas;" +
+            "Minutos estimados;" +
+            "Ahorro anual;" +
+            "Moneda;" +
+            "Fecha de actualización");
+
+        foreach (var item in rows)
+        {
+            var values = new[]
+            {
+                item.SubscriptionName,
+                item.RecommendationSpanish,
+                item.DescriptionSpanish,
+                TranslateCategory(item.AzureCategory),
+                item.Impact,
+                item.ResourceName,
+                item.AffectedResource,
+                item.ResourceGroup,
+                item.Complexity,
+                item.RequiresMaintenanceWindow ? "Sí" : "No",
+                item.MaintenanceWindowText,
+                FormatImplementationTime(item),
+                item.ImplementationHours.ToString(
+                    "0.##",
+                    CultureInfo.InvariantCulture),
+                item.ImplementationMinutes.ToString(
+                    CultureInfo.InvariantCulture),
+                item.AnnualSavingsAmount.ToString(
+                    "0.00",
+                    CultureInfo.InvariantCulture),
+                item.Currency,
+                item.AdvisorUpdatedAt?.ToString(
+                    "yyyy-MM-dd HH:mm:ss",
+                    CultureInfo.InvariantCulture)
+                    ?? string.Empty
+            };
+
+            csv.AppendLine(
+                string.Join(
+                    ";",
+                    values.Select(EscapeCsvValue)));
+        }
+
+        var bytes = Encoding.UTF8.GetBytes(csv.ToString());
+
+        await using var stream = new MemoryStream(bytes);
+        using var streamReference = new DotNetStreamReference(stream);
+
+        var timestamp = DateTime.Now.ToString(
+            "yyyyMMdd-HHmmss",
+            CultureInfo.InvariantCulture);
+
+        var fileName =
+            $"Azure-Advisor-Recomendaciones-{timestamp}.csv";
+
+        await JS.InvokeVoidAsync(
+            "downloadFileFromStream",
+            fileName,
+            streamReference);
+    }
+
+    private static string EscapeCsvValue(object? value)
+    {
+        var text = Convert.ToString(
+                value,
+                CultureInfo.InvariantCulture)
+            ?? string.Empty;
+
+        text = text
+            .Replace("\r\n", " ")
+            .Replace("\n", " ")
+            .Replace("\r", " ")
+            .Replace("\"", "\"\"");
+
+        return $"\"{text}\"";
+    }
+
+    [Parameter]
+    public ClientWorkspaceContext? Context { get; set; }
+
+    private IReadOnlyList<ClientAdvisorRecommendation> Recommendations =
+        Array.Empty<ClientAdvisorRecommendation>();
+
+    private IReadOnlyList<ClientAdvisorScore> AdvisorScores =
+        Array.Empty<ClientAdvisorScore>();
+
+    private ClientSecurityScore? SecurityScore;
+
+    private ClientAdvisorRecommendation? SelectedRecommendation;
+
+    private bool IsLoading;
+
+    private bool ShowAdvisorCatalog;
+
+    private string? ErrorMessage;
+
+    private void OpenAdvisorCatalog()
+    {
+        SelectedRecommendation = null;
+        ShowAdvisorCatalog = true;
+    }
+
+    private void CloseAdvisorCatalog()
+    {
+        ShowAdvisorCatalog = false;
+    }
+
+    private Guid? LoadedTenantId;
+
+    private Guid? LoadedSubscriptionId;
+
+    private string SearchText = string.Empty;
+
+    private string SelectedCategory = string.Empty;
+
+    private string SelectedImpact = string.Empty;
+
+    private bool OnlyWithSavings;
+
+    private string SummaryFilter = "all";
+
+    private string SortColumn = string.Empty;
+
+    private bool SortAscending = true;
+
+    private int CurrentPage = 1;
+
+    private const int PageSize = 25;
+
+    private decimal TotalSavings =>
+        Recommendations
+            .Where(x => x.AnnualSavingsAmount > 0)
+            .Sum(x => x.AnnualSavingsAmount);
+
+    private int RecommendationsWithSavings =>
+        Recommendations.Count(x => x.AnnualSavingsAmount > 0);
+
+    private int AffectedResources =>
+        Recommendations
+            .Where(x => !string.IsNullOrWhiteSpace(x.AffectedResource))
+            .Select(x => x.AffectedResource)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Count();
+
+    private decimal AdvisorGeneralScore =>
+        AdvisorScores.Count == 0
+            ? 0
+            : AdvisorScores.Average(x => x.Score);
+
+    private static readonly string[] CategoryChartColors =
+    [
+        "#2563eb",
+        "#16a34a",
+        "#f59e0b",
+        "#dc2626",
+        "#7c3aed",
+        "#0891b2",
+        "#db2777",
+        "#64748b"
+    ];
+
+    private IReadOnlyList<CategoryChartItem> CategoryChartItems =>
+        Recommendations
+            .GroupBy(
+                x => string.IsNullOrWhiteSpace(x.AzureCategory)
+                    ? "Sin categoría"
+                    : x.AzureCategory.Trim(),
+                StringComparer.OrdinalIgnoreCase)
+            .Select(group => new
+            {
+                Name = group.Key,
+                Count = group.Count()
+            })
+            .OrderByDescending(x => x.Count)
+            .Select(
+                (item, index) => new CategoryChartItem
+                {
+                    Name = item.Name,
+                    Count = item.Count,
+                    Color = CategoryChartColors[
+                        index % CategoryChartColors.Length]
+                })
+            .ToArray();
+
+    private string CategoryDonutGradient
+    {
+        get
+        {
+            var items = CategoryChartItems;
+
+            if (items.Count == 0)
+            {
+                return "conic-gradient(#e5e7eb 0deg 360deg)";
+            }
+
+            var total = items.Sum(x => x.Count);
+
+            if (total <= 0)
+            {
+                return "conic-gradient(#e5e7eb 0deg 360deg)";
+            }
+
+            var segments = new List<string>();
+            decimal current = 0;
+
+            foreach (var item in items)
+            {
+                var start = current;
+                var percentage =
+                    item.Count / (decimal)total * 100m;
+
+                current += percentage;
+
+                segments.Add(
+                    $"{item.Color} " +
+                    $"{start.ToString("0.####", CultureInfo.InvariantCulture)}% " +
+                    $"{current.ToString("0.####", CultureInfo.InvariantCulture)}%");
+            }
+
+            return $"conic-gradient({string.Join(", ", segments)})";
+        }
+    }
+
+    private void ApplyCategoryFilter(string category)
+    {
+        SelectedCategory = category == "Sin categoría"
+            ? string.Empty
+            : category;
+
+        SummaryFilter = "all";
+        CurrentPage = 1;
+    }
+
+    private IReadOnlyList<string> Categories =>
+        Recommendations
+            .Select(x => x.AzureCategory)
+            .Where(x => !string.IsNullOrWhiteSpace(x))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(x => x)
+            .ToArray();
+
+    private IReadOnlyList<string> Impacts =>
+        Recommendations
+            .Select(x => x.Impact)
+            .Where(x => !string.IsNullOrWhiteSpace(x))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(x => x)
+            .ToArray();
+
+    private IReadOnlyList<ClientAdvisorRecommendation>
+        FilteredRecommendations
+    {
+        get
+        {
+            IEnumerable<ClientAdvisorRecommendation> query =
+                SummaryFilter switch
+                {
+                    "resources" =>
+                        Recommendations
+                            .Where(
+                                x =>
+                                    !string.IsNullOrWhiteSpace(
+                                        x.AffectedResource))
+                            .GroupBy(
+                                x => x.AffectedResource,
+                                StringComparer.OrdinalIgnoreCase)
+                            .Select(
+                                group =>
+                                    group
+                                        .OrderByDescending(
+                                            x =>
+                                                x.AnnualSavingsAmount)
+                                        .ThenBy(
+                                            x =>
+                                                x.RecommendationSpanish)
+                                        .First()),
+
+                    "savings" =>
+                        Recommendations.Where(
+                            x => x.AnnualSavingsAmount > 0),
+
+                    "valued" =>
+                        Recommendations.Where(
+                            x => x.AnnualSavingsAmount > 0),
+
+                    _ =>
+                        Recommendations
+                };
+
+            if (!string.IsNullOrWhiteSpace(SearchText))
+            {
+                var search = SearchText.Trim();
+
+                query = query.Where(
+                    x =>
+                        Contains(x.RecommendationSpanish, search) ||
+                        Contains(x.DescriptionSpanish, search) ||
+                        Contains(x.ResourceName, search) ||
+                        Contains(x.ResourceGroup, search) ||
+                        Contains(x.SubscriptionName, search));
+            }
+
+            if (!string.IsNullOrWhiteSpace(SelectedCategory))
+            {
+                query = query.Where(
+                    x => string.Equals(
+                        x.AzureCategory,
+                        SelectedCategory,
+                        StringComparison.OrdinalIgnoreCase));
+            }
+
+            if (!string.IsNullOrWhiteSpace(SelectedImpact))
+            {
+                query = query.Where(
+                    x => string.Equals(
+                        x.Impact,
+                        SelectedImpact,
+                        StringComparison.OrdinalIgnoreCase));
+            }
+
+            if (OnlyWithSavings)
+            {
+                query = query.Where(
+                    x => x.AnnualSavingsAmount > 0);
+            }
+
+            return query.ToArray();
+        }
+    }
+
+    private IEnumerable<ClientAdvisorRecommendation>
+        OrderedRecommendations
+    {
+        get
+        {
+            var source =
+                FilteredRecommendations.AsEnumerable();
+
+            return SortColumn switch
+            {
+                "recommendation" =>
+                    SortAscending
+                        ? source.OrderBy(
+                            x => x.RecommendationSpanish,
+                            StringComparer.OrdinalIgnoreCase)
+                        : source.OrderByDescending(
+                            x => x.RecommendationSpanish,
+                            StringComparer.OrdinalIgnoreCase),
+
+                "category" =>
+                    SortAscending
+                        ? source.OrderBy(
+                            x => x.AzureCategory,
+                            StringComparer.OrdinalIgnoreCase)
+                        : source.OrderByDescending(
+                            x => x.AzureCategory,
+                            StringComparer.OrdinalIgnoreCase),
+
+                "impact" =>
+                    SortAscending
+                        ? source.OrderBy(
+                            x => GetImpactOrder(x.Impact))
+                        : source.OrderByDescending(
+                            x => GetImpactOrder(x.Impact)),
+
+                "resource" =>
+                    SortAscending
+                        ? source.OrderBy(
+                            x => x.ResourceName,
+                            StringComparer.OrdinalIgnoreCase)
+                        : source.OrderByDescending(
+                            x => x.ResourceName,
+                            StringComparer.OrdinalIgnoreCase),
+
+                "resourceGroup" =>
+                    SortAscending
+                        ? source.OrderBy(
+                            x => x.ResourceGroup,
+                            StringComparer.OrdinalIgnoreCase)
+                        : source.OrderByDescending(
+                            x => x.ResourceGroup,
+                            StringComparer.OrdinalIgnoreCase),
+
+                "complexity" =>
+                    SortAscending
+                        ? source.OrderBy(
+                            x => GetComplexityOrder(x.Complexity))
+                        : source.OrderByDescending(
+                            x => GetComplexityOrder(x.Complexity)),
+
+                "maintenance" =>
+                    SortAscending
+                        ? source.OrderBy(
+                            x => x.RequiresMaintenanceWindow)
+                        : source.OrderByDescending(
+                            x => x.RequiresMaintenanceWindow),
+
+                "savings" =>
+                    SortAscending
+                        ? source.OrderBy(
+                            x => x.AnnualSavingsAmount)
+                        : source.OrderByDescending(
+                            x => x.AnnualSavingsAmount),
+
+                _ => source
+            };
+        }
+    }
+
+    private int TotalPages =>
+        Math.Max(
+            1,
+            (int)Math.Ceiling(
+                FilteredRecommendations.Count /
+                (double)PageSize));
+
+    private int EffectivePage =>
+        Math.Clamp(CurrentPage, 1, TotalPages);
+
+    private IReadOnlyList<ClientAdvisorRecommendation>
+        PagedRecommendations =>
+            OrderedRecommendations
+                .Skip((EffectivePage - 1) * PageSize)
+                .Take(PageSize)
+                .ToArray();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Context?.TenantId is not Guid tenantId)
+        {
+            ClearData();
+            return;
+        }
+
+        if (
+            LoadedTenantId == tenantId &&
+            LoadedSubscriptionId == Context.SubscriptionId
+        )
+        {
+            return;
+        }
+
+        await LoadDataAsync();
+    }
+
+    private async Task LoadDataAsync()
+    {
+        if (Context?.TenantId is not Guid tenantId)
+        {
+            ClearData();
+            return;
+        }
+
+        IsLoading = true;
+        ErrorMessage = null;
+
+        try
+        {
+            var recommendationsTask =
+                WorkspaceService.GetAdvisorRecommendationsAsync(
+                    tenantId,
+                    Context.SubscriptionId);
+
+            var advisorScoresTask =
+                WorkspaceService.GetAdvisorScoresAsync(
+                    tenantId,
+                    Context.SubscriptionId);
+
+            var securityScoreTask =
+                WorkspaceService.GetSecurityScoreAsync(
+                    tenantId,
+                    Context.SubscriptionId);
+
+            await Task.WhenAll(
+                recommendationsTask,
+                advisorScoresTask,
+                securityScoreTask);
+
+            Recommendations = await recommendationsTask;
+            AdvisorScores = await advisorScoresTask;
+            SecurityScore = await securityScoreTask;
+
+            LoadedTenantId = tenantId;
+            LoadedSubscriptionId = Context.SubscriptionId;
+
+            SummaryFilter = "all";
+            SortColumn = string.Empty;
+            SortAscending = true;
+            CurrentPage = 1;
+        }
+        catch (Exception ex)
+        {
+            Recommendations =
+                Array.Empty<ClientAdvisorRecommendation>();
+
+            AdvisorScores =
+                Array.Empty<ClientAdvisorScore>();
+
+            SecurityScore = null;
+
+        SelectedRecommendation = null;
+
+            ErrorMessage = ex.Message;
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private void ClearData()
+    {
+        Recommendations =
+            Array.Empty<ClientAdvisorRecommendation>();
+
+        AdvisorScores =
+            Array.Empty<ClientAdvisorScore>();
+
+        SecurityScore = null;
+
+        SelectedRecommendation = null;
+
+        LoadedTenantId = null;
+        LoadedSubscriptionId = null;
+
+        ErrorMessage = null;
+        CurrentPage = 1;
+    }
+
+    private void ApplySummaryFilter(string filter)
+    {
+        SummaryFilter = filter;
+
+        SearchText = string.Empty;
+        SelectedCategory = string.Empty;
+        SelectedImpact = string.Empty;
+        OnlyWithSavings = false;
+        CurrentPage = 1;
+
+        switch (filter)
+        {
+            case "savings":
+                SortColumn = "savings";
+                SortAscending = false;
+                break;
+
+            case "resources":
+                SortColumn = "resource";
+                SortAscending = true;
+                break;
+
+            case "valued":
+                SortColumn = "savings";
+                SortAscending = false;
+                break;
+
+            default:
+                SortColumn = string.Empty;
+                SortAscending = true;
+                break;
+        }
+    }
+
+    private string GetSummaryCardClass(string filter)
+    {
+        return string.Equals(
+            SummaryFilter,
+            filter,
+            StringComparison.OrdinalIgnoreCase)
+                ? "advisor-summary-card advisor-summary-card-active"
+                : "advisor-summary-card";
+    }
+    private void SortBy(string column)
+    {
+        if (!string.Equals(
+            SortColumn,
+            column,
+            StringComparison.OrdinalIgnoreCase))
+        {
+            SortColumn = column;
+            SortAscending = true;
+        }
+        else if (SortAscending)
+        {
+            SortAscending = false;
+        }
+        else
+        {
+            SortColumn = string.Empty;
+            SortAscending = true;
+        }
+
+        CurrentPage = 1;
+    }
+
+    private string GetSortIcon(string column)
+    {
+        if (!string.Equals(
+            SortColumn,
+            column,
+            StringComparison.OrdinalIgnoreCase))
+        {
+            return "⇅";
+        }
+
+        return SortAscending
+            ? "▲"
+            : "▼";
+    }
+
+    private string GetSortButtonClass(string column)
+    {
+        return string.Equals(
+            SortColumn,
+            column,
+            StringComparison.OrdinalIgnoreCase)
+                ? "advisor-sort-button active"
+                : "advisor-sort-button";
+    }
+
+    private static int GetImpactOrder(string? impact)
+    {
+        return impact?.Trim().ToUpperInvariant() switch
+        {
+            "HIGH" => 1,
+            "MEDIUM" => 2,
+            "LOW" => 3,
+            _ => 4
+        };
+    }
+
+    private static int GetComplexityOrder(string? complexity)
+    {
+        return complexity?.Trim().ToUpperInvariant() switch
+        {
+            "BAJA" => 1,
+            "LOW" => 1,
+
+            "MEDIA" => 2,
+            "MEDIUM" => 2,
+
+            "ALTA" => 3,
+            "HIGH" => 3,
+
+            "CRÍTICA" => 4,
+            "CRITICA" => 4,
+            "CRITICAL" => 4,
+
+            _ => 5
+        };
+    }
+    private void OpenRecommendation(
+        ClientAdvisorRecommendation recommendation)
+    {
+        SelectedRecommendation = recommendation;
+    }
+
+    private void CloseRecommendation()
+    {
+        SelectedRecommendation = null;
+    }
+
+    private static string FormatImplementationTime(
+        ClientAdvisorRecommendation recommendation)
+    {
+        if (recommendation.ImplementationHours > 0)
+        {
+            return recommendation.ImplementationHours == 1
+                ? "1 hora"
+                : $"{recommendation.ImplementationHours:N2} horas";
+        }
+
+        if (recommendation.ImplementationMinutes > 0)
+        {
+            return recommendation.ImplementationMinutes == 1
+                ? "1 minuto"
+                : $"{recommendation.ImplementationMinutes} minutos";
+        }
+
+        return "Sin estimación";
+    }
+
+    private static string FormatDetailDate(DateTime? value)
+    {
+        return value.HasValue
+            ? value.Value.ToLocalTime()
+                .ToString("dd/MM/yyyy HH:mm")
+            : "Sin datos";
+    }
+    private void PreviousPage()
+    {
+        CurrentPage = Math.Max(1, EffectivePage - 1);
+    }
+
+    private void NextPage()
+    {
+        CurrentPage = Math.Min(TotalPages, EffectivePage + 1);
+    }
+
+    private static bool Contains(string? value, string search)
+    {
+        return value?.Contains(
+            search,
+            StringComparison.OrdinalIgnoreCase) == true;
+    }
+
+    private static string Display(string? value)
+    {
+        return string.IsNullOrWhiteSpace(value)
+            ? "-"
+            : value;
+    }
+
+    private static string FormatMoney(decimal value)
+    {
+        return value.ToString(
+            "C2",
+            System.Globalization.CultureInfo
+                .GetCultureInfo("en-US"));
+    }
+
+    private static string FormatPercent(decimal value)
+    {
+        return $"{value:N2}%";
+    }
+
+    private static string FormatDate(DateTime? value)
+    {
+        return value.HasValue
+            ? value.Value.ToLocalTime().ToString("dd/MM/yyyy")
+            : "Sin datos";
+    }
+
+    private static string TranslateScore(string scoreName)
+    {
+        return scoreName switch
+        {
+            "Cost" => "Costos",
+            "HighAvailability" => "Confiabilidad",
+            "OperationalExcellence" => "Excelencia operativa",
+            "Performance" => "Rendimiento",
+            "Security" => "Seguridad",
+            _ => scoreName
+        };
+    }
+
+    private static string TranslateCategory(string category)
+    {
+        return TranslateScore(category);
+    }
+
+    private static string GetWidthStyle(decimal score)
+    {
+        var width = Math.Clamp(score, 0, 100);
+
+        var widthText = width.ToString(
+            "0.##",
+            System.Globalization.CultureInfo.InvariantCulture);
+
+        return "width:" + widthText + "%;";
+    }
+
+    private static string GetScoreBadgeClass(decimal score)
+    {
+        if (score >= 80)
+        {
+            return "score-badge score-good";
+        }
+
+        if (score >= 60)
+        {
+            return "score-badge score-warning";
+        }
+
+        return "score-badge score-critical";
+    }
+
+    private static string GetImpactClass(string? impact)
+    {
+        return impact?.Trim().ToUpperInvariant() switch
+        {
+            "HIGH" => "impact-badge impact-high",
+            "MEDIUM" => "impact-badge impact-medium",
+            "LOW" => "impact-badge impact-low",
+            _ => "impact-badge impact-default"
+        };
+    }
+
+    private sealed class CategoryChartItem
+    {
+        public string Name { get; init; } = string.Empty;
+        public int Count { get; init; }
+        public string Color { get; init; } = "#64748b";
+    }}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
