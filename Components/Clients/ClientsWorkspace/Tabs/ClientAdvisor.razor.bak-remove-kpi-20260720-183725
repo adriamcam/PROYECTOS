@@ -196,7 +196,15 @@
                 <small>Recursos únicos con recomendaciones</small>
             </article>
 
-            
+            <article class='@GetSummaryCardClass("valued")'
+                     role="button"
+                     tabindex="0"
+                     title="Mostrar únicamente recomendaciones valorizadas"
+                     @onclick='() => ApplySummaryFilter("valued")'>
+                <span>Con ahorro estimado</span>
+                <strong>@RecommendationsWithSavings</strong>
+                <small>Recomendaciones valorizadas</small>
+            </article>
 
         </div>
 
@@ -1384,7 +1392,6 @@
         };
     }
 }
-
 
 
 
