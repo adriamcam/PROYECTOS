@@ -196,42 +196,6 @@
                 <small>Recursos únicos con recomendaciones</small>
             </article>
 
-            <article class="advisor-summary-card advisor-category-card">
-                <div class="advisor-category-heading">
-                    <span>Distribución por categoría</span>
-                    <small>@Recommendations.Count recomendaciones</small>
-                </div>
-
-                <div class="advisor-category-content">
-                    <div class="advisor-category-donut"
-                         style="@($"background: {CategoryDonutGradient}")">
-                        <div class="advisor-category-donut-center">
-                            <strong>@CategoryChartItems.Count</strong>
-                            <span>Categorías</span>
-                        </div>
-                    </div>
-
-                    <div class="advisor-category-legend">
-                        @foreach (var category in CategoryChartItems)
-                        {
-                            <button type="button"
-                                    title="Filtrar por @category.Name"
-                                    @onclick="() => ApplyCategoryFilter(category.Name)">
-                                <span class="advisor-category-color"
-                                      style="@($"background-color: {category.Color}")">
-                                </span>
-
-                                <span class="advisor-category-name">
-                                    @category.Name
-                                </span>
-
-                                <strong>@category.Count</strong>
-                            </button>
-                        }
-                    </div>
-                </div>
-            </article>
-
             
 
         </div>
@@ -865,90 +829,6 @@
             ? 0
             : AdvisorScores.Average(x => x.Score);
 
-    private static readonly string[] CategoryChartColors =
-    [
-        "#2563eb",
-        "#16a34a",
-        "#f59e0b",
-        "#dc2626",
-        "#7c3aed",
-        "#0891b2",
-        "#db2777",
-        "#64748b"
-    ];
-
-    private IReadOnlyList<CategoryChartItem> CategoryChartItems =>
-        Recommendations
-            .GroupBy(
-                x => string.IsNullOrWhiteSpace(x.AzureCategory)
-                    ? "Sin categoría"
-                    : x.AzureCategory.Trim(),
-                StringComparer.OrdinalIgnoreCase)
-            .Select(group => new
-            {
-                Name = group.Key,
-                Count = group.Count()
-            })
-            .OrderByDescending(x => x.Count)
-            .Select(
-                (item, index) => new CategoryChartItem
-                {
-                    Name = item.Name,
-                    Count = item.Count,
-                    Color = CategoryChartColors[
-                        index % CategoryChartColors.Length]
-                })
-            .ToArray();
-
-    private string CategoryDonutGradient
-    {
-        get
-        {
-            var items = CategoryChartItems;
-
-            if (items.Count == 0)
-            {
-                return "conic-gradient(#e5e7eb 0deg 360deg)";
-            }
-
-            var total = items.Sum(x => x.Count);
-
-            if (total <= 0)
-            {
-                return "conic-gradient(#e5e7eb 0deg 360deg)";
-            }
-
-            var segments = new List<string>();
-            decimal current = 0;
-
-            foreach (var item in items)
-            {
-                var start = current;
-                var percentage =
-                    item.Count / (decimal)total * 100m;
-
-                current += percentage;
-
-                segments.Add(
-                    $"{item.Color} " +
-                    $"{start.ToString("0.####", CultureInfo.InvariantCulture)}% " +
-                    $"{current.ToString("0.####", CultureInfo.InvariantCulture)}%");
-            }
-
-            return $"conic-gradient({string.Join(", ", segments)})";
-        }
-    }
-
-    private void ApplyCategoryFilter(string category)
-    {
-        SelectedCategory = category == "Sin categoría"
-            ? string.Empty
-            : category;
-
-        SummaryFilter = "all";
-        CurrentPage = 1;
-    }
-
     private IReadOnlyList<string> Categories =>
         Recommendations
             .Select(x => x.AzureCategory)
@@ -1503,14 +1383,7 @@
             _ => "impact-badge impact-default"
         };
     }
-
-    private sealed class CategoryChartItem
-    {
-        public string Name { get; init; } = string.Empty;
-        public int Count { get; init; }
-        public string Color { get; init; } = "#64748b";
-    }}
-
+}
 
 
 
