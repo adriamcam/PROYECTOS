@@ -130,7 +130,13 @@
         @if (WorkspaceContext.HasCustomer)
         {
             <div class="workspace-context">
-<div>
+
+                <div>
+                    <span>Suscripciones</span>
+                    <strong>@Overview.TotalSubscriptions</strong>
+                </div>
+
+                <div>
                     <span>Máquinas virtuales</span>
                     <strong>@Overview.TotalVirtualMachines</strong>
                 </div>
@@ -156,13 +162,11 @@
                     <span>Recursos huérfanos</span>
                     <strong>@Overview.OrphanResources</strong>
                 </div>
-                @if (!string.IsNullOrWhiteSpace(DisplayGdapStatus))
-                {
-                    <div>
-                        <span>Estado GDAP</span>
-                        <strong>@DisplayGdapStatus</strong>
-                    </div>
-                }
+
+                <div>
+                    <span>Estado GDAP</span>
+                    <strong>@WorkspaceContext.GdapStatus</strong>
+                </div>
 
                 <div>
                     <span>Última actualización</span>
@@ -740,7 +744,6 @@ case "inventory":
             : "workspace-tab";
     }
 }
-
 
 
 
