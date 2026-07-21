@@ -14,14 +14,7 @@
             </p>
         </div>
 
-        <div class="@($"overview-status {GetStatusClass()}")">
-            <span class="overview-status-dot"></span>
-            <div>
-                <small>Estado general</small>
-                <strong>@DisplayOverallStatus</strong>
-            </div>
-        </div>
-    </header>
+        </header>
 
     <div class="overview-section-grid">
                 <article class="overview-panel overview-health-panel">
@@ -31,9 +24,7 @@
                     <h3>Estado de infraestructura</h3>
                 </div>
 
-                <span class="@($"overview-health-badge {GetStatusClass()}")">
-                    @DisplayOverallStatus
-                </span>
+                
             </div>
 
             <div class="infrastructure-kpi-grid">
@@ -514,6 +505,7 @@
             : "infrastructure-kpi infrastructure-kpi-healthy";
     }
 }
+
 
 
 
