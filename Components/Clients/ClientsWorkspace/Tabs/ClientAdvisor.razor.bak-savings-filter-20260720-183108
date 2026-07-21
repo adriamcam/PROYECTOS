@@ -881,10 +881,6 @@
                                                 x.RecommendationSpanish)
                                         .First()),
 
-                    "savings" =>
-                        Recommendations.Where(
-                            x => x.AnnualSavingsAmount > 0),
-
                     "valued" =>
                         Recommendations.Where(
                             x => x.AnnualSavingsAmount > 0),
@@ -1392,7 +1388,6 @@
         };
     }
 }
-
 
 
 
