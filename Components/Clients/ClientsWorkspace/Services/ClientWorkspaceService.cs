@@ -645,6 +645,80 @@ public sealed class ClientWorkspaceService : IClientWorkspaceService
                              )
                       )
                 ),
+                CpuCriticalVirtualMachines =
+                (
+                    SELECT ISNULL(MAX(DailyValue), 0)
+                    FROM
+                    (
+                        SELECT
+                            FechaMetrica,
+                            SUM(ISNULL(CpuCriticalVMs, 0)) AS DailyValue
+                        FROM dbo.InfrastructureHealthDaily
+                        WHERE TenantId = @TenantId
+                          AND
+                          (
+                              @SubscriptionId IS NULL
+                              OR SubscriptionId = @SubscriptionId
+                          )
+                          AND FechaMetrica >=
+                              DATEADD(
+                                  DAY,
+                                  -6,
+                                  CONVERT(date, GETUTCDATE())
+                              )
+                        GROUP BY FechaMetrica
+                    ) AS DailyCpuCritical
+                ),
+
+                MemoryCriticalVirtualMachines =
+                (
+                    SELECT ISNULL(MAX(DailyValue), 0)
+                    FROM
+                    (
+                        SELECT
+                            FechaMetrica,
+                            SUM(ISNULL(MemoryCriticalVMs, 0)) AS DailyValue
+                        FROM dbo.InfrastructureHealthDaily
+                        WHERE TenantId = @TenantId
+                          AND
+                          (
+                              @SubscriptionId IS NULL
+                              OR SubscriptionId = @SubscriptionId
+                          )
+                          AND FechaMetrica >=
+                              DATEADD(
+                                  DAY,
+                                  -6,
+                                  CONVERT(date, GETUTCDATE())
+                              )
+                        GROUP BY FechaMetrica
+                    ) AS DailyMemoryCritical
+                ),
+
+                DiskCriticalVirtualMachines =
+                (
+                    SELECT ISNULL(MAX(DailyValue), 0)
+                    FROM
+                    (
+                        SELECT
+                            FechaMetrica,
+                            SUM(ISNULL(DiskCriticalVMs, 0)) AS DailyValue
+                        FROM dbo.InfrastructureHealthDaily
+                        WHERE TenantId = @TenantId
+                          AND
+                          (
+                              @SubscriptionId IS NULL
+                              OR SubscriptionId = @SubscriptionId
+                          )
+                          AND FechaMetrica >=
+                              DATEADD(
+                                  DAY,
+                                  -6,
+                                  CONVERT(date, GETUTCDATE())
+                              )
+                        GROUP BY FechaMetrica
+                    ) AS DailyDiskCritical
+                ),
 
                 AverageCpuPercent =
                 (
@@ -1322,3 +1396,4 @@ public sealed class ClientWorkspaceService : IClientWorkspaceService
                 command);
     }
 }
+

@@ -33,4 +33,23 @@ public sealed class ClientWorkspaceOverview
     public string OverallStatus { get; set; } = "Sin datos";
 
     public DateTime? LastOperationalUpdate { get; set; }
+
+    /// <summary>
+    /// Mayor cantidad diaria de máquinas virtuales con CPU crítica
+    /// durante los últimos siete días.
+    /// </summary>
+    public int CpuCriticalVirtualMachines { get; set; }
+
+    /// <summary>
+    /// Mayor cantidad diaria de máquinas virtuales con memoria crítica
+    /// durante los últimos siete días.
+    /// </summary>
+    public int MemoryCriticalVirtualMachines { get; set; }
+
+    /// <summary>
+    /// Mayor cantidad diaria de máquinas virtuales con discos críticos
+    /// durante los últimos siete días.
+    /// </summary>
+    public int DiskCriticalVirtualMachines { get; set; }
 }
+
