@@ -24,7 +24,7 @@
     </header>
 
     <div class="overview-section-grid">
-        <article class="overview-panel overview-health-panel">
+                <article class="overview-panel overview-health-panel">
             <div class="overview-panel-header">
                 <div>
                     <span class="overview-panel-eyebrow">ÚLTIMOS 7 DÍAS</span>
@@ -36,60 +36,73 @@
                 </span>
             </div>
 
-            <div class="overview-metric-list">
+            <div class="infrastructure-kpi-grid">
+                <div class="infrastructure-kpi infrastructure-kpi-total">
+                    <div class="infrastructure-kpi-content">
+                        <span class="infrastructure-kpi-label">
+                            Total de VM
+                        </span>
 
-                <div class="overview-metric">
-                    <div class="overview-metric-header">
-                        <div>
-                            <span>Total de VM</span>
-                            <small>Máquinas virtuales activas</small>
-                        </div>
-
-                        <strong>
+                        <strong class="infrastructure-kpi-value">
                             @Overview.TotalVirtualMachines.ToString("N0")
                         </strong>
                     </div>
+
+                    <small class="infrastructure-kpi-description">
+                        Máquinas virtuales activas
+                    </small>
                 </div>
 
-                <div class="overview-metric">
-                    <div class="overview-metric-header">
-                        <div>
-                            <span>VM con CPU crítica</span>
-                            <small>Mayor valor diario del período</small>
-                        </div>
+                <div class="@GetInfrastructureMetricClass(
+                                Overview.CpuCriticalVirtualMachines)">
+                    <div class="infrastructure-kpi-content">
+                        <span class="infrastructure-kpi-label">
+                            VM con CPU crítica
+                        </span>
 
-                        <strong>
+                        <strong class="infrastructure-kpi-value">
                             @Overview.CpuCriticalVirtualMachines.ToString("N0")
                         </strong>
                     </div>
+
+                    <small class="infrastructure-kpi-description">
+                        Mayor valor diario del período
+                    </small>
                 </div>
 
-                <div class="overview-metric">
-                    <div class="overview-metric-header">
-                        <div>
-                            <span>VM con memoria crítica</span>
-                            <small>Mayor valor diario del período</small>
-                        </div>
+                <div class="@GetInfrastructureMetricClass(
+                                Overview.MemoryCriticalVirtualMachines)">
+                    <div class="infrastructure-kpi-content">
+                        <span class="infrastructure-kpi-label">
+                            VM con memoria crítica
+                        </span>
 
-                        <strong>
+                        <strong class="infrastructure-kpi-value">
                             @Overview.MemoryCriticalVirtualMachines.ToString("N0")
                         </strong>
                     </div>
+
+                    <small class="infrastructure-kpi-description">
+                        Mayor valor diario del período
+                    </small>
                 </div>
 
-                <div class="overview-metric">
-                    <div class="overview-metric-header">
-                        <div>
-                            <span>VM con discos críticos</span>
-                            <small>Mayor valor diario del período</small>
-                        </div>
+                <div class="@GetInfrastructureMetricClass(
+                                Overview.DiskCriticalVirtualMachines)">
+                    <div class="infrastructure-kpi-content">
+                        <span class="infrastructure-kpi-label">
+                            VM con discos críticos
+                        </span>
 
-                        <strong>
+                        <strong class="infrastructure-kpi-value">
                             @Overview.DiskCriticalVirtualMachines.ToString("N0")
                         </strong>
                     </div>
-                </div>
 
+                    <small class="infrastructure-kpi-description">
+                        Mayor valor diario del período
+                    </small>
+                </div>
             </div>
         </article>
 
@@ -231,6 +244,100 @@
     </div>
 
 </section>
+
+
+<style>
+    .infrastructure-kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+        margin-top: 18px;
+    }
+
+    .infrastructure-kpi {
+        min-height: 92px;
+        padding: 14px 16px;
+        border: 1px solid #dbe4f0;
+        border-radius: 10px;
+        background: #ffffff;
+        transition:
+            border-color 0.2s ease,
+            box-shadow 0.2s ease,
+            transform 0.2s ease;
+    }
+
+    .infrastructure-kpi:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 5px 14px rgba(15, 23, 42, 0.07);
+    }
+
+    .infrastructure-kpi-content {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+    }
+
+    .infrastructure-kpi-label {
+        color: #111827;
+        font-size: 13px;
+        font-weight: 700;
+        line-height: 1.3;
+    }
+
+    .infrastructure-kpi-value {
+        flex-shrink: 0;
+        color: #111827;
+        font-size: 24px;
+        font-weight: 800;
+        line-height: 1;
+    }
+
+    .infrastructure-kpi-description {
+        display: block;
+        margin-top: 9px;
+        color: #718096;
+        font-size: 11px;
+        line-height: 1.35;
+    }
+
+    .infrastructure-kpi-total {
+        border-left: 4px solid #2563eb;
+        background: #f8fbff;
+    }
+
+    .infrastructure-kpi-total .infrastructure-kpi-value {
+        color: #1d4ed8;
+    }
+
+    .infrastructure-kpi-critical {
+        border-left: 4px solid #dc2626;
+        background: #fff8f8;
+    }
+
+    .infrastructure-kpi-critical .infrastructure-kpi-value {
+        color: #c81e1e;
+    }
+
+    .infrastructure-kpi-healthy {
+        border-left: 4px solid #10b981;
+        background: #f7fdf9;
+    }
+
+    .infrastructure-kpi-healthy .infrastructure-kpi-value {
+        color: #087f5b;
+    }
+
+    @@media (max-width: 760px) {
+        .infrastructure-kpi-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .infrastructure-kpi {
+            min-height: auto;
+        }
+    }
+</style>
 
 @code {
     [Parameter, EditorRequired]
@@ -399,7 +506,15 @@
         value <= 0
             ? "risk-success"
             : "risk-warning";
+
+    private static string GetInfrastructureMetricClass(int value)
+    {
+        return value > 0
+            ? "infrastructure-kpi infrastructure-kpi-critical"
+            : "infrastructure-kpi infrastructure-kpi-healthy";
+    }
 }
+
 
 
 
