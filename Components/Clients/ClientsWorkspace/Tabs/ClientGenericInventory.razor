@@ -490,13 +490,26 @@
 
     private static bool IsVisibleColumn(string column)
     {
-        return !column.EndsWith(
-                   "Hash",
-                   StringComparison.OrdinalIgnoreCase)
+        var hiddenColumns = new HashSet<string>(
+            StringComparer.OrdinalIgnoreCase)
+        {
+            "Id",
+            "RunId",
+            "TenantId",
+            "SubscriptionId",
+            "VMResourceId",
+            "DiskResourceId",
+            "VMResourceIdHash",
+            "DiskResourceIdHash",
+            "ResourceIdHash",
+            "Tags",
+            "InsertedAt"
+        };
+
+        return !hiddenColumns.Contains(column)
                &&
-               !string.Equals(
-                   column,
-                   "Tags",
+               !column.EndsWith(
+                   "Hash",
                    StringComparison.OrdinalIgnoreCase);
     }
 
@@ -555,3 +568,4 @@
         return value;
     }
 }
+
