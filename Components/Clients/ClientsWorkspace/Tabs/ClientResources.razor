@@ -1,40 +1,45 @@
+@* Components/Clients/ClientsWorkspace/Tabs/ClientResources.razor *@
+
 <section class="resources-workspace">
 
     @if (!_showVirtualMachines)
     {
-        <header class="resources-heading">
-            <div>
-                <span class="resources-eyebrow">INVENTARIO DE AZURE</span>
-                <h2>Recursos</h2>
+        <header class="resources-header">
+            <span class="resources-eyebrow">INVENTARIO DE AZURE</span>
 
-                <p>
-                    Seleccione un servicio para consultar su inventario.
-                    Solo se mostrarán servicios disponibles para el cliente.
-                </p>
-            </div>
+            <h2>Recursos</h2>
+
+            <p>
+                Seleccione un servicio para consultar su inventario.
+                Solo se mostrarán servicios disponibles para el cliente
+                y la suscripción seleccionados.
+            </p>
         </header>
 
-        <section class="resources-catalog">
+        <section class="resources-grid">
 
             <button type="button"
-                    class="resource-service-card"
+                    class="azure-resource-card"
                     @onclick="OpenVirtualMachines">
 
-                <span class="resource-service-icon">
+                <span class="azure-resource-icon">
                     🖥️
                 </span>
 
-                <span class="resource-service-information">
-                    <strong>Virtual Machines</strong>
+                <span class="azure-resource-content">
+                    <span class="azure-resource-title">
+                        Virtual Machines
+                    </span>
 
-                    <small>
-                        Cómputo, sistema operativo, red y discos
-                    </small>
+                    <span class="azure-resource-description">
+                        Cómputo, sistema operativo, red, discos y extensiones
+                    </span>
                 </span>
 
-                <span class="resource-service-arrow">
+                <span class="azure-resource-arrow">
                     →
                 </span>
+
             </button>
 
         </section>
@@ -43,13 +48,12 @@
     {
         <section class="resource-detail">
 
-            <div class="resource-detail-navigation">
-                <button type="button"
-                        class="resource-back-button"
-                        @onclick="BackToResources">
-                    ← Volver a recursos
-                </button>
-            </div>
+            <button type="button"
+                    class="resource-back-button"
+                    @onclick="BackToResources">
+                <span>←</span>
+                <span>Volver a recursos</span>
+            </button>
 
             <ClientVirtualMachines />
 
@@ -58,8 +62,186 @@
 
 </section>
 
-@code
-{
+<style>
+    .resources-workspace {
+        display: flex;
+        width: 100%;
+        flex-direction: column;
+        gap: 22px;
+        box-sizing: border-box;
+    }
+
+    .resources-header {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .resources-eyebrow {
+        margin-bottom: 8px;
+        color: #2563eb;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: .09em;
+    }
+
+    .resources-header h2 {
+        margin: 0 0 8px;
+        color: #101828;
+        font-size: 24px;
+        font-weight: 700;
+        line-height: 1.2;
+    }
+
+    .resources-header p {
+        max-width: 760px;
+        margin: 0;
+        color: #667085;
+        font-size: 13px;
+        line-height: 1.55;
+    }
+
+    .resources-grid {
+        display: grid;
+        width: 100%;
+        grid-template-columns: repeat(auto-fill, minmax(285px, 340px));
+        gap: 16px;
+    }
+
+    .azure-resource-card {
+        display: grid;
+        grid-template-columns: 54px minmax(0, 1fr) 24px;
+        align-items: center;
+        gap: 14px;
+
+        width: 100%;
+        min-height: 112px;
+        padding: 18px;
+
+        border: 1px solid #dfe5ee;
+        border-radius: 12px;
+
+        background: #ffffff;
+        color: inherit;
+        font-family: inherit;
+        text-align: left;
+
+        cursor: pointer;
+
+        box-shadow: 0 1px 3px rgba(16, 24, 40, .04);
+
+        transition:
+            transform .15s ease,
+            border-color .15s ease,
+            box-shadow .15s ease,
+            background-color .15s ease;
+    }
+
+    .azure-resource-card:hover {
+        transform: translateY(-2px);
+        border-color: #84a9f5;
+        background: #fbfdff;
+        box-shadow: 0 9px 25px rgba(16, 24, 40, .09);
+    }
+
+    .azure-resource-card:focus-visible {
+        outline: 3px solid rgba(37, 99, 235, .18);
+        outline-offset: 3px;
+    }
+
+    .azure-resource-icon {
+        display: flex;
+        width: 54px;
+        height: 54px;
+        align-items: center;
+        justify-content: center;
+
+        border-radius: 13px;
+        background: #eef4ff;
+
+        font-size: 27px;
+    }
+
+    .azure-resource-content {
+        display: flex;
+        min-width: 0;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .azure-resource-title {
+        color: #101828;
+        font-size: 15px;
+        font-weight: 700;
+        line-height: 1.3;
+    }
+
+    .azure-resource-description {
+        color: #667085;
+        font-size: 11px;
+        line-height: 1.45;
+    }
+
+    .azure-resource-arrow {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        color: #2563eb;
+        font-size: 22px;
+        font-weight: 700;
+    }
+
+    .resource-detail {
+        display: flex;
+        width: 100%;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .resource-back-button {
+        display: inline-flex;
+        width: fit-content;
+        min-height: 36px;
+        align-items: center;
+        gap: 7px;
+        padding: 7px 12px;
+
+        border: 1px solid #d7deea;
+        border-radius: 8px;
+
+        background: #ffffff;
+        color: #344054;
+        font-family: inherit;
+        font-size: 12px;
+        font-weight: 600;
+
+        cursor: pointer;
+
+        transition:
+            border-color .15s ease,
+            background-color .15s ease,
+            color .15s ease;
+    }
+
+    .resource-back-button:hover {
+        border-color: #9db7f4;
+        background: #f7f9ff;
+        color: #1d4ed8;
+    }
+
+    @@media (max-width: 720px) {
+        .resources-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .resources-header h2 {
+            font-size: 21px;
+        }
+    }
+</style>
+
+@code {
     private bool _showVirtualMachines;
 
     private void OpenVirtualMachines()
