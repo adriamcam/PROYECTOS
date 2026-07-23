@@ -1,102 +1,137 @@
-<section class="virtual-machines-tab">
+<section class="virtual-machines-workspace">
 
-    <div class="vm-toolbar">
-        <div>
-            <h3>Virtual Machines</h3>
-            <p>
-                Inventario consolidado de cómputo, red, discos,
-                sistema operativo y extensiones.
-            </p>
+    <header class="vm-heading">
+
+        <div class="vm-title-group">
+
+            <div class="vm-title-icon">
+                🖥️
+            </div>
+
+            <div>
+                <span class="vm-eyebrow">
+                    COMPUTE
+                </span>
+
+                <h2>Virtual Machines</h2>
+
+                <p>
+                    Inventario consolidado de cómputo, sistema operativo,
+                    red, discos y extensiones.
+                </p>
+            </div>
+
         </div>
 
-        <button type="button" class="vm-refresh-button">
-            ↻ Actualizar
-        </button>
-    </div>
-
-    <div class="vm-filter-grid">
-
-        <div class="vm-filter">
-            <label>Suscripción</label>
-            <select>
-                <option>Todas las suscripciones</option>
-            </select>
+        <div class="vm-heading-summary">
+            <span>Fuente</span>
+            <strong>vw_VMInfrastructure</strong>
         </div>
 
-        <div class="vm-filter">
-            <label>Resource Group</label>
-            <select>
-                <option>Todos los Resource Groups</option>
-            </select>
-        </div>
+    </header>
 
-        <div class="vm-filter">
-            <label>Región</label>
-            <select>
-                <option>Todas las regiones</option>
-            </select>
-        </div>
-
-        <div class="vm-filter">
-            <label>Buscar</label>
-            <input type="search"
-                   placeholder="Nombre, IP, tamaño..." />
-        </div>
-
-    </div>
-
-    <div class="vm-kpi-grid">
+    <section class="vm-kpi-grid">
 
         <article class="vm-kpi-card">
-            <span>Total VM</span>
+            <div class="vm-kpi-header">
+                <span>Total VM</span>
+                <span class="vm-kpi-icon">🖥️</span>
+            </div>
+
             <strong>0</strong>
             <small>Máquinas inventariadas</small>
         </article>
 
         <article class="vm-kpi-card">
-            <span>Running</span>
+            <div class="vm-kpi-header">
+                <span>Running</span>
+                <span class="vm-kpi-indicator success"></span>
+            </div>
+
             <strong>0</strong>
             <small>En ejecución</small>
         </article>
 
         <article class="vm-kpi-card">
-            <span>Stopped</span>
-            <strong>0</strong>
-            <small>Detenidas</small>
-        </article>
-
-        <article class="vm-kpi-card">
-            <span>Windows</span>
-            <strong>0</strong>
-            <small>Sistema operativo Windows</small>
-        </article>
-
-        <article class="vm-kpi-card">
-            <span>Linux</span>
-            <strong>0</strong>
-            <small>Sistema operativo Linux</small>
-        </article>
-
-    </div>
-
-    <div class="vm-table-card">
-
-        <div class="vm-table-header">
-            <div>
-                <h4>Inventario de máquinas virtuales</h4>
-                <p>La fuente será dbo.vw_VMInfrastructure.</p>
+            <div class="vm-kpi-header">
+                <span>Stopped</span>
+                <span class="vm-kpi-indicator neutral"></span>
             </div>
 
-            <span>0 resultados</span>
-        </div>
+            <strong>0</strong>
+            <small>Detenidas o desasignadas</small>
+        </article>
 
-        <div class="vm-table-scroll">
-            <table>
+        <article class="vm-kpi-card">
+            <div class="vm-kpi-header">
+                <span>Windows</span>
+                <span class="vm-kpi-icon">▦</span>
+            </div>
+
+            <strong>0</strong>
+            <small>Máquinas Windows</small>
+        </article>
+
+        <article class="vm-kpi-card">
+            <div class="vm-kpi-header">
+                <span>Linux</span>
+                <span class="vm-kpi-icon">🐧</span>
+            </div>
+
+            <strong>0</strong>
+            <small>Máquinas Linux</small>
+        </article>
+
+        <article class="vm-kpi-card">
+            <div class="vm-kpi-header">
+                <span>vCPU</span>
+                <span class="vm-kpi-icon">⚙️</span>
+            </div>
+
+            <strong>0</strong>
+            <small>Capacidad total</small>
+        </article>
+
+        <article class="vm-kpi-card">
+            <div class="vm-kpi-header">
+                <span>Memoria</span>
+                <span class="vm-kpi-icon">▤</span>
+            </div>
+
+            <strong>0 GB</strong>
+            <small>RAM total aprovisionada</small>
+        </article>
+
+    </section>
+
+    <section class="vm-inventory-card">
+
+        <header class="vm-inventory-header">
+
+            <div>
+                <h3>Inventario de máquinas virtuales</h3>
+
+                <p>
+                    Información centralizada de cada máquina virtual
+                    perteneciente al cliente y suscripción seleccionados.
+                </p>
+            </div>
+
+            <div class="vm-result-count">
+                <strong>0</strong>
+                <span>resultados</span>
+            </div>
+
+        </header>
+
+        <div class="vm-table-container">
+
+            <table class="vm-table">
+
                 <thead>
                     <tr>
                         <th>Máquina virtual</th>
                         <th>Estado</th>
-                        <th>Suscripción</th>
                         <th>Resource Group</th>
                         <th>Región</th>
                         <th>Size</th>
@@ -104,20 +139,37 @@
                         <th>RAM</th>
                         <th>Sistema operativo</th>
                         <th>IP privada</th>
+                        <th>NIC</th>
                         <th>Discos</th>
+                        <th>Almacenamiento</th>
                     </tr>
                 </thead>
 
                 <tbody>
                     <tr>
-                        <td colspan="11" class="vm-no-results">
-                            No hay información cargada.
+                        <td colspan="12">
+                            <div class="vm-empty-state">
+                                <div class="vm-empty-icon">
+                                    🖥️
+                                </div>
+
+                                <strong>
+                                    Preparando inventario
+                                </strong>
+
+                                <p>
+                                    El siguiente paso será cargar los registros
+                                    desde dbo.vw_VMInfrastructure.
+                                </p>
+                            </div>
                         </td>
                     </tr>
                 </tbody>
+
             </table>
+
         </div>
 
-    </div>
+    </section>
 
 </section>

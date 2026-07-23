@@ -1,0 +1,209 @@
+<section class="client-resources">
+
+    <div class="resources-header">
+        <div>
+            <span class="resources-eyebrow">INVENTARIO DE AZURE</span>
+
+            <h2>Recursos</h2>
+
+            <p>
+                Consulte los servicios y recursos asociados al cliente
+                y la suscripción seleccionados.
+            </p>
+        </div>
+    </div>
+
+    <div class="resources-subtabs" role="tablist">
+
+        @foreach (var tab in _tabs)
+        {
+            <button type="button"
+                    class="@GetTabClass(tab.Key)"
+                    role="tab"
+                    aria-selected="@(tab.Key == _selectedTab)"
+                    @onclick="() => SelectTab(tab.Key)">
+
+                <span class="resources-subtab-icon">
+                    @tab.Icon
+                </span>
+
+                <span>@tab.Title</span>
+            </button>
+        }
+
+    </div>
+
+    <div class="resources-tab-content">
+
+        @switch (_selectedTab)
+        {
+            case ResourceTab.VirtualMachines:
+                <ClientVirtualMachines />
+                break;
+
+            case ResourceTab.AppServices:
+                @PendingTab(
+                    "App Services",
+                    "El inventario de App Services se implementará en este subtab.")
+                break;
+
+            case ResourceTab.AzureFunctions:
+                @PendingTab(
+                    "Azure Functions",
+                    "El inventario de Azure Functions se implementará en este subtab.")
+                break;
+
+            case ResourceTab.SqlManagedInstance:
+                @PendingTab(
+                    "SQL Managed Instance",
+                    "El inventario de SQL Managed Instance se implementará en este subtab.")
+                break;
+
+            case ResourceTab.ApplicationGateway:
+                @PendingTab(
+                    "Application Gateway",
+                    "El inventario de Application Gateway se implementará en este subtab.")
+                break;
+
+            case ResourceTab.ApiManagement:
+                @PendingTab(
+                    "API Management",
+                    "El inventario de API Management se implementará en este subtab.")
+                break;
+
+            case ResourceTab.Redis:
+                @PendingTab(
+                    "Azure Cache for Redis",
+                    "El inventario de Azure Cache for Redis se implementará en este subtab.")
+                break;
+
+            case ResourceTab.CosmosDb:
+                @PendingTab(
+                    "Cosmos DB",
+                    "El inventario de Cosmos DB se implementará en este subtab.")
+                break;
+
+            case ResourceTab.PostgreSql:
+                @PendingTab(
+                    "Azure SQL - PostgreSQL",
+                    "El inventario de PostgreSQL se implementará en este subtab.")
+                break;
+
+            case ResourceTab.ContainerRegistry:
+                @PendingTab(
+                    "Container Registry",
+                    "El inventario de Container Registry se implementará en este subtab.")
+                break;
+
+            case ResourceTab.DataFactory:
+                @PendingTab(
+                    "Data Factory",
+                    "El inventario de Data Factory se implementará en este subtab.")
+                break;
+
+            case ResourceTab.Fabric:
+                @PendingTab(
+                    "Azure Fabric",
+                    "El inventario de Microsoft Fabric se implementará en este subtab.")
+                break;
+
+            case ResourceTab.Others:
+                @PendingTab(
+                    "Otros",
+                    "Aquí se mostrarán los recursos que no pertenezcan a los subtabs principales.")
+                break;
+        }
+
+    </div>
+
+</section>
+
+@code
+{
+    private ResourceTab _selectedTab = ResourceTab.VirtualMachines;
+
+    private readonly IReadOnlyList<ResourceTabItem> _tabs =
+    [
+        new(ResourceTab.VirtualMachines, "Virtual Machines", "🖥️"),
+        new(ResourceTab.AppServices, "App Services", "🌐"),
+        new(ResourceTab.AzureFunctions, "Azure Functions", "⚡"),
+        new(ResourceTab.SqlManagedInstance, "SQL Managed Instance", "🗄️"),
+        new(ResourceTab.ApplicationGateway, "Application Gateway", "🌍"),
+        new(ResourceTab.ApiManagement, "API Management", "🔌"),
+        new(ResourceTab.Redis, "Azure Cache for Redis", "🔴"),
+        new(ResourceTab.CosmosDb, "Cosmos DB", "🌌"),
+        new(ResourceTab.PostgreSql, "PostgreSQL", "🐘"),
+        new(ResourceTab.ContainerRegistry, "Container Registry", "📦"),
+        new(ResourceTab.DataFactory, "Data Factory", "🏭"),
+        new(ResourceTab.Fabric, "Azure Fabric", "🧵"),
+        new(ResourceTab.Others, "Otros", "📁")
+    ];
+
+    private void SelectTab(ResourceTab tab)
+    {
+        _selectedTab = tab;
+    }
+
+    private string GetTabClass(ResourceTab tab)
+    {
+        return tab == _selectedTab
+            ? "resources-subtab active"
+            : "resources-subtab";
+    }
+
+    private static RenderFragment PendingTab(
+        string title,
+        string description)
+    {
+        return builder =>
+        {
+            var sequence = 0;
+
+            builder.OpenElement(sequence++, "section");
+            builder.AddAttribute(
+                sequence++,
+                "class",
+                "resource-pending-state");
+
+            builder.OpenElement(sequence++, "div");
+            builder.AddAttribute(
+                sequence++,
+                "class",
+                "resource-pending-icon");
+            builder.AddContent(sequence++, "📊");
+            builder.CloseElement();
+
+            builder.OpenElement(sequence++, "h3");
+            builder.AddContent(sequence++, title);
+            builder.CloseElement();
+
+            builder.OpenElement(sequence++, "p");
+            builder.AddContent(sequence++, description);
+            builder.CloseElement();
+
+            builder.CloseElement();
+        };
+    }
+
+    private enum ResourceTab
+    {
+        VirtualMachines,
+        AppServices,
+        AzureFunctions,
+        SqlManagedInstance,
+        ApplicationGateway,
+        ApiManagement,
+        Redis,
+        CosmosDb,
+        PostgreSql,
+        ContainerRegistry,
+        DataFactory,
+        Fabric,
+        Others
+    }
+
+    private sealed record ResourceTabItem(
+        ResourceTab Key,
+        string Title,
+        string Icon);
+}
