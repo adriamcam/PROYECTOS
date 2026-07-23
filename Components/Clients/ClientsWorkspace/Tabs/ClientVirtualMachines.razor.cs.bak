@@ -67,10 +67,7 @@ public partial class ClientVirtualMachines
 
     private async Task LoadVirtualMachinesAsync()
     {
-        Console.WriteLine($"CustomerName recibido: [{CustomerName}]");
-    Console.WriteLine($"SubscriptionId recibido: [{SubscriptionId}]");
-
-    IsLoading = true;
+        IsLoading = true;
         ErrorMessage = string.Empty;
         VirtualMachines = [];
 
@@ -134,5 +131,4 @@ public partial class ClientVirtualMachines
                    StringComparison.OrdinalIgnoreCase);
     }
 }
-
 
