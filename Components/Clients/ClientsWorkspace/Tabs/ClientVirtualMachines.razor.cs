@@ -15,11 +15,10 @@ public partial class ClientVirtualMachines
      * automáticamente los valores seleccionados en el portal.
      */
     [Parameter]
-    public string CustomerName { get; set; } = "Automercado";
+    public string CustomerName { get; set; } = string.Empty;
 
     [Parameter]
-    public string SubscriptionId { get; set; } =
-        "2307c794-2423-448c-91aa-b8faab097b5d";
+    public string SubscriptionId { get; set; } = string.Empty;
 
     protected List<VirtualMachineModel> VirtualMachines { get; set; } = [];
 
@@ -132,3 +131,4 @@ public partial class ClientVirtualMachines
                    StringComparison.OrdinalIgnoreCase);
     }
 }
+

@@ -55,7 +55,7 @@
                 <span>Volver a recursos</span>
             </button>
 
-            <ClientVirtualMachines />
+            <ClientVirtualMachines CustomerName="@CustomerName" SubscriptionId="@SubscriptionId" />
 
         </section>
     }
@@ -242,6 +242,12 @@
 </style>
 
 @code {
+    [Parameter]
+    public string CustomerName { get; set; } = string.Empty;
+
+    [Parameter]
+    public string SubscriptionId { get; set; } = string.Empty;
+
     private bool _showVirtualMachines;
 
     private void OpenVirtualMachines()
