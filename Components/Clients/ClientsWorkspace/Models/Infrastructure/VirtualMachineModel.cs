@@ -3,7 +3,7 @@ namespace ITQS.SupportOperationsCenter.Components.Clients.ClientsWorkspace.Model
 public sealed class VirtualMachineModel
 {
     public string CustomerName { get; set; } = string.Empty;
-    public string TenantId { get; set; } = string.Empty;
+    public Guid? TenantId { get; set; }
     public string SubscriptionId { get; set; } = string.Empty;
     public string ResourceId { get; set; } = string.Empty;
 
@@ -103,3 +103,4 @@ public sealed class VirtualMachineModel
                ?? string.Empty;
     }
 }
+
