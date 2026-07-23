@@ -1,0 +1,123 @@
+<section class="virtual-machines-tab">
+
+    <div class="vm-toolbar">
+        <div>
+            <h3>Virtual Machines</h3>
+            <p>
+                Inventario consolidado de cómputo, red, discos,
+                sistema operativo y extensiones.
+            </p>
+        </div>
+
+        <button type="button" class="vm-refresh-button">
+            ↻ Actualizar
+        </button>
+    </div>
+
+    <div class="vm-filter-grid">
+
+        <div class="vm-filter">
+            <label>Suscripción</label>
+            <select>
+                <option>Todas las suscripciones</option>
+            </select>
+        </div>
+
+        <div class="vm-filter">
+            <label>Resource Group</label>
+            <select>
+                <option>Todos los Resource Groups</option>
+            </select>
+        </div>
+
+        <div class="vm-filter">
+            <label>Región</label>
+            <select>
+                <option>Todas las regiones</option>
+            </select>
+        </div>
+
+        <div class="vm-filter">
+            <label>Buscar</label>
+            <input type="search"
+                   placeholder="Nombre, IP, tamaño..." />
+        </div>
+
+    </div>
+
+    <div class="vm-kpi-grid">
+
+        <article class="vm-kpi-card">
+            <span>Total VM</span>
+            <strong>0</strong>
+            <small>Máquinas inventariadas</small>
+        </article>
+
+        <article class="vm-kpi-card">
+            <span>Running</span>
+            <strong>0</strong>
+            <small>En ejecución</small>
+        </article>
+
+        <article class="vm-kpi-card">
+            <span>Stopped</span>
+            <strong>0</strong>
+            <small>Detenidas</small>
+        </article>
+
+        <article class="vm-kpi-card">
+            <span>Windows</span>
+            <strong>0</strong>
+            <small>Sistema operativo Windows</small>
+        </article>
+
+        <article class="vm-kpi-card">
+            <span>Linux</span>
+            <strong>0</strong>
+            <small>Sistema operativo Linux</small>
+        </article>
+
+    </div>
+
+    <div class="vm-table-card">
+
+        <div class="vm-table-header">
+            <div>
+                <h4>Inventario de máquinas virtuales</h4>
+                <p>La fuente será dbo.vw_VMInfrastructure.</p>
+            </div>
+
+            <span>0 resultados</span>
+        </div>
+
+        <div class="vm-table-scroll">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Máquina virtual</th>
+                        <th>Estado</th>
+                        <th>Suscripción</th>
+                        <th>Resource Group</th>
+                        <th>Región</th>
+                        <th>Size</th>
+                        <th>vCPU</th>
+                        <th>RAM</th>
+                        <th>Sistema operativo</th>
+                        <th>IP privada</th>
+                        <th>Discos</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    <tr>
+                        <td colspan="11" class="vm-no-results">
+                            No hay información cargada.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+</section>

@@ -1,0 +1,127 @@
+.client-resources {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    width: 100%;
+}
+
+.resources-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.resources-header h2 {
+    margin: 4px 0 6px;
+    font-size: 24px;
+    font-weight: 700;
+    color: #172033;
+}
+
+.resources-header p {
+    margin: 0;
+    color: #667085;
+    font-size: 14px;
+}
+
+.resources-eyebrow {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: #2563eb;
+}
+
+.resources-subtabs {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 4px 2px 10px;
+    scrollbar-width: thin;
+}
+
+.resources-subtab {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 40px;
+    padding: 8px 14px;
+    border: 1px solid #d8e0ec;
+    border-radius: 9px;
+    background: #ffffff;
+    color: #344054;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    transition:
+        background-color 0.15s ease,
+        border-color 0.15s ease,
+        color 0.15s ease,
+        box-shadow 0.15s ease;
+}
+
+.resources-subtab:hover {
+    border-color: #9db7f4;
+    background: #f8faff;
+    color: #1d4ed8;
+}
+
+.resources-subtab.active {
+    border-color: #2563eb;
+    background: #2563eb;
+    color: #ffffff;
+    box-shadow: 0 5px 14px rgba(37, 99, 235, 0.18);
+}
+
+.resources-subtab-icon {
+    font-size: 15px;
+    line-height: 1;
+}
+
+.resources-tab-content {
+    min-height: 400px;
+}
+
+.resource-pending-state {
+    display: flex;
+    min-height: 360px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: 1px dashed #cfd8e6;
+    border-radius: 12px;
+    background: #fbfcfe;
+    padding: 36px;
+    text-align: center;
+}
+
+.resource-pending-icon {
+    margin-bottom: 12px;
+    font-size: 36px;
+}
+
+.resource-pending-state h3 {
+    margin: 0 0 8px;
+    color: #172033;
+    font-size: 19px;
+}
+
+.resource-pending-state p {
+    max-width: 520px;
+    margin: 0;
+    color: #667085;
+    font-size: 14px;
+}
+
+@media (max-width: 768px) {
+    .resources-header h2 {
+        font-size: 21px;
+    }
+
+    .resources-subtab {
+        padding: 8px 12px;
+        font-size: 12px;
+    }
+}
