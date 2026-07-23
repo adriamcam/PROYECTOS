@@ -1,0 +1,513 @@
+============================================================
+ARCHIVOS DEL MÓDULO RECURSOS
+============================================================
+
+============================================================
+ARCHIVO: C:\Git\PROYECTOS\Components\Clients\ClientsWorkspace\Tabs\ClientResources.razor
+============================================================
+@* Components/Clients/ClientsWorkspace/Tabs/ClientResources.razor *@
+
+<section class="resources-workspace">
+
+    @if (!_showVirtualMachines)
+    {
+        <header class="resources-header">
+            <span class="resources-eyebrow">INVENTARIO DE AZURE</span>
+
+            <h2>Recursos</h2>
+
+            <p>
+                Seleccione un servicio para consultar su inventario.
+                Solo se mostrarán servicios disponibles para el cliente
+                y la suscripción seleccionados.
+            </p>
+        </header>
+
+        <section class="resources-grid">
+
+            <button type="button"
+                    class="azure-resource-card"
+                    @onclick="OpenVirtualMachines">
+
+                <span class="azure-resource-icon">
+                    🖥️
+                </span>
+
+                <span class="azure-resource-content">
+                    <span class="azure-resource-title">
+                        Virtual Machines
+                    </span>
+
+                    <span class="azure-resource-description">
+                        Cómputo, sistema operativo, red, discos y extensiones
+                    </span>
+                </span>
+
+                <span class="azure-resource-arrow">
+                    →
+                </span>
+
+            </button>
+
+        </section>
+    }
+    else
+    {
+        <section class="resource-detail">
+
+            <button type="button"
+                    class="resource-back-button"
+                    @onclick="BackToResources">
+                <span>←</span>
+                <span>Volver a recursos</span>
+            </button>
+
+            <ClientVirtualMachines CustomerName="@CustomerName" SubscriptionId="@SubscriptionId" />
+
+        </section>
+    }
+
+</section>
+
+<style>
+    .resources-workspace {
+        display: flex;
+        width: 100%;
+        flex-direction: column;
+        gap: 22px;
+        box-sizing: border-box;
+    }
+
+    .resources-header {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .resources-eyebrow {
+        margin-bottom: 8px;
+        color: #2563eb;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: .09em;
+    }
+
+    .resources-header h2 {
+        margin: 0 0 8px;
+        color: #101828;
+        font-size: 24px;
+        font-weight: 700;
+        line-height: 1.2;
+    }
+
+    .resources-header p {
+        max-width: 760px;
+        margin: 0;
+        color: #667085;
+        font-size: 13px;
+        line-height: 1.55;
+    }
+
+    .resources-grid {
+        display: grid;
+        width: 100%;
+        grid-template-columns: repeat(auto-fill, minmax(285px, 340px));
+        gap: 16px;
+    }
+
+    .azure-resource-card {
+        display: grid;
+        grid-template-columns: 54px minmax(0, 1fr) 24px;
+        align-items: center;
+        gap: 14px;
+
+        width: 100%;
+        min-height: 112px;
+        padding: 18px;
+
+        border: 1px solid #dfe5ee;
+        border-radius: 12px;
+
+        background: #ffffff;
+        color: inherit;
+        font-family: inherit;
+        text-align: left;
+
+        cursor: pointer;
+
+        box-shadow: 0 1px 3px rgba(16, 24, 40, .04);
+
+        transition:
+            transform .15s ease,
+            border-color .15s ease,
+            box-shadow .15s ease,
+            background-color .15s ease;
+    }
+
+    .azure-resource-card:hover {
+        transform: translateY(-2px);
+        border-color: #84a9f5;
+        background: #fbfdff;
+        box-shadow: 0 9px 25px rgba(16, 24, 40, .09);
+    }
+
+    .azure-resource-card:focus-visible {
+        outline: 3px solid rgba(37, 99, 235, .18);
+        outline-offset: 3px;
+    }
+
+    .azure-resource-icon {
+        display: flex;
+        width: 54px;
+        height: 54px;
+        align-items: center;
+        justify-content: center;
+
+        border-radius: 13px;
+        background: #eef4ff;
+
+        font-size: 27px;
+    }
+
+    .azure-resource-content {
+        display: flex;
+        min-width: 0;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .azure-resource-title {
+        color: #101828;
+        font-size: 15px;
+        font-weight: 700;
+        line-height: 1.3;
+    }
+
+    .azure-resource-description {
+        color: #667085;
+        font-size: 11px;
+        line-height: 1.45;
+    }
+
+    .azure-resource-arrow {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        color: #2563eb;
+        font-size: 22px;
+        font-weight: 700;
+    }
+
+    .resource-detail {
+        display: flex;
+        width: 100%;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .resource-back-button {
+        display: inline-flex;
+        width: fit-content;
+        min-height: 36px;
+        align-items: center;
+        gap: 7px;
+        padding: 7px 12px;
+
+        border: 1px solid #d7deea;
+        border-radius: 8px;
+
+        background: #ffffff;
+        color: #344054;
+        font-family: inherit;
+        font-size: 12px;
+        font-weight: 600;
+
+        cursor: pointer;
+
+        transition:
+            border-color .15s ease,
+            background-color .15s ease,
+            color .15s ease;
+    }
+
+    .resource-back-button:hover {
+        border-color: #9db7f4;
+        background: #f7f9ff;
+        color: #1d4ed8;
+    }
+
+    @@media (max-width: 720px) {
+        .resources-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .resources-header h2 {
+            font-size: 21px;
+        }
+    }
+</style>
+
+@code {
+    [Parameter]
+    public string CustomerName { get; set; } = string.Empty;
+
+    [Parameter]
+    public string SubscriptionId { get; set; } = string.Empty;
+
+    private bool _showVirtualMachines;
+
+    private void OpenVirtualMachines()
+    {
+        _showVirtualMachines = true;
+    }
+
+    private void BackToResources()
+    {
+        _showVirtualMachines = false;
+    }
+}
+
+============================================================
+ARCHIVO: C:\Git\PROYECTOS\Components\Clients\ClientsWorkspace\Tabs\ClientResources.razor.css
+============================================================
+.client-resources {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    width: 100%;
+}
+
+.resources-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.resources-header h2 {
+    margin: 4px 0 6px;
+    font-size: 24px;
+    font-weight: 700;
+    color: #172033;
+}
+
+.resources-header p {
+    margin: 0;
+    color: #667085;
+    font-size: 14px;
+}
+
+.resources-eyebrow {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: #2563eb;
+}
+
+.resources-subtabs {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 4px 2px 10px;
+    scrollbar-width: thin;
+}
+
+.resources-subtab {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 40px;
+    padding: 8px 14px;
+    border: 1px solid #d8e0ec;
+    border-radius: 9px;
+    background: #ffffff;
+    color: #344054;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    transition:
+        background-color 0.15s ease,
+        border-color 0.15s ease,
+        color 0.15s ease,
+        box-shadow 0.15s ease;
+}
+
+.resources-subtab:hover {
+    border-color: #9db7f4;
+    background: #f8faff;
+    color: #1d4ed8;
+}
+
+.resources-subtab.active {
+    border-color: #2563eb;
+    background: #2563eb;
+    color: #ffffff;
+    box-shadow: 0 5px 14px rgba(37, 99, 235, 0.18);
+}
+
+.resources-subtab-icon {
+    font-size: 15px;
+    line-height: 1;
+}
+
+.resources-tab-content {
+    min-height: 400px;
+}
+
+.resource-pending-state {
+    display: flex;
+    min-height: 360px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: 1px dashed #cfd8e6;
+    border-radius: 12px;
+    background: #fbfcfe;
+    padding: 36px;
+    text-align: center;
+}
+
+.resource-pending-icon {
+    margin-bottom: 12px;
+    font-size: 36px;
+}
+
+.resource-pending-state h3 {
+    margin: 0 0 8px;
+    color: #172033;
+    font-size: 19px;
+}
+
+.resource-pending-state p {
+    max-width: 520px;
+    margin: 0;
+    color: #667085;
+    font-size: 14px;
+}
+
+@media (max-width: 768px) {
+    .resources-header h2 {
+        font-size: 21px;
+    }
+
+    .resources-subtab {
+        padding: 8px 12px;
+        font-size: 12px;
+    }
+}
+
+============================================================
+TABLAS Y VISTAS SQL REFERENCIADAS
+============================================================
+dbo.AdvisorRecommendationCatalog
+dbo.AlertasBackup
+dbo.AlertsManagement
+dbo.AlertUpdatesHistory
+dbo.AppRegistrationExpirations
+dbo.AppRegistrationTasks
+dbo.AzureAdvisorScores
+dbo.AzureAlertCloseQueue
+dbo.CRM_Customers
+dbo.HybridBenefitHistory
+dbo.HybridBenefitResources
+dbo.InfrastructureHealthDaily
+dbo.ITQS_APP_CertInventory_Current
+dbo.ITQS_APP_CertInventory_History
+dbo.ITQS_APP_CertInventory_RunCustomers
+dbo.ITQS_APP_CertInventory_Stage
+dbo.ITQS_APP_sp_MergeCertInventoryCurrent
+dbo.ITQS_APP_sp_UpsertCertInventoryRunCustomer
+dbo.ITQS_AppUsers
+dbo.ITQS_Customers
+dbo.ITQS_Subscriptions
+dbo.MPORValidationResults
+dbo.MPORValidationRuns
+dbo.NICsDetached
+dbo.NSGsDetached
+dbo.PartnerCenterCustomers
+dbo.PublicIPsDetached
+dbo.ReporteInstanciasReservadas
+dbo.ResourcesWithoutTags
+dbo.RI_VMCoverageNotes
+dbo.SecureScores
+dbo.sp_RI_GetChangeHistory
+dbo.sp_RI_GetDistribution
+dbo.sp_RI_GetKPIs
+dbo.sp_RI_GetResourcesOperational
+dbo.sp_RI_GetTopCustomers
+dbo.sp_RI_SaveManualAnalysisNote
+dbo.sp_RI_SaveVMCoverageNote
+dbo.StorageAccountMetricsDaily
+dbo.Subscriptions
+dbo.usp_AssignAlert
+dbo.usp_BulkCloseAlerts
+dbo.usp_CloseAlert
+dbo.usp_GDAP_RegisterMailSent
+dbo.usp_GDAP_UpdateCRMContact
+dbo.usp_GetActiveAlerts
+dbo.usp_GetAlertHistory
+dbo.usp_GetAlertsByUser
+dbo.usp_GetAlertSummary
+dbo.usp_GetAppRegistrations
+dbo.usp_GetCustomers
+dbo.usp_GetEngineerWorkload
+dbo.usp_HybridBenefit_ExportChanges
+dbo.usp_HybridBenefit_RegisterChange
+dbo.usp_HybridBenefit_Sync
+dbo.usp_ReassignAlerts
+dbo.usp_UpdateAlertComment
+dbo.usp_UpdateCustomer
+dbo.usp_ValidateAppConnection
+dbo.VMDiskInventoryCurrent
+dbo.VMInventoryCurrent
+dbo.VmPerformanceDaily
+dbo.vw_AdminAlerts
+dbo.vw_AdvisorRecommendationsValued
+dbo.vw_AlertsByCustomer
+dbo.vw_AlertsDashboard
+dbo.vw_AlertsHistory
+dbo.vw_AlertsSummary
+dbo.vw_AppRegistrations
+dbo.vw_AppStatus
+dbo.vw_BackupInventoryBySubscription
+dbo.vw_Customers
+dbo.vw_CustomerSubscriptions
+dbo.vw_EngineerWorkload
+dbo.vw_GDAP_Customers_With_CRMContact
+dbo.vw_GDAP_PendingEmails
+dbo.vw_HybridBenefit_Changes
+dbo.vw_HybridBenefit_Dashboard
+dbo.vw_HybridBenefit_Resources
+dbo.vw_MyAlerts
+dbo.vw_MyAlertsSummary
+dbo.vw_PALM_Dashboard
+dbo.vw_PALM_LatestRun
+dbo.vw_PALM_RequiresAction
+dbo.vw_PALM_Results
+dbo.vw_PALM_RunHistory
+dbo.vw_RI_ReservationCoverageBase
+dbo.vw_RI_VMCoverage
+dbo.vw_RI_VMCoverageFinal
+dbo.vw_RI_VMCoverageKPI
+dbo.vw_RI_VMCoverageRelevant
+dbo.vw_UserMaintenance
+dbo.vw_VMInfrastructure
+FROM Aggregated
+FROM LatestScores
+FROM LatestSecurityScores
+FROM OperationalSources
+FROM Ranked
+FROM SubscriptionSources
+FROM sys.columns
+JOIN OperationalSummary
+JOIN PartnerSource
+JOIN SubscriptionSummary
+
+============================================================
+ARCHIVOS DE EXPORTACIÓN EXCEL
+============================================================
+C:\Git\PROYECTOS\Components\Clients\ClientsWorkspace\Tabs\ClientVirtualMachines.Export.cs
+C:\Git\PROYECTOS\Models\Administration\GdapAdminLinks\GdapAdminLinksExportResult.cs
