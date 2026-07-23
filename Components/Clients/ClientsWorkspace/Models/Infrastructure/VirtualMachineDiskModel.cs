@@ -11,27 +11,27 @@ public sealed class VirtualMachineDiskModel
     public int? LUN { get; set; }
 
     public string DiskType { get; set; } = string.Empty;
-    public decimal DiskSizeGB { get; set; }
+    public decimal? DiskSizeGB { get; set; }
 
     public string ManagedDiskType { get; set; } = string.Empty;
     public string StorageAccountType { get; set; } = string.Empty;
     public string Caching { get; set; } = string.Empty;
 
-    public long? IOPSReadWrite { get; set; }
-    public decimal? ThroughputMBpsReadWrite { get; set; }
-
-    public bool EncryptionEnabled { get; set; }
+    public string DisplayRole =>
+        string.IsNullOrWhiteSpace(DiskRole)
+            ? "DISK"
+            : DiskRole.ToUpperInvariant();
 
     public string DisplayTier
     {
         get
         {
-            var tier = FirstNotEmpty(
+            var value = FirstNotEmpty(
                 ManagedDiskType,
                 StorageAccountType,
                 DiskType);
 
-            return tier switch
+            return value switch
             {
                 "Premium_LRS" => "Premium SSD",
                 "PremiumV2_LRS" => "Premium SSD v2",
@@ -39,15 +39,10 @@ public sealed class VirtualMachineDiskModel
                 "Standard_LRS" => "Standard HDD",
                 "UltraSSD_LRS" => "Ultra Disk",
                 "LocalTemporary" => "Local temporal",
-                _ => tier
+                _ => value
             };
         }
     }
-
-    public string DisplayRole =>
-        string.IsNullOrWhiteSpace(DiskRole)
-            ? "DISK"
-            : DiskRole.ToUpperInvariant();
 
     private static string FirstNotEmpty(params string?[] values)
     {

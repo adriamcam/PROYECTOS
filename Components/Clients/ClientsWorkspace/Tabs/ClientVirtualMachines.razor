@@ -1,23 +1,33 @@
 <section class="virtual-machines-workspace">
 
     <header class="vm-heading">
+
         <div class="vm-title-group">
-            <div class="vm-title-icon">🖥️</div>
+
+            <div class="vm-title-icon">
+                🖥️
+            </div>
 
             <div>
-                <span class="vm-eyebrow">COMPUTE</span>
+                <span class="vm-eyebrow">
+                    COMPUTE
+                </span>
+
                 <h2>Virtual Machines</h2>
 
                 <p>
-                    Inventario consolidado de máquinas virtuales y discos.
+                    Inventario consolidado de cómputo, sistema operativo,
+                    red, discos y extensiones.
                 </p>
             </div>
+
         </div>
 
         <div class="vm-heading-summary">
             <span>Fuente</span>
-            <strong>VMInventoryCurrent</strong>
+            <strong>vw_VMInfrastructure</strong>
         </div>
+
     </header>
 
     <section class="vm-kpi-grid">
@@ -97,11 +107,13 @@
     <section class="vm-inventory-card">
 
         <header class="vm-inventory-header">
+
             <div>
                 <h3>Inventario de máquinas virtuales</h3>
 
                 <p>
-                    Información de cómputo, sistema operativo y almacenamiento.
+                    Información centralizada de cada máquina virtual
+                    perteneciente al cliente y suscripción seleccionados.
                 </p>
             </div>
 
@@ -109,6 +121,7 @@
                 <strong>@VirtualMachines.Count</strong>
                 <span>resultados</span>
             </div>
+
         </header>
 
         <div class="vm-table-container">
@@ -125,7 +138,14 @@
                         <th>vCPU</th>
                         <th>RAM</th>
                         <th>Sistema operativo</th>
+                        <th>IP privada</th>
+                        <th>NIC</th>
                         <th>Discos</th>
+                        <th>Almacenamiento</th>
+                        <th>Tipo disco</th>
+                        <th>Nombre disco</th>
+                        <th>Tamaño disco</th>
+                        <th>Tier</th>
                     </tr>
                 </thead>
 
@@ -134,14 +154,11 @@
                     @if (IsLoading)
                     {
                         <tr>
-                            <td colspan="9">
+                            <td colspan="16">
                                 <div class="vm-empty-state">
                                     <div class="vm-empty-icon">🖥️</div>
                                     <strong>Cargando inventario</strong>
-                                    <p>
-                                        Consultando las máquinas virtuales de
-                                        @CustomerName.
-                                    </p>
+                                    <p>Consultando las máquinas virtuales de @CustomerName.</p>
                                 </div>
                             </td>
                         </tr>
@@ -149,7 +166,7 @@
                     else if (!string.IsNullOrWhiteSpace(ErrorMessage))
                     {
                         <tr>
-                            <td colspan="9">
+                            <td colspan="16">
                                 <div class="vm-empty-state">
                                     <div class="vm-empty-icon">⚠️</div>
                                     <strong>Error al cargar el inventario</strong>
@@ -161,13 +178,13 @@
                     else if (VirtualMachines.Count == 0)
                     {
                         <tr>
-                            <td colspan="9">
+                            <td colspan="16">
                                 <div class="vm-empty-state">
                                     <div class="vm-empty-icon">🖥️</div>
                                     <strong>Sin máquinas virtuales</strong>
                                     <p>
-                                        No se encontraron registros para la
-                                        suscripción seleccionada.
+                                        No se encontraron registros para el cliente
+                                        @CustomerName y la suscripción seleccionada.
                                     </p>
                                 </div>
                             </td>
@@ -180,16 +197,6 @@
                             <tr>
                                 <td>
                                     <strong>@vm.VMName</strong>
-
-                                    @if (!string.IsNullOrWhiteSpace(vm.ComputerName) &&
-                                         !string.Equals(
-                                             vm.ComputerName,
-                                             vm.VMName,
-                                             StringComparison.OrdinalIgnoreCase))
-                                    {
-                                        <br />
-                                        <small>@vm.ComputerName</small>
-                                    }
                                 </td>
 
                                 <td>
@@ -198,54 +205,42 @@
                                     </span>
                                 </td>
 
-                                <td>@vm.ResourceGroupName</td>
-                                <td>@vm.Location</td>
-                                <td>@vm.VMSize</td>
+                                <td>@vm.DisplayResourceGroup</td>
+                                <td>@vm.DisplayLocation</td>
+                                <td>@vm.DisplayVMSize</td>
                                 <td>@vm.DisplayVCPUs</td>
                                 <td>@vm.DisplayMemoryGB.ToString("N2") GB</td>
                                 <td>@vm.DisplayOSType</td>
+                                <td>@vm.DisplayPrivateIP</td>
+                                <td>@vm.DisplayNicName</td>
+                                <td>@vm.DisplayDiskCount</td>
+                                <td>@vm.DisplayDiskSizeGB.ToString("N0") GB</td>
 
                                 <td>
-                                    @if (vm.Disks.Count == 0)
+                                    @foreach (var disk in vm.Disks)
                                     {
-                                        <span>Sin discos inventariados</span>
+                                        <div>@disk.DisplayRole</div>
                                     }
-                                    else
+                                </td>
+
+                                <td>
+                                    @foreach (var disk in vm.Disks)
                                     {
-                                        @foreach (var disk in vm.Disks)
-                                        {
-                                            <div style="margin-bottom: 10px;">
-                                                <strong>@disk.DisplayRole</strong>
+                                        <div>@disk.DiskName</div>
+                                    }
+                                </td>
 
-                                                @if (disk.LUN.HasValue)
-                                                {
-                                                    <span> · LUN @disk.LUN</span>
-                                                }
+                                <td>
+                                    @foreach (var disk in vm.Disks)
+                                    {
+                                        <div>@((disk.DiskSizeGB ?? 0).ToString("N0")) GB</div>
+                                    }
+                                </td>
 
-                                                <br />
-
-                                                <span>@disk.DiskName</span>
-                                                <br />
-
-                                                <small>
-                                                    @disk.DiskSizeGB.ToString("N0") GB
-                                                    · @disk.DisplayTier
-                                                </small>
-
-                                                @if (!string.IsNullOrWhiteSpace(disk.Caching))
-                                                {
-                                                    <br />
-                                                    <small>
-                                                        Caché: @disk.Caching
-                                                    </small>
-                                                }
-                                            </div>
-                                        }
-
-                                        <strong>
-                                            Total:
-                                            @vm.DisplayDiskSizeGB.ToString("N0") GB
-                                        </strong>
+                                <td>
+                                    @foreach (var disk in vm.Disks)
+                                    {
+                                        <div>@disk.DisplayTier</div>
                                     }
                                 </td>
                             </tr>

@@ -24,36 +24,9 @@ public sealed class VirtualMachineService
         }
 
         const string vmSql = """
-            SELECT
-                CustomerName,
-                CONVERT(nvarchar(36), TenantId) AS TenantId,
-                SubscriptionId,
-                SubscriptionName,
-                ResourceId,
-                VMName,
-                ComputerName,
-                PowerState,
-                ProvisioningState,
-                ResourceGroupName,
-                Location,
-                VMSize,
-                VMFamily,
-                VCPUs,
-                MemoryGB,
-                OSType,
-                Publisher,
-                Offer,
-                ImageSku,
-                Version,
-                NICCount,
-                OSDiskName,
-                OSDiskType,
-                OSDiskSizeGB,
-                DataDiskCount,
-                TotalDataDiskGB
-            FROM dbo.VMInventoryCurrent
-            WHERE IsActive = 1
-              AND TRY_CONVERT(
+            SELECT *
+            FROM dbo.vw_VMInfrastructure
+            WHERE TRY_CONVERT(
                     uniqueidentifier,
                     SubscriptionId
                   ) = TRY_CONVERT(
@@ -75,10 +48,7 @@ public sealed class VirtualMachineService
                 DiskSizeGB,
                 ManagedDiskType,
                 StorageAccountType,
-                Caching,
-                IOPSReadWrite,
-                ThroughputMBpsReadWrite,
-                EncryptionEnabled
+                Caching
             FROM dbo.VMDiskInventoryCurrent
             WHERE TRY_CONVERT(
                     uniqueidentifier,
@@ -121,27 +91,21 @@ public sealed class VirtualMachineService
                 parameters))
             .ToList();
 
-        var disksByVm =
-            disks
-                .Where(disk =>
-                    !string.IsNullOrWhiteSpace(disk.VMResourceId))
-                .GroupBy(
-                    disk => disk.VMResourceId,
-                    StringComparer.OrdinalIgnoreCase)
-                .ToDictionary(
-                    group => group.Key,
-                    group => group.ToList(),
-                    StringComparer.OrdinalIgnoreCase);
-
         foreach (var vm in virtualMachines)
         {
-            if (!string.IsNullOrWhiteSpace(vm.ResourceId) &&
-                disksByVm.TryGetValue(
-                    vm.ResourceId,
-                    out var vmDisks))
-            {
-                vm.Disks = vmDisks;
-            }
+            vm.Disks = disks
+                .Where(disk =>
+                    (!string.IsNullOrWhiteSpace(vm.ResourceId) &&
+                     string.Equals(
+                         disk.VMResourceId,
+                         vm.ResourceId,
+                         StringComparison.OrdinalIgnoreCase))
+                    ||
+                    string.Equals(
+                        disk.VMName,
+                        vm.VMName,
+                        StringComparison.OrdinalIgnoreCase))
+                .ToList();
         }
 
         return virtualMachines;
