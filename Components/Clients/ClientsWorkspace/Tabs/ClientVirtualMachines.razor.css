@@ -299,3 +299,29 @@
 '@ | Set-Content `
     "$TabsPath\ClientVirtualMachines.razor.css" `
     -Encoding UTF8
+.vm-state-running,
+.vm-state-stopped,
+.vm-state-neutral {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 8px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.vm-state-running {
+    color: #067647;
+    background: #ecfdf3;
+}
+
+.vm-state-stopped {
+    color: #b42318;
+    background: #fef3f2;
+}
+
+.vm-state-neutral {
+    color: #344054;
+    background: #f2f4f7;
+}

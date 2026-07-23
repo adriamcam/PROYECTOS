@@ -110,6 +110,7 @@ builder.Services.AddScoped<IReservedInstanceService, ReservedInstanceService>();
 
 builder.Services.AddScoped<IPalmService, PalmService>();
 
+builder.Services.AddScoped<ITQS.SupportOperationsCenter.Components.Clients.ClientsWorkspace.Services.Infrastructure.VirtualMachineService>();
 var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())
@@ -131,6 +132,7 @@ app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
 app.Run();
+
 
 
 

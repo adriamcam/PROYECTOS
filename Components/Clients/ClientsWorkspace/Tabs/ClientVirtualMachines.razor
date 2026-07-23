@@ -118,7 +118,7 @@
             </div>
 
             <div class="vm-result-count">
-                <strong>0</strong>
+                <strong>@VirtualMachines.Count</strong>
                 <span>resultados</span>
             </div>
 
@@ -146,25 +146,74 @@
                 </thead>
 
                 <tbody>
-                    <tr>
-                        <td colspan="12">
-                            <div class="vm-empty-state">
-                                <div class="vm-empty-icon">
-                                    🖥️
-                                </div>
+    @if (IsLoading)
+    {
+        <tr>
+            <td colspan="12">
+                <div class="vm-empty-state">
+                    <div class="vm-empty-icon">🖥️</div>
+                    <strong>Cargando inventario</strong>
+                    <p>Consultando las máquinas virtuales de @CustomerName.</p>
+                </div>
+            </td>
+        </tr>
+    }
+    else if (!string.IsNullOrWhiteSpace(ErrorMessage))
+    {
+        <tr>
+            <td colspan="12">
+                <div class="vm-empty-state">
+                    <div class="vm-empty-icon">⚠️</div>
+                    <strong>Error al cargar el inventario</strong>
+                    <p>@ErrorMessage</p>
+                </div>
+            </td>
+        </tr>
+    }
+    else if (VirtualMachines.Count == 0)
+    {
+        <tr>
+            <td colspan="12">
+                <div class="vm-empty-state">
+                    <div class="vm-empty-icon">🖥️</div>
+                    <strong>Sin máquinas virtuales</strong>
+                    <p>
+                        No se encontraron registros para el cliente
+                        @CustomerName y la suscripción seleccionada.
+                    </p>
+                </div>
+            </td>
+        </tr>
+    }
+    else
+    {
+        @foreach (var vm in VirtualMachines)
+        {
+            <tr>
+                <td>
+                    <strong>@vm.VMName</strong>
+                </td>
 
-                                <strong>
-                                    Preparando inventario
-                                </strong>
+                <td>
+                    <span class="@StateCssClass(vm.DisplayPowerState)">
+                        @vm.DisplayPowerState
+                    </span>
+                </td>
 
-                                <p>
-                                    El siguiente paso será cargar los registros
-                                    desde dbo.vw_VMInfrastructure.
-                                </p>
-                            </div>
-                        </td>
-                    </tr>
-                </tbody>
+                <td>@vm.DisplayResourceGroup</td>
+                <td>@vm.DisplayLocation</td>
+                <td>@vm.DisplayVMSize</td>
+                <td>@vm.DisplayVCPUs</td>
+                <td>@vm.DisplayMemoryGB.ToString("N2") GB</td>
+                <td>@vm.DisplayOSType</td>
+                <td>@vm.DisplayPrivateIP</td>
+                <td>@vm.DisplayNicName</td>
+                <td>@vm.DisplayDiskCount</td>
+                <td>@vm.DisplayDiskSizeGB.ToString("N0") GB</td>
+            </tr>
+        }
+    }
+</tbody>
 
             </table>
 
@@ -173,3 +222,4 @@
     </section>
 
 </section>
+
