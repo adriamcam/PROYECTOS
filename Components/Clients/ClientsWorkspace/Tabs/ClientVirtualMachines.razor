@@ -120,7 +120,7 @@
             <div style="display:flex; align-items:center; gap:10px;">
 
                 <button type="button"
-                        class="btn btn-primary"
+                        class="btn-export-excel"
                         disabled="@(IsLoading || IsExportingExcel || VirtualMachines.Count == 0)"
                         @onclick="ExportToExcelAsync">
                     @(IsExportingExcel
@@ -269,4 +269,5 @@
     </section>
 
 </section>
+
 

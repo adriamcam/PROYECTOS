@@ -719,7 +719,12 @@ public partial class ClientVirtualMachines
             XLAlignmentVerticalValues.Center;
 
         header.Style.Fill.BackgroundColor =
-            XLColor.FromHtml("#EAF2FF");
+            XLColor.FromHtml("#DCE6F1");
+
+        header.Style.Font.FontColor =
+            XLColor.Black;
+
+        header.Style.Font.Bold = true;
 
         header.Style.Border.BottomBorder =
             XLBorderStyleValues.Thin;
@@ -780,4 +785,5 @@ public partial class ClientVirtualMachines
         return value.Trim();
     }
 }
+
 
