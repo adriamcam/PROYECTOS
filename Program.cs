@@ -1,3 +1,4 @@
+using ITQS.SupportOperationsCenter.Components.Clients.ClientsWorkspace.Services.Infrastructure;
 using ITQS.SupportOperationsCenter.Components.Clients.ClientsWorkspace.Services;
 using ITQS.SupportOperationsCenter.Components.Reporting.PALM.Services;
 using ITQS.SupportOperationsCenter.Components.Reporting.ReservedInstances.Services;
@@ -111,6 +112,7 @@ builder.Services.AddScoped<IReservedInstanceService, ReservedInstanceService>();
 builder.Services.AddScoped<IPalmService, PalmService>();
 
 builder.Services.AddScoped<ITQS.SupportOperationsCenter.Components.Clients.ClientsWorkspace.Services.Infrastructure.VirtualMachineService>();
+builder.Services.AddScoped<AzureInventoryCatalogService>();
 var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())
@@ -132,6 +134,7 @@ app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
 app.Run();
+
 
 
 

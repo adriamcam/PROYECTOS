@@ -1,3 +1,57 @@
+<style>
+    .vm-export-button {
+        display: inline-flex;
+        min-height: 34px;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        padding: 7px 14px;
+        border: 1px solid #2563eb;
+        border-radius: 8px;
+        background: #2563eb;
+        color: #ffffff;
+        font-family: inherit;
+        font-size: 12px;
+        font-weight: 700;
+        line-height: 1;
+        white-space: nowrap;
+        cursor: pointer;
+        box-shadow: 0 2px 5px rgba(37, 99, 235, .20);
+        transition:
+            background-color .15s ease,
+            border-color .15s ease,
+            box-shadow .15s ease,
+            transform .15s ease;
+    }
+
+    .vm-export-button::before {
+        content: "⇩";
+        font-size: 16px;
+        font-weight: 700;
+        line-height: 1;
+    }
+
+    .vm-export-button:hover:not(:disabled) {
+        border-color: #1d4ed8;
+        background: #1d4ed8;
+        box-shadow: 0 5px 12px rgba(37, 99, 235, .25);
+        transform: translateY(-1px);
+    }
+
+    .vm-export-button:focus-visible {
+        outline: 3px solid rgba(37, 99, 235, .20);
+        outline-offset: 2px;
+    }
+
+    .vm-export-button:disabled {
+        border-color: #cbd5e1;
+        background: #e2e8f0;
+        color: #64748b;
+        cursor: not-allowed;
+        box-shadow: none;
+        transform: none;
+    }
+</style>
 <section class="virtual-machines-workspace">
 
     <header class="vm-heading">
@@ -120,7 +174,7 @@
             <div style="display:flex; align-items:center; gap:10px;">
 
                 <button type="button"
-                        class="btn-export-excel"
+                        class="vm-export-button"
                         disabled="@(IsLoading || IsExportingExcel || VirtualMachines.Count == 0)"
                         @onclick="ExportToExcelAsync">
                     @(IsExportingExcel
@@ -269,5 +323,6 @@
     </section>
 
 </section>
+
 
 

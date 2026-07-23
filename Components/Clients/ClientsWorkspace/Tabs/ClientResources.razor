@@ -1,8 +1,11 @@
-@* Components/Clients/ClientsWorkspace/Tabs/ClientResources.razor *@
+@using ITQS.SupportOperationsCenter.Components.Clients.ClientsWorkspace.Models.Infrastructure
+@using ITQS.SupportOperationsCenter.Components.Clients.ClientsWorkspace.Services.Infrastructure
+
+@inject AzureInventoryCatalogService InventoryCatalogService
 
 <section class="resources-workspace">
 
-    @if (!_showVirtualMachines)
+    @if (string.IsNullOrWhiteSpace(_selectedModuleKey))
     {
         <header class="resources-header">
             <span class="resources-eyebrow">INVENTARIO DE AZURE</span>
@@ -16,33 +19,61 @@
             </p>
         </header>
 
-        <section class="resources-grid">
+        @if (_isLoading)
+        {
+            <div class="resources-message">
+                Cargando servicios disponibles...
+            </div>
+        }
+        else if (!string.IsNullOrWhiteSpace(_errorMessage))
+        {
+            <div class="resources-message error">
+                @_errorMessage
+            </div>
+        }
+        else
+        {
+            @foreach (var category in
+                _modules.GroupBy(module => module.Category))
+            {
+                <section class="resource-category">
+                    <h3>@category.Key</h3>
 
-            <button type="button"
-                    class="azure-resource-card"
-                    @onclick="OpenVirtualMachines">
+                    <div class="resources-grid">
+                        @foreach (var module in category)
+                        {
+                            <button type="button"
+                                    class="azure-resource-card"
+                                    @onclick="() => OpenModule(module.Key)">
 
-                <span class="azure-resource-icon">
-                    🖥️
-                </span>
+                                <span class="azure-resource-icon">
+                                    @module.Icon
+                                </span>
 
-                <span class="azure-resource-content">
-                    <span class="azure-resource-title">
-                        Virtual Machines
-                    </span>
+                                <span class="azure-resource-content">
+                                    <span class="azure-resource-title">
+                                        @module.DisplayName
+                                    </span>
 
-                    <span class="azure-resource-description">
-                        Cómputo, sistema operativo, red, discos y extensiones
-                    </span>
-                </span>
+                                    <span class="azure-resource-description">
+                                        @module.Description
+                                    </span>
 
-                <span class="azure-resource-arrow">
-                    →
-                </span>
+                                    <span class="azure-resource-count">
+                                        @module.ResourceCount recursos
+                                    </span>
+                                </span>
 
-            </button>
+                                <span class="azure-resource-arrow">
+                                    →
+                                </span>
 
-        </section>
+                            </button>
+                        }
+                    </div>
+                </section>
+            }
+        }
     }
     else
     {
@@ -55,7 +86,19 @@
                 <span>Volver a recursos</span>
             </button>
 
-            <ClientVirtualMachines CustomerName="@CustomerName" SubscriptionId="@SubscriptionId" />
+            @if (_selectedModuleKey == "virtual-machines")
+            {
+                <ClientVirtualMachines
+                    CustomerName="@CustomerName"
+                    SubscriptionId="@SubscriptionId" />
+            }
+            else
+            {
+                <ClientGenericInventory
+                    ModuleKey="@_selectedModuleKey"
+                    CustomerName="@CustomerName"
+                    SubscriptionId="@SubscriptionId" />
+            }
 
         </section>
     }
@@ -68,7 +111,6 @@
         width: 100%;
         flex-direction: column;
         gap: 22px;
-        box-sizing: border-box;
     }
 
     .resources-header {
@@ -89,8 +131,6 @@
         margin: 0 0 8px;
         color: #101828;
         font-size: 24px;
-        font-weight: 700;
-        line-height: 1.2;
     }
 
     .resources-header p {
@@ -99,6 +139,18 @@
         color: #667085;
         font-size: 13px;
         line-height: 1.55;
+    }
+
+    .resource-category {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .resource-category h3 {
+        margin: 0;
+        color: #344054;
+        font-size: 14px;
     }
 
     .resources-grid {
@@ -113,40 +165,24 @@
         grid-template-columns: 54px minmax(0, 1fr) 24px;
         align-items: center;
         gap: 14px;
-
         width: 100%;
         min-height: 112px;
         padding: 18px;
-
         border: 1px solid #dfe5ee;
         border-radius: 12px;
-
         background: #ffffff;
         color: inherit;
         font-family: inherit;
         text-align: left;
-
         cursor: pointer;
-
         box-shadow: 0 1px 3px rgba(16, 24, 40, .04);
-
-        transition:
-            transform .15s ease,
-            border-color .15s ease,
-            box-shadow .15s ease,
-            background-color .15s ease;
+        transition: .15s ease;
     }
 
     .azure-resource-card:hover {
         transform: translateY(-2px);
         border-color: #84a9f5;
-        background: #fbfdff;
         box-shadow: 0 9px 25px rgba(16, 24, 40, .09);
-    }
-
-    .azure-resource-card:focus-visible {
-        outline: 3px solid rgba(37, 99, 235, .18);
-        outline-offset: 3px;
     }
 
     .azure-resource-icon {
@@ -155,10 +191,8 @@
         height: 54px;
         align-items: center;
         justify-content: center;
-
         border-radius: 13px;
         background: #eef4ff;
-
         font-size: 27px;
     }
 
@@ -166,27 +200,28 @@
         display: flex;
         min-width: 0;
         flex-direction: column;
-        gap: 6px;
+        gap: 5px;
     }
 
     .azure-resource-title {
         color: #101828;
         font-size: 15px;
         font-weight: 700;
-        line-height: 1.3;
     }
 
     .azure-resource-description {
         color: #667085;
         font-size: 11px;
-        line-height: 1.45;
+        line-height: 1.4;
+    }
+
+    .azure-resource-count {
+        color: #2563eb;
+        font-size: 10px;
+        font-weight: 700;
     }
 
     .azure-resource-arrow {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-
         color: #2563eb;
         font-size: 22px;
         font-weight: 700;
@@ -206,38 +241,25 @@
         align-items: center;
         gap: 7px;
         padding: 7px 12px;
-
         border: 1px solid #d7deea;
         border-radius: 8px;
-
         background: #ffffff;
         color: #344054;
         font-family: inherit;
         font-size: 12px;
         font-weight: 600;
-
         cursor: pointer;
-
-        transition:
-            border-color .15s ease,
-            background-color .15s ease,
-            color .15s ease;
     }
 
-    .resource-back-button:hover {
-        border-color: #9db7f4;
-        background: #f7f9ff;
-        color: #1d4ed8;
+    .resources-message {
+        padding: 30px;
+        border: 1px dashed #cfd8e6;
+        border-radius: 12px;
+        text-align: center;
     }
 
-    @@media (max-width: 720px) {
-        .resources-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .resources-header h2 {
-            font-size: 21px;
-        }
+    .resources-message.error {
+        color: #b42318;
     }
 </style>
 
@@ -248,15 +270,51 @@
     [Parameter]
     public string SubscriptionId { get; set; } = string.Empty;
 
-    private bool _showVirtualMachines;
+    private List<AzureInventoryModule> _modules = [];
 
-    private void OpenVirtualMachines()
+    private string _selectedModuleKey = string.Empty;
+
+    private bool _isLoading;
+
+    private string _errorMessage = string.Empty;
+
+    protected override async Task OnParametersSetAsync()
     {
-        _showVirtualMachines = true;
+        _selectedModuleKey = string.Empty;
+
+        await LoadModulesAsync();
+    }
+
+    private async Task LoadModulesAsync()
+    {
+        try
+        {
+            _isLoading = true;
+            _errorMessage = string.Empty;
+
+            _modules =
+                (await InventoryCatalogService.GetAvailableModulesAsync(
+                    SubscriptionId))
+                .ToList();
+        }
+        catch (Exception ex)
+        {
+            _errorMessage =
+                $"No fue posible cargar los servicios: {ex.Message}";
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private void OpenModule(string moduleKey)
+    {
+        _selectedModuleKey = moduleKey;
     }
 
     private void BackToResources()
     {
-        _showVirtualMachines = false;
+        _selectedModuleKey = string.Empty;
     }
 }

@@ -1,0 +1,557 @@
+@using System.Globalization
+@using ClosedXML.Excel
+@using ITQS.SupportOperationsCenter.Components.Clients.ClientsWorkspace.Models.Infrastructure
+@using ITQS.SupportOperationsCenter.Components.Clients.ClientsWorkspace.Services.Infrastructure
+@using Microsoft.JSInterop
+
+@inject AzureInventoryCatalogService InventoryService
+@inject IJSRuntime JsRuntime
+
+<section class="generic-inventory">
+
+    <header class="generic-heading">
+        <div class="generic-heading-main">
+            <div class="generic-heading-icon">@Module?.Icon</div>
+
+            <div>
+                <span class="generic-eyebrow">@Module?.Category</span>
+                <h2>@Module?.DisplayName</h2>
+                <p>@Module?.Description</p>
+            </div>
+        </div>
+
+        <div class="generic-source">
+            <span>FUENTE</span>
+            <strong>@Module?.SourceName</strong>
+        </div>
+    </header>
+
+    <section class="generic-kpis">
+        <article>
+            <span>Total recursos</span>
+            <strong>@Rows.Count</strong>
+            <small>Registros inventariados</small>
+        </article>
+
+        <article>
+            <span>Columnas</span>
+            <strong>@VisibleColumns.Count</strong>
+            <small>Propiedades disponibles</small>
+        </article>
+
+        <article>
+            <span>Suscripción</span>
+            <strong>@ShortSubscriptionId</strong>
+            <small>Filtro aplicado</small>
+        </article>
+    </section>
+
+    <section class="generic-card">
+
+        <header class="generic-card-header">
+            <div>
+                <h3>Inventario de @Module?.DisplayName</h3>
+                <p>Información encontrada para la suscripción seleccionada.</p>
+            </div>
+
+            <div class="generic-actions">
+                <button type="button"
+                        class="generic-export-button"
+                        disabled="@(IsLoading || IsExporting || Rows.Count == 0)"
+                        @onclick="ExportExcelAsync">
+                    @(IsExporting
+                        ? "Generando..."
+                        : "Exportar Excel")
+                </button>
+
+                <span class="generic-count">
+                    <strong>@Rows.Count</strong>
+                    resultados
+                </span>
+            </div>
+        </header>
+
+        <div class="generic-table-container">
+            <table class="generic-table">
+                <thead>
+                    <tr>
+                        @foreach (var column in VisibleColumns)
+                        {
+                            <th>@FormatColumnName(column)</th>
+                        }
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @if (IsLoading)
+                    {
+                        <tr>
+                            <td colspan="@Math.Max(VisibleColumns.Count, 1)">
+                                Cargando inventario...
+                            </td>
+                        </tr>
+                    }
+                    else if (!string.IsNullOrWhiteSpace(ErrorMessage))
+                    {
+                        <tr>
+                            <td colspan="@Math.Max(VisibleColumns.Count, 1)"
+                                class="generic-error">
+                                @ErrorMessage
+                            </td>
+                        </tr>
+                    }
+                    else if (Rows.Count == 0)
+                    {
+                        <tr>
+                            <td colspan="@Math.Max(VisibleColumns.Count, 1)">
+                                No se encontraron recursos.
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var row in Rows)
+                        {
+                            <tr>
+                                @foreach (var column in VisibleColumns)
+                                {
+                                    <td title="@FormatValue(GetValue(row, column))">
+                                        @FormatValue(GetValue(row, column))
+                                    </td>
+                                }
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+
+    </section>
+
+</section>
+
+<style>
+    .generic-inventory {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        width: 100%;
+    }
+
+    .generic-heading {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+    }
+
+    .generic-heading-main {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .generic-heading-icon {
+        display: flex;
+        width: 48px;
+        height: 48px;
+        align-items: center;
+        justify-content: center;
+        border-radius: 11px;
+        background: #eef4ff;
+        font-size: 24px;
+    }
+
+    .generic-eyebrow {
+        color: #2563eb;
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+    }
+
+    .generic-heading h2 {
+        margin: 3px 0;
+        font-size: 22px;
+    }
+
+    .generic-heading p {
+        margin: 0;
+        color: #667085;
+        font-size: 12px;
+    }
+
+    .generic-source {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        font-size: 10px;
+    }
+
+    .generic-source span {
+        color: #98a2b3;
+    }
+
+    .generic-kpis {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+    }
+
+    .generic-kpis article {
+        display: flex;
+        min-height: 90px;
+        flex-direction: column;
+        padding: 14px;
+        border: 1px solid #dce3ee;
+        border-radius: 10px;
+        background: white;
+    }
+
+    .generic-kpis span,
+    .generic-kpis small {
+        color: #667085;
+        font-size: 11px;
+    }
+
+    .generic-kpis strong {
+        margin: 9px 0;
+        font-size: 22px;
+    }
+
+    .generic-card {
+        border: 1px solid #dce3ee;
+        border-radius: 11px;
+        background: white;
+        overflow: hidden;
+    }
+
+    .generic-card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 13px 16px;
+        border-bottom: 1px solid #e5e9f0;
+    }
+
+    .generic-card-header h3 {
+        margin: 0 0 3px;
+        font-size: 15px;
+    }
+
+    .generic-card-header p {
+        margin: 0;
+        color: #667085;
+        font-size: 11px;
+    }
+
+    .generic-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .generic-export-button {
+        display: inline-flex;
+        min-height: 34px;
+        align-items: center;
+        gap: 7px;
+        padding: 7px 14px;
+        border: 1px solid #2563eb;
+        border-radius: 8px;
+        background: #2563eb;
+        color: white;
+        font-family: inherit;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+    .generic-export-button::before {
+        content: "⇩";
+        font-size: 16px;
+    }
+
+    .generic-export-button:hover:not(:disabled) {
+        background: #1d4ed8;
+    }
+
+    .generic-export-button:disabled {
+        border-color: #cbd5e1;
+        background: #e2e8f0;
+        color: #64748b;
+        cursor: not-allowed;
+    }
+
+    .generic-count {
+        padding: 7px 10px;
+        border-radius: 8px;
+        background: #f2f4f7;
+        font-size: 10px;
+    }
+
+    .generic-table-container {
+        width: 100%;
+        overflow: auto;
+    }
+
+    .generic-table {
+        width: max-content;
+        min-width: 100%;
+        border-collapse: collapse;
+        font-size: 10px;
+    }
+
+    .generic-table th {
+        position: sticky;
+        top: 0;
+        padding: 10px;
+        background: #f8fafc;
+        color: #344054;
+        text-align: left;
+        white-space: nowrap;
+    }
+
+    .generic-table td {
+        max-width: 320px;
+        padding: 9px 10px;
+        border-top: 1px solid #edf0f5;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .generic-error {
+        color: #b42318;
+        text-align: center;
+    }
+</style>
+
+@code {
+    [Parameter]
+    public string ModuleKey { get; set; } = string.Empty;
+
+    [Parameter]
+    public string CustomerName { get; set; } = string.Empty;
+
+    [Parameter]
+    public string SubscriptionId { get; set; } = string.Empty;
+
+    private AzureInventoryModule? Module { get; set; }
+
+    private List<Dictionary<string, object?>> Rows { get; set; } = [];
+
+    private List<string> VisibleColumns { get; set; } = [];
+
+    private bool IsLoading { get; set; }
+
+    private bool IsExporting { get; set; }
+
+    private string ErrorMessage { get; set; } = string.Empty;
+
+    private string ShortSubscriptionId =>
+        SubscriptionId.Length > 8
+            ? SubscriptionId[..8]
+            : SubscriptionId;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        try
+        {
+            IsLoading = true;
+            ErrorMessage = string.Empty;
+
+            Module = InventoryService.GetModule(ModuleKey);
+
+            Rows =
+                (await InventoryService.GetRowsAsync(
+                    ModuleKey,
+                    SubscriptionId))
+                .ToList();
+
+            VisibleColumns =
+                Rows
+                    .SelectMany(row => row.Keys)
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .Where(IsVisibleColumn)
+                    .Take(30)
+                    .ToList();
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage =
+                $"No fue posible cargar el inventario: {ex.Message}";
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private async Task ExportExcelAsync()
+    {
+        if (Rows.Count == 0 || Module is null)
+        {
+            return;
+        }
+
+        try
+        {
+            IsExporting = true;
+
+            using var workbook = new XLWorkbook();
+
+            var worksheet =
+                workbook.Worksheets.Add(
+                    SanitizeWorksheetName(Module.DisplayName));
+
+            for (var columnIndex = 0;
+                 columnIndex < VisibleColumns.Count;
+                 columnIndex++)
+            {
+                var cell =
+                    worksheet.Cell(
+                        1,
+                        columnIndex + 1);
+
+                cell.Value =
+                    FormatColumnName(
+                        VisibleColumns[columnIndex]);
+
+                cell.Style.Font.Bold = true;
+                cell.Style.Font.FontColor = XLColor.Black;
+                cell.Style.Fill.BackgroundColor =
+                    XLColor.FromHtml("#DCE6F1");
+            }
+
+            for (var rowIndex = 0;
+                 rowIndex < Rows.Count;
+                 rowIndex++)
+            {
+                for (var columnIndex = 0;
+                     columnIndex < VisibleColumns.Count;
+                     columnIndex++)
+                {
+                    var value =
+                        GetValue(
+                            Rows[rowIndex],
+                            VisibleColumns[columnIndex]);
+
+                    worksheet.Cell(
+                            rowIndex + 2,
+                            columnIndex + 1)
+                        .Value = FormatValue(value);
+                }
+            }
+
+            worksheet.SheetView.FreezeRows(1);
+            worksheet.Columns().AdjustToContents(5, 60);
+
+            if (Rows.Count > 0 && VisibleColumns.Count > 0)
+            {
+                worksheet.Range(
+                        1,
+                        1,
+                        Rows.Count + 1,
+                        VisibleColumns.Count)
+                    .CreateTable(
+                        $"tbl_{Guid.NewGuid():N}");
+            }
+
+            using var stream = new MemoryStream();
+
+            workbook.SaveAs(stream);
+
+            var fileName =
+                $"{SanitizeFileName(Module.DisplayName)}-" +
+                $"{DateTime.Now:yyyyMMdd-HHmm}.xlsx";
+
+            await JsRuntime.InvokeVoidAsync(
+                "itqsDownloadBase64File",
+                fileName,
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                Convert.ToBase64String(stream.ToArray()));
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage =
+                $"No fue posible exportar el inventario: {ex.Message}";
+        }
+        finally
+        {
+            IsExporting = false;
+        }
+    }
+
+    private static bool IsVisibleColumn(string column)
+    {
+        return !column.EndsWith(
+                   "Hash",
+                   StringComparison.OrdinalIgnoreCase)
+               &&
+               !string.Equals(
+                   column,
+                   "Tags",
+                   StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static object? GetValue(
+        IReadOnlyDictionary<string, object?> row,
+        string column)
+    {
+        return row.TryGetValue(column, out var value)
+            ? value
+            : null;
+    }
+
+    private static string FormatValue(object? value)
+    {
+        return value switch
+        {
+            null or DBNull => string.Empty,
+            DateTime date => date.ToString("yyyy-MM-dd HH:mm:ss"),
+            DateTimeOffset date => date.ToString("yyyy-MM-dd HH:mm:ss"),
+            bool boolean => boolean ? "Sí" : "No",
+            byte[] bytes => Convert.ToHexString(bytes),
+            _ => Convert.ToString(
+                     value,
+                     CultureInfo.InvariantCulture)
+                 ?? string.Empty
+        };
+    }
+
+    private static string FormatColumnName(string value)
+    {
+        return System.Text.RegularExpressions.Regex.Replace(
+            value,
+            "([a-z0-9])([A-Z])",
+            "$1 $2");
+    }
+
+    private static string SanitizeWorksheetName(string value)
+    {
+        foreach (var character in new[] { ':', '\\', '/', '?', '*', '[', ']' })
+        {
+            value = value.Replace(character, '-');
+        }
+
+        return value.Length > 31
+            ? value[..31]
+            : value;
+    }
+
+    private static string SanitizeFileName(string value)
+    {
+        foreach (var character in Path.GetInvalidFileNameChars())
+        {
+            value = value.Replace(character, '-');
+        }
+
+        return value;
+    }
+}
