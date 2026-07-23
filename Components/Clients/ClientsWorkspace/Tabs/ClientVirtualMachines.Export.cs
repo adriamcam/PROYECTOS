@@ -726,14 +726,15 @@ public partial class ClientVirtualMachines
 
         worksheet.SheetView.FreezeRows(1);
 
-        if (lastRow >= 1)
+        if (lastRow > 1)
         {
             worksheet.Range(
-                    1,
-                    1,
-                    Math.Max(lastRow, 1),
-                    columnCount)
-                .CreateTable();
+                1,
+                1,
+                lastRow,
+                columnCount)
+            .CreateTable(
+                "tbl_" + Guid.NewGuid().ToString("N"));
         }
 
         worksheet.Columns().AdjustToContents(
@@ -743,7 +744,7 @@ public partial class ClientVirtualMachines
         worksheet.Rows().Style.Alignment.Vertical =
             XLAlignmentVerticalValues.Top;
 
-        worksheet.RangeUsed()?.SetAutoFilter();
+
     }
 
     private static string FormatDiskTier(
@@ -779,3 +780,4 @@ public partial class ClientVirtualMachines
         return value.Trim();
     }
 }
+
