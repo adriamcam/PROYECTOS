@@ -18,11 +18,15 @@ public sealed class VirtualMachineService
         string customerName,
         string subscriptionId)
     {
+        if (string.IsNullOrWhiteSpace(subscriptionId))
+        {
+            return [];
+        }
+
         const string sql = """
             SELECT *
             FROM dbo.vw_VMInfrastructure
-            WHERE CustomerName = @CustomerName
-              AND SubscriptionId = @SubscriptionId
+            WHERE SubscriptionId = @SubscriptionId
             ORDER BY VMName;
             """;
 
@@ -36,8 +40,7 @@ public sealed class VirtualMachineService
                 sql,
                 new
                 {
-                    CustomerName = customerName,
-                    SubscriptionId = subscriptionId
+                    SubscriptionId = subscriptionId.Trim()
                 });
 
         return result.ToList();
