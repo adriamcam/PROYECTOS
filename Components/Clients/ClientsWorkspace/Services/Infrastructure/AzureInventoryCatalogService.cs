@@ -303,6 +303,18 @@ public sealed class AzureInventoryCatalogService
             {whereClause};
             """;
 
+        if (string.Equals(
+                sourceName,
+                "dbo.VMDiskInventoryCurrent",
+                StringComparison.OrdinalIgnoreCase))
+        {
+            sql = $"""
+                SELECT COUNT_BIG(DISTINCT VMResourceId)
+                FROM {sourceName}
+                {whereClause};
+                """;
+        }
+
         var count = await connection.ExecuteScalarAsync<long>(
             sql,
             new
@@ -423,3 +435,4 @@ public sealed class AzureInventoryCatalogService
         };
     }
 }
+

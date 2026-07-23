@@ -145,12 +145,11 @@ public partial class ClientVirtualMachines
         var headers = new[]
         {
             "Cliente",
-            "Tenant ID",
-            "Suscripción ID",
+
             "Suscripción",
             "Resource Group",
             "Nombre VM",
-            "Computer Name",
+
             "Estado",
             "Provisioning State",
             "Operational Status",
@@ -202,8 +201,7 @@ public partial class ClientVirtualMachines
             "Criticality",
             "Fecha Creación",
             "Último Boot",
-            "Última Vez Vista",
-            "Fecha Actualización"
+
         };
 
         WriteHeaders(worksheet, headers);
@@ -224,12 +222,11 @@ public partial class ClientVirtualMachines
             var values = new object?[]
             {
                 Get(row, "CustomerName"),
-                Get(row, "TenantId"),
-                Get(row, "SubscriptionId"),
+
                 Get(row, "SubscriptionName"),
                 Get(row, "ResourceGroupName"),
                 Get(row, "VMName"),
-                Get(row, "ComputerName"),
+
                 Get(row, "PowerState"),
                 Get(row, "ProvisioningState"),
                 Get(row, "OperationalStatus"),
@@ -289,8 +286,7 @@ public partial class ClientVirtualMachines
                 Get(row, "Criticality"),
                 Get(row, "TimeCreated"),
                 Get(row, "LastBootTime"),
-                Get(row, "LastSeenAt"),
-                Get(row, "UpdatedAt")
+
             };
 
             WriteRow(
@@ -317,12 +313,11 @@ public partial class ClientVirtualMachines
         var headers = new[]
         {
             "Cliente",
-            "Tenant ID",
-            "Suscripción ID",
+
             "Suscripción",
             "Resource Group",
             "Nombre VM",
-            "Computer Name",
+
             "Región",
             "Tipo Disco",
             "Nombre Disco",
@@ -341,10 +336,9 @@ public partial class ClientVirtualMachines
             "Delete Option",
             "Shared Disk",
             "Max Shares",
-            "Disk Resource ID",
-            "VM Resource ID",
-            "Última Vez Vista",
-            "Fecha Actualización"
+
+
+
         };
 
         WriteHeaders(worksheet, headers);
@@ -362,12 +356,11 @@ public partial class ClientVirtualMachines
             var values = new object?[]
             {
                 Get(row, "CustomerName"),
-                Get(row, "TenantId"),
-                Get(row, "SubscriptionId"),
+
                 Get(row, "SubscriptionName"),
                 Get(row, "ResourceGroupName"),
                 Get(row, "VMName"),
-                Get(row, "ComputerName"),
+
                 Get(row, "Location"),
                 Get(row, "DiskRole"),
                 Get(row, "DiskName"),
@@ -386,10 +379,8 @@ public partial class ClientVirtualMachines
                 Get(row, "DeleteOption"),
                 Get(row, "IsSharedDisk"),
                 Get(row, "MaxShares"),
-                Get(row, "DiskResourceId"),
-                Get(row, "VMResourceId"),
-                Get(row, "LastSeenAt"),
-                Get(row, "UpdatedAt")
+
+
             };
 
             WriteRow(
@@ -419,7 +410,7 @@ public partial class ClientVirtualMachines
             "Suscripción",
             "Resource Group",
             "Nombre VM",
-            "Computer Name",
+
             "Extensión"
         };
 
@@ -449,7 +440,7 @@ public partial class ClientVirtualMachines
                         Get(row, "SubscriptionName"),
                         Get(row, "ResourceGroupName"),
                         Get(row, "VMName"),
-                        Get(row, "ComputerName"),
+        
                         extension
                     });
 
@@ -785,5 +776,6 @@ public partial class ClientVirtualMachines
         return value.Trim();
     }
 }
+
 
 

@@ -26,25 +26,7 @@
         </div>
     </header>
 
-    <section class="generic-kpis">
-        <article>
-            <span>Total recursos</span>
-            <strong>@Rows.Count</strong>
-            <small>Registros inventariados</small>
-        </article>
-
-        <article>
-            <span>Columnas</span>
-            <strong>@VisibleColumns.Count</strong>
-            <small>Propiedades disponibles</small>
-        </article>
-
-        <article>
-            <span>Suscripción</span>
-            <strong>@ShortSubscriptionId</strong>
-            <small>Filtro aplicado</small>
-        </article>
-    </section>
+    
 
     <section class="generic-card">
 
@@ -503,7 +485,10 @@
             "DiskResourceIdHash",
             "ResourceIdHash",
             "Tags",
-            "InsertedAt"
+            "InsertedAt",
+            "ComputerName",
+            "LastSeenAt",
+            "UpdatedAt"
         };
 
         return !hiddenColumns.Contains(column)
@@ -568,4 +553,6 @@
         return value;
     }
 }
+
+
 
