@@ -117,9 +117,22 @@
                 </p>
             </div>
 
-            <div class="vm-result-count">
-                <strong>@VirtualMachines.Count</strong>
-                <span>resultados</span>
+            <div style="display:flex; align-items:center; gap:10px;">
+
+                <button type="button"
+                        class="btn btn-primary"
+                        disabled="@(IsLoading || IsExportingExcel || VirtualMachines.Count == 0)"
+                        @onclick="ExportToExcelAsync">
+                    @(IsExportingExcel
+                        ? "Generando Excel..."
+                        : "Exportar Excel")
+                </button>
+
+                <div class="vm-result-count">
+                    <strong>@VirtualMachines.Count</strong>
+                    <span>resultados</span>
+                </div>
+
             </div>
 
         </header>
@@ -256,3 +269,4 @@
     </section>
 
 </section>
+
