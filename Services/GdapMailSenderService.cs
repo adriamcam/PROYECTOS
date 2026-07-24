@@ -58,7 +58,7 @@ public sealed class GdapMailSenderService : IGdapMailSenderService
             smtp.Credentials = new NetworkCredential(user.Value.Value, password.Value.Value);
         }
 
-        await smtp.SendMailAsync(mail);
+        //await smtp.SendMailAsync(mail);
     }
 
     private static IEnumerable<string> SplitEmails(string value)

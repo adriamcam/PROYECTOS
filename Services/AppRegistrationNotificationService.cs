@@ -72,7 +72,7 @@ public sealed class AppRegistrationNotificationService : IAppRegistrationNotific
         {
             message = new
             {
-                subject = $"[SOC] Solicitud App Registration ITQS - {request.CustomerName}",
+                subject = $"Solicitud App Registration ITQS - {request.CustomerName}",
                 body = new
                 {
                     contentType = "HTML",
