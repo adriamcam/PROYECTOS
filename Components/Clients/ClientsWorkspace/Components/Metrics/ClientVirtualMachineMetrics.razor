@@ -1,154 +1,239 @@
+@using ITQS.SupportOperationsCenter.Components.Clients.ClientsWorkspace.Models.Metrics
+@using ITQS.SupportOperationsCenter.Components.Clients.ClientsWorkspace.Services.Metrics
+
+@inject ClientVmMetricsService VmMetricsService
+
 <section class="vm-metrics">
 
-    <header class="vm-metrics-header">
+    <header class="vm-header">
+
         <div>
-            <span class="vm-metrics-eyebrow">
+            <span class="vm-eyebrow">
                 MÉTRICAS DE INFRAESTRUCTURA
             </span>
 
             <h2>Máquinas virtuales</h2>
 
             <p>
-                Rendimiento, disponibilidad y recomendaciones de optimización
-                para las máquinas virtuales de la suscripción.
+                Rendimiento, disponibilidad y recomendaciones de
+                optimización para las máquinas virtuales de la suscripción.
             </p>
         </div>
 
-        <div class="period-selector">
-            <span>Periodo</span>
+        <div class="vm-period-container">
 
-            <div class="period-buttons">
-                <button type="button"
-                        class="@GetPeriodButtonClass(7)"
-                        @onclick="() => SelectPeriod(7)">
-                    7 días
-                </button>
+            <span class="vm-period-label">
+                PERÍODO
+            </span>
 
-                <button type="button"
-                        class="@GetPeriodButtonClass(15)"
-                        @onclick="() => SelectPeriod(15)">
-                    15 días
-                </button>
+            <div class="vm-period-selector">
 
-                <button type="button"
-                        class="@GetPeriodButtonClass(30)"
-                        @onclick="() => SelectPeriod(30)">
-                    30 días
-                </button>
+                @foreach (var period in _availablePeriods)
+                {
+                    <button type="button"
+                            class="@GetPeriodButtonClass(period)"
+                            disabled="@_isLoading"
+                            @onclick="() => ChangePeriodAsync(period)">
+                        @period días
+                    </button>
+                }
+
             </div>
+
         </div>
+
     </header>
 
-    <div class="vm-context-bar">
+    <div class="vm-context">
+
         <div>
-            <span>Cliente</span>
+            <span>CLIENTE</span>
             <strong>@CustomerName</strong>
         </div>
 
         <div>
-            <span>Suscripción</span>
+            <span>SUSCRIPCIÓN</span>
             <strong>@SubscriptionName</strong>
         </div>
 
         <div>
-            <span>Periodo seleccionado</span>
-            <strong>@SelectedPeriod días</strong>
-        </div>
-    </div>
-
-    <div class="vm-kpi-grid">
-
-        <article class="vm-kpi-card">
-            <span>Total VM</span>
-            <strong>—</strong>
-            <small>Pendiente de conexión SQL</small>
-        </article>
-
-        <article class="vm-kpi-card">
-            <span>CPU promedio</span>
-            <strong>—</strong>
-            <small>Promedio del periodo</small>
-        </article>
-
-        <article class="vm-kpi-card">
-            <span>RAM promedio</span>
-            <strong>—</strong>
-            <small>Promedio del periodo</small>
-        </article>
-
-        <article class="vm-kpi-card">
-            <span>Disponibilidad</span>
-            <strong>—</strong>
-            <small>Promedio del periodo</small>
-        </article>
-
-        <article class="vm-kpi-card">
-            <span>Con recomendación</span>
-            <strong>—</strong>
-            <small>Rightsizing requerido</small>
-        </article>
-
-        <article class="vm-kpi-card">
-            <span>Sin datos</span>
-            <strong>—</strong>
-            <small>Validar Azure Monitor</small>
-        </article>
-
-    </div>
-
-    <div class="vm-table-panel">
-
-        <div class="vm-table-heading">
-            <div>
-                <h3>Rendimiento de máquinas virtuales</h3>
-
-                <p>
-                    La información se conectará posteriormente con las vistas
-                    de resumen de 7, 15 y 30 días.
-                </p>
-            </div>
-        </div>
-
-        <div class="vm-table-wrapper">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Máquina virtual</th>
-                        <th>CPU Avg</th>
-                        <th>CPU Max</th>
-                        <th>CPU P95</th>
-                        <th>RAM Avg</th>
-                        <th>RAM Max</th>
-                        <th>RAM P95</th>
-                        <th>Disponibilidad</th>
-                        <th>Días</th>
-                        <th>SKU actual</th>
-                        <th>Recomendación</th>
-                    </tr>
-                </thead>
-
-                <tbody>
-                    <tr>
-                        <td colspan="11">
-                            <div class="vm-table-empty">
-                                <span>📈</span>
-
-                                <strong>
-                                    Interfaz preparada
-                                </strong>
-
-                                <p>
-                                    El siguiente paso será conectar
-                                    las vistas SQL de métricas.
-                                </p>
-                            </div>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+            <span>PERÍODO SELECCIONADO</span>
+            <strong>@_selectedDays días</strong>
         </div>
 
     </div>
+
+    @if (_isLoading)
+    {
+        <div class="vm-state-panel">
+            <div class="vm-state-icon">⏳</div>
+            <strong>Cargando métricas</strong>
+            <span>Consultando información de Azure Monitor.</span>
+        </div>
+    }
+    else if (!string.IsNullOrWhiteSpace(_errorMessage))
+    {
+        <div class="vm-state-panel vm-state-error">
+            <div class="vm-state-icon">⚠️</div>
+            <strong>No fue posible cargar las métricas</strong>
+            <span>@_errorMessage</span>
+
+            <button type="button"
+                    class="vm-retry-button"
+                    @onclick="LoadMetricsAsync">
+                Reintentar
+            </button>
+        </div>
+    }
+    else
+    {
+        <div class="vm-kpi-grid">
+
+            <article class="vm-kpi-card">
+                <span>TOTAL VM</span>
+                <strong>@_summary.TotalVMs</strong>
+                <small>Máquinas con métricas</small>
+            </article>
+
+            <article class="vm-kpi-card">
+                <span>CPU PROMEDIO</span>
+                <strong>@FormatPercent(_summary.CpuPromedio)</strong>
+                <small>Promedio del período</small>
+            </article>
+
+            <article class="vm-kpi-card">
+                <span>RAM PROMEDIO</span>
+                <strong>@FormatPercent(_summary.MemoriaPromedio)</strong>
+                <small>Promedio del período</small>
+            </article>
+
+            <article class="vm-kpi-card">
+                <span>DISPONIBILIDAD</span>
+                <strong>@FormatPercent(_summary.DisponibilidadPromedio)</strong>
+                <small>Promedio del período</small>
+            </article>
+
+            <article class="vm-kpi-card">
+                <span>CON RECOMENDACIÓN</span>
+                <strong>@_summary.ConRecomendacion</strong>
+                <small>Revisión requerida</small>
+            </article>
+
+            <article class="vm-kpi-card">
+                <span>SIN DATOS</span>
+                <strong>@_summary.SinDatos</strong>
+                <small>Validar Azure Monitor</small>
+            </article>
+
+        </div>
+
+        <section class="vm-table-card">
+
+            <header class="vm-table-header">
+
+                <div>
+                    <h3>Rendimiento de máquinas virtuales</h3>
+
+                    <p>
+                        Métricas agregadas para los últimos
+                        @_selectedDays días.
+                    </p>
+                </div>
+
+                <div class="vm-status-summary">
+
+                    <span class="vm-status-badge vm-status-healthy">
+                        Healthy @_summary.Healthy
+                    </span>
+
+                    <span class="vm-status-badge vm-status-warning">
+                        Warning @_summary.Warning
+                    </span>
+
+                    <span class="vm-status-badge vm-status-critical">
+                        Critical @_summary.Critical
+                    </span>
+
+                </div>
+
+            </header>
+
+            @if (_metrics.Count == 0)
+            {
+                <div class="vm-empty-table">
+                    <div>📭</div>
+
+                    <strong>Sin métricas disponibles</strong>
+
+                    <span>
+                        No existen datos para el período seleccionado.
+                    </span>
+                </div>
+            }
+            else
+            {
+                <div class="vm-table-scroll">
+
+                    <table class="vm-table">
+
+                        <thead>
+                            <tr>
+                                <th>MÁQUINA VIRTUAL</th>
+                                <th>CPU AVG</th>
+                                <th>CPU MAX</th>
+                                <th>CPU P95</th>
+                                <th>RAM AVG</th>
+                                <th>RAM MAX</th>
+                                <th>RAM P95</th>
+                                <th>DISPONIBILIDAD</th>
+                                <th>DÍAS</th>
+                                <th>ESTADO</th>
+                                <th>RECOMENDACIÓN</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            @foreach (var metric in _metrics)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="vm-name-cell">
+                                            <strong>@metric.Computer</strong>
+                                            <span>@metric.ResourceGroup</span>
+                                        </div>
+                                    </td>
+
+                                    <td>@FormatPercent(metric.CpuPromedio)</td>
+                                    <td>@FormatPercent(metric.CpuMaximo)</td>
+                                    <td>@FormatPercent(metric.CpuP95)</td>
+                                    <td>@FormatPercent(metric.MemoriaPromedio)</td>
+                                    <td>@FormatPercent(metric.MemoriaMaxima)</td>
+                                    <td>@FormatPercent(metric.MemoriaP95)</td>
+                                    <td>@FormatPercent(metric.DisponibilidadPromedio)</td>
+                                    <td>@metric.DiasConDatos</td>
+
+                                    <td>
+                                        <span class="@GetStatusClass(metric.VMStatus)">
+                                            @metric.VMStatus
+                                        </span>
+                                    </td>
+
+                                    <td class="vm-recommendation">
+                                        @metric.Recomendacion
+                                    </td>
+                                </tr>
+                            }
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+            }
+
+        </section>
+    }
 
 </section>
 
@@ -162,17 +247,129 @@
     [Parameter]
     public string? SubscriptionName { get; set; }
 
-    private int SelectedPeriod { get; set; } = 7;
+    private readonly int[] _availablePeriods =
+    [
+        7,
+        15,
+        30
+    ];
 
-    private void SelectPeriod(int days)
+    private readonly List<ClientVmMetricModel> _metrics = [];
+
+    private ClientVmMetricsSummary _summary = new();
+
+    private string? _loadedSubscriptionId;
+
+    private string? _errorMessage;
+
+    private int _selectedDays = 7;
+
+    private bool _isLoading;
+
+    protected override async Task OnParametersSetAsync()
     {
-        SelectedPeriod = days;
+        var normalizedSubscriptionId =
+            SubscriptionId?.Trim();
+
+        if (string.IsNullOrWhiteSpace(normalizedSubscriptionId))
+        {
+            _metrics.Clear();
+            _summary = new ClientVmMetricsSummary();
+            _loadedSubscriptionId = null;
+            return;
+        }
+
+        if (string.Equals(
+                _loadedSubscriptionId,
+                normalizedSubscriptionId,
+                StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        _loadedSubscriptionId =
+            normalizedSubscriptionId;
+
+        await LoadMetricsAsync();
     }
 
-    private string GetPeriodButtonClass(int days)
+    private async Task ChangePeriodAsync(int days)
     {
-        return SelectedPeriod == days
-            ? "period-button period-button-active"
-            : "period-button";
+        if (_selectedDays == days)
+        {
+            return;
+        }
+
+        _selectedDays = days;
+
+        await LoadMetricsAsync();
+    }
+
+    private async Task LoadMetricsAsync()
+    {
+        if (string.IsNullOrWhiteSpace(SubscriptionId))
+        {
+            return;
+        }
+
+        _isLoading = true;
+        _errorMessage = null;
+        _metrics.Clear();
+        _summary = new ClientVmMetricsSummary();
+
+        try
+        {
+            var rows =
+                await VmMetricsService.GetMetricsAsync(
+                    SubscriptionId,
+                    _selectedDays);
+
+            _metrics.AddRange(rows);
+
+            _summary =
+                ClientVmMetricsService.BuildSummary(
+                    _metrics);
+        }
+        catch (Exception exception)
+        {
+            _errorMessage =
+                $"Error consultando métricas de VM: {exception.Message}";
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private string GetPeriodButtonClass(int period)
+    {
+        return period == _selectedDays
+            ? "vm-period-button vm-period-button-active"
+            : "vm-period-button";
+    }
+
+    private static string FormatPercent(decimal? value)
+    {
+        return value.HasValue
+            ? $"{value.Value:N2}%"
+            : "—";
+    }
+
+    private static string GetStatusClass(string? status)
+    {
+        return status?.Trim().ToLowerInvariant() switch
+        {
+            "healthy" =>
+                "vm-status-badge vm-status-healthy",
+
+            "warning" =>
+                "vm-status-badge vm-status-warning",
+
+            "critical" =>
+                "vm-status-badge vm-status-critical",
+
+            _ =>
+                "vm-status-badge vm-status-nodata"
+        };
     }
 }
