@@ -1,0 +1,167 @@
+/* ITQS SOC Home + Modules UI */
+.soc-home {
+    max-width: 1280px;
+    margin: 0 auto;
+}
+
+.soc-hero {
+    text-align: center;
+    padding: 64px 24px 40px;
+    background:
+        radial-gradient(circle at 10% 30%, rgba(15, 98, 254, .10), transparent 28%),
+        radial-gradient(circle at 90% 20%, rgba(20, 184, 166, .10), transparent 28%),
+        linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+    border: 1px solid #dfe8f7;
+    border-radius: 20px;
+    box-shadow: 0 18px 50px rgba(15, 23, 42, .08);
+}
+
+.soc-logo-text {
+    color: #0ea5e9;
+    font-size: clamp(3rem, 7vw, 5rem);
+    font-weight: 900;
+    letter-spacing: .04em;
+    margin-bottom: 18px;
+    text-shadow: 0 0 24px rgba(14, 165, 233, .18);
+}
+
+.soc-hero h1 {
+    margin: 0;
+    color: #0f172a;
+    font-size: clamp(2rem, 4vw, 3.3rem);
+    line-height: 1.12;
+}
+
+.soc-hero p {
+    margin: 16px 0 0;
+    color: #475467;
+    font-size: 1.12rem;
+}
+
+.soc-hero-line {
+    width: 76px;
+    height: 3px;
+    border-radius: 99px;
+    background: #0f62fe;
+    margin: 28px auto 0;
+}
+
+.soc-section-title {
+    text-align: center;
+    margin: 34px 0 22px;
+}
+
+.soc-section-title h2 {
+    margin: 0 0 6px;
+    color: #0f172a;
+    font-size: 1.45rem;
+}
+
+.soc-section-title span {
+    color: #667085;
+}
+
+.soc-area-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(240px, 1fr));
+    gap: 24px;
+}
+
+.soc-area-card,
+.soc-module-card {
+    background: #ffffff;
+    border: 1px solid #dfe5ef;
+    border-radius: 18px;
+    box-shadow: 0 12px 32px rgba(15, 23, 42, .07);
+    transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+}
+
+.soc-area-card {
+    padding: 30px;
+    text-align: center;
+    display: grid;
+    justify-items: center;
+    gap: 14px;
+}
+
+.soc-area-card:hover,
+.soc-module-card.enabled:hover {
+    transform: translateY(-3px);
+    border-color: #0f62fe;
+    box-shadow: 0 18px 45px rgba(15, 23, 42, .11);
+}
+
+.soc-area-icon {
+    width: 126px;
+    height: 110px;
+    border-radius: 24px;
+    display: grid;
+    place-items: center;
+    font-size: 4rem;
+}
+
+.soc-area-card.cloud .soc-area-icon { background: #eaf2ff; color: #0f62fe; }
+.soc-area-card.m365 .soc-area-icon { background: #f4efff; color: #7c3aed; }
+.soc-area-card.security .soc-area-icon { background: #ecfdf3; color: #16a34a; }
+
+.soc-area-card h3 {
+    margin: 0;
+    color: #0f172a;
+    font-size: 1.45rem;
+}
+
+.soc-area-card p {
+    margin: 0;
+    color: #667085;
+    line-height: 1.45;
+    min-height: 70px;
+}
+
+.soc-btn {
+    width: min(240px, 100%);
+    border: 0;
+    border-radius: 10px;
+    padding: 11px 18px;
+    color: #ffffff;
+    font-weight: 800;
+    cursor: pointer;
+}
+.soc-btn.blue { background: #0f62fe; }
+.soc-btn.blue:hover { background: #084cdf; }
+.soc-btn.purple { background: #6d4df2; }
+.soc-btn.green { background: #16a34a; }
+
+.soc-module-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(220px, 1fr));
+    gap: 18px;
+}
+
+.soc-module-card {
+    padding: 24px;
+}
+.soc-module-card.enabled { cursor: pointer; }
+.soc-module-card.disabled { opacity: .74; cursor: not-allowed; }
+
+.soc-module-icon {
+    width: 56px;
+    height: 56px;
+    display: grid;
+    place-items: center;
+    border-radius: 14px;
+    background: #eaf2ff;
+    color: #0f62fe;
+    font-size: 1.7rem;
+    margin-bottom: 16px;
+}
+.soc-module-card h2 { margin: 0 0 8px; font-size: 1.2rem; }
+.soc-module-card p { margin: 0 0 16px; color: #667085; line-height: 1.45; }
+.soc-module-card span { color: #0f62fe; font-weight: 800; }
+
+@media (max-width: 1100px) {
+    .soc-area-grid { grid-template-columns: 1fr; }
+    .soc-module-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 700px) {
+    .soc-module-grid { grid-template-columns: 1fr; }
+}
