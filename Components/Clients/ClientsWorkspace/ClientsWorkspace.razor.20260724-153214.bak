@@ -238,10 +238,7 @@
                     break;
 
                 case "metrics":
-                    <ClientMetrics
-    CustomerName="@WorkspaceContext.CustomerName"
-    SubscriptionId="@(WorkspaceContext.SubscriptionId?.ToString() ?? string.Empty)"
-    SubscriptionName="@WorkspaceContext.SubscriptionName" />
+                    <ClientMetrics />
                     break;
 
                 case "backups":
@@ -743,7 +740,6 @@ case "inventory":
             : "workspace-tab";
     }
 }
-
 
 
 
