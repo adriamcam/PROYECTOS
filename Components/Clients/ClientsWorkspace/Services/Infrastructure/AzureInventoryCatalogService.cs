@@ -1,4 +1,5 @@
 using System.Data;
+using System.Text;
 using Dapper;
 using ITQS.SupportOperationsCenter.Components.Clients.ClientsWorkspace.Models.Infrastructure;
 using ITQS.SupportOperationsCenter.Data;
@@ -7,9 +8,15 @@ namespace ITQS.SupportOperationsCenter.Components.Clients.ClientsWorkspace.Servi
 
 public sealed class AzureInventoryCatalogService
 {
+    private const string UnifiedServicesSource =
+        "dbo.AzureServicesInventoryCurrent";
+
+    private const string DynamicKeyPrefix =
+        "azure-service-";
+
     private readonly ISqlConnectionFactory _connectionFactory;
 
-    private static readonly IReadOnlyList<AzureInventoryModule> Catalog =
+    private static readonly IReadOnlyList<AzureInventoryModule> SpecializedCatalog =
     [
         new()
         {
@@ -29,152 +36,74 @@ public sealed class AzureInventoryCatalogService
             Category = "Compute",
             Icon = "💽",
             SourceName = "dbo.VMDiskInventoryCurrent"
-        },
-        new()
-        {
-            Key = "vm-scale-sets",
-            DisplayName = "Virtual Machine Scale Sets",
-            Description = "Conjuntos de escalado y capacidad de cómputo",
-            Category = "Compute",
-            Icon = "🖥️",
-            SourceName = "dbo.VMScaleSetInventoryCurrent"
-        },
-        new()
-        {
-            Key = "aks",
-            DisplayName = "Azure Kubernetes Service",
-            Description = "Clusters AKS, versiones y configuración",
-            Category = "Compute",
-            Icon = "☸️",
-            SourceName = "dbo.AKSInventoryCurrent"
-        },
-        new()
-        {
-            Key = "app-services",
-            DisplayName = "App Services",
-            Description = "Web Apps, planes, runtime y configuración",
-            Category = "Web & Containers",
-            Icon = "🌐",
-            SourceName = "dbo.AppServiceInventoryCurrent"
-        },
-        new()
-        {
-            Key = "azure-functions",
-            DisplayName = "Azure Functions",
-            Description = "Function Apps, runtime, hosting y estado",
-            Category = "Web & Containers",
-            Icon = "⚡",
-            SourceName = "dbo.AzureFunctionInventoryCurrent"
-        },
-        new()
-        {
-            Key = "container-registry",
-            DisplayName = "Container Registry",
-            Description = "Registros ACR, SKU y configuración",
-            Category = "Web & Containers",
-            Icon = "📦",
-            SourceName = "dbo.ContainerRegistryInventoryCurrent"
-        },
-        new()
-        {
-            Key = "sql-databases",
-            DisplayName = "Azure SQL Database",
-            Description = "Servidores SQL, bases de datos, SKU y capacidad",
-            Category = "Databases",
-            Icon = "🗄️",
-            SourceName = "dbo.AzureSqlDatabaseInventoryCurrent"
-        },
-        new()
-        {
-            Key = "sql-managed-instance",
-            DisplayName = "SQL Managed Instance",
-            Description = "Instancias administradas, capacidad y estado",
-            Category = "Databases",
-            Icon = "🏢",
-            SourceName = "dbo.SqlManagedInstanceInventoryCurrent"
-        },
-        new()
-        {
-            Key = "postgresql",
-            DisplayName = "Azure Database for PostgreSQL",
-            Description = "Servidores PostgreSQL, versiones y capacidad",
-            Category = "Databases",
-            Icon = "🐘",
-            SourceName = "dbo.PostgreSqlInventoryCurrent"
-        },
-        new()
-        {
-            Key = "cosmos-db",
-            DisplayName = "Cosmos DB",
-            Description = "Cuentas Cosmos DB, API, regiones y consistencia",
-            Category = "Databases",
-            Icon = "🌌",
-            SourceName = "dbo.CosmosDbInventoryCurrent"
-        },
-        new()
-        {
-            Key = "redis",
-            DisplayName = "Azure Cache for Redis",
-            Description = "Cachés Redis, SKU, capacidad y estado",
-            Category = "Databases",
-            Icon = "🚀",
-            SourceName = "dbo.RedisCacheInventoryCurrent"
-        },
-        new()
-        {
-            Key = "application-gateway",
-            DisplayName = "Application Gateway",
-            Description = "Gateways, WAF, listeners y backends",
-            Category = "Networking",
-            Icon = "🚪",
-            SourceName = "dbo.ApplicationGatewayInventoryCurrent"
-        },
-        new()
-        {
-            Key = "api-management",
-            DisplayName = "API Management",
-            Description = "Servicios APIM, SKU y configuración",
-            Category = "Integration",
-            Icon = "🔌",
-            SourceName = "dbo.ApiManagementInventoryCurrent"
-        },
-        new()
-        {
-            Key = "data-factory",
-            DisplayName = "Data Factory",
-            Description = "Factories, integración y configuración",
-            Category = "Integration",
-            Icon = "🏭",
-            SourceName = "dbo.DataFactoryInventoryCurrent"
-        },
-        new()
-        {
-            Key = "synapse",
-            DisplayName = "Synapse Analytics",
-            Description = "Workspaces, pools y componentes analíticos",
-            Category = "Analytics & AI",
-            Icon = "📈",
-            SourceName = "dbo.SynapseInventoryCurrent"
-        },
-        new()
-        {
-            Key = "fabric",
-            DisplayName = "Microsoft Fabric",
-            Description = "Capacidades y elementos de Microsoft Fabric",
-            Category = "Analytics & AI",
-            Icon = "📊",
-            SourceName = "dbo.FabricInventoryCurrent"
-        },
-        new()
-        {
-            Key = "azure-ai",
-            DisplayName = "Azure AI Services",
-            Description = "Servicios cognitivos y recursos de inteligencia artificial",
-            Category = "Analytics & AI",
-            Icon = "🤖",
-            SourceName = "dbo.AzureAIInventoryCurrent"
         }
     ];
+
+    private static readonly IReadOnlyDictionary<string, ServicePresentation>
+        ServicePresentations =
+            new Dictionary<string, ServicePresentation>(
+                StringComparer.OrdinalIgnoreCase)
+            {
+                ["API Management"] = new(
+                    "Integration",
+                    "🔌",
+                    "Servicios API Management, SKU y configuración"),
+
+                ["App Service"] = new(
+                    "Web & Containers",
+                    "🌐",
+                    "Web Apps, planes, runtime y configuración"),
+
+                ["Application Gateway"] = new(
+                    "Networking",
+                    "🚪",
+                    "Application Gateways, WAF, SKU y estado"),
+
+                ["Azure Container Registry"] = new(
+                    "Web & Containers",
+                    "📦",
+                    "Registros ACR, SKU y configuración"),
+
+                ["Azure Cosmos DB"] = new(
+                    "Databases",
+                    "🌌",
+                    "Cuentas Cosmos DB, ubicación, SKU y estado"),
+
+                ["Azure Data Factory"] = new(
+                    "Integration",
+                    "🏭",
+                    "Factories, integración y configuración"),
+
+                ["Azure Fabric Capacity"] = new(
+                    "Analytics & AI",
+                    "📊",
+                    "Capacidades de Microsoft Fabric, SKU y estado"),
+
+                ["Azure Function"] = new(
+                    "Web & Containers",
+                    "⚡",
+                    "Function Apps, runtime, hosting y estado"),
+
+                ["Azure SQL Database"] = new(
+                    "Databases",
+                    "🗄️",
+                    "Servidores SQL, bases de datos, SKU y capacidad"),
+
+                ["PostgreSQL Flexible Server"] = new(
+                    "Databases",
+                    "🐘",
+                    "Servidores PostgreSQL, versión y capacidad"),
+
+                ["Redis Enterprise"] = new(
+                    "Databases",
+                    "🚀",
+                    "Instancias Redis Enterprise, SKU y capacidad"),
+
+                ["SQL Managed Instance"] = new(
+                    "Databases",
+                    "🏢",
+                    "Instancias administradas, capacidad y estado")
+            };
 
     public AzureInventoryCatalogService(
         ISqlConnectionFactory connectionFactory)
@@ -182,29 +111,36 @@ public sealed class AzureInventoryCatalogService
         _connectionFactory = connectionFactory;
     }
 
-    public async Task<IReadOnlyList<AzureInventoryModule>> GetAvailableModulesAsync(
-        string subscriptionId)
+    public async Task<IReadOnlyList<AzureInventoryModule>>
+        GetAvailableModulesAsync(
+            string subscriptionId)
     {
         if (string.IsNullOrWhiteSpace(subscriptionId))
         {
             return [];
         }
 
-        var result = new List<AzureInventoryModule>();
+        var normalizedSubscriptionId =
+            subscriptionId.Trim();
 
-        using var connection = _connectionFactory.CreateConnection();
+        var result =
+            new List<AzureInventoryModule>();
+
+        using var connection =
+            _connectionFactory.CreateConnection();
 
         connection.Open();
 
-        foreach (var definition in Catalog)
+        foreach (var definition in SpecializedCatalog)
         {
-            var module = Copy(definition);
+            var module =
+                Copy(definition);
 
             module.ResourceCount =
-                await GetResourceCountAsync(
+                await GetSpecializedResourceCountAsync(
                     connection,
                     module.SourceName,
-                    subscriptionId.Trim());
+                    normalizedSubscriptionId);
 
             if (module.IsAvailable)
             {
@@ -212,42 +148,210 @@ public sealed class AzureInventoryCatalogService
             }
         }
 
+        var serviceModules =
+            await GetServiceModulesAsync(
+                connection,
+                normalizedSubscriptionId);
+
+        result.AddRange(serviceModules);
+
         return result
-            .OrderBy(module => CategoryOrder(module.Category))
-            .ThenBy(module => module.DisplayName)
+            .OrderBy(module =>
+                CategoryOrder(module.Category))
+            .ThenBy(module =>
+                module.DisplayName)
             .ToList();
     }
 
-    public AzureInventoryModule? GetModule(string key)
+    public AzureInventoryModule? GetModule(
+        string key)
     {
-        var definition = Catalog.FirstOrDefault(
-            module => string.Equals(
-                module.Key,
-                key,
-                StringComparison.OrdinalIgnoreCase));
+        if (string.IsNullOrWhiteSpace(key))
+        {
+            return null;
+        }
 
-        return definition is null
-            ? null
-            : Copy(definition);
+        var specialized =
+            SpecializedCatalog.FirstOrDefault(
+                module =>
+                    string.Equals(
+                        module.Key,
+                        key,
+                        StringComparison.OrdinalIgnoreCase));
+
+        if (specialized is not null)
+        {
+            return Copy(specialized);
+        }
+
+        var resourceSubType =
+            DecodeResourceSubType(key);
+
+        if (string.IsNullOrWhiteSpace(resourceSubType))
+        {
+            return null;
+        }
+
+        return CreateServiceModule(
+            resourceSubType,
+            0);
     }
 
-    public async Task<IReadOnlyList<Dictionary<string, object?>>> GetRowsAsync(
-        string moduleKey,
-        string subscriptionId)
+    public async Task<IReadOnlyList<Dictionary<string, object?>>>
+        GetRowsAsync(
+            string moduleKey,
+            string subscriptionId)
     {
-        var module = GetModule(moduleKey);
-
-        if (module is null ||
+        if (string.IsNullOrWhiteSpace(moduleKey) ||
             string.IsNullOrWhiteSpace(subscriptionId))
         {
             return [];
         }
 
-        using var connection = _connectionFactory.CreateConnection();
+        using var connection =
+            _connectionFactory.CreateConnection();
 
         connection.Open();
 
-        if (!await ObjectExistsAsync(connection, module.SourceName))
+        if (IsDynamicServiceKey(moduleKey))
+        {
+            var resourceSubType =
+                DecodeResourceSubType(moduleKey);
+
+            if (string.IsNullOrWhiteSpace(resourceSubType))
+            {
+                return [];
+            }
+
+            return await GetServiceRowsAsync(
+                connection,
+                subscriptionId.Trim(),
+                resourceSubType);
+        }
+
+        var module =
+            GetModule(moduleKey);
+
+        if (module is null)
+        {
+            return [];
+        }
+
+        return await GetSpecializedRowsAsync(
+            connection,
+            module.SourceName,
+            subscriptionId.Trim());
+    }
+
+    private static async Task<IReadOnlyList<AzureInventoryModule>>
+        GetServiceModulesAsync(
+            IDbConnection connection,
+            string subscriptionId)
+    {
+        if (!await ObjectExistsAsync(
+                connection,
+                UnifiedServicesSource))
+        {
+            return [];
+        }
+
+        const string sql = """
+            SELECT
+                LTRIM(RTRIM(ResourceSubType))
+                    AS ResourceSubType,
+                COUNT_BIG(*) AS ResourceCount
+            FROM dbo.AzureServicesInventoryCurrent
+            WHERE
+                TRY_CONVERT(
+                    uniqueidentifier,
+                    SubscriptionId
+                ) =
+                TRY_CONVERT(
+                    uniqueidentifier,
+                    @SubscriptionId
+                )
+                AND IsActive = 1
+                AND NULLIF(
+                    LTRIM(RTRIM(ResourceSubType)),
+                    ''
+                ) IS NOT NULL
+            GROUP BY
+                LTRIM(RTRIM(ResourceSubType));
+            """;
+
+        var rows =
+            await connection.QueryAsync<ServiceCountRow>(
+                sql,
+                new
+                {
+                    SubscriptionId = subscriptionId
+                });
+
+        return rows
+            .Where(row =>
+                !string.IsNullOrWhiteSpace(
+                    row.ResourceSubType))
+            .Select(row =>
+                CreateServiceModule(
+                    row.ResourceSubType!,
+                    row.ResourceCount > int.MaxValue
+                        ? int.MaxValue
+                        : Convert.ToInt32(
+                            row.ResourceCount)))
+            .ToList();
+    }
+
+    private static async Task<
+        IReadOnlyList<Dictionary<string, object?>>>
+        GetServiceRowsAsync(
+            IDbConnection connection,
+            string subscriptionId,
+            string resourceSubType)
+    {
+        const string sql = """
+            SELECT TOP (5000) *
+            FROM dbo.AzureServicesInventoryCurrent
+            WHERE
+                TRY_CONVERT(
+                    uniqueidentifier,
+                    SubscriptionId
+                ) =
+                TRY_CONVERT(
+                    uniqueidentifier,
+                    @SubscriptionId
+                )
+                AND IsActive = 1
+                AND LTRIM(RTRIM(ResourceSubType)) =
+                    @ResourceSubType
+            ORDER BY
+                ResourceName;
+            """;
+
+        var rows =
+            await connection.QueryAsync(
+                sql,
+                new
+                {
+                    SubscriptionId = subscriptionId,
+                    ResourceSubType =
+                        resourceSubType.Trim()
+                });
+
+        return rows
+            .Select(ToDictionary)
+            .ToList();
+    }
+
+    private static async Task<
+        IReadOnlyList<Dictionary<string, object?>>>
+        GetSpecializedRowsAsync(
+            IDbConnection connection,
+            string sourceName,
+            string subscriptionId)
+    {
+        if (!await ObjectExistsAsync(
+                connection,
+                sourceName))
         {
             return [];
         }
@@ -255,36 +359,40 @@ public sealed class AzureInventoryCatalogService
         var columns =
             await GetColumnNamesAsync(
                 connection,
-                module.SourceName);
+                sourceName);
 
         var whereClause =
             BuildSubscriptionFilter(columns);
 
         var sql = $"""
             SELECT TOP (5000) *
-            FROM {module.SourceName}
+            FROM {sourceName}
             {whereClause}
             ORDER BY 1;
             """;
 
-        var rows = await connection.QueryAsync(
-            sql,
-            new
-            {
-                SubscriptionId = subscriptionId.Trim()
-            });
+        var rows =
+            await connection.QueryAsync(
+                sql,
+                new
+                {
+                    SubscriptionId = subscriptionId
+                });
 
         return rows
             .Select(ToDictionary)
             .ToList();
     }
 
-    private static async Task<int> GetResourceCountAsync(
-        IDbConnection connection,
-        string sourceName,
-        string subscriptionId)
+    private static async Task<int>
+        GetSpecializedResourceCountAsync(
+            IDbConnection connection,
+            string sourceName,
+            string subscriptionId)
     {
-        if (!await ObjectExistsAsync(connection, sourceName))
+        if (!await ObjectExistsAsync(
+                connection,
+                sourceName))
         {
             return 0;
         }
@@ -309,59 +417,171 @@ public sealed class AzureInventoryCatalogService
                 StringComparison.OrdinalIgnoreCase))
         {
             sql = $"""
-                SELECT COUNT_BIG(DISTINCT VMResourceId)
+                SELECT COUNT_BIG(
+                    DISTINCT VMResourceId
+                )
                 FROM {sourceName}
                 {whereClause};
                 """;
         }
 
-        var count = await connection.ExecuteScalarAsync<long>(
-            sql,
-            new
-            {
-                SubscriptionId = subscriptionId
-            });
+        var count =
+            await connection.ExecuteScalarAsync<long>(
+                sql,
+                new
+                {
+                    SubscriptionId = subscriptionId
+                });
 
         return count > int.MaxValue
             ? int.MaxValue
             : Convert.ToInt32(count);
     }
 
-    private static async Task<bool> ObjectExistsAsync(
-        IDbConnection connection,
-        string sourceName)
+    private static AzureInventoryModule
+        CreateServiceModule(
+            string resourceSubType,
+            int resourceCount)
+    {
+        var normalizedName =
+            resourceSubType.Trim();
+
+        var presentation =
+            ServicePresentations.TryGetValue(
+                normalizedName,
+                out var configured)
+                    ? configured
+                    : new ServicePresentation(
+                        "Other",
+                        "☁️",
+                        $"Inventario de {normalizedName}");
+
+        return new AzureInventoryModule
+        {
+            Key =
+                EncodeResourceSubType(
+                    normalizedName),
+
+            DisplayName =
+                normalizedName,
+
+            Description =
+                presentation.Description,
+
+            Category =
+                presentation.Category,
+
+            Icon =
+                presentation.Icon,
+
+            SourceName =
+                UnifiedServicesSource,
+
+            IsSpecialized =
+                false,
+
+            ResourceCount =
+                resourceCount
+        };
+    }
+
+    private static bool IsDynamicServiceKey(
+        string key)
+    {
+        return key.StartsWith(
+            DynamicKeyPrefix,
+            StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static string EncodeResourceSubType(
+        string resourceSubType)
+    {
+        var bytes =
+            Encoding.UTF8.GetBytes(
+                resourceSubType);
+
+        var encoded =
+            Convert.ToBase64String(bytes)
+                .TrimEnd('=')
+                .Replace('+', '-')
+                .Replace('/', '_');
+
+        return DynamicKeyPrefix + encoded;
+    }
+
+    private static string? DecodeResourceSubType(
+        string key)
+    {
+        if (!IsDynamicServiceKey(key))
+        {
+            return null;
+        }
+
+        try
+        {
+            var encoded =
+                key[DynamicKeyPrefix.Length..]
+                    .Replace('-', '+')
+                    .Replace('_', '/');
+
+            encoded =
+                encoded.PadRight(
+                    encoded.Length +
+                    ((4 - encoded.Length % 4) % 4),
+                    '=');
+
+            var bytes =
+                Convert.FromBase64String(encoded);
+
+            return Encoding.UTF8.GetString(bytes);
+        }
+        catch (FormatException)
+        {
+            return null;
+        }
+    }
+
+    private static async Task<bool>
+        ObjectExistsAsync(
+            IDbConnection connection,
+            string sourceName)
     {
         const string sql = """
             SELECT CASE
-                WHEN OBJECT_ID(@SourceName) IS NULL THEN 0
+                WHEN OBJECT_ID(@SourceName) IS NULL
+                    THEN 0
                 ELSE 1
             END;
             """;
 
-        return await connection.ExecuteScalarAsync<int>(
-            sql,
-            new
-            {
-                SourceName = sourceName
-            }) == 1;
+        return await connection
+            .ExecuteScalarAsync<int>(
+                sql,
+                new
+                {
+                    SourceName = sourceName
+                }) == 1;
     }
 
-    private static async Task<HashSet<string>> GetColumnNamesAsync(
-        IDbConnection connection,
-        string sourceName)
+    private static async Task<HashSet<string>>
+        GetColumnNamesAsync(
+            IDbConnection connection,
+            string sourceName)
     {
         const string sql = """
             SELECT c.name
             FROM sys.columns AS c
-            WHERE c.object_id = OBJECT_ID(@SourceName);
+            WHERE c.object_id =
+                OBJECT_ID(@SourceName);
             """;
 
-        var names = await connection.QueryAsync<string>(
-            sql,
-            new
-            {
-                SourceName = sourceName
-            });
+        var names =
+            await connection.QueryAsync<string>(
+                sql,
+                new
+                {
+                    SourceName = sourceName
+                });
 
         return names.ToHashSet(
             StringComparer.OrdinalIgnoreCase);
@@ -375,26 +595,37 @@ public sealed class AzureInventoryCatalogService
             return string.Empty;
         }
 
-        var conditions = new List<string>
-        {
-            """
-            TRY_CONVERT(uniqueidentifier, SubscriptionId) =
-            TRY_CONVERT(uniqueidentifier, @SubscriptionId)
-            """
-        };
+        var conditions =
+            new List<string>
+            {
+                """
+                TRY_CONVERT(
+                    uniqueidentifier,
+                    SubscriptionId
+                ) =
+                TRY_CONVERT(
+                    uniqueidentifier,
+                    @SubscriptionId
+                )
+                """
+            };
 
         if (columns.Contains("IsActive"))
         {
-            conditions.Add("IsActive = 1");
+            conditions.Add(
+                "IsActive = 1");
         }
 
-        return "WHERE " + string.Join(
-            Environment.NewLine + " AND ",
-            conditions);
+        return "WHERE " +
+               string.Join(
+                   Environment.NewLine +
+                   " AND ",
+                   conditions);
     }
 
-    private static Dictionary<string, object?> ToDictionary(
-        dynamic row)
+    private static Dictionary<string, object?>
+        ToDictionary(
+            dynamic row)
     {
         var source =
             (IDictionary<string, object>)row;
@@ -416,12 +647,14 @@ public sealed class AzureInventoryCatalogService
             Category = source.Category,
             Icon = source.Icon,
             SourceName = source.SourceName,
+            ResourceSubType = source.ResourceSubType,
             IsSpecialized = source.IsSpecialized,
             ResourceCount = source.ResourceCount
         };
     }
 
-    private static int CategoryOrder(string category)
+    private static int CategoryOrder(
+        string category)
     {
         return category switch
         {
@@ -431,8 +664,35 @@ public sealed class AzureInventoryCatalogService
             "Databases" => 4,
             "Integration" => 5,
             "Analytics & AI" => 6,
+            "Management" => 7,
+            "Other" => 98,
             _ => 99
         };
     }
+
+    private sealed record ServicePresentation(
+        string Category,
+        string Icon,
+        string Description);
+
+    private sealed class ServiceCountRow
+    {
+        public string? ResourceSubType
+        {
+            get;
+            init;
+        }
+
+        public long ResourceCount
+        {
+            get;
+            init;
+        }
+    }
 }
+
+
+
+
+
 

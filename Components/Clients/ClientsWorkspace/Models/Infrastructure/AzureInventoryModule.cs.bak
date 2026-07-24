@@ -8,10 +8,8 @@ public sealed class AzureInventoryModule
     public string Category { get; init; } = string.Empty;
     public string Icon { get; init; } = string.Empty;
     public string SourceName { get; init; } = string.Empty;
-    public string? ResourceSubType { get; init; }
     public int ResourceCount { get; set; }
     public bool IsSpecialized { get; init; }
 
     public bool IsAvailable => ResourceCount > 0;
 }
-
