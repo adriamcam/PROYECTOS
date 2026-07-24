@@ -685,18 +685,10 @@
 
         var resourceSubType = Module?.ResourceSubType;
 
-        if (string.IsNullOrWhiteSpace(resourceSubType))
-        {
-            resourceSubType =
-                Rows
-                    .Select(row => GetValue(row, "ResourceSubType")?.ToString())
-                    .FirstOrDefault(value => !string.IsNullOrWhiteSpace(value));
-        }
-
         if (!string.IsNullOrWhiteSpace(resourceSubType)
             &&
             ColumnsByResourceSubType.TryGetValue(
-                resourceSubType.Trim(),
+                resourceSubType,
                 out var configuredColumns))
         {
             return configuredColumns
@@ -792,7 +784,6 @@
         return value;
     }
 }
-
 
 
 
