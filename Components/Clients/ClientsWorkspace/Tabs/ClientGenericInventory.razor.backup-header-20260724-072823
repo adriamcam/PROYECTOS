@@ -430,25 +430,13 @@
 
             if (Rows.Count > 0 && VisibleColumns.Count > 0)
             {
-                var table = worksheet.Range(
+                worksheet.Range(
                         1,
                         1,
                         Rows.Count + 1,
                         VisibleColumns.Count)
                     .CreateTable(
                         $"tbl_{Guid.NewGuid():N}");
-
-                table.Theme = XLTableTheme.None;
-
-                var header = worksheet.Range(
-                    1,
-                    1,
-                    1,
-                    VisibleColumns.Count);
-
-                header.Style.Font.Bold = true;
-                header.Style.Font.FontColor = XLColor.Black;
-                header.Style.Fill.BackgroundColor = XLColor.FromHtml("#DCE6F1");
             }
 
             using var stream = new MemoryStream();
@@ -804,7 +792,6 @@
         return value;
     }
 }
-
 
 
 
