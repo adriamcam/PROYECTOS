@@ -1,0 +1,178 @@
+<section class="vm-metrics">
+
+    <header class="vm-metrics-header">
+        <div>
+            <span class="vm-metrics-eyebrow">
+                MÉTRICAS DE INFRAESTRUCTURA
+            </span>
+
+            <h2>Máquinas virtuales</h2>
+
+            <p>
+                Rendimiento, disponibilidad y recomendaciones de optimización
+                para las máquinas virtuales de la suscripción.
+            </p>
+        </div>
+
+        <div class="period-selector">
+            <span>Periodo</span>
+
+            <div class="period-buttons">
+                <button type="button"
+                        class="@GetPeriodButtonClass(7)"
+                        @onclick="() => SelectPeriod(7)">
+                    7 días
+                </button>
+
+                <button type="button"
+                        class="@GetPeriodButtonClass(15)"
+                        @onclick="() => SelectPeriod(15)">
+                    15 días
+                </button>
+
+                <button type="button"
+                        class="@GetPeriodButtonClass(30)"
+                        @onclick="() => SelectPeriod(30)">
+                    30 días
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <div class="vm-context-bar">
+        <div>
+            <span>Cliente</span>
+            <strong>@CustomerName</strong>
+        </div>
+
+        <div>
+            <span>Suscripción</span>
+            <strong>@SubscriptionName</strong>
+        </div>
+
+        <div>
+            <span>Periodo seleccionado</span>
+            <strong>@SelectedPeriod días</strong>
+        </div>
+    </div>
+
+    <div class="vm-kpi-grid">
+
+        <article class="vm-kpi-card">
+            <span>Total VM</span>
+            <strong>—</strong>
+            <small>Pendiente de conexión SQL</small>
+        </article>
+
+        <article class="vm-kpi-card">
+            <span>CPU promedio</span>
+            <strong>—</strong>
+            <small>Promedio del periodo</small>
+        </article>
+
+        <article class="vm-kpi-card">
+            <span>RAM promedio</span>
+            <strong>—</strong>
+            <small>Promedio del periodo</small>
+        </article>
+
+        <article class="vm-kpi-card">
+            <span>Disponibilidad</span>
+            <strong>—</strong>
+            <small>Promedio del periodo</small>
+        </article>
+
+        <article class="vm-kpi-card">
+            <span>Con recomendación</span>
+            <strong>—</strong>
+            <small>Rightsizing requerido</small>
+        </article>
+
+        <article class="vm-kpi-card">
+            <span>Sin datos</span>
+            <strong>—</strong>
+            <small>Validar Azure Monitor</small>
+        </article>
+
+    </div>
+
+    <div class="vm-table-panel">
+
+        <div class="vm-table-heading">
+            <div>
+                <h3>Rendimiento de máquinas virtuales</h3>
+
+                <p>
+                    La información se conectará posteriormente con las vistas
+                    de resumen de 7, 15 y 30 días.
+                </p>
+            </div>
+        </div>
+
+        <div class="vm-table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Máquina virtual</th>
+                        <th>CPU Avg</th>
+                        <th>CPU Max</th>
+                        <th>CPU P95</th>
+                        <th>RAM Avg</th>
+                        <th>RAM Max</th>
+                        <th>RAM P95</th>
+                        <th>Disponibilidad</th>
+                        <th>Días</th>
+                        <th>SKU actual</th>
+                        <th>Recomendación</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    <tr>
+                        <td colspan="11">
+                            <div class="vm-table-empty">
+                                <span>📈</span>
+
+                                <strong>
+                                    Interfaz preparada
+                                </strong>
+
+                                <p>
+                                    El siguiente paso será conectar
+                                    las vistas SQL de métricas.
+                                </p>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+</section>
+
+@code {
+    [Parameter]
+    public string? CustomerName { get; set; }
+
+    [Parameter]
+    public string? SubscriptionId { get; set; }
+
+    [Parameter]
+    public string? SubscriptionName { get; set; }
+
+    private int SelectedPeriod { get; set; } = 7;
+
+    private void SelectPeriod(int days)
+    {
+        SelectedPeriod = days;
+    }
+
+    private string GetPeriodButtonClass(int days)
+    {
+        return SelectedPeriod == days
+            ? "period-button period-button-active"
+            : "period-button";
+    }
+}

@@ -1,0 +1,239 @@
+@using ITQS.SupportOperationsCenter.Components.Clients.ClientsWorkspace.Components.Metrics
+
+<section class="metrics-workspace">
+
+    @if (string.IsNullOrWhiteSpace(CustomerName) ||
+         string.IsNullOrWhiteSpace(SubscriptionId))
+    {
+        <div class="metrics-empty-state">
+            <div class="metrics-empty-icon">📊</div>
+
+            <h2>Métricas</h2>
+
+            <p>
+                Seleccione un cliente y una suscripción para consultar
+                las métricas de los recursos Azure.
+            </p>
+        </div>
+    }
+    else if (string.IsNullOrWhiteSpace(_selectedModuleKey))
+    {
+        <header class="metrics-header">
+            <div>
+                <span class="metrics-eyebrow">MONITOREO Y RENDIMIENTO</span>
+
+                <h2>Métricas Azure</h2>
+
+                <p>
+                    Consulte rendimiento, disponibilidad y recomendaciones
+                    para los recursos de la suscripción seleccionada.
+                </p>
+            </div>
+
+            <div class="metrics-context">
+                <span class="metrics-context-label">Suscripción</span>
+                <strong>@SubscriptionName</strong>
+            </div>
+        </header>
+
+        <div class="metrics-grid">
+
+            <button type="button"
+                    class="metrics-card metrics-card-enabled"
+                    @onclick='() => SelectModule("virtual-machines")'>
+
+                <div class="metrics-card-top">
+                    <div class="metrics-card-icon metrics-icon-vm">
+                        🖥️
+                    </div>
+
+                    <span class="metrics-card-status metrics-status-active">
+                        Disponible
+                    </span>
+                </div>
+
+                <div class="metrics-card-content">
+                    <h3>Máquinas virtuales</h3>
+
+                    <p>
+                        CPU, memoria, disponibilidad, SKU actual
+                        y recomendaciones de rightsizing.
+                    </p>
+                </div>
+
+                <div class="metrics-card-footer">
+                    <span>7, 15 y 30 días</span>
+                    <span class="metrics-card-arrow">→</span>
+                </div>
+            </button>
+
+            <article class="metrics-card metrics-card-disabled">
+                <div class="metrics-card-top">
+                    <div class="metrics-card-icon">
+                        🌐
+                    </div>
+
+                    <span class="metrics-card-status">
+                        Próximamente
+                    </span>
+                </div>
+
+                <div class="metrics-card-content">
+                    <h3>App Services</h3>
+
+                    <p>
+                        Solicitudes, errores, tiempo de respuesta,
+                        CPU y consumo de memoria.
+                    </p>
+                </div>
+
+                <div class="metrics-card-footer">
+                    <span>Métricas de aplicaciones</span>
+                </div>
+            </article>
+
+            <article class="metrics-card metrics-card-disabled">
+                <div class="metrics-card-top">
+                    <div class="metrics-card-icon">
+                        🗄️
+                    </div>
+
+                    <span class="metrics-card-status">
+                        Próximamente
+                    </span>
+                </div>
+
+                <div class="metrics-card-content">
+                    <h3>SQL Database</h3>
+
+                    <p>
+                        DTU, CPU, almacenamiento, conexiones,
+                        sesiones y rendimiento de base de datos.
+                    </p>
+                </div>
+
+                <div class="metrics-card-footer">
+                    <span>Métricas de bases de datos</span>
+                </div>
+            </article>
+
+            <article class="metrics-card metrics-card-disabled">
+                <div class="metrics-card-top">
+                    <div class="metrics-card-icon">
+                        💾
+                    </div>
+
+                    <span class="metrics-card-status">
+                        Próximamente
+                    </span>
+                </div>
+
+                <div class="metrics-card-content">
+                    <h3>Storage Accounts</h3>
+
+                    <p>
+                        Capacidad, transacciones, latencia,
+                        disponibilidad y errores de almacenamiento.
+                    </p>
+                </div>
+
+                <div class="metrics-card-footer">
+                    <span>Métricas de almacenamiento</span>
+                </div>
+            </article>
+
+            <article class="metrics-card metrics-card-disabled">
+                <div class="metrics-card-top">
+                    <div class="metrics-card-icon">
+                        🌐
+                    </div>
+
+                    <span class="metrics-card-status">
+                        Próximamente
+                    </span>
+                </div>
+
+                <div class="metrics-card-content">
+                    <h3>Networking</h3>
+
+                    <p>
+                        Tráfico, conectividad, paquetes,
+                        latencia y estado de recursos de red.
+                    </p>
+                </div>
+
+                <div class="metrics-card-footer">
+                    <span>Métricas de conectividad</span>
+                </div>
+            </article>
+
+            <article class="metrics-card metrics-card-disabled">
+                <div class="metrics-card-top">
+                    <div class="metrics-card-icon">
+                        🛡️
+                    </div>
+
+                    <span class="metrics-card-status">
+                        Próximamente
+                    </span>
+                </div>
+
+                <div class="metrics-card-content">
+                    <h3>Recovery Services</h3>
+
+                    <p>
+                        Estado de respaldos, duración,
+                        cumplimiento y disponibilidad de recuperación.
+                    </p>
+                </div>
+
+                <div class="metrics-card-footer">
+                    <span>Métricas de protección</span>
+                </div>
+            </article>
+
+        </div>
+    }
+    else if (_selectedModuleKey == "virtual-machines")
+    {
+        <div class="metrics-module-container">
+
+            <button type="button"
+                    class="metrics-back-button"
+                    @onclick="ReturnToCatalog">
+                <span aria-hidden="true">←</span>
+                Volver a métricas
+            </button>
+
+            <ClientVirtualMachineMetrics
+                CustomerName="@CustomerName"
+                SubscriptionId="@SubscriptionId"
+                SubscriptionName="@SubscriptionName" />
+
+        </div>
+    }
+
+</section>
+
+@code {
+    [Parameter]
+    public string? CustomerName { get; set; }
+
+    [Parameter]
+    public string? SubscriptionId { get; set; }
+
+    [Parameter]
+    public string? SubscriptionName { get; set; }
+
+    private string? _selectedModuleKey;
+
+    private void SelectModule(string moduleKey)
+    {
+        _selectedModuleKey = moduleKey;
+    }
+
+    private void ReturnToCatalog()
+    {
+        _selectedModuleKey = null;
+    }
+}
