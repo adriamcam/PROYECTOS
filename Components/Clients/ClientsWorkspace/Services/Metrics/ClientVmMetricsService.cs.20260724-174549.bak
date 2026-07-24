@@ -37,18 +37,14 @@ public sealed class ClientVmMetricsService
                     ResourceGroup,
                     Computer,
                     FechaMetrica,
-
                     CpuAvgPercent,
                     CpuMaxPercent,
                     CpuP95Percent,
-
                     MemoryUsedAvgPercent,
                     MemoryUsedMaxPercent,
                     MemoryUsedP95Percent,
-
                     AvailabilityRate,
-                    TotalBuckets,
-                    MaxAvailableHours
+                    VMStatus
                 FROM dbo.VmPerformanceDaily
                 WHERE TRY_CONVERT(
                         uniqueidentifier,
@@ -57,10 +53,11 @@ public sealed class ClientVmMetricsService
                         uniqueidentifier,
                         @SubscriptionId
                       )
-                  AND FechaMetrica >= DATEADD(
-                        DAY,
-                        -(@Days - 1),
-                        CONVERT(date, SYSUTCDATETIME())
+                  AND FechaMetrica >=
+                      DATEADD(
+                          DAY,
+                          -(@Days - 1),
+                          CONVERT(date, SYSUTCDATETIME())
                       )
             ),
             Aggregated AS
@@ -72,7 +69,6 @@ public sealed class ClientVmMetricsService
                     MAX(SubscriptionName) AS SubscriptionName,
                     MAX(ResourceGroup) AS ResourceGroup,
                     Computer,
-
                     MIN(FechaMetrica) AS Desde,
                     MAX(FechaMetrica) AS Hasta,
                     COUNT(DISTINCT FechaMetrica) AS DiasConDatos,
@@ -85,31 +81,7 @@ public sealed class ClientVmMetricsService
                     MAX(MemoryUsedMaxPercent) AS MemoriaMaxima,
                     AVG(MemoryUsedP95Percent) AS MemoriaP95,
 
-                    CONVERT(
-                        decimal(10, 2),
-                        CASE
-                            WHEN SUM(ISNULL(TotalBuckets, 0)) > 0
-                                THEN
-                                    (
-                                        SUM(
-                                            CONVERT(
-                                                decimal(18, 4),
-                                                ISNULL(MaxAvailableHours, 0)
-                                            )
-                                        )
-                                        /
-                                        SUM(
-                                            CONVERT(
-                                                decimal(18, 4),
-                                                ISNULL(TotalBuckets, 0)
-                                            )
-                                        )
-                                    ) * 100.0
-
-                            ELSE AVG(AvailabilityRate)
-                        END
-                    ) AS DisponibilidadPromedio,
-
+                    AVG(AvailabilityRate) AS DisponibilidadPromedio,
                     MIN(AvailabilityRate) AS DisponibilidadMinima,
 
                     SUM(
@@ -130,70 +102,6 @@ public sealed class ClientVmMetricsService
                     TenantId,
                     SubscriptionId,
                     Computer
-            ),
-            Evaluated AS
-            (
-                SELECT
-                    *,
-
-                    CAST(
-                        CASE
-                            WHEN CpuPromedio IS NULL
-                             AND MemoriaPromedio IS NULL
-                             AND DisponibilidadPromedio IS NULL
-                                THEN 'NoData'
-
-                            WHEN DisponibilidadPromedio < 95
-                              OR CpuMaximo >= 90
-                              OR MemoriaMaxima >= 90
-                                THEN 'Critical'
-
-                            WHEN DisponibilidadPromedio < 99
-                              OR CpuMaximo >= 80
-                              OR MemoriaMaxima >= 80
-                                THEN 'Warning'
-
-                            ELSE 'Healthy'
-                        END
-                        AS varchar(20)
-                    ) AS VMStatus,
-
-                    CAST(
-                        CASE
-                            WHEN CpuPromedio IS NULL
-                             AND MemoriaPromedio IS NULL
-                             AND DisponibilidadPromedio IS NULL
-                                THEN
-                                    'Sin datos suficientes en Azure Monitor.'
-
-                            WHEN DisponibilidadPromedio < 95
-                                THEN
-                                    'Disponibilidad baja. Revisar apagados, reinicios, agente AMA, conectividad o ventanas de mantenimiento.'
-
-                            WHEN CpuMaximo >= 90
-                             AND MemoriaMaxima >= 90
-                                THEN
-                                    'CPU y memoria críticas. Evaluar cambio de tamaño y revisar procesos de alto consumo.'
-
-                            WHEN CpuMaximo >= 90
-                                THEN
-                                    'CPU crítica. Revisar procesos y evaluar aumento de capacidad.'
-
-                            WHEN MemoriaMaxima >= 90
-                                THEN
-                                    'Memoria crítica. Revisar procesos y evaluar aumento de RAM.'
-
-                            WHEN CpuPromedio < 20
-                             AND MemoriaPromedio < 40
-                                THEN
-                                    'Bajo consumo promedio. Evaluar rightsizing a una SKU menor.'
-
-                            ELSE
-                                'Sin recomendación crítica para el período seleccionado.'
-                        END
-                        AS varchar(300)
-                    ) AS Recomendacion
-                FROM Aggregated
             )
             SELECT
                 CustomerName,
@@ -205,30 +113,77 @@ public sealed class ClientVmMetricsService
                 Desde,
                 Hasta,
                 DiasConDatos,
-
                 CpuPromedio,
                 CpuMaximo,
                 CpuP95,
-
                 MemoriaPromedio,
                 MemoriaMaxima,
                 MemoriaP95,
-
                 DisponibilidadPromedio,
                 DisponibilidadMinima,
-
                 DiasCpuCritica,
                 DiasMemoriaCritica,
 
-                VMStatus,
-                Recomendacion
-            FROM Evaluated
+                CAST(
+                    CASE
+                        WHEN DisponibilidadPromedio IS NULL
+                            THEN 'NoData'
+
+                        WHEN DisponibilidadPromedio < 95
+                          OR CpuMaximo >= 90
+                          OR MemoriaMaxima >= 90
+                            THEN 'Critical'
+
+                        WHEN DisponibilidadPromedio < 99
+                          OR CpuMaximo >= 80
+                          OR MemoriaMaxima >= 80
+                            THEN 'Warning'
+
+                        ELSE 'Healthy'
+                    END
+                    AS varchar(20)
+                ) AS VMStatus,
+
+                CAST(
+                    CASE
+                        WHEN DisponibilidadPromedio IS NULL
+                            THEN 'Sin datos suficientes en Azure Monitor.'
+
+                        WHEN DisponibilidadPromedio < 95
+                            THEN 'Disponibilidad baja. Revisar apagados, reinicios, agente AMA, conectividad o ventanas de mantenimiento.'
+
+                        WHEN CpuMaximo >= 90
+                          AND MemoriaMaxima >= 90
+                            THEN 'CPU y memoria críticas. Evaluar cambio de tamaño y revisar procesos de alto consumo.'
+
+                        WHEN CpuMaximo >= 90
+                            THEN 'CPU crítica. Revisar procesos y evaluar aumento de capacidad.'
+
+                        WHEN MemoriaMaxima >= 90
+                            THEN 'Memoria crítica. Revisar procesos y evaluar aumento de RAM.'
+
+                        WHEN CpuPromedio < 20
+                          AND MemoriaPromedio < 40
+                            THEN 'Bajo consumo promedio. Evaluar rightsizing a una SKU menor.'
+
+                        ELSE 'Sin recomendación crítica para el período seleccionado.'
+                    END
+                    AS varchar(250)
+                ) AS Recomendacion
+            FROM Aggregated
             ORDER BY
-                CASE VMStatus
-                    WHEN 'Critical' THEN 1
-                    WHEN 'Warning' THEN 2
-                    WHEN 'NoData' THEN 3
-                    ELSE 4
+                CASE
+                    WHEN DisponibilidadPromedio < 95
+                      OR CpuMaximo >= 90
+                      OR MemoriaMaxima >= 90
+                        THEN 1
+
+                    WHEN DisponibilidadPromedio < 99
+                      OR CpuMaximo >= 80
+                      OR MemoriaMaxima >= 80
+                        THEN 2
+
+                    ELSE 3
                 END,
                 Computer;
             """;
@@ -262,17 +217,14 @@ public sealed class ClientVmMetricsService
         {
             TotalVMs = rows.Count,
 
-            CpuPromedio =
-                AverageNullable(
-                    rows.Select(row => row.CpuPromedio)),
+            CpuPromedio = AverageNullable(
+                rows.Select(row => row.CpuPromedio)),
 
-            MemoriaPromedio =
-                AverageNullable(
-                    rows.Select(row => row.MemoriaPromedio)),
+            MemoriaPromedio = AverageNullable(
+                rows.Select(row => row.MemoriaPromedio)),
 
-            DisponibilidadPromedio =
-                AverageNullable(
-                    rows.Select(row => row.DisponibilidadPromedio)),
+            DisponibilidadPromedio = AverageNullable(
+                rows.Select(row => row.DisponibilidadPromedio)),
 
             ConRecomendacion =
                 rows.Count(row => row.TieneRecomendacion),
@@ -281,27 +233,23 @@ public sealed class ClientVmMetricsService
                 rows.Count(row => row.SinDatos),
 
             Healthy =
-                CountStatus(rows, "Healthy"),
+                rows.Count(row =>
+                    row.VMStatus.Equals(
+                        "Healthy",
+                        StringComparison.OrdinalIgnoreCase)),
 
             Warning =
-                CountStatus(rows, "Warning"),
+                rows.Count(row =>
+                    row.VMStatus.Equals(
+                        "Warning",
+                        StringComparison.OrdinalIgnoreCase)),
 
             Critical =
-                CountStatus(rows, "Critical"),
-
-            NoData =
-                CountStatus(rows, "NoData")
+                rows.Count(row =>
+                    row.VMStatus.Equals(
+                        "Critical",
+                        StringComparison.OrdinalIgnoreCase))
         };
-    }
-
-    private static int CountStatus(
-        IEnumerable<ClientVmMetricModel> rows,
-        string status)
-    {
-        return rows.Count(
-            row => row.EstadoNormalizado.Equals(
-                status,
-                StringComparison.OrdinalIgnoreCase));
     }
 
     private static int NormalizeDays(int days)

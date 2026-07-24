@@ -1,0 +1,242 @@
+.vm-metrics {
+    width: 100%;
+}
+
+.vm-metrics-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 22px;
+}
+
+.vm-metrics-header h2 {
+    margin: 4px 0 7px;
+    color: #172033;
+    font-size: 1.55rem;
+}
+
+.vm-metrics-header p {
+    max-width: 760px;
+    margin: 0;
+    color: #64748b;
+    font-size: 0.9rem;
+    line-height: 1.55;
+}
+
+.vm-metrics-eyebrow {
+    color: #2563eb;
+    font-size: 0.7rem;
+    font-weight: 750;
+    letter-spacing: 0.08em;
+}
+
+.period-selector {
+    min-width: 255px;
+}
+
+.period-selector > span {
+    display: block;
+    margin-bottom: 7px;
+    color: #64748b;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.period-buttons {
+    display: flex;
+    padding: 4px;
+    gap: 4px;
+    border: 1px solid #dce5ef;
+    border-radius: 10px;
+    background: #f6f8fb;
+}
+
+.period-button {
+    flex: 1;
+    padding: 8px 10px;
+    border: 0;
+    border-radius: 7px;
+    background: transparent;
+    color: #64748b;
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.period-button-active {
+    background: #2563eb;
+    color: #ffffff;
+    box-shadow: 0 3px 9px rgba(37, 99, 235, 0.22);
+}
+
+.vm-context-bar {
+    display: grid;
+    margin-bottom: 18px;
+    padding: 15px 18px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+    border: 1px solid #dce5ef;
+    border-radius: 12px;
+    background: #f8fafc;
+}
+
+.vm-context-bar span {
+    display: block;
+    margin-bottom: 4px;
+    color: #64748b;
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.vm-context-bar strong {
+    display: block;
+    overflow: hidden;
+    color: #172033;
+    font-size: 0.83rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.vm-kpi-grid {
+    display: grid;
+    margin-bottom: 20px;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.vm-kpi-card {
+    min-height: 105px;
+    padding: 15px;
+    border: 1px solid #dce5ef;
+    border-radius: 12px;
+    background: #ffffff;
+}
+
+.vm-kpi-card span {
+    display: block;
+    margin-bottom: 9px;
+    color: #64748b;
+    font-size: 0.69rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.vm-kpi-card strong {
+    display: block;
+    margin-bottom: 6px;
+    color: #172033;
+    font-size: 1.35rem;
+}
+
+.vm-kpi-card small {
+    color: #94a3b8;
+    font-size: 0.68rem;
+}
+
+.vm-table-panel {
+    overflow: hidden;
+    border: 1px solid #dce5ef;
+    border-radius: 13px;
+    background: #ffffff;
+}
+
+.vm-table-heading {
+    display: flex;
+    padding: 18px 20px;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #e8edf3;
+}
+
+.vm-table-heading h3 {
+    margin: 0 0 5px;
+    color: #172033;
+    font-size: 1rem;
+}
+
+.vm-table-heading p {
+    margin: 0;
+    color: #64748b;
+    font-size: 0.78rem;
+}
+
+.vm-table-wrapper {
+    overflow-x: auto;
+}
+
+.vm-table-wrapper table {
+    width: 100%;
+    min-width: 1250px;
+    border-collapse: collapse;
+}
+
+.vm-table-wrapper th {
+    padding: 12px 14px;
+    border-bottom: 1px solid #e8edf3;
+    background: #f8fafc;
+    color: #64748b;
+    font-size: 0.67rem;
+    font-weight: 750;
+    text-align: left;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.vm-table-wrapper td {
+    padding: 15px 14px;
+    border-bottom: 1px solid #edf1f5;
+    color: #334155;
+    font-size: 0.78rem;
+}
+
+.vm-table-empty {
+    display: flex;
+    min-height: 190px;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    color: #64748b;
+    text-align: center;
+}
+
+.vm-table-empty span {
+    margin-bottom: 8px;
+    font-size: 1.65rem;
+}
+
+.vm-table-empty strong {
+    margin-bottom: 5px;
+    color: #334155;
+}
+
+.vm-table-empty p {
+    margin: 0;
+    font-size: 0.78rem;
+}
+
+@media (max-width: 1250px) {
+    .vm-kpi-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 760px) {
+    .vm-metrics-header {
+        flex-direction: column;
+    }
+
+    .period-selector {
+        width: 100%;
+    }
+
+    .vm-context-bar {
+        grid-template-columns: 1fr;
+    }
+
+    .vm-kpi-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}

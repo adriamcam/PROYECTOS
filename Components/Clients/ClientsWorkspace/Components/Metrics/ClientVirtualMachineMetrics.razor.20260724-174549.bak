@@ -1,10 +1,7 @@
-@using Microsoft.JSInterop
 @using ITQS.SupportOperationsCenter.Components.Clients.ClientsWorkspace.Models.Metrics
 @using ITQS.SupportOperationsCenter.Components.Clients.ClientsWorkspace.Services.Metrics
 
 @inject ClientVmMetricsService VmMetricsService
-@inject ClientMetricsExcelService ExcelService
-@inject IJSRuntime JSRuntime
 
 <section class="vm-metrics">
 
@@ -23,35 +20,23 @@
             </p>
         </div>
 
-        <div class="vm-header-actions">
+        <div class="vm-period-container">
 
-            <button type="button"
-                    class="vm-excel-button"
-                    disabled="@(_isLoading || _metrics.Count == 0)"
-                    @onclick="DownloadExcelAsync">
-                <span aria-hidden="true">⬇</span>
-                Descargar Excel
-            </button>
+            <span class="vm-period-label">
+                PERÍODO
+            </span>
 
-            <div class="vm-period-container">
+            <div class="vm-period-selector">
 
-                <span class="vm-period-label">
-                    PERÍODO
-                </span>
-
-                <div class="vm-period-selector">
-
-                    @foreach (var period in _availablePeriods)
-                    {
-                        <button type="button"
-                                class="@GetPeriodButtonClass(period)"
-                                disabled="@_isLoading"
-                                @onclick="() => ChangePeriodAsync(period)">
-                            @period días
-                        </button>
-                    }
-
-                </div>
+                @foreach (var period in _availablePeriods)
+                {
+                    <button type="button"
+                            class="@GetPeriodButtonClass(period)"
+                            disabled="@_isLoading"
+                            @onclick="() => ChangePeriodAsync(period)">
+                        @period días
+                    </button>
+                }
 
             </div>
 
@@ -90,11 +75,7 @@
     {
         <div class="vm-state-panel vm-state-error">
             <div class="vm-state-icon">⚠️</div>
-
-            <strong>
-                No fue posible cargar las métricas
-            </strong>
-
+            <strong>No fue posible cargar las métricas</strong>
             <span>@_errorMessage</span>
 
             <button type="button"
@@ -162,80 +143,30 @@
                 <div class="vm-status-summary">
 
                     <span class="vm-status-badge vm-status-healthy">
-                        ● Healthy @_summary.Healthy
+                        Healthy @_summary.Healthy
                     </span>
 
                     <span class="vm-status-badge vm-status-warning">
-                        ● Warning @_summary.Warning
+                        Warning @_summary.Warning
                     </span>
 
                     <span class="vm-status-badge vm-status-critical">
-                        ● Critical @_summary.Critical
-                    </span>
-
-                    <span class="vm-status-badge vm-status-nodata">
-                        ● Sin datos @_summary.NoData
+                        Critical @_summary.Critical
                     </span>
 
                 </div>
 
             </header>
 
-            <div class="vm-filters">
-
-                <label class="vm-filter-search">
-                    <span>Buscar</span>
-
-                    <input type="search"
-                           placeholder="Nombre de VM o Resource Group"
-                           @bind="_searchText"
-                           @bind:event="oninput" />
-                </label>
-
-                <label>
-                    <span>Estado</span>
-
-                    <select @bind="_selectedStatus">
-                        <option value="">Todos</option>
-                        <option value="Healthy">Healthy</option>
-                        <option value="Warning">Warning</option>
-                        <option value="Critical">Critical</option>
-                        <option value="NoData">Sin datos</option>
-                    </select>
-                </label>
-
-                <label>
-                    <span>Resource Group</span>
-
-                    <select @bind="_selectedResourceGroup">
-                        <option value="">Todos</option>
-
-                        @foreach (var resourceGroup in ResourceGroups)
-                        {
-                            <option value="@resourceGroup">
-                                @resourceGroup
-                            </option>
-                        }
-                    </select>
-                </label>
-
-                <div class="vm-filter-result">
-                    @FilteredMetrics.Count recurso(s)
-                </div>
-
-            </div>
-
-            @if (FilteredMetrics.Count == 0)
+            @if (_metrics.Count == 0)
             {
                 <div class="vm-empty-table">
                     <div>📭</div>
 
-                    <strong>
-                        Sin resultados
-                    </strong>
+                    <strong>Sin métricas disponibles</strong>
 
                     <span>
-                        No existen métricas que coincidan con los filtros.
+                        No existen datos para el período seleccionado.
                     </span>
                 </div>
             }
@@ -263,7 +194,7 @@
 
                         <tbody>
 
-                            @foreach (var metric in FilteredMetrics)
+                            @foreach (var metric in _metrics)
                             {
                                 <tr>
                                     <td>
@@ -276,21 +207,15 @@
                                     <td>@FormatPercent(metric.CpuPromedio)</td>
                                     <td>@FormatPercent(metric.CpuMaximo)</td>
                                     <td>@FormatPercent(metric.CpuP95)</td>
-
                                     <td>@FormatPercent(metric.MemoriaPromedio)</td>
                                     <td>@FormatPercent(metric.MemoriaMaxima)</td>
                                     <td>@FormatPercent(metric.MemoriaP95)</td>
-
-                                    <td>
-                                        @FormatPercent(
-                                            metric.DisponibilidadPromedio)
-                                    </td>
-
+                                    <td>@FormatPercent(metric.DisponibilidadPromedio)</td>
                                     <td>@metric.DiasConDatos</td>
 
                                     <td>
                                         <span class="@GetStatusClass(metric.VMStatus)">
-                                            ● @GetStatusText(metric.VMStatus)
+                                            @metric.VMStatus
                                         </span>
                                     </td>
 
@@ -337,30 +262,9 @@
 
     private string? _errorMessage;
 
-    private string _searchText = string.Empty;
-
-    private string _selectedStatus = string.Empty;
-
-    private string _selectedResourceGroup = string.Empty;
-
     private int _selectedDays = 7;
 
     private bool _isLoading;
-
-    private List<ClientVmMetricModel> FilteredMetrics =>
-        _metrics
-            .Where(MatchesSearch)
-            .Where(MatchesStatus)
-            .Where(MatchesResourceGroup)
-            .ToList();
-
-    private IReadOnlyList<string> ResourceGroups =>
-        _metrics
-            .Select(row => row.ResourceGroup)
-            .Where(value => !string.IsNullOrWhiteSpace(value))
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .OrderBy(value => value)
-            .ToList();
 
     protected override async Task OnParametersSetAsync()
     {
@@ -386,8 +290,6 @@
         _loadedSubscriptionId =
             normalizedSubscriptionId;
 
-        ClearFilters();
-
         await LoadMetricsAsync();
     }
 
@@ -399,8 +301,6 @@
         }
 
         _selectedDays = days;
-
-        ClearFilters();
 
         await LoadMetricsAsync();
     }
@@ -414,11 +314,8 @@
 
         _isLoading = true;
         _errorMessage = null;
-
         _metrics.Clear();
-
-        _summary =
-            new ClientVmMetricsSummary();
+        _summary = new ClientVmMetricsSummary();
 
         try
         {
@@ -444,91 +341,6 @@
         }
     }
 
-    private async Task DownloadExcelAsync()
-    {
-        if (_metrics.Count == 0)
-        {
-            return;
-        }
-
-        try
-        {
-            var fileBytes =
-                ExcelService.GenerateVmMetricsWorkbook(
-                    CustomerName ?? string.Empty,
-                    SubscriptionName ?? string.Empty,
-                    _selectedDays,
-                    _summary,
-                    FilteredMetrics);
-
-            var base64 =
-                Convert.ToBase64String(fileBytes);
-
-            var safeSubscription =
-                SanitizeFileName(
-                    SubscriptionName ?? "suscripcion");
-
-            var fileName =
-                $"Metricas-VM-{safeSubscription}-{_selectedDays}dias-{DateTime.Now:yyyyMMdd-HHmmss}.xlsx";
-
-            await JSRuntime.InvokeVoidAsync(
-                "itqsDownloadBase64File",
-                fileName,
-                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                base64);
-        }
-        catch (Exception exception)
-        {
-            _errorMessage =
-                $"No fue posible generar el Excel: {exception.Message}";
-        }
-    }
-
-    private bool MatchesSearch(
-        ClientVmMetricModel metric)
-    {
-        if (string.IsNullOrWhiteSpace(_searchText))
-        {
-            return true;
-        }
-
-        return metric.Computer.Contains(
-                   _searchText,
-                   StringComparison.OrdinalIgnoreCase)
-               ||
-               metric.ResourceGroup.Contains(
-                   _searchText,
-                   StringComparison.OrdinalIgnoreCase);
-    }
-
-    private bool MatchesStatus(
-        ClientVmMetricModel metric)
-    {
-        return string.IsNullOrWhiteSpace(_selectedStatus)
-               ||
-               metric.EstadoNormalizado.Equals(
-                   _selectedStatus,
-                   StringComparison.OrdinalIgnoreCase);
-    }
-
-    private bool MatchesResourceGroup(
-        ClientVmMetricModel metric)
-    {
-        return string.IsNullOrWhiteSpace(
-                   _selectedResourceGroup)
-               ||
-               metric.ResourceGroup.Equals(
-                   _selectedResourceGroup,
-                   StringComparison.OrdinalIgnoreCase);
-    }
-
-    private void ClearFilters()
-    {
-        _searchText = string.Empty;
-        _selectedStatus = string.Empty;
-        _selectedResourceGroup = string.Empty;
-    }
-
     private string GetPeriodButtonClass(int period)
     {
         return period == _selectedDays
@@ -541,17 +353,6 @@
         return value.HasValue
             ? $"{value.Value:N2}%"
             : "—";
-    }
-
-    private static string GetStatusText(string? status)
-    {
-        return status?.Trim().ToLowerInvariant() switch
-        {
-            "healthy" => "Healthy",
-            "warning" => "Warning",
-            "critical" => "Critical",
-            _ => "Sin datos"
-        };
     }
 
     private static string GetStatusClass(string? status)
@@ -570,18 +371,5 @@
             _ =>
                 "vm-status-badge vm-status-nodata"
         };
-    }
-
-    private static string SanitizeFileName(string value)
-    {
-        var invalidCharacters =
-            Path.GetInvalidFileNameChars();
-
-        return string.Concat(
-            value.Select(
-                character =>
-                    invalidCharacters.Contains(character)
-                        ? '-'
-                        : character));
     }
 }

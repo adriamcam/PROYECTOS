@@ -19,6 +19,4 @@ public sealed class ClientVmMetricsSummary
     public int Warning { get; set; }
 
     public int Critical { get; set; }
-
-    public int NoData { get; set; }
 }

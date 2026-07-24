@@ -45,18 +45,11 @@ public sealed class ClientVmMetricModel
     public string Recomendacion { get; set; } = string.Empty;
 
     public bool SinDatos =>
-        !CpuPromedio.HasValue &&
-        !MemoriaPromedio.HasValue &&
-        !DisponibilidadPromedio.HasValue;
+        DiasConDatos <= 0;
 
     public bool TieneRecomendacion =>
         !string.IsNullOrWhiteSpace(Recomendacion) &&
-        !Recomendacion.StartsWith(
+        !Recomendacion.Equals(
             "Sin recomendación",
             StringComparison.OrdinalIgnoreCase);
-
-    public string EstadoNormalizado =>
-        string.IsNullOrWhiteSpace(VMStatus)
-            ? "NoData"
-            : VMStatus.Trim();
 }

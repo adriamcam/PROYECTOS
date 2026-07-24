@@ -1,8 +1,8 @@
-window.itqsDownloadBase64File = (
+window.itqsDownloadBase64File = function (
     fileName,
     contentType,
-    base64Data
-) => {
+    base64Data) {
+
     const link = document.createElement("a");
 
     link.download = fileName;
