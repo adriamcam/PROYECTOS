@@ -139,7 +139,7 @@ public sealed class AppRegistrationNotificationService : IAppRegistrationNotific
 
       <p style='margin-top:24px;'>
         <a href='{portalUrl}' style='background:#2563eb;color:white;text-decoration:none;padding:12px 18px;border-radius:10px;font-weight:700;display:inline-block;'>
-          Abrir Support Operations Center
+          Abrir Support
         </a>
       </p>
     </div>
