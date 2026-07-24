@@ -356,7 +356,13 @@
                     SubscriptionId))
                 .ToList();
 
-            VisibleColumns = GetVisibleColumns();
+            VisibleColumns =
+                Rows
+                    .SelectMany(row => row.Keys)
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .Where(IsVisibleColumn)
+                    .Take(30)
+                    .ToList();
         }
         catch (Exception ex)
         {
@@ -464,243 +470,6 @@
         }
     }
 
-    private static readonly IReadOnlyDictionary<string, string[]>
-        ColumnsByResourceSubType =
-            new Dictionary<string, string[]>(
-                StringComparer.OrdinalIgnoreCase)
-            {
-                ["Application Gateway"] =
-                [
-                    "IsActive",
-                    "CustomerName",
-                    "SubscriptionName",
-                    "ResourceGroupName",
-                    "ResourceName",
-                    "Location",
-                    "ProvisioningState",
-                    "OperationalState",
-                    "SkuName",
-                    "SkuTier",
-                    "SkuCapacity",
-                    "VirtualNetworkName",
-                    "SubnetName"
-                ],
-
-                ["App Service"] =
-                [
-                    "IsActive",
-                    "CustomerName",
-                    "SubscriptionName",
-                    "ResourceGroupName",
-                    "ResourceName",
-                    "Location",
-                    "ProvisioningState",
-                    "OperationalState",
-                    "AppType",
-                    "AppServicePlanName",
-                    "PlatformVersion",
-                    "SkuName",
-                    "SkuTier",
-                    "PricingTier"
-                ],
-
-                ["Azure Function"] =
-                [
-                    "IsActive",
-                    "CustomerName",
-                    "SubscriptionName",
-                    "ResourceGroupName",
-                    "ResourceName",
-                    "Location",
-                    "ProvisioningState",
-                    "OperationalState",
-                    "AppType",
-                    "AppServicePlanName",
-                    "PlatformVersion",
-                    "SkuName",
-                    "SkuTier",
-                    "PricingTier"
-                ],
-
-                ["Azure SQL Database"] =
-                [
-                    "IsActive",
-                    "CustomerName",
-                    "SubscriptionName",
-                    "ResourceGroupName",
-                    "ResourceName",
-                    "ServerName",
-                    "Location",
-                    "ProvisioningState",
-                    "OperationalState",
-                    "DatabaseEngine",
-                    "DatabaseVersion",
-                    "SkuName",
-                    "SkuTier",
-                    "SkuCapacity",
-                    "PricingTier"
-                ],
-
-                ["SQL Managed Instance"] =
-                [
-                    "IsActive",
-                    "CustomerName",
-                    "SubscriptionName",
-                    "ResourceGroupName",
-                    "ResourceName",
-                    "Location",
-                    "ProvisioningState",
-                    "OperationalState",
-                    "DatabaseEngine",
-                    "DatabaseVersion",
-                    "SkuName",
-                    "SkuTier",
-                    "SkuCapacity",
-                    "VirtualNetworkName",
-                    "SubnetName"
-                ],
-
-                ["PostgreSQL Flexible Server"] =
-                [
-                    "IsActive",
-                    "CustomerName",
-                    "SubscriptionName",
-                    "ResourceGroupName",
-                    "ResourceName",
-                    "ServerName",
-                    "Location",
-                    "ProvisioningState",
-                    "OperationalState",
-                    "DatabaseEngine",
-                    "DatabaseVersion",
-                    "SkuName",
-                    "SkuTier",
-                    "StorageGB"
-                ],
-
-                ["Azure Cosmos DB"] =
-                [
-                    "IsActive",
-                    "CustomerName",
-                    "SubscriptionName",
-                    "ResourceGroupName",
-                    "ResourceName",
-                    "Location",
-                    "ProvisioningState",
-                    "OperationalState",
-                    "DatabaseEngine",
-                    "DatabaseVersion",
-                    "SkuName",
-                    "PricingTier",
-                    "WriteRegions",
-                    "ReadRegions"
-                ],
-
-                ["API Management"] =
-                [
-                    "IsActive",
-                    "CustomerName",
-                    "SubscriptionName",
-                    "ResourceGroupName",
-                    "ResourceName",
-                    "Location",
-                    "ProvisioningState",
-                    "OperationalState",
-                    "SkuName",
-                    "SkuTier",
-                    "SkuCapacity",
-                    "PricingTier",
-                    "PlatformVersion"
-                ],
-
-                ["Azure Container Registry"] =
-                [
-                    "IsActive",
-                    "CustomerName",
-                    "SubscriptionName",
-                    "ResourceGroupName",
-                    "ResourceName",
-                    "Location",
-                    "ProvisioningState",
-                    "OperationalState",
-                    "SkuName",
-                    "SkuTier",
-                    "PricingTier"
-                ],
-
-                ["Azure Data Factory"] =
-                [
-                    "IsActive",
-                    "CustomerName",
-                    "SubscriptionName",
-                    "ResourceGroupName",
-                    "ResourceName",
-                    "Location",
-                    "ProvisioningState",
-                    "OperationalState",
-                    "PlatformVersion"
-                ],
-
-                ["Azure Fabric Capacity"] =
-                [
-                    "IsActive",
-                    "CustomerName",
-                    "SubscriptionName",
-                    "ResourceGroupName",
-                    "ResourceName",
-                    "Location",
-                    "ProvisioningState",
-                    "OperationalState",
-                    "SkuName",
-                    "SkuTier",
-                    "SkuCapacity",
-                    "PricingTier"
-                ],
-
-                ["Redis Enterprise"] =
-                [
-                    "IsActive",
-                    "CustomerName",
-                    "SubscriptionName",
-                    "ResourceGroupName",
-                    "ResourceName",
-                    "Location",
-                    "ProvisioningState",
-                    "OperationalState",
-                    "SkuName",
-                    "SkuTier",
-                    "SkuCapacity",
-                    "PricingTier",
-                    "DatabaseVersion"
-                ]
-            };
-
-    private List<string> GetVisibleColumns()
-    {
-        var availableColumns =
-            Rows
-                .SelectMany(row => row.Keys)
-                .Distinct(StringComparer.OrdinalIgnoreCase)
-                .ToHashSet(StringComparer.OrdinalIgnoreCase);
-
-        var resourceSubType = Module?.ResourceSubType;
-
-        if (!string.IsNullOrWhiteSpace(resourceSubType)
-            &&
-            ColumnsByResourceSubType.TryGetValue(
-                resourceSubType,
-                out var configuredColumns))
-        {
-            return configuredColumns
-                .Where(availableColumns.Contains)
-                .ToList();
-        }
-
-        return availableColumns
-            .Where(IsVisibleColumn)
-            .Take(30)
-            .ToList();
-    }
     private static bool IsVisibleColumn(string column)
     {
         var hiddenColumns = new HashSet<string>(
@@ -784,7 +553,6 @@
         return value;
     }
 }
-
 
 
 
