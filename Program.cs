@@ -19,7 +19,8 @@ using ITQS.SupportOperationsCenter.Models.Administration.AppRegistrations;
 using ITQS.SupportOperationsCenter.Models.Administration.GdapAdminLinks;
 using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
-
+
+using ITQS.SupportOperationsCenter.Components.Clients.ClientsWorkspace.Services.Metrics;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services
@@ -113,6 +114,7 @@ builder.Services.AddScoped<IPalmService, PalmService>();
 
 builder.Services.AddScoped<ITQS.SupportOperationsCenter.Components.Clients.ClientsWorkspace.Services.Infrastructure.VirtualMachineService>();
 builder.Services.AddScoped<AzureInventoryCatalogService>();
+builder.Services.AddScoped<AzureMetricsCatalogService>();
 var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())
@@ -134,6 +136,7 @@ app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
 app.Run();
+
 
 
 

@@ -1,0 +1,59 @@
+namespace ITQS.SupportOperationsCenter.Components.Clients.ClientsWorkspace.Models.Metrics;
+
+public sealed class AzureMetricsModule
+{
+    public string CustomerName { get; set; } = string.Empty;
+
+    public Guid TenantId { get; set; }
+
+    public Guid SubscriptionId { get; set; }
+
+    public string SubscriptionName { get; set; } = string.Empty;
+
+    public string ModuleKey { get; set; } = string.Empty;
+
+    public string ResourceType { get; set; } = string.Empty;
+
+    public string DisplayName { get; set; } = string.Empty;
+
+    public int ResourceCount { get; set; }
+
+    public bool IsEnabled { get; set; }
+
+    public int DisplayOrder { get; set; }
+
+    public string Icon => ModuleKey switch
+    {
+        "virtual-machines" => "🖥️",
+        "storage-accounts" => "💾",
+        "app-services" => "🌐",
+        "sql-databases" => "🗄️",
+        "networking" => "🌐",
+        "recovery-services" => "🛡️",
+        _ => "📊"
+    };
+
+    public string Description => ModuleKey switch
+    {
+        "virtual-machines" =>
+            "CPU, memoria, disponibilidad, discos y recomendaciones.",
+
+        "storage-accounts" =>
+            "Capacidad, transacciones, tráfico, disponibilidad y latencia.",
+
+        "app-services" =>
+            "Solicitudes, errores, tiempo de respuesta, CPU y memoria.",
+
+        "sql-databases" =>
+            "CPU, DTU, almacenamiento, sesiones y rendimiento.",
+
+        "networking" =>
+            "Tráfico, conectividad, paquetes y latencia.",
+
+        "recovery-services" =>
+            "Estado de respaldos, duración y cumplimiento.",
+
+        _ =>
+            "Métricas de rendimiento y disponibilidad del recurso."
+    };
+}
